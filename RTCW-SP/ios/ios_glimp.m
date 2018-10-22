@@ -16,9 +16,9 @@
 //#import "Q3ScreenView.h"
 //#import "BebenTvViewController.h"
 #if TARGET_OS_TV
-#import "Quake3_tvOS-Swift.h"
+#import "RTCW_SP_tvOS-Swift.h"
 #else
-#import "Quake3_iOS-Swift.h"
+#import "RTCW_SP_iOS-Swift.h"
 #endif
 #define MAX_ARRAY_SIZE      1024
 

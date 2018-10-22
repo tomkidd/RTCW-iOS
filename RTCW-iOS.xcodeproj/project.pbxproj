@@ -930,7 +930,7 @@
 		A151039E210D50D40087EA86 /* dpquake.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = dpquake.ttf; sourceTree = "<group>"; };
 		A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiersListViewController.swift; sourceTree = "<group>"; };
 		A15103A6210D76F50087EA86 /* DifficultyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DifficultyViewController.swift; sourceTree = "<group>"; };
-		A1565FDA2109F30E00FA9BC9 /* Quake3-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Quake3-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1565FDA2109F30E00FA9BC9 /* RTCW-SP-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-SP-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_iOS.a; path = Quake3/libs/ios/libcurl_iOS.a; sourceTree = "<group>"; };
 		A1565FE1210A0D3E00FA9BC9 /* libcurl_tvOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_tvOS.a; path = Quake3/libs/tvos/libcurl_tvOS.a; sourceTree = "<group>"; };
 		A1565FE6210A0E4A00FA9BC9 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = Quake3/libs/ios/libssl.a; sourceTree = "<group>"; };
@@ -942,7 +942,7 @@
 		A15AA921211A68E900DE867F /* ServerListViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ServerListViewCell.xib; sourceTree = "<group>"; };
 		A15AA924211B43A400DE867F /* OptionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsViewController.swift; sourceTree = "<group>"; };
 		A15AA929211B470200DE867F /* MainMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuViewController.swift; sourceTree = "<group>"; };
-		A179BFE3210142FA00D3C611 /* Quake3-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Quake3-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A179BFE3210142FA00D3C611 /* RTCW-SP-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-SP-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A179BFE6210142FA00D3C611 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A179BFE8210142FA00D3C611 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		A179BFEB210142FA00D3C611 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -1452,9 +1452,9 @@
 		A1902E9021029767008823BB /* ios_qgl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ios_qgl.h; sourceTree = "<group>"; };
 		A1902E982103EFC7008823BB /* bridging.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bridging.h; sourceTree = "<group>"; };
 		A1902E9A21075F1C008823BB /* baseq3 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = baseq3; path = ../../../Dropbox/Files/quake3/baseq3; sourceTree = "<group>"; };
-		A1902F562108237E008823BB /* Quake3-iOS Simulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Quake3-iOS Simulator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1902F562108237E008823BB /* RTCW-SP-iOS Simulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-SP-iOS Simulator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1902F582108B4E4008823BB /* MFiGameController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MFiGameController.swift; sourceTree = "<group>"; };
-		A1902F5F210939B9008823BB /* Quake3-tvOS Simulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Quake3-tvOS Simulator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1902F5F210939B9008823BB /* RTCW-SP-tvOS Simulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-SP-tvOS Simulator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1902F61210939BA008823BB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A1902F63210939BA008823BB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		A1902F66210939BA008823BB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -1567,9 +1567,9 @@
 			isa = PBXGroup;
 			children = (
 				A1902E9A21075F1C008823BB /* baseq3 */,
-				A179BFFA210146BF00D3C611 /* Quake3 */,
-				A179BFE5210142FA00D3C611 /* Quake3-iOS */,
-				A1902F60210939BA008823BB /* Quake3-tvOS */,
+				A179BFFA210146BF00D3C611 /* RTCW-SP */,
+				A179BFE5210142FA00D3C611 /* RTCW-SP-iOS */,
+				A1902F60210939BA008823BB /* RTCW-SP-tvOS */,
 				A179C4AD2101853600D3C611 /* Frameworks */,
 				A179BFE4210142FA00D3C611 /* Products */,
 			);
@@ -1578,15 +1578,15 @@
 		A179BFE4210142FA00D3C611 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A179BFE3210142FA00D3C611 /* Quake3-iOS.app */,
-				A1902F562108237E008823BB /* Quake3-iOS Simulator.app */,
-				A1902F5F210939B9008823BB /* Quake3-tvOS Simulator.app */,
-				A1565FDA2109F30E00FA9BC9 /* Quake3-tvOS.app */,
+				A179BFE3210142FA00D3C611 /* RTCW-SP-iOS.app */,
+				A1902F562108237E008823BB /* RTCW-SP-iOS Simulator.app */,
+				A1902F5F210939B9008823BB /* RTCW-SP-tvOS Simulator.app */,
+				A1565FDA2109F30E00FA9BC9 /* RTCW-SP-tvOS.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A179BFE5210142FA00D3C611 /* Quake3-iOS */ = {
+		A179BFE5210142FA00D3C611 /* RTCW-SP-iOS */ = {
 			isa = PBXGroup;
 			children = (
 				A179BFE6210142FA00D3C611 /* AppDelegate.swift */,
@@ -1611,10 +1611,10 @@
 				A196B6E221167B890031CEB8 /* ServerListViewCell.xib */,
 				A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */,
 			);
-			path = "Quake3-iOS";
+			path = "RTCW-SP-iOS";
 			sourceTree = "<group>";
 		};
-		A179BFFA210146BF00D3C611 /* Quake3 */ = {
+		A179BFFA210146BF00D3C611 /* RTCW-SP */ = {
 			isa = PBXGroup;
 			children = (
 				A179C1B22101472C00D3C611 /* AL */,
@@ -1636,7 +1636,7 @@
 				A179C0AE2101471000D3C611 /* ui */,
 				A179C2822101472E00D3C611 /* zlib */,
 			);
-			path = Quake3;
+			path = "RTCW-SP";
 			sourceTree = "<group>";
 		};
 		A179BFFB2101470F00D3C611 /* cgame */ = {
@@ -2331,7 +2331,7 @@
 			path = ios;
 			sourceTree = "<group>";
 		};
-		A1902F60210939BA008823BB /* Quake3-tvOS */ = {
+		A1902F60210939BA008823BB /* RTCW-SP-tvOS */ = {
 			isa = PBXGroup;
 			children = (
 				A1902F61210939BA008823BB /* AppDelegate.swift */,
@@ -2341,7 +2341,7 @@
 				A1902F6A210939BC008823BB /* Info.plist */,
 				A15AA921211A68E900DE867F /* ServerListViewCell.xib */,
 			);
-			path = "Quake3-tvOS";
+			path = "RTCW-SP-tvOS";
 			sourceTree = "<group>";
 		};
 		A196B68A2115F7A10031CEB8 /* ServerBrowser */ = {
@@ -2464,9 +2464,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A1565F212109F30E00FA9BC9 /* Quake3-tvOS */ = {
+		A1565F212109F30E00FA9BC9 /* RTCW-SP-tvOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A1565FD72109F30E00FA9BC9 /* Build configuration list for PBXNativeTarget "Quake3-tvOS" */;
+			buildConfigurationList = A1565FD72109F30E00FA9BC9 /* Build configuration list for PBXNativeTarget "RTCW-SP-tvOS" */;
 			buildPhases = (
 				A1565F222109F30E00FA9BC9 /* Sources */,
 				A1565FCF2109F30E00FA9BC9 /* Frameworks */,
@@ -2477,14 +2477,14 @@
 			);
 			dependencies = (
 			);
-			name = "Quake3-tvOS";
+			name = "RTCW-SP-tvOS";
 			productName = "Quake3-tvOS";
-			productReference = A1565FDA2109F30E00FA9BC9 /* Quake3-tvOS.app */;
+			productReference = A1565FDA2109F30E00FA9BC9 /* RTCW-SP-tvOS.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A179BFE2210142F900D3C611 /* Quake3-iOS */ = {
+		A179BFE2210142F900D3C611 /* RTCW-SP-iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A179BFF5210142FB00D3C611 /* Build configuration list for PBXNativeTarget "Quake3-iOS" */;
+			buildConfigurationList = A179BFF5210142FB00D3C611 /* Build configuration list for PBXNativeTarget "RTCW-SP-iOS" */;
 			buildPhases = (
 				A179BFDF210142F900D3C611 /* Sources */,
 				A179BFE0210142F900D3C611 /* Frameworks */,
@@ -2495,14 +2495,14 @@
 			);
 			dependencies = (
 			);
-			name = "Quake3-iOS";
+			name = "RTCW-SP-iOS";
 			productName = "Quake3-iOS11";
-			productReference = A179BFE3210142FA00D3C611 /* Quake3-iOS.app */;
+			productReference = A179BFE3210142FA00D3C611 /* RTCW-SP-iOS.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A1902E9E2108237E008823BB /* Quake3-iOS Simulator */ = {
+		A1902E9E2108237E008823BB /* RTCW-SP-iOS Simulator */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A1902F532108237E008823BB /* Build configuration list for PBXNativeTarget "Quake3-iOS Simulator" */;
+			buildConfigurationList = A1902F532108237E008823BB /* Build configuration list for PBXNativeTarget "RTCW-SP-iOS Simulator" */;
 			buildPhases = (
 				A1902E9F2108237E008823BB /* Sources */,
 				A1902F4A2108237E008823BB /* Frameworks */,
@@ -2513,14 +2513,14 @@
 			);
 			dependencies = (
 			);
-			name = "Quake3-iOS Simulator";
+			name = "RTCW-SP-iOS Simulator";
 			productName = "Quake3-iOS11";
-			productReference = A1902F562108237E008823BB /* Quake3-iOS Simulator.app */;
+			productReference = A1902F562108237E008823BB /* RTCW-SP-iOS Simulator.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A1902F5E210939B9008823BB /* Quake3-tvOS Simulator */ = {
+		A1902F5E210939B9008823BB /* RTCW-SP-tvOS Simulator */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A1902F6B210939BC008823BB /* Build configuration list for PBXNativeTarget "Quake3-tvOS Simulator" */;
+			buildConfigurationList = A1902F6B210939BC008823BB /* Build configuration list for PBXNativeTarget "RTCW-SP-tvOS Simulator" */;
 			buildPhases = (
 				A1902F5B210939B9008823BB /* Sources */,
 				A1902F5C210939B9008823BB /* Frameworks */,
@@ -2531,9 +2531,9 @@
 			);
 			dependencies = (
 			);
-			name = "Quake3-tvOS Simulator";
+			name = "RTCW-SP-tvOS Simulator";
 			productName = "Quake3-tvOS";
-			productReference = A1902F5F210939B9008823BB /* Quake3-tvOS Simulator.app */;
+			productReference = A1902F5F210939B9008823BB /* RTCW-SP-tvOS Simulator.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -2561,7 +2561,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A179BFDE210142F900D3C611 /* Build configuration list for PBXProject "Quake3-iOS" */;
+			buildConfigurationList = A179BFDE210142F900D3C611 /* Build configuration list for PBXProject "RTCW-iOS" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -2574,10 +2574,10 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A179BFE2210142F900D3C611 /* Quake3-iOS */,
-				A1902E9E2108237E008823BB /* Quake3-iOS Simulator */,
-				A1565F212109F30E00FA9BC9 /* Quake3-tvOS */,
-				A1902F5E210939B9008823BB /* Quake3-tvOS Simulator */,
+				A179BFE2210142F900D3C611 /* RTCW-SP-iOS */,
+				A1902E9E2108237E008823BB /* RTCW-SP-iOS Simulator */,
+				A1565F212109F30E00FA9BC9 /* RTCW-SP-tvOS */,
+				A1902F5E210939B9008823BB /* RTCW-SP-tvOS Simulator */,
 			);
 		};
 /* End PBXProject section */
@@ -3518,16 +3518,16 @@
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				INFOPLIST_FILE = "Quake3-tvOS/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/RTCW-SP-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Quake3/libs/tvos";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.Quake3-tvOS";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/RTCW-SP/libs/tvos";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.RTCW-SP-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
-				SWIFT_OBJC_BRIDGING_HEADER = "Quake3-iOS/bridging.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 11.4;
@@ -3557,16 +3557,16 @@
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				INFOPLIST_FILE = "Quake3-tvOS/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/RTCW-SP-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Quake3/libs/tvos";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.Quake3-tvOS";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/RTCW-SP/libs/tvos";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.RTCW-SP-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
-				SWIFT_OBJC_BRIDGING_HEADER = "Quake3-iOS/bridging.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 11.4;
@@ -3709,18 +3709,18 @@
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				INFOPLIST_FILE = "Quake3-iOS/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/RTCW-SP-iOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Quake3/libs/ios",
+					"$(PROJECT_DIR)/RTCW-SP/libs/ios",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.Quake3-iOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.RTCW-SP-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "Quake3-iOS/bridging.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -3749,18 +3749,18 @@
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				INFOPLIST_FILE = "Quake3-iOS/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/RTCW-SP-iOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Quake3/libs/ios",
+					"$(PROJECT_DIR)/RTCW-SP/libs/ios",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.Quake3-iOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.RTCW-SP-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "Quake3-iOS/bridging.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -3788,19 +3788,19 @@
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				INFOPLIST_FILE = "Quake3-iOS/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/RTCW-SP-iOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Quake3/libs/ios",
+					"$(PROJECT_DIR)/RTCW-SP/libs/ios",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.Quake3-iOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.RTCW-SP-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "Quake3-iOS/bridging.h";
-				SWIFT_OBJC_INTERFACE_HEADER_NAME = "Quake3_iOS-Swift.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "RTCW_SP_iOS-Swift.h";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -3829,19 +3829,19 @@
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				INFOPLIST_FILE = "Quake3-iOS/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/RTCW-SP-iOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Quake3/libs/ios",
+					"$(PROJECT_DIR)/RTCW-SP/libs/ios",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.Quake3-iOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.RTCW-SP-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "Quake3-iOS/bridging.h";
-				SWIFT_OBJC_INTERFACE_HEADER_NAME = "Quake3_iOS-Swift.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "RTCW_SP_iOS-Swift.h";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -3869,17 +3869,17 @@
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				INFOPLIST_FILE = "Quake3-tvOS/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/RTCW-SP-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Quake3/libs/tvos";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.Quake3-tvOS";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/RTCW-SP/libs/tvos";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.RTCW-SP-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
-				SWIFT_OBJC_BRIDGING_HEADER = "Quake3-iOS/bridging.h";
-				SWIFT_OBJC_INTERFACE_HEADER_NAME = "Quake3_tvOS-Swift.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "RTCW_SP_tvOS-Swift.h";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 11.4;
@@ -3909,17 +3909,17 @@
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				INFOPLIST_FILE = "Quake3-tvOS/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/RTCW-SP-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Quake3/libs/tvos";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.Quake3-tvOS";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/RTCW-SP/libs/tvos";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.RTCW-SP-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
-				SWIFT_OBJC_BRIDGING_HEADER = "Quake3-iOS/bridging.h";
-				SWIFT_OBJC_INTERFACE_HEADER_NAME = "Quake3_tvOS-Swift.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "RTCW_SP_tvOS-Swift.h";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 11.4;
@@ -3929,7 +3929,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A1565FD72109F30E00FA9BC9 /* Build configuration list for PBXNativeTarget "Quake3-tvOS" */ = {
+		A1565FD72109F30E00FA9BC9 /* Build configuration list for PBXNativeTarget "RTCW-SP-tvOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1565FD82109F30E00FA9BC9 /* Debug */,
@@ -3938,7 +3938,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A179BFDE210142F900D3C611 /* Build configuration list for PBXProject "Quake3-iOS" */ = {
+		A179BFDE210142F900D3C611 /* Build configuration list for PBXProject "RTCW-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A179BFF3210142FB00D3C611 /* Debug */,
@@ -3947,7 +3947,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A179BFF5210142FB00D3C611 /* Build configuration list for PBXNativeTarget "Quake3-iOS" */ = {
+		A179BFF5210142FB00D3C611 /* Build configuration list for PBXNativeTarget "RTCW-SP-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A179BFF6210142FB00D3C611 /* Debug */,
@@ -3956,7 +3956,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A1902F532108237E008823BB /* Build configuration list for PBXNativeTarget "Quake3-iOS Simulator" */ = {
+		A1902F532108237E008823BB /* Build configuration list for PBXNativeTarget "RTCW-SP-iOS Simulator" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1902F542108237E008823BB /* Debug */,
@@ -3965,7 +3965,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A1902F6B210939BC008823BB /* Build configuration list for PBXNativeTarget "Quake3-tvOS Simulator" */ = {
+		A1902F6B210939BC008823BB /* Build configuration list for PBXNativeTarget "RTCW-SP-tvOS Simulator" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1902F6C210939BC008823BB /* Debug */,

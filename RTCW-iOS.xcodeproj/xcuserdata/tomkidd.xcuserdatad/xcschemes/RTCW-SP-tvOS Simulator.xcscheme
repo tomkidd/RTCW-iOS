@@ -33,9 +33,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A1902F5E210939B9008823BB"
-            BuildableName = "Quake3-tvOS Simulator.app"
-            BlueprintName = "Quake3-tvOS Simulator"
-            ReferencedContainer = "container:Quake3-iOS.xcodeproj">
+            BuildableName = "RTCW-SP-tvOS Simulator.app"
+            BlueprintName = "RTCW-SP-tvOS Simulator"
+            ReferencedContainer = "container:RTCW-iOS.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -56,9 +56,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A1902F5E210939B9008823BB"
-            BuildableName = "Quake3-tvOS Simulator.app"
-            BlueprintName = "Quake3-tvOS Simulator"
-            ReferencedContainer = "container:Quake3-iOS.xcodeproj">
+            BuildableName = "RTCW-SP-tvOS Simulator.app"
+            BlueprintName = "RTCW-SP-tvOS Simulator"
+            ReferencedContainer = "container:RTCW-iOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>

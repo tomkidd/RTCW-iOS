@@ -33,9 +33,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A179BFE2210142F900D3C611"
-            BuildableName = "Quake3-iOS.app"
-            BlueprintName = "Quake3-iOS"
-            ReferencedContainer = "container:Quake3-iOS.xcodeproj">
+            BuildableName = "RTCW-SP-iOS.app"
+            BlueprintName = "RTCW-SP-iOS"
+            ReferencedContainer = "container:RTCW-iOS.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -56,9 +56,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A179BFE2210142F900D3C611"
-            BuildableName = "Quake3-iOS.app"
-            BlueprintName = "Quake3-iOS"
-            ReferencedContainer = "container:Quake3-iOS.xcodeproj">
+            BuildableName = "RTCW-SP-iOS.app"
+            BlueprintName = "RTCW-SP-iOS"
+            ReferencedContainer = "container:RTCW-iOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>

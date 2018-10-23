@@ -23,10 +23,6 @@
 		A136694B217E885D00E0AC0B /* math_quaternion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366935217E885D00E0AC0B /* math_quaternion.cpp */; };
 		A136694C217E885D00E0AC0B /* math_quaternion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366935217E885D00E0AC0B /* math_quaternion.cpp */; };
 		A136694D217E885D00E0AC0B /* math_quaternion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366935217E885D00E0AC0B /* math_quaternion.cpp */; };
-		A136694E217E885D00E0AC0B /* q_shared.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366936217E885D00E0AC0B /* q_shared.cpp */; };
-		A136694F217E885D00E0AC0B /* q_shared.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366936217E885D00E0AC0B /* q_shared.cpp */; };
-		A1366950217E885D00E0AC0B /* q_shared.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366936217E885D00E0AC0B /* q_shared.cpp */; };
-		A1366951217E885D00E0AC0B /* q_shared.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366936217E885D00E0AC0B /* q_shared.cpp */; };
 		A1366952217E885D00E0AC0B /* math_vector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366939217E885D00E0AC0B /* math_vector.cpp */; };
 		A1366953217E885D00E0AC0B /* math_vector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366939217E885D00E0AC0B /* math_vector.cpp */; };
 		A1366954217E885D00E0AC0B /* math_vector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366939217E885D00E0AC0B /* math_vector.cpp */; };
@@ -91,10 +87,6 @@
 		A13669B8217E89E900E0AC0B /* tr_image_png.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366976217E89E900E0AC0B /* tr_image_png.c */; };
 		A13669B9217E89E900E0AC0B /* tr_image_png.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366976217E89E900E0AC0B /* tr_image_png.c */; };
 		A13669BA217E89E900E0AC0B /* tr_image_png.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366976217E89E900E0AC0B /* tr_image_png.c */; };
-		A13669BB217E89E900E0AC0B /* tr_subs.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366977217E89E900E0AC0B /* tr_subs.c */; };
-		A13669BC217E89E900E0AC0B /* tr_subs.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366977217E89E900E0AC0B /* tr_subs.c */; };
-		A13669BD217E89E900E0AC0B /* tr_subs.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366977217E89E900E0AC0B /* tr_subs.c */; };
-		A13669BE217E89E900E0AC0B /* tr_subs.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366977217E89E900E0AC0B /* tr_subs.c */; };
 		A13669BF217E89E900E0AC0B /* tr_backend.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366978217E89E900E0AC0B /* tr_backend.c */; };
 		A13669C0217E89E900E0AC0B /* tr_backend.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366978217E89E900E0AC0B /* tr_backend.c */; };
 		A13669C1217E89E900E0AC0B /* tr_backend.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366978217E89E900E0AC0B /* tr_backend.c */; };
@@ -2847,7 +2839,6 @@
 				A13669F1217E89E900E0AC0B /* tr_shadows.c in Sources */,
 				A196B7152117F0420031CEB8 /* Q3ServerController.swift in Sources */,
 				A1565F4B2109F30E00FA9BC9 /* cl_scrn.c in Sources */,
-				A13669BD217E89E900E0AC0B /* tr_subs.c in Sources */,
 				A196B71B2117F0420031CEB8 /* String+Q3Name.swift in Sources */,
 				A1565F4C2109F30E00FA9BC9 /* qal.c in Sources */,
 				A1565F4D2109F30E00FA9BC9 /* jutils.c in Sources */,
@@ -2923,7 +2914,6 @@
 				A1565F7F2109F30E00FA9BC9 /* l_memory.c in Sources */,
 				A1565F802109F30E00FA9BC9 /* jccolor.c in Sources */,
 				A1565F812109F30E00FA9BC9 /* q_math.c in Sources */,
-				A1366950217E885D00E0AC0B /* q_shared.cpp in Sources */,
 				A1565F822109F30E00FA9BC9 /* jdcoefct.c in Sources */,
 				A1565F832109F30E00FA9BC9 /* jdpostct.c in Sources */,
 				A1565F842109F30E00FA9BC9 /* ios_glimp.m in Sources */,
@@ -3122,7 +3112,6 @@
 				A179C3042101472E00D3C611 /* jfdctint.c in Sources */,
 				A136695A217E885D00E0AC0B /* math_angles.cpp in Sources */,
 				A196B6B52115F7C50031CEB8 /* GSServerController.swift in Sources */,
-				A13669BB217E89E900E0AC0B /* tr_subs.c in Sources */,
 				A179C34F2101472E00D3C611 /* cl_parse.c in Sources */,
 				A179C4AB2101472F00D3C611 /* puff.c in Sources */,
 				A179C2FA2101472E00D3C611 /* jdtrans.c in Sources */,
@@ -3206,7 +3195,6 @@
 				A179C2ED2101472E00D3C611 /* l_memory.c in Sources */,
 				A179C3512101472E00D3C611 /* qal.c in Sources */,
 				A179C2DF2101472E00D3C611 /* be_aas_optimize.c in Sources */,
-				A136694E217E885D00E0AC0B /* q_shared.cpp in Sources */,
 				A179C3662101472E00D3C611 /* sv_client.c in Sources */,
 				A179C3502101472E00D3C611 /* snd_codec.c in Sources */,
 				A179C2E62101472E00D3C611 /* l_log.c in Sources */,
@@ -3320,7 +3308,6 @@
 				A1902EDF2108237E008823BB /* cm_polylib.c in Sources */,
 				A196B6E9211683510031CEB8 /* ServerInfoViewController.swift in Sources */,
 				A13669EC217E89E900E0AC0B /* tr_image_pcx.c in Sources */,
-				A13669BC217E89E900E0AC0B /* tr_subs.c in Sources */,
 				A1902EE02108237E008823BB /* be_aas_sample.c in Sources */,
 				A1902EE12108237E008823BB /* jdmerge.c in Sources */,
 				A13669A0217E89E900E0AC0B /* tr_surface.c in Sources */,
@@ -3328,7 +3315,6 @@
 				A1902EE32108237E008823BB /* jdmarker.c in Sources */,
 				A1902EE42108237E008823BB /* jmemnobs.c in Sources */,
 				A136694B217E885D00E0AC0B /* math_quaternion.cpp in Sources */,
-				A136694F217E885D00E0AC0B /* q_shared.cpp in Sources */,
 				A1902EE52108237E008823BB /* jchuff.c in Sources */,
 				A1902EE72108237E008823BB /* jaricom.c in Sources */,
 				A1902EE82108237E008823BB /* msg.c in Sources */,
@@ -3663,7 +3649,6 @@
 				A1366961217E885D00E0AC0B /* util_str.cpp in Sources */,
 				A190301621093C4C008823BB /* sv_main.c in Sources */,
 				A1902F8B21093B34008823BB /* be_ea.c in Sources */,
-				A1366951217E885D00E0AC0B /* q_shared.cpp in Sources */,
 				A1902FB221093BBE008823BB /* jcarith.c in Sources */,
 				A1902FDE21093BE8008823BB /* cm_patch.c in Sources */,
 				A1902F9A21093B6D008823BB /* cl_keys.c in Sources */,
@@ -3673,7 +3658,6 @@
 				A1902FC121093BBE008823BB /* jdapistd.c in Sources */,
 				A1902F9621093B67008823BB /* cl_cin.c in Sources */,
 				A190301D21093C6B008823BB /* sys_main.c in Sources */,
-				A13669BE217E89E900E0AC0B /* tr_subs.c in Sources */,
 				A1902FC821093BBE008823BB /* jdhuff.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

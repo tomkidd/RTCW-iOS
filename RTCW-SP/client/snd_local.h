@@ -52,11 +52,11 @@ typedef	struct sndBuffer_s {
 typedef struct sfx_s {
 	sndBuffer		*soundData;
 	qboolean		defaultSound;			// couldn't be loaded, so use buzz
-	qboolean		inMemory;				// not in Memory
+	qboolean		inMemory;			// not in Memory
 	qboolean		soundCompressed;		// not in Memory
 	int				soundCompressionMethod;	
 	int 			soundLength;
-	int			soundChannels;
+	int				soundChannels;
 	char 			soundName[MAX_QPATH];
 	int				lastTimeUsed;
 	struct sfx_s	*next;
@@ -64,7 +64,7 @@ typedef struct sfx_s {
 
 typedef struct {
 	int			channels;
-	int			samples;				// mono samples in buffer
+	int			samples;			// mono samples in buffer
 	int			fullsamples;			// samples with all channels in buffer (samples divided by channels)
 	int			submission_chunk;		// don't mix less than this #
 	int			samplebits;
@@ -72,6 +72,8 @@ typedef struct {
 	int			speed;
 	byte		*buffer;
 } dma_t;
+
+extern unsigned char s_entityTalkAmplitude[MAX_CLIENTS];
 
 #define START_SAMPLE_IMMEDIATE	0x7fffffff
 
@@ -82,8 +84,11 @@ typedef struct {
 typedef struct loopSound_s {
 	vec3_t		origin;
 	vec3_t		velocity;
+	float range;            //----(SA)	added
 	sfx_t		*sfx;
 	int			mergeFrame;
+	int vol;
+	qboolean loudUnderWater;    // (SA) set if this sound should be played at full vol even when under water (under water loop sound for ex.)
 	qboolean	active;
 	qboolean	kill;
 	qboolean	doppler;
@@ -107,6 +112,8 @@ typedef struct
 	qboolean	fixed_origin;	// use origin instead of fetching entnum's origin
 	sfx_t		*thesfx;		// sfx structure
 	qboolean	doppler;
+	int flags;                  //----(SA)	added
+	qboolean threadReady;
 	qboolean	fullVolume;
 } channel_t;
 
@@ -128,14 +135,20 @@ typedef struct
 {
 	void (*Shutdown)(void);
 	void (*StartSound)( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx );
+	void (*StartSoundEx)( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, int flags );
 	void (*StartLocalSound)( sfxHandle_t sfx, int channelNum );
 	void (*StartBackgroundTrack)( const char *intro, const char *loop );
 	void (*StopBackgroundTrack)( void );
+	void (*StartStreamingSound)( const char *intro, const char *loop, int entnum, int channel, int attenuation );
+	void (*StopEntStreamingSound)( int entNum );
+	int (*GetVoiceAmplitude)( int entityNum );
+	void (*FadeStreamingSound)( float targetVol, int time, int ssNum );
+	void (*FadeAllSounds)( float targetVol, int time );
 	void (*RawSamples)(int stream, int samples, int rate, int width, int channels, const byte *data, float volume, int entityNum);
 	void (*StopAllSounds)( void );
 	void (*ClearLoopingSounds)( qboolean killall );
-	void (*AddLoopingSound)( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
-	void (*AddRealLoopingSound)( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
+	void (*AddLoopingSound)( int entityNum, const vec3_t origin, const vec3_t velocity, const int range, sfxHandle_t sfx, int volume );
+	void (*AddRealLoopingSound)( int entityNum, const vec3_t origin, const vec3_t velocity, const int range, sfxHandle_t sfx );
 	void (*StopLoopingSound)(int entityNum );
 	void (*Respatialize)( int entityNum, const vec3_t origin, vec3_t axis[3], int inwater );
 	void (*UpdateEntityPosition)( int entityNum, const vec3_t origin );
@@ -200,8 +213,21 @@ extern	vec3_t	listener_right;
 extern	vec3_t	listener_up;
 extern	dma_t	dma;
 
+// Ridah, streaming sounds
+typedef struct {
+	fileHandle_t file;
+	wavinfo_t info;
+	int samples;
+	char loop[MAX_QPATH];
+	int entnum;
+	int channel;
+	int attenuation;
+	qboolean kill;
+} streamingSound_t;
+
 #define	MAX_RAW_SAMPLES	16384
 #define MAX_RAW_STREAMS (MAX_CLIENTS * 2 + 1)
+extern streamingSound_t streamingSounds[MAX_RAW_STREAMS];
 extern	portable_samplepair_t s_rawsamples[MAX_RAW_STREAMS][MAX_RAW_SAMPLES];
 extern	int		s_rawend[MAX_RAW_STREAMS];
 
@@ -269,3 +295,4 @@ qboolean S_AL_Init( soundInterface_t *si );
 #ifdef idppc_altivec
 void S_PaintChannelFrom16_altivec( portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE], int snd_vol, channel_t *ch, const sfx_t *sc, int count, int sampleOffset, int bufferOffset );
 #endif
+

@@ -109,8 +109,9 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         #endif
         
         Sys_SetHomeDir(Bundle.main.resourcePath!)
-        
-        in_strafe.active = qtrue
+
+        // disabled for now -tkidd
+//        in_strafe.active = qtrue
         
         #if os(iOS)
         

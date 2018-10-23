@@ -35,6 +35,7 @@ and one exported function: Perform
 
 #include "vm_local.h"
 
+cvar_t	*vm_minQvmHunkMegs;
 
 vm_t	*currentVM = NULL;
 vm_t	*lastVM    = NULL;
@@ -70,9 +71,12 @@ VM_Init
 ==============
 */
 void VM_Init( void ) {
-	Cvar_Get( "vm_cgame", "2", CVAR_ARCHIVE );	// !@# SHIP WITH SET TO 2
-	Cvar_Get( "vm_game", "2", CVAR_ARCHIVE );	// !@# SHIP WITH SET TO 2
-	Cvar_Get( "vm_ui", "2", CVAR_ARCHIVE );		// !@# SHIP WITH SET TO 2
+	Cvar_Get( "vm_cgame", "0", CVAR_ARCHIVE );	// !@# SHIP WITH SET TO 0
+	Cvar_Get( "vm_game", "0", CVAR_ARCHIVE );	// !@# SHIP WITH SET TO 0
+	Cvar_Get( "vm_ui", "0", CVAR_ARCHIVE );		// !@# SHIP WITH SET TO 0
+
+	vm_minQvmHunkMegs = Cvar_Get( "vm_minQvmHunkMegs", "2", CVAR_ARCHIVE );
+	Cvar_CheckRange( vm_minQvmHunkMegs, 0, 1024, qtrue );
 
 	Cmd_AddCommand ("vmprofile", VM_VmProfile_f );
 	Cmd_AddCommand ("vminfo", VM_VmInfo_f );
@@ -374,7 +378,7 @@ vmHeader_t *VM_LoadQVM( vm_t *vm, qboolean alloc, qboolean unpure)
 	} header;
 
 	// load the image
-	Com_sprintf( filename, sizeof(filename), "vm/%s.qvm", vm->name );
+	Com_sprintf( filename, sizeof(filename), "vm/%s.sp.qvm", vm->name );
 	Com_Printf( "Loading vm file %s...\n", filename );
 
 	FS_ReadFileDir(filename, vm->searchPath, unpure, &header.v);
@@ -444,6 +448,11 @@ vmHeader_t *VM_LoadQVM( vm_t *vm, qboolean alloc, qboolean unpure)
 	// be mask protected
 	dataLength = header.h->dataLength + header.h->litLength +
 		header.h->bssLength;
+
+	vm->heapAlloc = vm->heapLength = dataLength - PROGRAM_STACK_SIZE;
+
+	dataLength += vm_minQvmHunkMegs->integer * 1024 * 1024;
+
 	for ( i = 0 ; dataLength > ( 1 << i ) ; i++ ) {
 	}
 	dataLength = 1 << i;
@@ -616,7 +625,7 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 		
 		if(retval == VMI_NATIVE)
 		{
-			Com_Printf("Try loading dll file %s\n", filename);
+			Com_DPrintf("Try loading dll file %s\n", filename);
 #ifndef IOS
 			vm->dllHandle = Sys_LoadGameDll(filename, &vm->entryPoint, VM_DllSyscall);
 			
@@ -626,7 +635,7 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 				return vm;
 			}
 #endif
-			Com_Printf("Failed loading dll, trying next\n");
+			Com_DPrintf("Failed loading dll, trying next\n");
 		}
 		else if(retval == VMI_COMPILED)
 		{
@@ -680,6 +689,9 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 	// the stack is implicitly at the end of the image
 	vm->programStack = vm->dataMask + 1;
 	vm->stackBottom = vm->programStack - PROGRAM_STACK_SIZE;
+
+	// allocate temporary memory down from the bottom of the stack
+	vm->heapAllocTop = vm->stackBottom;
 
 	Com_Printf("%s loaded in %d bytes on the hunk\n", module, remaining - Hunk_MemoryRemaining());
 
@@ -779,6 +791,9 @@ void *VM_ExplicitArgPtr( vm_t *vm, intptr_t intValue ) {
 	}
 }
 
+qboolean VM_IsNative( vm_t *vm ) {
+	return ( vm && vm->dllHandle );
+}
 
 /*
 ==============
@@ -804,7 +819,7 @@ locals from sp
 ==============
 */
 
-intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
+intptr_t QDECL VM_Call( vm_t *vm, intptr_t callnum, ... )
 {
 	vm_t	*oldVM;
 	intptr_t r;
@@ -818,18 +833,18 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 	lastVM = vm;
 
 	if ( vm_debugLevel ) {
-	  Com_Printf( "VM_Call( %d )\n", callnum );
+	  Com_Printf( "VM_Call( %d )\n", (int)callnum );
 	}
 
 	++vm->callLevel;
 	// if we have a dll loaded, call it directly
 	if ( vm->entryPoint ) {
 		//rcg010207 -  see dissertation at top of VM_DllSyscall() in this file.
-		int args[MAX_VMMAIN_ARGS-1];
+		intptr_t args[MAX_VMMAIN_ARGS-1];
 		va_list ap;
 		va_start(ap, callnum);
 		for (i = 0; i < ARRAY_LEN(args); i++) {
-			args[i] = va_arg(ap, int);
+			args[i] = va_arg(ap, intptr_t);
 		}
 		va_end(ap);
 
@@ -854,7 +869,7 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 		a.callnum = callnum;
 		va_start(ap, callnum);
 		for (i = 0; i < ARRAY_LEN(a.args); i++) {
-			a.args[i] = va_arg(ap, int);
+			a.args[i] = va_arg(ap, intptr_t);
 		}
 		va_end(ap);
 #ifndef NO_VM_COMPILED
@@ -965,6 +980,10 @@ void VM_VmInfo_f( void ) {
 		Com_Printf( "    code length : %7i\n", vm->codeLength );
 		Com_Printf( "    table length: %7i\n", vm->instructionCount*4 );
 		Com_Printf( "    data length : %7i\n", vm->dataMask + 1 );
+		Com_Printf( "    total memory: %7i\n", vm->stackBottom - vm->heapLength );
+		Com_Printf( "    free memory : %7i\n", vm->heapAllocTop - vm->heapAlloc );
+		Com_Printf( "    used permanent memory: %7i\n", vm->heapAlloc - vm->heapLength );
+		Com_Printf( "    used temporary memory: %7i\n", vm->stackBottom - vm->heapAllocTop );
 	}
 }
 
@@ -1008,3 +1027,121 @@ void VM_BlockCopy(unsigned int dest, unsigned int src, size_t n)
 
 	Com_Memcpy(currentVM->dataBase + dest, currentVM->dataBase + src, n);
 }
+
+/*
+=================
+VM_GetTempMemory
+
+Use for passing data for qvms, use VM_ExplicitArgPtr
+to get engine writeable address
+=================
+*/
+unsigned VM_GetTempMemory( vm_t *vm, int size, const void *initData ) {
+	int allocSize;
+
+	if ( vm->dllHandle ) {
+		return 0;
+	}
+
+	// align addresses
+	allocSize = ( size + 31 ) & ~31;
+
+	if ( vm->heapAllocTop - allocSize <= vm->heapAlloc ) {
+		return 0;
+	}
+
+	vm->heapAllocTop -= allocSize;
+
+	if ( initData ) {
+		Com_Memcpy( vm->dataBase + vm->heapAllocTop, initData, size );
+	} else {
+		Com_Memset( vm->dataBase + vm->heapAllocTop, 0, size );
+	}
+
+	return vm->heapAllocTop;
+}
+
+/*
+=================
+VM_FreeTempMemory
+
+Must free temporary memory in reverse order of allocating.
+=================
+*/
+void VM_FreeTempMemory( vm_t *vm, unsigned qvmPointer, int size, void *outData ) {
+	int allocSize;
+
+	if ( vm->dllHandle ) {
+		return;
+	}
+
+	// align addresses
+	allocSize = ( size + 31 ) & ~31;
+
+	if ( vm->heapAllocTop + allocSize > vm->stackBottom ) {
+		Com_Error( ERR_DROP, "Tried to free too much QVM temporary memory!");
+	}
+
+	if ( outData ) {
+		Com_Memcpy( outData, vm->dataBase + vm->heapAllocTop, size );
+	}
+
+	Com_Memset( vm->dataBase + vm->heapAllocTop, 0, size );
+
+	vm->heapAllocTop += allocSize;
+}
+
+/*
+=================
+QVM_Alloc
+=================
+*/
+unsigned int QVM_Alloc( vm_t *vm, int size ) {
+	unsigned int pointer;
+	int allocSize;
+
+	// align addresses
+	allocSize = ( size + 31 ) & ~31;
+
+	if ( vm->heapAlloc + allocSize > vm->heapAllocTop ) {
+		Com_Error( ERR_DROP, "QVM_Alloc: %s failed on allocation of %i bytes", vm->name, size );
+		return 0;
+	}
+
+	pointer = vm->heapAlloc;
+	vm->heapAlloc += allocSize;
+
+	Com_Memset( vm->dataBase + pointer, 0, size );
+
+	return pointer;
+}
+
+/*
+=================
+VM_ExplicitAlloc
+=================
+*/
+intptr_t VM_ExplicitAlloc( vm_t *vm, int size ) {
+	intptr_t	ptr;
+
+	if (size < 1)
+		Com_Error( ERR_DROP, "VM %s tried to allocate %d bytes of memory", vm->name, size );
+
+	if ( vm->dllHandle ) {
+		ptr = (intptr_t)Hunk_Alloc( size, h_high );
+	} else {
+		ptr = QVM_Alloc( vm, size );
+	}
+
+	return ptr;
+}
+
+/*
+=================
+VM_Alloc
+=================
+*/
+intptr_t VM_Alloc( int size ) {
+	return VM_ExplicitAlloc( currentVM, size );
+}
+

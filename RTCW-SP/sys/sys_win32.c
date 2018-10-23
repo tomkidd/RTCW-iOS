@@ -46,11 +46,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // Used to determine where to store user-specific files
 static char homePath[ MAX_OSPATH ] = { 0 };
 
-// Used to store the Steam Quake 3 installation path
+#ifndef STANDALONE
+// Used to store the Steam RTCW installation path
 static char steamPath[ MAX_OSPATH ] = { 0 };
 
-// Used to store the GOG Quake 3 installation path
+// Used to store the GOG RTCW installation path
 static char gogPath[ MAX_OSPATH ] = { 0 };
+#endif
 
 #ifndef DEDICATED
 static UINT timerResolution = 0;
@@ -116,10 +118,11 @@ char *Sys_DefaultHomePath( void )
 			return NULL;
 		}
 
-		if( !SUCCEEDED( qSHGetFolderPath( NULL, CSIDL_APPDATA,
+		// Changed from CSIDL_APPDATA -> Stores in My Documents so it's more accessible
+		if( !SUCCEEDED( qSHGetFolderPath( NULL, CSIDL_PERSONAL,
 						NULL, 0, szPath ) ) )
 		{
-			Com_Printf("Unable to detect CSIDL_APPDATA\n");
+			Com_Printf("Unable to detect CSIDL_PERSONAL\n");
 			FreeLibrary(shfolder);
 			return NULL;
 		}
@@ -136,6 +139,7 @@ char *Sys_DefaultHomePath( void )
 	return homePath;
 }
 
+#ifndef STANDALONE
 /*
 ================
 Sys_SteamPath
@@ -221,6 +225,7 @@ char *Sys_GogPath( void )
 
 	return gogPath;
 }
+#endif
 
 /*
 ================
@@ -861,3 +866,77 @@ Check if filename should be allowed to be loaded as a DLL.
 qboolean Sys_DllExtension( const char *name ) {
 	return COM_CompareExtension( name, DLL_EXT );
 }
+
+/*
+==============
+Sys_GetDLLName
+==============
+*/
+char* Sys_GetDLLName( const char *name ) {
+	return va("%s_sp_" ARCH_STRING DLL_EXT, name);
+}
+
+/*
+==============
+Sys_GetHighQualityCPU
+==============
+*/
+int Sys_GetHighQualityCPU() {
+	return 1;
+}
+
+//----(SA)	from NERVE MP codebase (10/15/01)  (checkins at time of this file should be related)
+/*
+==================
+Sys_StartProcess
+==================
+*/
+void Sys_StartProcess( char *exeName, qboolean doexit ) {           // NERVE - SMF
+	TCHAR szPathOrig[MAX_PATH];
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	ZeroMemory( &si, sizeof( si ) );
+	si.cb = sizeof( si );
+
+	GetCurrentDirectory( MAX_PATH, szPathOrig );
+	Cbuf_ExecuteText( EXEC_NOW, "net_stop" );
+	if ( !CreateProcess( NULL, va( "%s\\%s", szPathOrig, exeName ), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi ) )
+	{
+		// couldn't start it, popup error box
+		Com_Error( ERR_DROP, "Could not start process: '%s\\%s' ", szPathOrig, exeName  );
+		return;
+	}
+
+	// TTimo: similar way of exiting as used in Sys_OpenURL below
+	if ( doexit ) {
+		Cbuf_ExecuteText( EXEC_APPEND, "quit" );
+	}
+}
+
+/*
+==================
+Sys_OpenURL
+==================
+*/
+void Sys_OpenURL( char *url, qboolean doexit ) {                // NERVE - SMF
+	HWND wnd;
+
+	if ( !ShellExecute( NULL, "open", url, NULL, NULL, SW_RESTORE ) ) {
+		// couldn't start it, popup error box
+		Com_Error( ERR_DROP, "Could not open url: '%s' ", url );
+		return;
+	}
+
+	wnd = GetForegroundWindow();
+
+	if ( wnd ) {
+		ShowWindow( wnd, SW_MAXIMIZE );
+	}
+
+	if ( doexit ) {
+		Cbuf_ExecuteText( EXEC_APPEND, "quit" );
+	}
+}
+//----(SA)	end
+

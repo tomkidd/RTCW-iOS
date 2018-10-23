@@ -1,29 +1,36 @@
 /*
 ===========================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
 
-This file is part of Quake III Arena source code.
+Return to Castle Wolfenstein single player GPL Source Code
+Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-Quake III Arena source code is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
+This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
 
-Quake III Arena source code is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+RTCW SP Source Code is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+RTCW SP Source Code is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+
+In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+
+If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
+
 ===========================================================================
 */
+
 // client.h -- primary header for client
 
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
-#include "../renderercommon/tr_public.h"
+#include "../renderer/tr_public.h"
 #include "../ui/ui_public.h"
 #include "keys.h"
 #include "snd_public.h"
@@ -35,34 +42,43 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif /* USE_CURL */
 
 #ifdef USE_VOIP
-#include <opus.h>
+#ifdef USE_LOCAL_HEADERS
+  #include "../opus-1.2.1/include/opus.h"
+  #include "../opusfile-0.9/include/opusfile.h"
+#else
+  #include <opus/opus.h>
+  #include <opus/opusfile.h>
+#endif
 #endif
 
 // file full of random crap that gets used to create cl_guid
-#define QKEY_FILE "qkey"
+#define QKEY_FILE "wkey"
 #define QKEY_SIZE 2048
-
+ 
 #define	RETRANSMIT_TIMEOUT	3000	// time between connection packet retransmits
+
+#define LIMBOCHAT_WIDTH		140     // NERVE - SMF
+#define LIMBOCHAT_HEIGHT	7       // NERVE - SMF
 
 // snapshots are a view of the server at a given time
 typedef struct {
-	qboolean		valid;			// cleared if delta parsing was invalid
-	int				snapFlags;		// rate delayed and dropped commands
+	qboolean valid;                 // cleared if delta parsing was invalid
+	int snapFlags;                  // rate delayed and dropped commands
 
-	int				serverTime;		// server time the message is valid for (in msec)
+	int serverTime;                 // server time the message is valid for (in msec)
 
-	int				messageNum;		// copied from netchan->incoming_sequence
-	int				deltaNum;		// messageNum the delta is from
-	int				ping;			// time from when cmdNum-1 was sent to time packet was reeceived
-	byte			areamask[MAX_MAP_AREA_BYTES];		// portalarea visibility bits
+	int messageNum;                 // copied from netchan->incoming_sequence
+	int deltaNum;                   // messageNum the delta is from
+	int ping;                       // time from when cmdNum-1 was sent to time packet was reeceived
+	byte areamask[MAX_MAP_AREA_BYTES];                  // portalarea visibility bits
 
-	int				cmdNum;			// the next cmdNum the server is expecting
-	playerState_t	ps;						// complete information about the current player at this time
+	int cmdNum;                     // the next cmdNum the server is expecting
+	playerState_t ps;                       // complete information about the current player at this time
 
-	int				numEntities;			// all of the entities that need to be presented
-	int				parseEntitiesNum;		// at the time of this snapshot
+	int numEntities;                        // all of the entities that need to be presented
+	int parseEntitiesNum;                   // at the time of this snapshot
 
-	int				serverCommandNum;		// execute all commands up to this before
+	int serverCommandNum;                   // execute all commands up to this before
 											// making the snapshot current
 } clSnapshot_t;
 
@@ -78,72 +94,82 @@ new gamestate_t, potentially several times during an established connection
 */
 
 typedef struct {
-	int		p_cmdNumber;		// cl.cmdNumber when packet was sent
-	int		p_serverTime;		// usercmd->serverTime when packet was sent
-	int		p_realtime;			// cls.realtime when packet was sent
+	int p_cmdNumber;            // cl.cmdNumber when packet was sent
+	int p_serverTime;           // usercmd->serverTime when packet was sent
+	int p_realtime;             // cls.realtime when packet was sent
 } outPacket_t;
 
 // the parseEntities array must be large enough to hold PACKET_BACKUP frames of
 // entities, so that when a delta compressed message arives from the server
-// it can be un-deltad from the original 
-#define	MAX_PARSE_ENTITIES	( PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES )
+// it can be un-deltad from the original
+#define  MAX_PARSE_ENTITIES  ( PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES )
 
 extern int g_console_field_width;
 
 typedef struct {
-	int			timeoutcount;		// it requres several frames in a timeout condition
+	int timeoutcount;               // it requres several frames in a timeout condition
 									// to disconnect, preventing debugging breaks from
 									// causing immediate disconnects on continue
-	clSnapshot_t	snap;			// latest received from server
+	clSnapshot_t snap;              // latest received from server
 
-	int			serverTime;			// may be paused during play
-	int			oldServerTime;		// to prevent time from flowing bakcwards
-	int			oldFrameServerTime;	// to check tournament restarts
-	int			serverTimeDelta;	// cl.serverTime = cls.realtime + cl.serverTimeDelta
+	int serverTime;                 // may be paused during play
+	int oldServerTime;              // to prevent time from flowing bakcwards
+	int oldFrameServerTime;         // to check tournament restarts
+	int serverTimeDelta;            // cl.serverTime = cls.realtime + cl.serverTimeDelta
 									// this value changes as net lag varies
-	qboolean	extrapolatedSnapshot;	// set if any cgame frame has been forced to extrapolate
-									// cleared when CL_AdjustTimeDelta looks at it
-	qboolean	newSnapshots;		// set on parse of any valid packet
+	qboolean extrapolatedSnapshot;      // set if any cgame frame has been forced to extrapolate
+	// cleared when CL_AdjustTimeDelta looks at it
+	qboolean newSnapshots;          // set on parse of any valid packet
 
-	gameState_t	gameState;			// configstrings
-	char		mapname[MAX_QPATH];	// extracted from CS_SERVERINFO
+	gameState_t gameState;          // configstrings
+	char mapname[MAX_QPATH];        // extracted from CS_SERVERINFO
 
-	int			parseEntitiesNum;	// index (not anded off) into cl_parse_entities[]
+	int parseEntitiesNum;           // index (not anded off) into cl_parse_entities[]
 
-	int			mouseDx[2], mouseDy[2];	// added to by mouse events
-	int			mouseIndex;
-	int			joystickAxis[MAX_JOYSTICK_AXIS];	// set by joystick events
+	int mouseDx[2], mouseDy[2];         // added to by mouse events
+	int mouseIndex;
+	int joystickAxis[MAX_JOYSTICK_AXIS];            // set by joystick events
 
 	// cgame communicates a few values to the client system
-	int			cgameUserCmdValue;	// current weapon to add to usercmd_t
-	float		cgameSensitivity;
+	int cgameUserCmdValue;              // current weapon to add to usercmd_t
+	int cgameUserHoldableValue;         // current holdable item to add to usercmd_t	//----(SA)	added
+	float cgameSensitivity;
+	int cgameCld;                       // NERVE - SMF
 
 	// cmds[cmdNumber] is the predicted command, [cmdNumber-1] is the last
 	// properly generated command
-	usercmd_t	cmds[CMD_BACKUP];	// each mesage will send several old cmds
-	int			cmdNumber;			// incremented each frame, because multiple
+	usercmd_t cmds[CMD_BACKUP];     // each mesage will send several old cmds
+	int cmdNumber;                  // incremented each frame, because multiple
 									// frames may need to be packed into a single packet
 
-	outPacket_t	outPackets[PACKET_BACKUP];	// information about each packet we have sent out
+	outPacket_t outPackets[PACKET_BACKUP];  // information about each packet we have sent out
 
 	// the client maintains its own idea of view angles, which are
 	// sent to the server each frame.  It is cleared to 0 upon entering each level.
 	// the server sends a delta each frame which is added to the locally
 	// tracked view angles to account for standing on rotating objects,
 	// and teleport direction changes
-	vec3_t		viewangles;
+	vec3_t viewangles;
 
-	int			serverId;			// included in each client message so the server
-												// can tell if it is for a prior map_restart
+	int serverId;                   // included in each client message so the server
+									// can tell if it is for a prior map_restart
 	// big stuff at end of structure so most offsets are 15 bits or less
-	clSnapshot_t	snapshots[PACKET_BACKUP];
+	clSnapshot_t snapshots[PACKET_BACKUP];
 
-	entityState_t	entityBaselines[MAX_GENTITIES];	// for delta compression when not in previous frame
+	entityState_t entityBaselines[MAX_GENTITIES];   // for delta compression when not in previous frame
 
-	entityState_t	parseEntities[MAX_PARSE_ENTITIES];
+	entityState_t parseEntities[MAX_PARSE_ENTITIES];
+
+	// NERVE - SMF
+	char limboChatMsgs[LIMBOCHAT_HEIGHT][LIMBOCHAT_WIDTH * 3 + 1];
+	int limboChatPos;
+	// -NERVE - SMF
+
+	qboolean cameraMode;    //----(SA)	added for control of input while watching cinematics
+
 } clientActive_t;
 
-extern	clientActive_t		cl;
+extern clientActive_t cl;
 
 /*
 =============================================================================
@@ -163,23 +189,23 @@ typedef struct {
 
 	connstate_t	state;				// connection status
 
-	int			clientNum;
-	int			lastPacketSentTime;			// for retransmits during connection
-	int			lastPacketTime;				// for timeouts
+	int clientNum;
+	int lastPacketSentTime;                 // for retransmits during connection
+	int lastPacketTime;                     // for timeouts
 
 	char		servername[MAX_OSPATH];		// name of server from original connect (used by reconnect)
-	netadr_t	serverAddress;
-	int			connectTime;				// for connection retransmits
-	int			connectPacketCount;			// for display on connection dialog
-	char		serverMessage[MAX_STRING_TOKENS];	// for display on connection dialog
+	netadr_t serverAddress;
+	int connectTime;                        // for connection retransmits
+	int connectPacketCount;                 // for display on connection dialog
+	char serverMessage[MAX_STRING_TOKENS];          // for display on connection dialog
 
-	int			challenge;					// from the server to use for connecting
-	int			checksumFeed;				// from the server for checksum calculations
+	int challenge;                          // from the server to use for connecting
+	int checksumFeed;                       // from the server for checksum calculations
 
 	// these are our reliable messages that go to the server
-	int			reliableSequence;
-	int			reliableAcknowledge;		// the last one the server has executed
-	char		reliableCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
+	int reliableSequence;
+	int reliableAcknowledge;                // the last one the server has executed
+	char reliableCommands[MAX_RELIABLE_COMMANDS][MAX_TOKEN_CHARS];
 
 	// server message (unreliable) and command (reliable) sequence
 	// numbers are NOT cleared at level changes, but continue to
@@ -187,17 +213,17 @@ typedef struct {
 
 	// message sequence is used by both the network layer and the
 	// delta compression layer
-	int			serverMessageSequence;
+	int serverMessageSequence;
 
 	// reliable messages received from server
-	int			serverCommandSequence;
-	int			lastExecutedServerCommand;		// last server command grabbed or executed with CL_GetServerCommand
-	char		serverCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
+	int serverCommandSequence;
+	int lastExecutedServerCommand;              // last server command grabbed or executed with CL_GetServerCommand
+	char serverCommands[MAX_RELIABLE_COMMANDS][MAX_TOKEN_CHARS];
 
 	// file transfer from server
 	fileHandle_t download;
-	char		downloadTempName[MAX_OSPATH];
-	char		downloadName[MAX_OSPATH];
+	char downloadTempName[MAX_OSPATH];
+	char downloadName[MAX_OSPATH];
 #ifdef USE_CURL
 	qboolean	cURLEnabled;
 	qboolean	cURLUsed;
@@ -208,32 +234,31 @@ typedef struct {
 #endif /* USE_CURL */
 	int		sv_allowDownload;
 	char		sv_dlURL[MAX_CVAR_VALUE_STRING];
-	int			downloadNumber;
-	int			downloadBlock;	// block we are waiting for
-	int			downloadCount;	// how many bytes we got
-	int			downloadSize;	// how many bytes we got
-	char		downloadList[MAX_INFO_STRING]; // list of paks we need to download
-	qboolean	downloadRestart;	// if true, we need to do another FS_Restart because we downloaded a pak
+	int downloadNumber;
+	int downloadBlock;          // block we are waiting for
+	int downloadCount;          // how many bytes we got
+	int downloadSize;           // how many bytes we got
+	char downloadList[MAX_INFO_STRING];        // list of paks we need to download
+	qboolean downloadRestart;       // if true, we need to do another FS_Restart because we downloaded a pak
 
 	// demo information
-	char		demoName[MAX_QPATH];
-	qboolean	spDemoRecording;
-	qboolean	demorecording;
-	qboolean	demoplaying;
-	qboolean	demowaiting;	// don't record until a non-delta message is received
-	qboolean	firstDemoFrameSkipped;
-	fileHandle_t	demofile;
+	char demoName[MAX_QPATH];
+	qboolean demorecording;
+	qboolean demoplaying;
+	qboolean demowaiting;       // don't record until a non-delta message is received
+	qboolean firstDemoFrameSkipped;
+	fileHandle_t demofile;
 
-	int			timeDemoFrames;		// counter of rendered frames
-	int			timeDemoStart;		// cls.realtime before first frame
-	int			timeDemoBaseTime;	// each frame will be at this time + frameNum * 50
+	int timeDemoFrames;             // counter of rendered frames
+	int timeDemoStart;              // cls.realtime before first frame
+	int timeDemoBaseTime;           // each frame will be at this time + frameNum * 50
 	int			timeDemoLastFrame;// time the last frame was rendered
 	int			timeDemoMinDuration;	// minimum frame duration
 	int			timeDemoMaxDuration;	// maximum frame duration
 	unsigned char	timeDemoDurations[ MAX_TIMEDEMO_DURATIONS ];	// log of frame durations
 
-	float		aviVideoFrameRemainder;
-	float		aviSoundFrameRemainder;
+	float	aviVideoFrameRemainder;
+	float	aviSoundFrameRemainder;
 
 #ifdef USE_VOIP
 	qboolean voipEnabled;
@@ -267,10 +292,10 @@ typedef struct {
 #endif
 
 	// big stuff at end of structure so most offsets are 15 bits or less
-	netchan_t	netchan;
+	netchan_t netchan;
 } clientConnection_t;
 
-extern	clientConnection_t clc;
+extern clientConnection_t clc;
 
 /*
 ==================================================================
@@ -278,82 +303,84 @@ extern	clientConnection_t clc;
 the clientStatic_t structure is never wiped, and is used even when
 no client connection is active at all
 (except when CL_Shutdown is called)
-
 ==================================================================
 */
 
 typedef struct {
-	netadr_t	adr;
-	int			start;
-	int			time;
-	char		info[MAX_INFO_STRING];
+	netadr_t adr;
+	int start;
+	int time;
+	char info[MAX_INFO_STRING];
 } ping_t;
 
 typedef struct {
-	netadr_t	adr;
-	char	  	hostName[MAX_NAME_LENGTH];
-	char	  	mapName[MAX_NAME_LENGTH];
-	char	  	game[MAX_NAME_LENGTH];
-	int			netType;
-	int			gameType;
-	int		  	clients;
-	int		  	maxClients;
-	int			minPing;
-	int			maxPing;
-	int			ping;
-	qboolean	visible;
-	int			punkbuster;
+	netadr_t adr;
+	char hostName[MAX_NAME_LENGTH];
+	char mapName[MAX_NAME_LENGTH];
+	char game[MAX_NAME_LENGTH];
+	int netType;
+	int gameType;
+	int clients;
+	int maxClients;
+	int minPing;
+	int maxPing;
+	int ping;
+	qboolean visible;
+	int allowAnonymous;
 	int			g_humanplayers;
 	int			g_needpass;
 } serverInfo_t;
 
 typedef struct {
-	qboolean	cddialog;			// bring up the cd needed dialog next frame
+
+	qboolean cddialog;              // bring up the cd needed dialog next frame
+	qboolean endgamemenu;           // bring up the end game credits menu next frame
 
 	// when the server clears the hunk, all of these must be restarted
-	qboolean	rendererStarted;
-	qboolean	soundStarted;
-	qboolean	soundRegistered;
-	qboolean	uiStarted;
-	qboolean	cgameStarted;
+	qboolean rendererStarted;
+	qboolean soundStarted;
+	qboolean soundRegistered;
+	qboolean uiStarted;
+	qboolean cgameStarted;
 
-	int			framecount;
-	int			frametime;			// msec since last frame
+	int framecount;
+	int frametime;                  // msec since last frame
 
-	int			realtime;			// ignores pause
-	int			realFrametime;		// ignoring pause, so console always works
+	int realtime;                   // ignores pause
+	int realFrametime;              // ignoring pause, so console always works
 
-	int			numlocalservers;
-	serverInfo_t	localServers[MAX_OTHER_SERVERS];
+	int numlocalservers;
+	serverInfo_t localServers[MAX_OTHER_SERVERS];
 
-	int			numglobalservers;
-	serverInfo_t  globalServers[MAX_GLOBAL_SERVERS];
+	int numglobalservers;
+	serverInfo_t globalServers[MAX_GLOBAL_SERVERS];
 	// additional global servers
-	int			numGlobalServerAddresses;
-	netadr_t		globalServerAddresses[MAX_GLOBAL_SERVERS];
+	int numGlobalServerAddresses;
+	netadr_t globalServerAddresses[MAX_GLOBAL_SERVERS];
 
-	int			numfavoriteservers;
-	serverInfo_t	favoriteServers[MAX_OTHER_SERVERS];
+	int numfavoriteservers;
+	serverInfo_t favoriteServers[MAX_OTHER_SERVERS];
 
-	int pingUpdateSource;		// source currently pinging or updating
+	int pingUpdateSource;       // source currently pinging or updating
 
 	// update server info
-	netadr_t	updateServer;
-	char		updateChallenge[MAX_TOKEN_CHARS];
-	char		updateInfoString[MAX_INFO_STRING];
+	netadr_t updateServer;
+	char updateChallenge[MAX_TOKEN_CHARS];
+	char updateInfoString[MAX_INFO_STRING];
 
-	netadr_t	authorizeServer;
+	netadr_t authorizeServer;
 
-	netadr_t	rconAddress;
+	netadr_t rconAddress;
 
 	// rendering info
-	glconfig_t	glconfig;
-	qhandle_t	charSetShader;
-	qhandle_t	whiteShader;
-	qhandle_t	consoleShader;
+	glconfig_t glconfig;
+	qhandle_t charSetShader;
+	qhandle_t whiteShader;
+	qhandle_t consoleShader;
+	qhandle_t consoleShader2;   //----(SA)	added
 } clientStatic_t;
 
-extern	clientStatic_t		cls;
+extern clientStatic_t cls;
 
 extern	char		cl_oldGame[MAX_QPATH];
 extern	qboolean	cl_oldGameSet;
@@ -364,44 +391,46 @@ int cl_joyscale_y[2];
 #endif
 //=============================================================================
 
-extern	vm_t			*cgvm;	// interface to cgame dll or vm
-extern	vm_t			*uivm;	// interface to ui dll or vm
-extern	refexport_t		re;		// interface to refresh .dll
+extern vm_t            *cgvm;   // interface to cgame dll or vm
+extern vm_t            *uivm;   // interface to ui dll or vm
+extern refexport_t re;          // interface to refresh .dll
 
 
 //
 // cvars
 //
-extern	cvar_t	*cl_nodelta;
-extern	cvar_t	*cl_debugMove;
-extern	cvar_t	*cl_noprint;
-extern	cvar_t	*cl_timegraph;
-extern	cvar_t	*cl_maxpackets;
-extern	cvar_t	*cl_packetdup;
-extern	cvar_t	*cl_shownet;
-extern	cvar_t	*cl_showSend;
-extern	cvar_t	*cl_timeNudge;
-extern	cvar_t	*cl_showTimeDelta;
-extern	cvar_t	*cl_freezeDemo;
+extern cvar_t  *cl_nodelta;
+extern cvar_t  *cl_debugMove;
+extern cvar_t  *cl_noprint;
+extern cvar_t  *cl_timegraph;
+extern cvar_t  *cl_maxpackets;
+extern cvar_t  *cl_packetdup;
+extern cvar_t  *cl_shownet;
+extern cvar_t  *cl_showSend;
+extern cvar_t  *cl_timeNudge;
+extern cvar_t  *cl_showTimeDelta;
+extern cvar_t  *cl_freezeDemo;
 
-extern	cvar_t	*cl_yawspeed;
-extern	cvar_t	*cl_pitchspeed;
-extern	cvar_t	*cl_run;
-extern	cvar_t	*cl_anglespeedkey;
+extern cvar_t  *cl_yawspeed;
+extern cvar_t  *cl_pitchspeed;
+extern cvar_t  *cl_run;
+extern cvar_t  *cl_anglespeedkey;
 
-extern	cvar_t	*cl_sensitivity;
-extern	cvar_t	*cl_freelook;
+extern cvar_t  *cl_recoilPitch;     // RF
 
-extern	cvar_t	*cl_mouseAccel;
+extern cvar_t  *cl_sensitivity;
+extern cvar_t  *cl_freelook;
+
+extern cvar_t  *cl_mouseAccel;
 extern	cvar_t	*cl_mouseAccelOffset;
 extern	cvar_t	*cl_mouseAccelStyle;
-extern	cvar_t	*cl_showMouseRate;
+extern cvar_t  *cl_showMouseRate;
 
-extern	cvar_t	*m_pitch;
-extern	cvar_t	*m_yaw;
-extern	cvar_t	*m_forward;
-extern	cvar_t	*m_side;
-extern	cvar_t	*m_filter;
+extern cvar_t  *m_pitch;
+extern cvar_t  *m_yaw;
+extern cvar_t  *m_forward;
+extern cvar_t  *m_side;
+extern cvar_t  *m_filter;
 
 extern	cvar_t	*j_pitch;
 extern	cvar_t	*j_yaw;
@@ -414,16 +443,16 @@ extern	cvar_t	*j_forward_axis;
 extern	cvar_t	*j_side_axis;
 extern	cvar_t	*j_up_axis;
 
-extern	cvar_t	*cl_timedemo;
+extern cvar_t  *cl_timedemo;
 extern	cvar_t	*cl_aviFrameRate;
 extern	cvar_t	*cl_aviMotionJpeg;
 
-extern	cvar_t	*cl_activeAction;
+extern cvar_t  *cl_activeAction;
 
-extern	cvar_t	*cl_allowDownload;
+extern cvar_t  *cl_allowDownload;
 extern  cvar_t  *cl_downloadMethod;
-extern	cvar_t	*cl_conXOffset;
-extern	cvar_t	*cl_inGameVideo;
+extern cvar_t  *cl_conXOffset;
+extern cvar_t  *cl_inGameVideo;
 
 extern	cvar_t	*cl_lanForcePackets;
 extern	cvar_t	*cl_autoRecordDemo;
@@ -456,28 +485,35 @@ extern	cvar_t	*cl_voip;
 #define VOIP_MAX_PACKET_SAMPLES		( VOIP_MAX_FRAME_SAMPLES * VOIP_MAX_PACKET_FRAMES )
 #endif
 
+extern cvar_t  *cl_missionStats;
+extern cvar_t  *cl_waitForFire;
+
+// NERVE - SMF - localization
+extern cvar_t  *cl_language;
+// -NERVE - SMF
+
 //=================================================
 
 //
 // cl_main
 //
 
-void CL_Init (void);
+void CL_Init( void );
 void CL_AddReliableCommand(const char *cmd, qboolean isDisconnectCmd);
 
 void CL_StartHunkUsers( qboolean rendererOnly );
 
-void CL_Disconnect_f (void);
-void CL_GetChallengePacket (void);
+void CL_Disconnect_f( void );
+void CL_GetChallengePacket( void );
 void CL_Vid_Restart_f( void );
-void CL_Snd_Restart_f (void);
+void CL_Snd_Restart_f( void );
 void CL_StartDemoLoop( void );
 void CL_NextDemo( void );
 void CL_ReadDemoMessage( void );
 void CL_StopRecord_f(void);
 
-void CL_InitDownloads(void);
-void CL_NextDownload(void);
+void CL_InitDownloads( void );
+void CL_NextDownload( void );
 
 void CL_GetPing( int n, char *buf, int buflen, int *pingtime );
 void CL_GetPingInfo( int n, char *buf, int buflen );
@@ -491,31 +527,77 @@ int CL_ServerStatus( char *serverAddress, char *serverStatusString, int maxLen )
 
 qboolean CL_CheckPaused(void);
 
+void CL_AddToLimboChat( const char *str );                  // NERVE - SMF
+qboolean CL_GetLimboString( int index, char *buf );         // NERVE - SMF
+
 //
 // cl_input
 //
 typedef struct {
-	int			down[2];		// key nums holding it down
-	unsigned	downtime;		// msec timestamp
-	unsigned	msec;			// msec down this frame if both a down and up happened
-	qboolean	active;			// current state
-	qboolean	wasPressed;		// set when down, not cleared when up
+	int down[2];                // key nums holding it down
+	unsigned downtime;          // msec timestamp
+	unsigned msec;              // msec down this frame if both a down and up happened
+	qboolean active;            // current state
+	qboolean wasPressed;        // set when down, not cleared when up
 } kbutton_t;
 
-void CL_InitInput(void);
-void CL_ShutdownInput(void);
-void CL_SendCmd (void);
-void CL_ClearState (void);
-void CL_ReadPackets (void);
+typedef enum {
+	KB_LEFT,
+	KB_RIGHT,
+	KB_FORWARD,
+	KB_BACK,
+	KB_LOOKUP,
+	KB_LOOKDOWN,
+	KB_MOVELEFT,
+	KB_MOVERIGHT,
+	KB_STRAFE,
+	KB_SPEED,
+	KB_UP,
+	KB_DOWN,
+	KB_BUTTONS0,
+	KB_BUTTONS1,
+	KB_BUTTONS2,
+	KB_BUTTONS3,
+	KB_BUTTONS4,
+	KB_BUTTONS5,
+	KB_BUTTONS6,
+	KB_BUTTONS7,
+	KB_WBUTTONS0,
+	KB_WBUTTONS1,
+	KB_WBUTTONS2,
+	KB_WBUTTONS3,
+	KB_WBUTTONS4,
+	KB_WBUTTONS5,
+	KB_WBUTTONS6,
+	KB_WBUTTONS7,
+	KB_MLOOK,
+	KB_KICK,
+	NUM_BUTTONS
+} kbuttons_t;
+
+
+void CL_ClearKeys( void );
+
+void CL_InitInput( void );
+void CL_ShutdownInput( void );
+void CL_SendCmd( void );
+void CL_ClearState( void );
+void CL_ReadPackets( void );
 
 void CL_WritePacket( void );
-void IN_CenterView (void);
+void IN_CenterView( void );
+void IN_Notebook( void );
+void IN_Help( void );
+
+//----(SA) salute
+void IN_Salute( void );
+//----(SA)
 
 void CL_VerifyCode( void );
 
-float CL_KeyState (kbutton_t *key);
+float CL_KeyState( kbutton_t *key );
 int Key_StringToKeynum( char *str );
-char *Key_KeynumToString (int keynum);
+char *Key_KeynumToString( int keynum, qboolean bTranslate );
 
 //
 // cl_parse.c
@@ -532,28 +614,28 @@ void CL_ParseServerMessage( msg_t *msg );
 
 //====================================================================
 
-void	CL_ServerInfoPacket( netadr_t from, msg_t *msg );
-void	CL_LocalServers_f( void );
-void	CL_GlobalServers_f( void );
-void	CL_FavoriteServers_f( void );
-void	CL_Ping_f( void );
+void    CL_ServerInfoPacket( netadr_t from, msg_t *msg );
+void    CL_LocalServers_f( void );
+void    CL_GlobalServers_f( void );
+void    CL_FavoriteServers_f( void );
+void    CL_Ping_f( void );
 qboolean CL_UpdateVisiblePings_f( int source );
 
 
 //
 // console
 //
-void Con_DrawCharacter (int cx, int line, int num);
+void Con_DrawCharacter( int cx, int line, int num );
 
-void Con_CheckResize (void);
-void Con_Init(void);
-void Con_Shutdown(void);
-void Con_Clear_f (void);
-void Con_ToggleConsole_f (void);
-void Con_DrawNotify (void);
-void Con_ClearNotify (void);
-void Con_RunConsole (void);
-void Con_DrawConsole (void);
+void Con_CheckResize( void );
+void Con_Init( void );
+void Con_Shutdown( void );
+void Con_Clear_f( void );
+void Con_ToggleConsole_f( void );
+void Con_DrawNotify( void );
+void Con_ClearNotify( void );
+void Con_RunConsole( void );
+void Con_DrawConsole( void );
 void Con_PageUp( void );
 void Con_PageDown( void );
 void Con_Top( void );
@@ -566,23 +648,23 @@ void CL_SaveConsoleHistory( void );
 //
 // cl_scrn.c
 //
-void	SCR_Init (void);
-void	SCR_UpdateScreen (void);
+void    SCR_Init( void );
+void    SCR_UpdateScreen( void );
 
 void	SCR_DebugGraph (float value);
 
-int		SCR_GetBigStringWidth( const char *str );	// returns in virtual 640x480 coordinates
+int     SCR_GetBigStringWidth( const char *str );   // returns in virtual 640x480 coordinates
 
-void	SCR_AdjustFrom640( float *x, float *y, float *w, float *h );
-void	SCR_FillRect( float x, float y, float width, float height, 
-					 const float *color );
-void	SCR_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
-void	SCR_DrawNamedPic( float x, float y, float width, float height, const char *picname );
+void    SCR_AdjustFrom640( float *x, float *y, float *w, float *h );
+void    SCR_FillRect( float x, float y, float width, float height,
+					  const float *color );
+void    SCR_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
+void    SCR_DrawNamedPic( float x, float y, float width, float height, const char *picname );
 
 void	SCR_DrawBigString( int x, int y, const char *s, float alpha, qboolean noColorEscape );			// draws a string with embedded color control characters with fade
 void	SCR_DrawBigStringColor( int x, int y, const char *s, vec4_t color, qboolean noColorEscape );	// ignores embedded color control characters
 void	SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, qboolean forceColor, qboolean noColorEscape );
-void	SCR_DrawSmallChar( int x, int y, int ch );
+void    SCR_DrawSmallChar( int x, int y, int ch );
 
 
 //
@@ -590,17 +672,17 @@ void	SCR_DrawSmallChar( int x, int y, int ch );
 //
 
 void CL_PlayCinematic_f( void );
-void SCR_DrawCinematic (void);
-void SCR_RunCinematic (void);
-void SCR_StopCinematic (void);
-int CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits);
-e_status CIN_StopCinematic(int handle);
-e_status CIN_RunCinematic (int handle);
-void CIN_DrawCinematic (int handle);
-void CIN_SetExtents (int handle, int x, int y, int w, int h);
-void CIN_SetLooping (int handle, qboolean loop);
-void CIN_UploadCinematic(int handle);
-void CIN_CloseAllVideos(void);
+void SCR_DrawCinematic( void );
+void SCR_RunCinematic( void );
+void SCR_StopCinematic( void );
+int CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits );
+e_status CIN_StopCinematic( int handle );
+e_status CIN_RunCinematic( int handle );
+void CIN_DrawCinematic( int handle );
+void CIN_SetExtents( int handle, int x, int y, int w, int h );
+void CIN_SetLooping( int handle, qboolean loop );
+void CIN_UploadCinematic( int handle );
+void CIN_CloseAllVideos( void );
 
 //
 // cl_cgame.c
@@ -611,8 +693,8 @@ qboolean CL_GameCommand( void );
 void CL_CGameRendering( stereoFrame_t stereo );
 void CL_SetCGameTime( void );
 void CL_FirstSnapshot( void );
-void CL_ShaderStateChanged(void);
-
+void CL_ShaderStateChanged( void );
+void CL_UpdateLevelHunkUsage( void );
 //
 // cl_ui.c
 //
@@ -623,11 +705,10 @@ void Key_SetCatcher( int catcher );
 void LAN_LoadCachedServers( void );
 void LAN_SaveServersToCache( void );
 
-
 //
 // cl_net_chan.c
 //
-void CL_Netchan_Transmit( netchan_t *chan, msg_t* msg);	//int length, const byte *data );
+void CL_Netchan_Transmit( netchan_t *chan, msg_t* msg ); //int length, const byte *data );
 qboolean CL_Netchan_Process( netchan_t *chan, msg_t *msg );
 
 //

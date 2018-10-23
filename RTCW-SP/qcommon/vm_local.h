@@ -154,7 +154,7 @@ struct vm_s {
 
 	// for dynamic linked modules
 	void		*dllHandle;
-	intptr_t			(QDECL *entryPoint)( int callNum, ... );
+	intptr_t			(QDECL *entryPoint)( intptr_t callNum, ... );
 	void (*destroy)(vm_t* self);
 
 	// for interpreted modules
@@ -171,6 +171,10 @@ struct vm_s {
 	byte		*dataBase;
 	int			dataMask;
 	int			dataAlloc;			// actually allocated
+
+	int			heapLength;			// length of QVMs data
+	int			heapAlloc;			// QVM's current allocate point
+	int			heapAllocTop;		// QVM's current temporary memory allocate point
 
 	int			stackBottom;		// if programStack < stackBottom, error
 

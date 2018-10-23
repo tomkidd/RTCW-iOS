@@ -87,13 +87,27 @@ static inline void qglDepthRangef(GLclampf zNear, GLclampf zFar) {
 // void glFogf (GLenum pname, GLfloat param);
 static inline void qglFogf(GLenum pname, GLfloat param) {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
-	if (QGLLogGLCalls)
-		fprintf(QGLDebugFile(), "glFogf(pname=%lu, param=%f)\n", pname, param);
+    if (QGLLogGLCalls)
+        fprintf(QGLDebugFile(), "glFogf(pname=%lu, param=%f)\n", pname, param);
 #endif
-	glFogf(pname, param);
+    glFogf(pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-	if (!QGLBeginStarted)
-		QGLCheckError("glFogf");
+    if (!QGLBeginStarted)
+        QGLCheckError("glFogf");
+#endif
+}
+
+// this is a wild-assed guess -tkidd
+// void glFogi (GLenum pname, GLfloat param);
+static inline void qglFogi(GLenum pname, GLint param) {
+#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+    if (QGLLogGLCalls)
+        fprintf(QGLDebugFile(), "qglFogi(pname=%lu, param=%s)\n", pname, param);
+#endif
+    glFogf(pname, param);
+#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
+    if (!QGLBeginStarted)
+        QGLCheckError("qglFogi");
 #endif
 }
 

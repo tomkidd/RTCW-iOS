@@ -26,10 +26,17 @@ void S_Shutdown( void );
 
 // if origin is NULL, the sound will be dynamically sourced from the entity
 void S_StartSound( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx );
+void S_StartSoundEx( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, int flags );
 void S_StartLocalSound( sfxHandle_t sfx, int channelNum );
 
 void S_StartBackgroundTrack( const char *intro, const char *loop );
 void S_StopBackgroundTrack( void );
+
+void S_FadeStreamingSound( float targetvol, int time, int ssNum );
+void S_FadeAllSounds( float targetvol, int time );
+
+void S_StartStreamingSound( const char *intro, const char *loop, int entnum, int channel, int attenuation );
+void S_StopEntStreamingSound( int entNum );
 
 // cinematics and voice-over-network will send raw samples
 // 1.0 volume will be direct output of source samples
@@ -41,8 +48,8 @@ void S_StopAllSounds( void );
 
 // all continuous looping sounds must be added before calling S_Update
 void S_ClearLoopingSounds( qboolean killall );
-void S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
-void S_AddRealLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
+void S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, const int range, sfxHandle_t sfx, int volume );
+void S_AddRealLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, const int range, sfxHandle_t sfx );
 void S_StopLoopingSound(int entityNum );
 
 // recompute the relative volumes for all running sounds
@@ -64,6 +71,8 @@ void S_BeginRegistration( void );
 sfxHandle_t	S_RegisterSound( const char *sample, qboolean compressed );
 
 void S_DisplayFreeMemory(void);
+
+int S_GetVoiceAmplitude( int entityNum );
 
 void S_ClearSoundBuffer( void );
 

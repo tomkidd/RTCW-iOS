@@ -12,7 +12,7 @@
 #include <AudioToolbox/AudioOutputUnit.h>
 
 // For 'ri'
-#include "../renderergl1/tr_local.h"
+#include "../renderer/tr_local.h"
 
 #include "../client/client.h"
 #include "../client/snd_local.h"

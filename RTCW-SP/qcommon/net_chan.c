@@ -1,24 +1,31 @@
 /*
 ===========================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
 
-This file is part of Quake III Arena source code.
+Return to Castle Wolfenstein single player GPL Source Code
+Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-Quake III Arena source code is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
+This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
 
-Quake III Arena source code is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+RTCW SP Source Code is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+RTCW SP Source Code is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+
+In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+
+If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
+
 ===========================================================================
 */
+
 
 #include "q_shared.h"
 #include "qcommon.h"
@@ -47,16 +54,16 @@ to the new value before sending out any replies.
 */
 
 
-#define	MAX_PACKETLEN			1400		// max size of a network packet
+#define MAX_PACKETLEN           1400        // max size of a network packet
 
-#define	FRAGMENT_SIZE			(MAX_PACKETLEN - 100)
-#define	PACKET_HEADER			10			// two ints and a short
+#define FRAGMENT_SIZE           ( MAX_PACKETLEN - 100 )
+#define PACKET_HEADER           10          // two ints and a short
 
-#define	FRAGMENT_BIT	(1U<<31)
+#define FRAGMENT_BIT    ( 1U << 31 )
 
-cvar_t		*showpackets;
-cvar_t		*showdrop;
-cvar_t		*qport;
+cvar_t      *showpackets;
+cvar_t      *showdrop;
+cvar_t      *qport;
 
 static char *netsrcString[2] = {
 	"client",
@@ -71,9 +78,9 @@ Netchan_Init
 */
 void Netchan_Init( int port ) {
 	port &= 0xffff;
-	showpackets = Cvar_Get ("showpackets", "0", CVAR_TEMP );
-	showdrop = Cvar_Get ("showdrop", "0", CVAR_TEMP );
-	qport = Cvar_Get ("net_qport", va("%i", port), CVAR_INIT );
+	showpackets = Cvar_Get( "showpackets", "0", CVAR_TEMP );
+	showdrop = Cvar_Get( "showdrop", "0", CVAR_TEMP );
+	qport = Cvar_Get( "net_qport", va( "%i", port ), CVAR_INIT );
 }
 
 /*
@@ -85,15 +92,14 @@ called to open a channel to a remote system
 */
 void Netchan_Setup(netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, int challenge, qboolean compat)
 {
-	Com_Memset (chan, 0, sizeof(*chan));
-	
+	memset( chan, 0, sizeof( *chan ) );
+
 	chan->sock = sock;
 	chan->remoteAddress = adr;
 	chan->qport = qport;
 	chan->incomingSequence = 0;
 	chan->outgoingSequence = 1;
 	chan->challenge = challenge;
-
 #ifdef LEGACY_PROTOCOL
 	chan->compat = compat;
 #endif
@@ -107,13 +113,13 @@ Send one fragment of the current message
 =================
 */
 void Netchan_TransmitNextFragment( netchan_t *chan ) {
-	msg_t		send;
-	byte		send_buf[MAX_PACKETLEN];
-	int			fragmentLength;
-	int			outgoingSequence;
+	msg_t send;
+	byte send_buf[MAX_PACKETLEN];
+	int fragmentLength;
+	int outgoingSequence;
 
 	// write the packet header
-	MSG_InitOOB (&send, send_buf, sizeof(send_buf));				// <-- only do the oob here
+	MSG_InitOOB( &send, send_buf, sizeof( send_buf ) );                // <-- only do the oob here
 
 	outgoingSequence = chan->outgoingSequence | FRAGMENT_BIT;
 	MSG_WriteLong(&send, outgoingSequence);
@@ -138,6 +144,9 @@ void Netchan_TransmitNextFragment( netchan_t *chan ) {
 	MSG_WriteShort( &send, fragmentLength );
 	MSG_WriteData( &send, chan->unsentBuffer + chan->unsentFragmentStart, fragmentLength );
 
+	// XOR scramble all data in the packet after the header
+//	Netchan_ScramblePacket( &send );
+
 	// send the datagram
 	NET_SendPacket(chan->sock, send.cursize, send.data, chan->remoteAddress);
 	
@@ -146,11 +155,11 @@ void Netchan_TransmitNextFragment( netchan_t *chan ) {
 	chan->lastSentSize = send.cursize;
 
 	if ( showpackets->integer ) {
-		Com_Printf ("%s send %4i : s=%i fragment=%i,%i\n"
-			, netsrcString[ chan->sock ]
-			, send.cursize
-			, chan->outgoingSequence
-			, chan->unsentFragmentStart, fragmentLength);
+		Com_Printf( "%s send %4i : s=%i fragment=%i,%i\n"
+					, netsrcString[ chan->sock ]
+					, send.cursize
+					, chan->outgoingSequence - 1
+					, chan->unsentFragmentStart, fragmentLength );
 	}
 
 	chan->unsentFragmentStart += fragmentLength;
@@ -175,8 +184,8 @@ A 0 length will still generate a packet.
 ================
 */
 void Netchan_Transmit( netchan_t *chan, int length, const byte *data ) {
-	msg_t		send;
-	byte		send_buf[MAX_PACKETLEN];
+	msg_t send;
+	byte send_buf[MAX_PACKETLEN];
 
 	if ( length > MAX_MSGLEN ) {
 		Com_Error( ERR_DROP, "Netchan_Transmit: length = %i", length );
@@ -196,7 +205,7 @@ void Netchan_Transmit( netchan_t *chan, int length, const byte *data ) {
 	}
 
 	// write the packet header
-	MSG_InitOOB (&send, send_buf, sizeof(send_buf));
+	MSG_InitOOB( &send, send_buf, sizeof( send_buf ) );
 
 	MSG_WriteLong( &send, chan->outgoingSequence );
 
@@ -213,6 +222,9 @@ void Netchan_Transmit( netchan_t *chan, int length, const byte *data ) {
 
 	MSG_WriteData( &send, data, length );
 
+	// XOR scramble all data in the packet after the header
+//	Netchan_ScramblePacket( &send );
+
 	// send the datagram
 	NET_SendPacket( chan->sock, send.cursize, send.data, chan->remoteAddress );
 
@@ -222,10 +234,10 @@ void Netchan_Transmit( netchan_t *chan, int length, const byte *data ) {
 
 	if ( showpackets->integer ) {
 		Com_Printf( "%s send %4i : s=%i ack=%i\n"
-			, netsrcString[ chan->sock ]
-			, send.cursize
-			, chan->outgoingSequence - 1
-			, chan->incomingSequence );
+					, netsrcString[ chan->sock ]
+					, send.cursize
+					, chan->outgoingSequence - 1
+					, chan->incomingSequence );
 	}
 }
 
@@ -242,14 +254,14 @@ copied out.
 =================
 */
 qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
-	int			sequence;
-	int			fragmentStart, fragmentLength;
-	qboolean	fragmented;
+	int sequence;
+	int fragmentStart, fragmentLength;
+	qboolean fragmented;
 
 	// XOR unscramble all data in the packet after the header
 //	Netchan_UnScramblePacket( msg );
 
-	// get sequence numbers		
+	// get sequence numbers
 	MSG_BeginReadingOOB( msg );
 	sequence = MSG_ReadLong( msg );
 
@@ -282,22 +294,22 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 		fragmentStart = MSG_ReadShort( msg );
 		fragmentLength = MSG_ReadShort( msg );
 	} else {
-		fragmentStart = 0;		// stop warning message
+		fragmentStart = 0;      // stop warning message
 		fragmentLength = 0;
 	}
 
 	if ( showpackets->integer ) {
 		if ( fragmented ) {
 			Com_Printf( "%s recv %4i : s=%i fragment=%i,%i\n"
-				, netsrcString[ chan->sock ]
-				, msg->cursize
-				, sequence
-				, fragmentStart, fragmentLength );
+						, netsrcString[ chan->sock ]
+						, msg->cursize
+						, sequence
+						, fragmentStart, fragmentLength );
 		} else {
 			Com_Printf( "%s recv %4i : s=%i\n"
-				, netsrcString[ chan->sock ]
-				, msg->cursize
-				, sequence );
+						, netsrcString[ chan->sock ]
+						, msg->cursize
+						, sequence );
 		}
 	}
 
@@ -307,9 +319,9 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 	if ( sequence <= chan->incomingSequence ) {
 		if ( showdrop->integer || showpackets->integer ) {
 			Com_Printf( "%s:Out of order packet %i at %i\n"
-				, NET_AdrToString( chan->remoteAddress )
-				,  sequence
-				, chan->incomingSequence );
+						, NET_AdrToString( chan->remoteAddress )
+						,  sequence
+						, chan->incomingSequence );
 		}
 		return qfalse;
 	}
@@ -317,27 +329,23 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 	//
 	// dropped packets don't keep the message from being used
 	//
-	chan->dropped = sequence - (chan->incomingSequence+1);
+	chan->dropped = sequence - ( chan->incomingSequence + 1 );
 	if ( chan->dropped > 0 ) {
 		if ( showdrop->integer || showpackets->integer ) {
 			Com_Printf( "%s:Dropped %i packets at %i\n"
-			, NET_AdrToString( chan->remoteAddress )
-			, chan->dropped
-			, sequence );
+						, NET_AdrToString( chan->remoteAddress )
+						, chan->dropped
+						, sequence );
 		}
 	}
-	
+
 
 	//
 	// if this is the final framgent of a reliable message,
-	// bump incoming_reliable_sequence 
+	// bump incoming_reliable_sequence
 	//
 	if ( fragmented ) {
-		// TTimo
-		// make sure we add the fragments in correct order
-		// either a packet was dropped, or we received this one too soon
-		// we don't reconstruct the fragments. we will wait till this fragment gets to us again
-		// (NOTE: we could probably try to rebuild by out of order chunks if needed)
+		// make sure we
 		if ( sequence != chan->fragmentSequence ) {
 			chan->fragmentSequence = sequence;
 			chan->fragmentLength = 0;
@@ -356,16 +364,16 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 
 		// copy the fragment to the fragment buffer
 		if ( fragmentLength < 0 || msg->readcount + fragmentLength > msg->cursize ||
-			chan->fragmentLength + fragmentLength > sizeof( chan->fragmentBuffer ) ) {
+			 chan->fragmentLength + fragmentLength > sizeof( chan->fragmentBuffer ) ) {
 			if ( showdrop->integer || showpackets->integer ) {
-				Com_Printf ("%s:illegal fragment length\n"
-				, NET_AdrToString (chan->remoteAddress ) );
+				Com_Printf( "%s:illegal fragment length\n"
+							, NET_AdrToString( chan->remoteAddress ) );
 			}
 			return qfalse;
 		}
 
-		Com_Memcpy( chan->fragmentBuffer + chan->fragmentLength, 
-			msg->data + msg->readcount, fragmentLength );
+		memcpy( chan->fragmentBuffer + chan->fragmentLength,
+				msg->data + msg->readcount, fragmentLength );
 
 		chan->fragmentLength += fragmentLength;
 
@@ -376,8 +384,8 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 
 		if ( chan->fragmentLength > msg->maxsize ) {
 			Com_Printf( "%s:fragmentLength %i > msg->maxsize\n"
-				, NET_AdrToString (chan->remoteAddress ),
-				chan->fragmentLength );
+						, NET_AdrToString( chan->remoteAddress ),
+						chan->fragmentLength );
 			return qfalse;
 		}
 
@@ -386,16 +394,12 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 		// make sure the sequence number is still there
 		*(int *)msg->data = LittleLong( sequence );
 
-		Com_Memcpy( msg->data + 4, chan->fragmentBuffer, chan->fragmentLength );
+		memcpy( msg->data + 4, chan->fragmentBuffer, chan->fragmentLength );
 		msg->cursize = chan->fragmentLength + 4;
 		chan->fragmentLength = 0;
-		msg->readcount = 4;	// past the sequence number
-		msg->bit = 32;	// past the sequence number
+		msg->readcount = 4; // past the sequence number
+		msg->bit = 32;  // past the sequence number
 
-		// TTimo
-		// clients were not acking fragmented messages
-		chan->incomingSequence = sequence;
-		
 		return qtrue;
 	}
 
@@ -410,7 +414,6 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 
 //==============================================================================
 
-
 /*
 =============================================================================
 
@@ -421,57 +424,57 @@ LOOPBACK BUFFERS FOR LOCAL PLAYER
 
 // there needs to be enough loopback messages to hold a complete
 // gamestate of maximum size
-#define	MAX_LOOPBACK	16
+#define MAX_LOOPBACK    16
 
 typedef struct {
-	byte	data[MAX_PACKETLEN];
-	int		datalen;
+	byte data[MAX_PACKETLEN];
+	int datalen;
 } loopmsg_t;
 
 typedef struct {
-	loopmsg_t	msgs[MAX_LOOPBACK];
-	int			get, send;
+	loopmsg_t msgs[MAX_LOOPBACK];
+	int get, send;
 } loopback_t;
 
-loopback_t	loopbacks[2];
+loopback_t loopbacks[2];
 
 
-qboolean	NET_GetLoopPacket (netsrc_t sock, netadr_t *net_from, msg_t *net_message)
-{
-	int		i;
-	loopback_t	*loop;
+qboolean    NET_GetLoopPacket( netsrc_t sock, netadr_t *net_from, msg_t *net_message ) {
+	int i;
+	loopback_t  *loop;
 
 	loop = &loopbacks[sock];
 
-	if (loop->send - loop->get > MAX_LOOPBACK)
+	if ( loop->send - loop->get > MAX_LOOPBACK ) {
 		loop->get = loop->send - MAX_LOOPBACK;
+	}
 
-	if (loop->get >= loop->send)
+	if ( loop->get >= loop->send ) {
 		return qfalse;
+	}
 
-	i = loop->get & (MAX_LOOPBACK-1);
+	i = loop->get & ( MAX_LOOPBACK - 1 );
 	loop->get++;
 
-	Com_Memcpy (net_message->data, loop->msgs[i].data, loop->msgs[i].datalen);
+	memcpy( net_message->data, loop->msgs[i].data, loop->msgs[i].datalen );
 	net_message->cursize = loop->msgs[i].datalen;
-	Com_Memset (net_from, 0, sizeof(*net_from));
+	memset( net_from, 0, sizeof( *net_from ) );
 	net_from->type = NA_LOOPBACK;
 	return qtrue;
 
 }
 
 
-void NET_SendLoopPacket (netsrc_t sock, int length, const void *data, netadr_t to)
-{
-	int		i;
-	loopback_t	*loop;
+void NET_SendLoopPacket( netsrc_t sock, int length, const void *data, netadr_t to ) {
+	int i;
+	loopback_t  *loop;
 
-	loop = &loopbacks[sock^1];
+	loop = &loopbacks[sock ^ 1];
 
-	i = loop->send & (MAX_LOOPBACK-1);
+	i = loop->send & ( MAX_LOOPBACK - 1 );
 	loop->send++;
 
-	Com_Memcpy (loop->msgs[i].data, data, length);
+	memcpy( loop->msgs[i].data, data, length );
 	loop->msgs[i].datalen = length;
 }
 
@@ -495,8 +498,8 @@ static void NET_QueuePacket( int length, const void *data, netadr_t to,
 	if(offset > 999)
 		offset = 999;
 
-	new = S_Malloc(sizeof(packetQueue_t));
-	new->data = S_Malloc(length);
+	new = Z_Malloc(sizeof(packetQueue_t));
+	new->data = Z_Malloc(length);
 	Com_Memcpy(new->data, data, length);
 	new->length = length;
 	new->to = to;
@@ -537,12 +540,12 @@ void NET_FlushPacketQueue(void)
 void NET_SendPacket( netsrc_t sock, int length, const void *data, netadr_t to ) {
 
 	// sequenced packets are shown in netchan, so just show oob
-	if ( showpackets->integer && *(int *)data == -1 )	{
-		Com_Printf ("send packet %4i\n", length);
+	if ( showpackets->integer && *(int *)data == -1 ) {
+		Com_Printf( "send packet %4i\n", length );
 	}
 
 	if ( to.type == NA_LOOPBACK ) {
-		NET_SendLoopPacket (sock, length, data, to);
+		NET_SendLoopPacket( sock, length, data, to );
 		return;
 	}
 	if ( to.type == NA_BOT ) {
@@ -571,9 +574,8 @@ Sends a text message in an out-of-band datagram
 ================
 */
 void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, ... ) {
-	va_list		argptr;
-	char		string[MAX_MSGLEN];
-
+	va_list argptr;
+	char string[MAX_MSGLEN];
 
 	// set the header
 	string[0] = -1;
@@ -591,7 +593,7 @@ void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, 
 
 /*
 ===============
-NET_OutOfBandPrint
+NET_OutOfBandData
 
 Sends a data message in an out-of-band datagram (only used for "connect")
 ================
@@ -631,15 +633,15 @@ int NET_StringToAdr( const char *s, netadr_t *a, netadrtype_t family )
 	char	base[MAX_STRING_CHARS], *search;
 	char	*port = NULL;
 
-	if (!strcmp (s, "localhost")) {
-		Com_Memset (a, 0, sizeof(*a));
+	if ( !strcmp( s, "localhost" ) ) {
+		memset( a, 0, sizeof( *a ) );
 		a->type = NA_LOOPBACK;
 // as NA_LOOPBACK doesn't require ports report port was given.
 		return 1;
 	}
 
 	Q_strncpyz( base, s, sizeof( base ) );
-	
+
 	if(*base == '[' || Q_CountChar(base, ':') > 1)
 	{
 		// This is an ipv6 address, handle it specially.
@@ -688,3 +690,4 @@ int NET_StringToAdr( const char *s, netadr_t *a, netadrtype_t family )
 		return 2;
 	}
 }
+

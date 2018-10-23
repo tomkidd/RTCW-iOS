@@ -1,100 +1,111 @@
 /*
 ===========================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
 
-This file is part of Quake III Arena source code.
+Return to Castle Wolfenstein single player GPL Source Code
+Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-Quake III Arena source code is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
+This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
 
-Quake III Arena source code is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+RTCW SP Source Code is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+RTCW SP Source Code is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+
+In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+
+If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
+
 ===========================================================================
 */
+
+// Copyright (C) 1999-2000 Id Software, Inc.
 //
 
 // g_public.h -- game module information visible to server
 
-#define	GAME_API_VERSION	8
+#define GAME_API_VERSION    8
 
 // entity->svFlags
 // the server does not know how to interpret most of the values
 // in entityStates (level eType), so the game must explicitly flag
 // special server behaviors
-#define	SVF_NOCLIENT			0x00000001	// don't send entity to clients, even if it has effects
-
-// TTimo
-// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=551
-#define SVF_CLIENTMASK 0x00000002
-
-#define SVF_BOT					0x00000008	// set if the entity is a bot
-#define	SVF_BROADCAST			0x00000020	// send to all connected clients
-#define	SVF_PORTAL				0x00000040	// merge a second pvs at origin2 into snapshots
-#define	SVF_USE_CURRENT_ORIGIN	0x00000080	// entity->r.currentOrigin instead of entity->s.origin
+#define SVF_NOCLIENT            0x00000001  // don't send entity to clients, even if it has effects
+#define SVF_VISDUMMY            0x00000004  // this ent is a "visibility dummy" and needs it's master to be sent to clients that can see it even if they can't see the master ent
+#define SVF_BOT                 0x00000008
+// Wolfenstein
+#define SVF_CASTAI              0x00000010
+// done.
+#define SVF_BROADCAST           0x00000020  // send to all connected clients
+#define SVF_PORTAL              0x00000040  // merge a second pvs at origin2 into snapshots
+#define SVF_USE_CURRENT_ORIGIN  0x00000080  // entity->r.currentOrigin instead of entity->s.origin
 											// for link position (missiles and movers)
-#define SVF_SINGLECLIENT		0x00000100	// only send to a single client (entityShared_t->singleClient)
-#define SVF_NOSERVERINFO		0x00000200	// don't send CS_SERVERINFO updates to this client
+// Ridah
+#define SVF_NOFOOTSTEPS         0x00000100
+// done.
+// MrE:
+#define SVF_CAPSULE             0x00000200  // use capsule for collision detection
+
+#define SVF_VISDUMMY_MULTIPLE   0x00000400  // so that one vis dummy can add to snapshot multiple speakers
+
+// recent id changes
+#define SVF_SINGLECLIENT        0x00000800  // only send to a single client (entityShared_t->singleClient)
+#define SVF_NOSERVERINFO        0x00001000  // don't send CS_SERVERINFO updates to this client
 											// so that it can be updated for ping tools without
 											// lagging clients
-#define SVF_CAPSULE				0x00000400	// use capsule for collision detection instead of bbox
-#define SVF_NOTSINGLECLIENT		0x00000800	// send entity to everyone but one client
+#define SVF_NOTSINGLECLIENT     0x00002000  // send entity to everyone but one client
 											// (entityShared_t->singleClient)
-
-
 
 //===============================================================
 
 
 typedef struct {
 	entityState_t	unused;			// apparently this field was put here accidentally
-									//  (and is kept only for compatibility, as a struct pad)
+						//  (and is kept only for compatibility, as a struct pad)
 
-	qboolean	linked;				// qfalse if not in any good cluster
-	int			linkcount;
+	qboolean linked;                // qfalse if not in any good cluster
+	int linkcount;
 
-	int			svFlags;			// SVF_NOCLIENT, SVF_BROADCAST, etc
+	int svFlags;                    // SVF_NOCLIENT, SVF_BROADCAST, etc
+	int singleClient;               // only send to this client when SVF_SINGLECLIENT is set
 
-	// only send to this client when SVF_SINGLECLIENT is set	
-	// if SVF_CLIENTMASK is set, use bitmask for clients to send to (maxclients must be <= 32, up to the mod to enforce this)
-	int			singleClient;		
-
-	qboolean	bmodel;				// if false, assume an explicit mins / maxs bounding box
+	qboolean bmodel;                // if false, assume an explicit mins / maxs bounding box
 									// only set by trap_SetBrushModel
-	vec3_t		mins, maxs;
-	int			contents;			// CONTENTS_TRIGGER, CONTENTS_SOLID, CONTENTS_BODY, etc
+	vec3_t mins, maxs;
+	int contents;                   // CONTENTS_TRIGGER, CONTENTS_SOLID, CONTENTS_BODY, etc
 									// a non-solid entity should set to 0
 
-	vec3_t		absmin, absmax;		// derived from mins/maxs and origin + rotation
+	vec3_t absmin, absmax;          // derived from mins/maxs and origin + rotation
 
 	// currentOrigin will be used for all collision detection and world linking.
 	// it will not necessarily be the same as the trajectory evaluation for the current
 	// time, because each entity must be moved one at a time after time is advanced
 	// to avoid simultanious collision issues
-	vec3_t		currentOrigin;
-	vec3_t		currentAngles;
+	vec3_t currentOrigin;
+	vec3_t currentAngles;
 
 	// when a trace call is made and passEntityNum != ENTITYNUM_NONE,
 	// an ent will be excluded from testing if:
 	// ent->s.number == passEntityNum	(don't interact with self)
 	// ent->r.ownerNum == passEntityNum	(don't interact with your own missiles)
 	// entity[ent->r.ownerNum].r.ownerNum == passEntityNum	(don't interact with other missiles from owner)
-	int			ownerNum;
+	int ownerNum;
+	int eventTime;
 } entityShared_t;
 
 
 
 // the server looks at a sharedEntity, which is the start of the game's gentity_t structure
 typedef struct {
-	entityState_t	s;				// communicated by server to clients
-	entityShared_t	r;				// shared by both the server system and game
+	entityState_t s;                // communicated by server to clients
+	entityShared_t r;               // shared by both the server system and game
 } sharedEntity_t;
 
 
@@ -107,113 +118,117 @@ typedef struct {
 typedef enum {
 	//============== general Quake services ==================
 
-	G_PRINT,		// ( const char *string );
+	G_PRINT,        // ( const char *string );
 	// print message on the local console
 
-	G_ERROR,		// ( const char *string );
+	G_ERROR,        // ( const char *string );
 	// abort the game
 
-	G_MILLISECONDS,	// ( void );
+	G_ENDGAME,      // ( void );	//----(SA)	added
+	// exit to main menu and start "endgame" menu
+
+	G_MILLISECONDS, // ( void );
 	// get current time for profiling reasons
 	// this should NOT be used for any game related tasks,
 	// because it is not journaled
 
 	// console variable interaction
-	G_CVAR_REGISTER,	// ( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags );
-	G_CVAR_UPDATE,	// ( vmCvar_t *vmCvar );
-	G_CVAR_SET,		// ( const char *var_name, const char *value );
-	G_CVAR_VARIABLE_INTEGER_VALUE,	// ( const char *var_name );
+	G_CVAR_REGISTER,    // ( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags );
+	G_CVAR_UPDATE,  // ( vmCvar_t *vmCvar );
+	G_CVAR_SET,     // ( const char *var_name, const char *value );
+	G_CVAR_VARIABLE_INTEGER_VALUE,  // ( const char *var_name );
 
-	G_CVAR_VARIABLE_STRING_BUFFER,	// ( const char *var_name, char *buffer, int bufsize );
+	G_CVAR_VARIABLE_STRING_BUFFER,  // ( const char *var_name, char *buffer, int bufsize );
 
-	G_ARGC,			// ( void );
+	G_ARGC,         // ( void );
 	// ClientCommand and ServerCommand parameter access
 
-	G_ARGV,			// ( int n, char *buffer, int bufferLength );
+	G_ARGV,         // ( int n, char *buffer, int bufferLength );
 
-	G_FS_FOPEN_FILE,	// ( const char *qpath, fileHandle_t *file, fsMode_t mode );
-	G_FS_READ,		// ( void *buffer, int len, fileHandle_t f );
-	G_FS_WRITE,		// ( const void *buffer, int len, fileHandle_t f );
-	G_FS_FCLOSE_FILE,		// ( fileHandle_t f );
+	G_FS_FOPEN_FILE,    // ( const char *qpath, fileHandle_t *file, fsMode_t mode );
+	G_FS_READ,      // ( void *buffer, int len, fileHandle_t f );
+	G_FS_WRITE,     // ( const void *buffer, int len, fileHandle_t f );
+	G_FS_RENAME,
+	G_FS_FCLOSE_FILE,       // ( fileHandle_t f );
 
-	G_SEND_CONSOLE_COMMAND,	// ( const char *text );
+	G_SEND_CONSOLE_COMMAND, // ( const char *text );
 	// add commands to the console as if they were typed in
 	// for map changing, etc
 
 
 	//=========== server specific functionality =============
 
-	G_LOCATE_GAME_DATA,		// ( gentity_t *gEnts, int numGEntities, int sizeofGEntity_t,
+	G_LOCATE_GAME_DATA,     // ( gentity_t *gEnts, int numGEntities, int sizeofGEntity_t,
 	//							playerState_t *clients, int sizeofGameClient );
 	// the game needs to let the server system know where and how big the gentities
 	// are, so it can look at them directly without going through an interface
 
-	G_DROP_CLIENT,		// ( int clientNum, const char *reason );
+	G_DROP_CLIENT,      // ( int clientNum, const char *reason );
 	// kick a client off the server with a message
 
-	G_SEND_SERVER_COMMAND,	// ( int clientNum, const char *fmt, ... );
+	G_SEND_SERVER_COMMAND,  // ( int clientNum, const char *fmt, ... );
 	// reliably sends a command string to be interpreted by the given
 	// client.  If clientNum is -1, it will be sent to all clients
 
-	G_SET_CONFIGSTRING,	// ( int num, const char *string );
+	G_SET_CONFIGSTRING, // ( int num, const char *string );
 	// config strings hold all the index strings, and various other information
 	// that is reliably communicated to all clients
 	// All of the current configstrings are sent to clients when
 	// they connect, and changes are sent to all connected clients.
 	// All confgstrings are cleared at each level start.
 
-	G_GET_CONFIGSTRING,	// ( int num, char *buffer, int bufferSize );
+	G_GET_CONFIGSTRING, // ( int num, char *buffer, int bufferSize );
 
-	G_GET_USERINFO,		// ( int num, char *buffer, int bufferSize );
+	G_GET_USERINFO,     // ( int num, char *buffer, int bufferSize );
 	// userinfo strings are maintained by the server system, so they
 	// are persistant across level loads, while all other game visible
 	// data is completely reset
 
-	G_SET_USERINFO,		// ( int num, const char *buffer );
+	G_SET_USERINFO,     // ( int num, const char *buffer );
 
-	G_GET_SERVERINFO,	// ( char *buffer, int bufferSize );
+	G_GET_SERVERINFO,   // ( char *buffer, int bufferSize );
 	// the serverinfo info string has all the cvars visible to server browsers
 
-	G_SET_BRUSH_MODEL,	// ( gentity_t *ent, const char *name );
+	G_SET_BRUSH_MODEL,  // ( gentity_t *ent, const char *name );
 	// sets mins and maxs based on the brushmodel name
 
-	G_TRACE,	// ( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
+	G_TRACE,    // ( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
 	// collision detection against all linked entities
 
-	G_POINT_CONTENTS,	// ( const vec3_t point, int passEntityNum );
+	G_POINT_CONTENTS,   // ( const vec3_t point, int passEntityNum );
 	// point contents against all linked entities
 
-	G_IN_PVS,			// ( const vec3_t p1, const vec3_t p2 );
+	G_IN_PVS,           // ( const vec3_t p1, const vec3_t p2 );
 
-	G_IN_PVS_IGNORE_PORTALS,	// ( const vec3_t p1, const vec3_t p2 );
+	G_IN_PVS_IGNORE_PORTALS,    // ( const vec3_t p1, const vec3_t p2 );
 
-	G_ADJUST_AREA_PORTAL_STATE,	// ( gentity_t *ent, qboolean open );
+	G_ADJUST_AREA_PORTAL_STATE, // ( gentity_t *ent, qboolean open );
 
-	G_AREAS_CONNECTED,	// ( int area1, int area2 );
+	G_AREAS_CONNECTED,  // ( int area1, int area2 );
 
-	G_LINKENTITY,		// ( gentity_t *ent );
+	G_LINKENTITY,       // ( gentity_t *ent );
 	// an entity will never be sent to a client or used for collision
 	// if it is not passed to linkentity.  If the size, position, or
 	// solidity changes, it must be relinked.
 
-	G_UNLINKENTITY,		// ( gentity_t *ent );		
+	G_UNLINKENTITY,     // ( gentity_t *ent );
 	// call before removing an interactive entity
 
-	G_ENTITIES_IN_BOX,	// ( const vec3_t mins, const vec3_t maxs, gentity_t **list, int maxcount );
+	G_ENTITIES_IN_BOX,  // ( const vec3_t mins, const vec3_t maxs, gentity_t **list, int maxcount );
 	// EntitiesInBox will return brush models based on their bounding box,
 	// so exact determination must still be done with EntityContact
 
-	G_ENTITY_CONTACT,	// ( const vec3_t mins, const vec3_t maxs, const gentity_t *ent );
+	G_ENTITY_CONTACT,   // ( const vec3_t mins, const vec3_t maxs, const gentity_t *ent );
 	// perform an exact check against inline brush models of non-square shape
 
 	// access for bots to get and free a server client (FIXME?)
-	G_BOT_ALLOCATE_CLIENT,	// ( void );
+	G_BOT_ALLOCATE_CLIENT,  // ( void );
 
-	G_BOT_FREE_CLIENT,	// ( int clientNum );
+	G_BOT_FREE_CLIENT,  // ( int clientNum );
 
-	G_GET_USERCMD,	// ( int clientNum, usercmd_t *cmd )
+	G_GET_USERCMD,  // ( int clientNum, usercmd_t *cmd )
 
-	G_GET_ENTITY_TOKEN,	// qboolean ( char *buffer, int bufferSize )
+	G_GET_ENTITY_TOKEN, // qboolean ( char *buffer, int bufferSize )
 	// Retrieves the next string token from the entity spawn text, returning
 	// false when all tokens have been parsed.
 	// This should only be done at GAME_INIT time.
@@ -223,15 +238,19 @@ typedef enum {
 	G_DEBUG_POLYGON_DELETE,
 	G_REAL_TIME,
 	G_SNAPVECTOR,
+// MrE:
 
-	G_TRACECAPSULE,	// ( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
-	G_ENTITY_CONTACTCAPSULE,	// ( const vec3_t mins, const vec3_t maxs, const gentity_t *ent );
-	
-	// 1.32
-	G_FS_SEEK,
+	G_TRACECAPSULE, // ( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
+	// collision detection using capsule against all linked entities
 
-	BOTLIB_SETUP = 200,				// ( void );
-	BOTLIB_SHUTDOWN,				// ( void );
+	G_ENTITY_CONTACTCAPSULE,    // ( const vec3_t mins, const vec3_t maxs, const gentity_t *ent );
+	// perform an exact check against inline brush models of non-square shape
+// done.
+
+	G_GETTAG,
+
+	BOTLIB_SETUP = 200,             // ( void );
+	BOTLIB_SHUTDOWN,                // ( void );
 	BOTLIB_LIBVAR_SET,
 	BOTLIB_LIBVAR_GET,
 	BOTLIB_PC_ADD_GLOBAL_DEFINE,
@@ -240,18 +259,22 @@ typedef enum {
 	BOTLIB_UPDATENTITY,
 	BOTLIB_TEST,
 
-	BOTLIB_GET_SNAPSHOT_ENTITY,		// ( int client, int ent );
-	BOTLIB_GET_CONSOLE_MESSAGE,		// ( int client, char *message, int size );
-	BOTLIB_USER_COMMAND,			// ( int client, usercmd_t *ucmd );
+	BOTLIB_GET_SNAPSHOT_ENTITY,     // ( int client, int ent );
+	BOTLIB_GET_CONSOLE_MESSAGE,     // ( int client, char *message, int size );
+	BOTLIB_USER_COMMAND,            // ( int client, usercmd_t *ucmd );
 
-	BOTLIB_AAS_ENABLE_ROUTING_AREA = 300,
-	BOTLIB_AAS_BBOX_AREAS,
-	BOTLIB_AAS_AREA_INFO,
+	BOTLIB_AAS_ENTITY_VISIBLE = 300,    //FIXME: remove
+	BOTLIB_AAS_IN_FIELD_OF_VISION,      //FIXME: remove
+	BOTLIB_AAS_VISIBLE_CLIENTS,         //FIXME: remove
 	BOTLIB_AAS_ENTITY_INFO,
 
 	BOTLIB_AAS_INITIALIZED,
 	BOTLIB_AAS_PRESENCE_TYPE_BOUNDING_BOX,
 	BOTLIB_AAS_TIME,
+
+	// Ridah
+	BOTLIB_AAS_SETCURRENTWORLD,
+	// done.
 
 	BOTLIB_AAS_POINT_AREA_NUM,
 	BOTLIB_AAS_TRACE_AREAS,
@@ -270,16 +293,31 @@ typedef enum {
 	BOTLIB_AAS_SWIMMING,
 	BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT,
 
+	// Ridah, route-tables
+	BOTLIB_AAS_RT_SHOWROUTE,
+	BOTLIB_AAS_RT_GETHIDEPOS,
+	BOTLIB_AAS_FINDATTACKSPOTWITHINRANGE,
+	BOTLIB_AAS_GETROUTEFIRSTVISPOS,
+	BOTLIB_AAS_SETAASBLOCKINGENTITY,
+	// done.
+
 	BOTLIB_EA_SAY = 400,
 	BOTLIB_EA_SAY_TEAM,
+	BOTLIB_EA_USE_ITEM,
+	BOTLIB_EA_DROP_ITEM,
+	BOTLIB_EA_USE_INV,
+	BOTLIB_EA_DROP_INV,
+	BOTLIB_EA_GESTURE,
 	BOTLIB_EA_COMMAND,
 
-	BOTLIB_EA_ACTION,
-	BOTLIB_EA_GESTURE,
+	BOTLIB_EA_SELECT_WEAPON,
 	BOTLIB_EA_TALK,
 	BOTLIB_EA_ATTACK,
+	BOTLIB_EA_RELOAD,
 	BOTLIB_EA_USE,
 	BOTLIB_EA_RESPAWN,
+	BOTLIB_EA_JUMP,
+	BOTLIB_EA_DELAYED_JUMP,
 	BOTLIB_EA_CROUCH,
 	BOTLIB_EA_MOVE_UP,
 	BOTLIB_EA_MOVE_DOWN,
@@ -287,10 +325,6 @@ typedef enum {
 	BOTLIB_EA_MOVE_BACK,
 	BOTLIB_EA_MOVE_LEFT,
 	BOTLIB_EA_MOVE_RIGHT,
-
-	BOTLIB_EA_SELECT_WEAPON,
-	BOTLIB_EA_JUMP,
-	BOTLIB_EA_DELAYED_JUMP,
 	BOTLIB_EA_MOVE,
 	BOTLIB_EA_VIEW,
 
@@ -360,6 +394,9 @@ typedef enum {
 	BOTLIB_AI_ALLOC_MOVE_STATE,
 	BOTLIB_AI_FREE_MOVE_STATE,
 	BOTLIB_AI_INIT_MOVE_STATE,
+	// Ridah
+	BOTLIB_AI_INIT_AVOID_REACH,
+	// done.
 
 	BOTLIB_AI_CHOOSE_BEST_FIGHT_WEAPON,
 	BOTLIB_AI_GET_WEAPON_INFO,
@@ -387,8 +424,12 @@ typedef enum {
 	BOTLIB_PC_LOAD_SOURCE,
 	BOTLIB_PC_FREE_SOURCE,
 	BOTLIB_PC_READ_TOKEN,
-	BOTLIB_PC_SOURCE_FILE_AND_LINE
+	BOTLIB_PC_SOURCE_FILE_AND_LINE,
 
+	G_FS_COPY_FILE,  //DAJ
+
+	// New in IORTCW
+	G_ALLOC = 900
 } gameImport_t;
 
 
@@ -396,35 +437,44 @@ typedef enum {
 // functions exported by the game subsystem
 //
 typedef enum {
-	GAME_INIT,	// ( int levelTime, int randomSeed, int restart );
+	GAME_INIT,  // ( int levelTime, int randomSeed, int restart );
 	// init and shutdown will be called every single level
 	// The game should call G_GET_ENTITY_TOKEN to parse through all the
 	// entity configuration text and spawn gentities.
 
-	GAME_SHUTDOWN,	// (void);
+	GAME_SHUTDOWN,  // (void);
 
-	GAME_CLIENT_CONNECT,	// ( int clientNum, qboolean firstTime, qboolean isBot );
+	GAME_CLIENT_CONNECT,    // ( int clientNum, qboolean firstTime, qboolean isBot );
 	// return NULL if the client is allowed to connect, otherwise return
 	// a text string with the reason for denial
 
-	GAME_CLIENT_BEGIN,				// ( int clientNum );
+	GAME_CLIENT_BEGIN,              // ( int clientNum );
 
-	GAME_CLIENT_USERINFO_CHANGED,	// ( int clientNum );
+	GAME_CLIENT_USERINFO_CHANGED,   // ( int clientNum );
 
-	GAME_CLIENT_DISCONNECT,			// ( int clientNum );
+	GAME_CLIENT_DISCONNECT,         // ( int clientNum );
 
-	GAME_CLIENT_COMMAND,			// ( int clientNum );
+	GAME_CLIENT_COMMAND,            // ( int clientNum );
 
-	GAME_CLIENT_THINK,				// ( int clientNum );
+	GAME_CLIENT_THINK,              // ( int clientNum );
 
-	GAME_RUN_FRAME,					// ( int levelTime );
+	GAME_RUN_FRAME,                 // ( int levelTime );
 
-	GAME_CONSOLE_COMMAND,			// ( void );
+	GAME_CONSOLE_COMMAND,           // ( void );
 	// ConsoleCommand will be called when a command has been issued
 	// that is not recognized as a builtin function.
 	// The game can issue trap_argc() / trap_argv() commands to get the command
 	// and parameters.  Return qfalse if the game doesn't recognize it as a command.
 
-	BOTAI_START_FRAME				// ( int time );
+	BOTAI_START_FRAME,              // ( int time );
+
+	// Ridah, Cast AI
+	AICAST_VISIBLEFROMPOS,
+	AICAST_CHECKATTACKATPOS,
+	// done.
+
+	GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT,
+	GAME_GETMODELINFO
+
 } gameExport_t;
 

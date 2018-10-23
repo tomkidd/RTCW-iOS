@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "snd_local.h"
 #include "snd_codec.h"
 
-#define DEF_COMSOUNDMEGS "8"
+#define DEF_COMSOUNDMEGS "32"
 
 /*
 ===============================================================================
@@ -218,6 +218,11 @@ qboolean S_LoadSound( sfx_t *sfx )
 	short	*samples;
 	snd_info_t	info;
 //	int		size;
+
+	// player specific sounds are never directly loaded
+	if ( sfx->soundName[0] == '*') {
+		return qfalse;
+	}
 
 	// load it in
 	data = S_CodecLoad(sfx->soundName, &info);

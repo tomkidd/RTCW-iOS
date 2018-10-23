@@ -149,7 +149,7 @@ char *Sys_GetClipboardData(void)
 #ifdef DEDICATED
     return NULL;
 #elif IOS
-    return NULL;
+	return NULL;
 #else
 	char *data = NULL;
 	char *cliptext;
@@ -171,9 +171,9 @@ char *Sys_GetClipboardData(void)
 }
 
 #ifdef DEDICATED
-#	define PID_FILENAME PRODUCT_NAME "_server.pid"
+#	define PID_FILENAME "iowolfsp_server.pid"
 #else
-#	define PID_FILENAME PRODUCT_NAME ".pid"
+#	define PID_FILENAME "iowolfsp.pid"
 #endif
 
 /*
@@ -331,12 +331,12 @@ cpuFeatures_t Sys_GetProcessorFeatures( void )
 
 #ifndef DEDICATED
 #ifndef IOS
-	if( SDL_HasRDTSC( ) )      features |= CF_RDTSC;
-	if( SDL_Has3DNow( ) )      features |= CF_3DNOW;
-	if( SDL_HasMMX( ) )        features |= CF_MMX;
-	if( SDL_HasSSE( ) )        features |= CF_SSE;
-	if( SDL_HasSSE2( ) )       features |= CF_SSE2;
-	if( SDL_HasAltiVec( ) )    features |= CF_ALTIVEC;
+	if( SDL_HasRDTSC( ) )	features |= CF_RDTSC;
+	if( SDL_Has3DNow( ) )	features |= CF_3DNOW;
+	if( SDL_HasMMX( ) )	features |= CF_MMX;
+	if( SDL_HasSSE( ) )	features |= CF_SSE;
+	if( SDL_HasSSE2( ) )	features |= CF_SSE2;
+	if( SDL_HasAltiVec( ) )	features |= CF_ALTIVEC;
 #endif
 #endif
 
@@ -553,20 +553,20 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
     Com_Printf("Sys_LoadDll(%s) could not find appropriate entry point for game %s\n", name, game);
     return NULL;
 #else
-    void *dllhandle = NULL;
+	void *dllhandle = NULL;
 
 	if(!Sys_DllExtension(name))
 	{
 		Com_Printf("Refusing to attempt to load library \"%s\": Extension not allowed.\n", name);
 		return NULL;
 	}
-
+	
 	if(useSystemLib)
 	{
 		Com_Printf("Trying to load \"%s\"...\n", name);
 		dllhandle = Sys_LoadLibrary(name);
 	}
-	
+
 	if(!dllhandle)
 	{
 		const char *topDir;
@@ -627,7 +627,7 @@ Used to load a development dll instead of a virtual machine
 =================
 */
 void *Sys_LoadGameDll(const char *name,
-	intptr_t (QDECL **entryPoint)(int, ...),
+	intptr_t (QDECL **entryPoint)(intptr_t, ...),
 	intptr_t (*systemcalls)(intptr_t, ...))
 {
 #ifndef IOS
@@ -642,7 +642,7 @@ void *Sys_LoadGameDll(const char *name,
 		return NULL;
 	}
 
-	Com_Printf( "Loading DLL file: %s\n", name);
+	Com_DPrintf( "Loading DLL file: %s\n", name);
 	libHandle = Sys_LoadLibrary(name);
 
 	if(!libHandle)
@@ -662,7 +662,7 @@ void *Sys_LoadGameDll(const char *name,
 		return NULL;
 	}
 
-	Com_Printf ( "Sys_LoadGameDll(%s) found vmMain function at %p\n", name, *entryPoint );
+	Com_DPrintf ( "Sys_LoadGameDll(%s) found vmMain function at %p\n", name, *entryPoint );
 	dllEntry( systemcalls );
 
 	return libHandle;
@@ -746,16 +746,9 @@ int main( int argc, char **argv )
 {
 	int   i;
 	char  commandLine[ MAX_STRING_CHARS ] = { 0 };
-    
-#ifndef IOS
-
-	extern void Sys_LaunchAutoupdater(int argc, char **argv);
-	Sys_LaunchAutoupdater(argc, argv);
-    
-#endif
 
 #if !defined(DEDICATED) && !defined(IOS)
-	// SDL version check
+    // SDL version check
 
 	// Compile time
 #	if !SDL_VERSION_ATLEAST(MINSDL_MAJOR,MINSDL_MINOR,MINSDL_PATCH)

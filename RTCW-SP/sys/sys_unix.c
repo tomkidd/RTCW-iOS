@@ -43,12 +43,17 @@ qboolean stdinIsATTY;
 
 // Used to determine where to store user-specific files
 static char homePath[ MAX_OSPATH ] = { 0 };
+#ifdef USE_XDG
+static const char DEFAULT_XDG_DATA_HOME[] = {'.', 'l', 'o', 'c', 'a', 'l', PATH_SEP, 's', 'h', 'a', 'r', 'e', '\0'};
+#endif
 
-// Used to store the Steam Quake 3 installation path
+#ifndef STANDALONE
+// Used to store the Steam RTCW installation path
 static char steamPath[ MAX_OSPATH ] = { 0 };
 
-// Used to store the GOG Quake 3 installation path
+// Used to store the GOG RTCW installation path
 static char gogPath[ MAX_OSPATH ] = { 0 };
+#endif
 
 /*
 ==================
@@ -57,14 +62,17 @@ Sys_DefaultHomePath
 */
 char *Sys_DefaultHomePath(void)
 {
-	char *p;
+	char *p1;
+#ifdef USE_XDG
+	char *p2;
+#endif
 
 #ifdef IOS
     if (*homePath)
         return homePath;
     
-    if ((p = getenv("HOME")) != NULL) {
-        Q_strncpyz(homePath, p, sizeof(homePath));
+    if ((p1 = getenv("HOME")) != NULL) {
+        Q_strncpyz(homePath, p1, sizeof(homePath));
         
         Q_strcat(homePath, sizeof(homePath), "/");
         
@@ -78,10 +86,11 @@ char *Sys_DefaultHomePath(void)
 #else
     if( !*homePath && com_homepath != NULL )
 	{
-		if( ( p = getenv( "HOME" ) ) != NULL )
-		{
-			Com_sprintf(homePath, sizeof(homePath), "%s%c", p, PATH_SEP);
 #ifdef __APPLE__
+		if( ( p1 = getenv( "HOME" ) ) != NULL )
+		{
+			Com_sprintf(homePath, sizeof(homePath), "%s%c", p1, PATH_SEP);
+
 			Q_strcat(homePath, sizeof(homePath),
 				"Library/Application Support/");
 
@@ -89,19 +98,45 @@ char *Sys_DefaultHomePath(void)
 				Q_strcat(homePath, sizeof(homePath), com_homepath->string);
 			else
 				Q_strcat(homePath, sizeof(homePath), HOMEPATH_NAME_MACOSX);
+		}
 #else
+#ifdef USE_XDG
+		if( ( p1 = getenv( "XDG_DATA_HOME" ) ) != NULL )
+		{
+			Com_sprintf(homePath, sizeof(homePath), "%s%c", p1, PATH_SEP);
+
+		}
+		else if( ( p2 = getenv( "HOME" ) ) != NULL)
+		{
+			Com_sprintf(homePath, sizeof(homePath), "%s%c%s%c", p2, PATH_SEP, DEFAULT_XDG_DATA_HOME, PATH_SEP);
+		}
+
+		if (p1 || p2)
+		{
 			if(com_homepath->string[0])
 				Q_strcat(homePath, sizeof(homePath), com_homepath->string);
 			else
 				Q_strcat(homePath, sizeof(homePath), HOMEPATH_NAME_UNIX);
-#endif
 		}
+#else
+		if( ( p1 = getenv( "HOME" ) ) != NULL )
+		{
+			Com_sprintf(homePath, sizeof(homePath), "%s%c", p1, PATH_SEP);
+
+			if(com_homepath->string[0])
+				Q_strcat(homePath, sizeof(homePath), com_homepath->string);
+			else
+				Q_strcat(homePath, sizeof(homePath), HOMEPATH_NAME_UNIX);
+		}
+#endif // USE_XDG
+#endif // __APPLE__
 	}
 
 #endif
 	return homePath;
 }
 
+#ifndef STANDALONE
 /*
 ================
 Sys_SteamPath
@@ -109,8 +144,8 @@ Sys_SteamPath
 */
 char *Sys_SteamPath( void )
 {
-	// Disabled since Steam doesn't let you install Quake 3 on Mac/Linux
-#if 0 //#ifdef STEAMPATH_NAME
+	// Disabled since Steam doesn't let you install RTCW on Mac/Linux
+#if 0
 	char *p;
 
 	if( ( p = getenv( "HOME" ) ) != NULL )
@@ -134,9 +169,10 @@ Sys_GogPath
 */
 char *Sys_GogPath( void )
 {
-	// GOG also doesn't let you install Quake 3 on Mac/Linux
+	// GOG also doesn't let you install RTCW on Mac/Linux
 	return gogPath;
 }
+#endif
 
 
 #ifdef IOS
@@ -545,7 +581,7 @@ void Sys_FreeFileList( char **list )
 ==================
 Sys_Sleep
 
-Block execution for msec or until input is received.
+Block execution for msec or until input is recieved.
 ==================
 */
 void Sys_Sleep( int msec )
@@ -987,14 +1023,6 @@ qboolean Sys_DllExtension( const char *name ) {
 		return qtrue;
 	}
 
-#ifdef __APPLE__
-	// Allow system frameworks without dylib extensions
-	// i.e., /System/Library/Frameworks/OpenAL.framework/OpenAL
-	if ( strncmp( name, "/System/Library/Frameworks/", 27 ) == 0 ) {
-		return qtrue;
-	}
-#endif
-
 	// Check for format of filename.so.1.2.3
 	p = strstr( name, DLL_EXT "." );
 
@@ -1020,3 +1048,147 @@ qboolean Sys_DllExtension( const char *name ) {
 
 	return qfalse;
 }
+
+/*
+==============
+Sys_GetDLLName
+==============
+*/
+char* Sys_GetDLLName( const char *name ) {
+	return va("%s.sp." ARCH_STRING DLL_EXT, name);
+}
+
+/*
+==============
+Sys_GetHighQualityCPU
+==============
+*/
+int Sys_GetHighQualityCPU() {
+	return 1;
+}
+
+#define MAX_CMD 1024
+static char exit_cmdline[MAX_CMD] = "";
+void Sys_DoStartProcess( char *cmdline );
+
+/*
+==================
+Sys_DoStartProcess
+actually forks and starts a process
+
+UGLY HACK:
+  Sys_StartProcess works with a command line only
+  if this command line is actually a binary with command line parameters,
+  the only way to do this on unix is to use a system() call
+  but system doesn't replace the current process, which leads to a situation like:
+  wolf.x86--spawned_process.x86
+  in the case of auto-update for instance, this will cause write access denied on wolf.x86:
+  wolf-beta/2002-March/000079.html
+  we hack the implementation here, if there are no space in the command line, assume it's a straight process and use execl
+  otherwise, use system ..
+  The clean solution would be Sys_StartProcess and Sys_StartProcess_Args..
+==================
+*/
+void Sys_DoStartProcess( char *cmdline ) {
+#ifndef IOS
+	switch ( fork() )
+	{
+	case - 1:
+		// main thread
+		break;
+	case 0:
+		if ( strchr( cmdline, ' ' ) )
+		{
+			int ret;
+
+			ret = system( cmdline );
+			if ( ret == -1 )
+				printf( "Failed to run '%s' command\n", cmdline );
+
+		}
+		else
+		{
+			execl( cmdline, cmdline, NULL );
+		}
+		_exit( 0 );
+		break;
+	}
+#endif
+}
+
+/*
+==================
+Sys_StartProcess
+if !doexit, start the process asap
+otherwise, push it for execution at exit
+(i.e. let complete shutdown of the game and freeing of resources happen)
+NOTE: might even want to add a small delay?
+==================
+*/
+void Sys_StartProcess( char *cmdline, qboolean doexit ) {
+
+	if ( doexit ) {
+		Com_DPrintf( "Sys_StartProcess %s (delaying to final exit)\n", cmdline );
+		Q_strncpyz( exit_cmdline, cmdline, MAX_CMD );
+		Cbuf_ExecuteText( EXEC_APPEND, "quit" );
+	}
+
+	Cbuf_ExecuteText( EXEC_NOW, "net_stop" );
+	Com_DPrintf( "Sys_StartProcess %s\n", cmdline );
+	Sys_DoStartProcess( cmdline );
+}
+
+/*
+=================
+Sys_OpenURL
+=================
+*/
+void Sys_OpenURL( char *url, qboolean doexit ) {
+	char *basepath, *homepath, *pwdpath;
+	char fname[20];
+	char fn[MAX_OSPATH];
+	char cmdline[MAX_CMD];
+
+	Com_Printf( "Sys_OpenURL %s\n", url );
+	// opening an URL on *nix can mean a lot of things ..
+	// just spawn a script instead of deciding for the user :-)
+
+	// do the setup before we fork
+	// search for an openurl.sh script
+	// search procedure taken from Sys_LoadDll
+	Q_strncpyz( fname, "openurl.sh", 20 );
+
+	pwdpath = Sys_Cwd();
+	Com_sprintf( fn, MAX_OSPATH, "%s/%s", pwdpath, fname );
+	if ( access( fn, X_OK ) == -1 ) {
+		Com_DPrintf( "%s not found\n", fn );
+		// try in home path
+		homepath = Cvar_VariableString( "fs_homepath" );
+		Com_sprintf( fn, MAX_OSPATH, "%s/%s", homepath, fname );
+		if ( access( fn, X_OK ) == -1 ) {
+			Com_DPrintf( "%s not found\n", fn );
+			// basepath, last resort
+			basepath = Cvar_VariableString( "fs_basepath" );
+			Com_sprintf( fn, MAX_OSPATH, "%s/%s", basepath, fname );
+			if ( access( fn, X_OK ) == -1 ) {
+				Com_DPrintf( "%s not found\n", fn );
+				Com_Printf( "Can't find script '%s' to open requested URL (use +set developer 1 for more verbosity)\n", fname );
+				// we won't quit
+				return;
+			}
+		}
+	}
+
+	Com_DPrintf( "URL script: %s\n", fn );
+
+	// build the command line
+	Com_sprintf( cmdline, MAX_CMD, "%s '%s' &", fn, url );
+
+	if ( doexit ) {
+		Sys_StartProcess( cmdline, qtrue );
+	} else {
+		Sys_StartProcess( cmdline, qfalse );
+	}
+
+}
+

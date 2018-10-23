@@ -2,50 +2,52 @@ code
 
 equ	trap_Print				-1
 equ	trap_Error				-2
-equ	trap_Milliseconds		-3
-equ	trap_Cvar_Register		-4
-equ	trap_Cvar_Update		-5
-equ	trap_Cvar_Set			-6
-equ	trap_Cvar_VariableIntegerValue	-7
-equ	trap_Cvar_VariableStringBuffer	-8
-equ	trap_Argc				-9
-equ	trap_Argv				-10
-equ	trap_FS_FOpenFile		-11
-equ	trap_FS_Read			-12
-equ	trap_FS_Write			-13
-equ	trap_FS_FCloseFile		-14
-equ	trap_SendConsoleCommand	-15
-equ	trap_LocateGameData		-16
-equ	trap_DropClient			-17
-equ	trap_SendServerCommand	-18
-equ	trap_SetConfigstring	-19
-equ	trap_GetConfigstring	-20
-equ	trap_GetUserinfo		-21
-equ	trap_SetUserinfo		-22
-equ	trap_GetServerinfo		-23
-equ	trap_SetBrushModel		-24
-equ	trap_Trace				-25
-equ	trap_PointContents		-26
-equ trap_InPVS				-27
-equ	trap_InPVSIgnorePortals	-28
-equ	trap_AdjustAreaPortalState	-29
-equ	trap_AreasConnected		-30
-equ	trap_LinkEntity			-31
-equ	trap_UnlinkEntity		-32
-equ	trap_EntitiesInBox		-33
-equ	trap_EntityContact		-34
-equ	trap_BotAllocateClient	-35
-equ	trap_BotFreeClient		-36
-equ	trap_GetUsercmd			-37
-equ	trap_GetEntityToken		-38
-equ	trap_FS_GetFileList		-39
-equ trap_DebugPolygonCreate	-40
-equ trap_DebugPolygonDelete	-41
-equ trap_RealTime			-42
-equ trap_SnapVector			-43
-equ trap_TraceCapsule		-44
-equ trap_EntityContactCapsule	-45
-equ trap_FS_Seek -46
+equ trap_Endgame			-3
+equ	trap_Milliseconds		-4
+equ	trap_Cvar_Register		-5
+equ	trap_Cvar_Update		-6
+equ	trap_Cvar_Set			-7
+equ	trap_Cvar_VariableIntegerValue	-8
+equ	trap_Cvar_VariableStringBuffer	-9
+equ	trap_Argc				-10
+equ	trap_Argv				-11
+equ	trap_FS_FOpenFile		-12
+equ	trap_FS_Read			-13
+equ	trap_FS_Write			-14
+equ trap_FS_Rename			-15
+equ	trap_FS_FCloseFile		-16
+equ	trap_SendConsoleCommand	-17
+equ	trap_LocateGameData		-18
+equ	trap_DropClient			-19
+equ	trap_SendServerCommand	-20
+equ	trap_SetConfigstring	-21
+equ	trap_GetConfigstring	-22
+equ	trap_GetUserinfo		-23
+equ	trap_SetUserinfo		-24
+equ	trap_GetServerinfo		-25
+equ	trap_SetBrushModel		-26
+equ	trap_Trace				-27
+equ	trap_PointContents		-28
+equ trap_InPVS				-29
+equ	trap_InPVSIgnorePortals	-30
+equ	trap_AdjustAreaPortalState	-31
+equ	trap_AreasConnected		-32
+equ	trap_LinkEntity			-33
+equ	trap_UnlinkEntity		-34
+equ	trap_EntitiesInBox		-35
+equ	trap_EntityContact		-36
+equ	trap_BotAllocateClient	-37
+equ	trap_BotFreeClient		-38
+equ	trap_GetUsercmd			-39
+equ	trap_GetEntityToken		-40
+equ	trap_FS_GetFileList		-41
+equ trap_DebugPolygonCreate	-42
+equ trap_DebugPolygonDelete	-43
+equ trap_RealTime			-44
+equ trap_SnapVector			-45
+equ trap_TraceCapsule		-46
+equ trap_EntityContactCapsule	-47
+equ trap_GetTag				-48
 
 equ	memset					-101
 equ	memcpy					-102
@@ -58,6 +60,7 @@ equ floor					-111
 equ	ceil					-112
 equ	testPrintInt			-113
 equ	testPrintFloat			-114
+equ	acos				-115
 
 
 
@@ -77,61 +80,71 @@ equ trap_BotUserCommand					-212
 
 
 
-equ trap_AAS_EnableRoutingArea		-301
-equ trap_AAS_BBoxAreas				-302
-equ trap_AAS_AreaInfo				-303
+; BOTLIB_AAS_ENTITY_VISIBLE				-301
+; BOTLIB_AAS_IN_FIELD_OF_VISION			-302
+; BOTLIB_AAS_VISIBLE_CLIENTS			-303
 equ trap_AAS_EntityInfo					-304
 
 equ trap_AAS_Initialized				-305
 equ trap_AAS_PresenceTypeBoundingBox	-306
 equ trap_AAS_Time						-307
 
-equ trap_AAS_PointAreaNum				-308
-equ trap_AAS_TraceAreas					-309
+equ trap_AAS_SetCurrentWorld			-308
 
-equ trap_AAS_PointContents				-310
-equ trap_AAS_NextBSPEntity				-311
-equ trap_AAS_ValueForBSPEpairKey		-312
-equ trap_AAS_VectorForBSPEpairKey		-313
-equ trap_AAS_FloatForBSPEpairKey		-314
-equ trap_AAS_IntForBSPEpairKey			-315
+equ trap_AAS_PointAreaNum				-309
+equ trap_AAS_TraceAreas					-310
 
-equ trap_AAS_AreaReachability			-316
+equ trap_AAS_PointContents				-311
+equ trap_AAS_NextBSPEntity				-312
+equ trap_AAS_ValueForBSPEpairKey		-313
+equ trap_AAS_VectorForBSPEpairKey		-314
+equ trap_AAS_FloatForBSPEpairKey		-315
+equ trap_AAS_IntForBSPEpairKey			-316
 
-equ trap_AAS_AreaTravelTimeToGoalArea	-317
+equ trap_AAS_AreaReachability			-317
 
-equ trap_AAS_Swimming					-318
-equ trap_AAS_PredictClientMovement		-319
+equ trap_AAS_AreaTravelTimeToGoalArea	-318
 
+equ trap_AAS_Swimming					-319
+equ trap_AAS_PredictClientMovement		-320
+
+equ trap_AAS_RT_ShowRoute				-321
+equ trap_AAS_RT_GetHidePos				-322
+equ trap_AAS_FindAttackSpotWithinRange	-323
+equ trap_AAS_GetRouteFirstVisPos		-324
+equ trap_AAS_SetAASBlockingEntity		-325
 
 
 equ trap_EA_Say							-401
 equ trap_EA_SayTeam						-402
-equ trap_EA_Command						-403
+equ trap_EA_UseItem						-403
+equ trap_EA_DropItem					-404				
+equ trap_EA_UseInv						-405
+equ trap_EA_DropInv						-406
+equ trap_EA_Gesture						-407
+equ trap_EA_Command						-408
 
-equ trap_EA_Action						-404
-equ trap_EA_Gesture						-405
-equ trap_EA_Talk						-406
-equ trap_EA_Attack						-407
-equ trap_EA_Use							-408
-equ trap_EA_Respawn						-409
-equ trap_EA_Crouch						-410
-equ trap_EA_MoveUp						-411
-equ trap_EA_MoveDown					-412
-equ trap_EA_MoveForward					-413
-equ trap_EA_MoveBack					-414
-equ trap_EA_MoveLeft					-415
-equ trap_EA_MoveRight					-416
+equ trap_EA_SelectWeapon				-409
+equ trap_EA_Talk						-410
+equ trap_EA_Attack						-411
+equ trap_EA_Reload						-412
+equ trap_EA_Use							-413
+equ trap_EA_Respawn						-414
+equ trap_EA_Jump						-415
+equ trap_EA_DelayedJump					-416
+equ trap_EA_Crouch						-417
+equ trap_EA_MoveUp						-418
+equ trap_EA_MoveDown					-419
+equ trap_EA_MoveForward					-420
+equ trap_EA_MoveBack					-421
+equ trap_EA_MoveLeft					-422
+equ trap_EA_MoveRight					-423
+equ trap_EA_Move						-424
+equ trap_EA_View						-425
 
-equ trap_EA_SelectWeapon				-417
-equ trap_EA_Jump						-418
-equ trap_EA_DelayedJump					-419
-equ trap_EA_Move						-420
-equ trap_EA_View						-421
-
-equ trap_EA_EndRegular					-422
-equ trap_EA_GetInput					-423
-equ trap_EA_ResetInput					-424
+equ trap_EA_EndRegular					-426
+equ trap_EA_GetInput					-427
+equ trap_EA_ResetInput					-428
 
 
 
@@ -196,30 +209,36 @@ equ trap_BotMovementViewTarget			-555
 equ trap_BotAllocMoveState				-556
 equ trap_BotFreeMoveState				-557
 equ trap_BotInitMoveState				-558
+equ trap_BotInitAvoidReach				-559
 
-equ trap_BotChooseBestFightWeapon		-559
-equ trap_BotGetWeaponInfo				-560
-equ trap_BotLoadWeaponWeights			-561
-equ trap_BotAllocWeaponState			-562
-equ trap_BotFreeWeaponState				-563
-equ trap_BotResetWeaponState			-564
-equ trap_GeneticParentsAndChildSelection -565
-equ trap_BotInterbreedGoalFuzzyLogic	-566
-equ trap_BotMutateGoalFuzzyLogic		-567
-equ trap_BotGetNextCampSpotGoal			-568
-equ trap_BotGetMapLocationGoal			-569
-equ trap_BotNumInitialChats				-570
-equ trap_BotGetChatMessage				-571
-equ trap_BotRemoveFromAvoidGoals		-572
-equ trap_BotPredictVisiblePosition		-573
-equ trap_BotSetAvoidGoalTime			-574
-equ trap_BotAddAvoidSpot				-575
-equ trap_AAS_AlternativeRouteGoals		-576
-equ trap_AAS_PredictRoute				-577
-equ trap_AAS_PointReachabilityAreaIndex	-578
+equ trap_BotChooseBestFightWeapon		-560
+equ trap_BotGetWeaponInfo				-561
+equ trap_BotLoadWeaponWeights			-562
+equ trap_BotAllocWeaponState			-563
+equ trap_BotFreeWeaponState				-564
+equ trap_BotResetWeaponState			-565
+equ trap_GeneticParentsAndChildSelection -566
+equ trap_BotInterbreedGoalFuzzyLogic	-567
+equ trap_BotMutateGoalFuzzyLogic		-568
+equ trap_BotGetNextCampSpotGoal			-569
+equ trap_BotGetMapLocationGoal			-570
+equ trap_BotNumInitialChats				-571
+equ trap_BotGetChatMessage				-572
+equ trap_BotRemoveFromAvoidGoals		-573
+equ trap_BotPredictVisiblePosition		-574
+equ trap_BotSetAvoidGoalTime			-575
+equ trap_BotAddAvoidSpot				-576
+equ trap_AAS_AlternativeRouteGoals		-577
+equ trap_AAS_PredictRoute				-578
+equ trap_AAS_PointReachabilityAreaIndex	-579
 
-equ trap_BotLibLoadSource				-579
-equ trap_BotLibFreeSource				-580
-equ trap_BotLibReadToken				-581
-equ trap_BotLibSourceFileAndLine		-582
+equ trap_BotLibLoadSource				-580
+equ trap_BotLibFreeSource				-581
+equ trap_BotLibReadToken				-582
+equ trap_BotLibSourceFileAndLine		-583
  
+equ trap_FS_CopyFile					-584
+
+; New in iortcw
+equ trap_Alloc							-901
+

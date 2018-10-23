@@ -6,7 +6,7 @@
 
 #import "ios_glimp.h"
 
-#include "../renderergl1/tr_local.h"
+#include "../renderer/tr_local.h"
 
 qboolean GLimp_SpawnRenderThread(void (*function)(void)) {
 	return qfalse;

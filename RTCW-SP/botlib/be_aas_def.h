@@ -1,31 +1,37 @@
 /*
 ===========================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
 
-This file is part of Quake III Arena source code.
+Return to Castle Wolfenstein single player GPL Source Code
+Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-Quake III Arena source code is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
+This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
 
-Quake III Arena source code is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+RTCW SP Source Code is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+RTCW SP Source Code is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+
+In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+
+If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
+
 ===========================================================================
 */
+
 
 /*****************************************************************************
  * name:		be_aas_def.h
  *
  * desc:		AAS
  *
- * $Archive: /source/code/botlib/be_aas_def.h $
  *
  *****************************************************************************/
 
@@ -34,10 +40,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //debugging on
 #define AAS_DEBUG
 
-#define DF_AASENTNUMBER(x)		(x - aasworld.entities)
-#define DF_NUMBERAASENT(x)		(&aasworld.entities[x])
-#define DF_AASENTCLIENT(x)		(x - aasworld.entities - 1)
-#define DF_CLIENTAASENT(x)		(&aasworld.entities[x + 1])
+#define MAX_CONFIGSTRINGS   2048    //----(SA)	upped
+
+#define DF_AASENTNUMBER( x )      ( x - ( *aasworlds ).entities )
+#define DF_NUMBERAASENT( x )      ( &( *aasworlds ).entities[x] )
+#define DF_AASENTCLIENT( x )      ( x - ( *aasworlds ).entities - 1 )
+#define DF_CLIENTAASENT( x )      ( &( *aasworlds ).entities[x + 1] )
+
+//string index (for model, sound and image index)
+typedef struct aas_stringindex_s
+{
+	int numindexes;
+	char **index;
+} aas_stringindex_t;
 
 //structure to link entities to areas and areas to entities
 typedef struct aas_link_s
@@ -80,74 +95,64 @@ typedef struct aas_entity_s
 
 typedef struct aas_settings_s
 {
-	vec3_t phys_gravitydirection;
-	float phys_friction;
-	float phys_stopspeed;
-	float phys_gravity;
-	float phys_waterfriction;
-	float phys_watergravity;
-	float phys_maxvelocity;
-	float phys_maxwalkvelocity;
-	float phys_maxcrouchvelocity;
-	float phys_maxswimvelocity;
-	float phys_walkaccelerate;
-	float phys_airaccelerate;
-	float phys_swimaccelerate;
-	float phys_maxstep;
-	float phys_maxsteepness;
-	float phys_maxwaterjump;
-	float phys_maxbarrier;
-	float phys_jumpvel;
-	float phys_falldelta5;
-	float phys_falldelta10;
-	float rs_waterjump;
-	float rs_teleport;
-	float rs_barrierjump;
-	float rs_startcrouch;
-	float rs_startgrapple;
-	float rs_startwalkoffledge;
-	float rs_startjump;
-	float rs_rocketjump;
-	float rs_bfgjump;
-	float rs_jumppad;
-	float rs_aircontrolledjumppad;
-	float rs_funcbob;
-	float rs_startelevator;
-	float rs_falldamage5;
-	float rs_falldamage10;
-	float rs_maxfallheight;
-	float rs_maxjumpfallheight;
+	float sv_friction;
+	float sv_stopspeed;
+	float sv_gravity;
+	float sv_waterfriction;
+	float sv_watergravity;
+	float sv_maxvelocity;
+	float sv_maxwalkvelocity;
+	float sv_maxcrouchvelocity;
+	float sv_maxswimvelocity;
+	float sv_walkaccelerate;
+	float sv_airaccelerate;
+	float sv_swimaccelerate;
+	float sv_maxstep;
+	float sv_maxsteepness;
+	float sv_maxwaterjump;
+	float sv_maxbarrier;
+	float sv_jumpvel;
 } aas_settings_t;
-
-#define CACHETYPE_PORTAL		0
-#define CACHETYPE_AREA			1
 
 //routing cache
 typedef struct aas_routingcache_s
 {
-	byte type;									//portal or area cache
-	float time;									//last time accessed or updated
-	int size;									//size of the routing cache
-	int cluster;								//cluster the cache is for
-	int areanum;								//area the cache is created for
-	vec3_t origin;								//origin within the area
-	float starttraveltime;						//travel time to start with
-	int travelflags;							//combinations of the travel flags
+	int size;                                   //size of the routing cache
+	float time;                                 //last time accessed or updated
+	int cluster;                                //cluster the cache is for
+	int areanum;                                //area the cache is created for
+	vec3_t origin;                              //origin within the area
+	float starttraveltime;                      //travel time to start with
+	int travelflags;                            //combinations of the travel flags
 	struct aas_routingcache_s *prev, *next;
-	struct aas_routingcache_s *time_prev, *time_next;
-	unsigned char *reachabilities;				//reachabilities used for routing
-	unsigned short int traveltimes[1];			//travel time for every area (variable sized)
+	unsigned char *reachabilities;              //reachabilities used for routing
+	unsigned short int traveltimes[1];          //travel time for every area (variable sized)
 } aas_routingcache_t;
+
+//32bit values for pointers to allow loading cache on non-32 bit platforms
+typedef struct
+{
+	int size;                                   //size of the routing cache
+	float time;                                 //last time accessed or updated
+	int cluster;                                //cluster the cache is for
+	int areanum;                                //area the cache is created for
+	vec3_t origin;                              //origin within the area
+	float starttraveltime;                      //travel time to start with
+	int travelflags;                            //combinations of the travel flags
+	int prev_, next_;
+	int reachabilities_;                        //reachabilities used for routing
+	unsigned short int traveltimes[1];          //travel time for every area (variable sized)
+} aas_routingcache_32_t;
 
 //fields for the routing algorithm
 typedef struct aas_routingupdate_s
 {
 	int cluster;
-	int areanum;								//area number of the update
-	vec3_t start;								//start point the area was entered
-	unsigned short int tmptraveltime;			//temporary travel time
-	unsigned short int *areatraveltimes;		//travel times within the area
-	qboolean inlist;							//true if the update is in the list
+	int areanum;                                //area number of the update
+	vec3_t start;                               //start point the area was entered
+	unsigned short int tmptraveltime;           //temporary travel time
+	unsigned short int *areatraveltimes;        //travel times within the area
+	qboolean inlist;                            //true if the update is in the list
 	struct aas_routingupdate_s *next;
 	struct aas_routingupdate_s *prev;
 } aas_routingupdate_t;
@@ -155,9 +160,9 @@ typedef struct aas_routingupdate_s
 //reversed reachability link
 typedef struct aas_reversedlink_s
 {
-	int linknum;								//the aas_areareachability_t
-	int areanum;								//reachable from this area
-	struct aas_reversedlink_s *next;			//next link
+	int linknum;                                //the aas_areareachability_t
+	int areanum;                                //reachable from this area
+	struct aas_reversedlink_s *next;            //next link
 } aas_reversedlink_t;
 
 //reversed area reachability
@@ -167,17 +172,15 @@ typedef struct aas_reversedreachability_s
 	aas_reversedlink_t *first;
 } aas_reversedreachability_t;
 
-//areas a reachability goes through
-typedef struct aas_reachabilityareas_s
-{
-	int firstarea, numareas;
-} aas_reachabilityareas_t;
+// Ridah, route-tables
+#include "be_aas_routetable.h"
+// done.
 
 typedef struct aas_s
 {
-	int loaded;									//true when an AAS file is loaded
-	int initialized;							//true when AAS has been initialized
-	int savefile;								//set true when file should be saved
+	int loaded;                                 //true when an AAS file is loaded
+	int initialized;                            //true when AAS has been initialized
+	int savefile;                               //set true when file should be saved
 	int bspchecksum;
 	//current time
 	float time;
@@ -228,21 +231,22 @@ typedef struct aas_s
 	int numclusters;
 	aas_cluster_t *clusters;
 	//
-	int numreachabilityareas;
+	int reachabilityareas;
 	float reachabilitytime;
 	//enities linked in the areas
-	aas_link_t *linkheap;						//heap with link structures
-	int linkheapsize;							//size of the link heap
-	aas_link_t *freelinks;						//first free link
-	aas_link_t **arealinkedentities;			//entities linked into areas
+	aas_link_t *linkheap;                       //heap with link structures
+	int linkheapsize;                           //size of the link heap
+	aas_link_t *freelinks;                      //first free link
+	aas_link_t **arealinkedentities;            //entities linked into areas
 	//entities
 	int maxentities;
 	int maxclients;
 	aas_entity_t *entities;
+	//string indexes
+	char *configstrings[MAX_CONFIGSTRINGS];
+	int indexessetup;
 	//index to retrieve travel flag for a travel type
 	int travelflagfortype[MAX_TRAVELTYPES];
-	//travel flags for each area based on contents
-	int *areacontentstravelflags;
 	//routing update
 	aas_routingupdate_t *areaupdate;
 	aas_routingupdate_t *portalupdate;
@@ -255,14 +259,21 @@ typedef struct aas_s
 	//array of size numclusters with cluster cache
 	aas_routingcache_t ***clusterareacache;
 	aas_routingcache_t **portalcache;
-	//cache list sorted on time
-	aas_routingcache_t *oldestcache;		// start of cache list sorted on time
-	aas_routingcache_t *newestcache;		// end of cache list sorted on time
-	//maximum travel time through portal areas
+	//maximum travel time through portals
 	int *portalmaxtraveltimes;
-	//areas the reachabilities go through
-	int *reachabilityareaindex;
-	aas_reachabilityareas_t *reachabilityareas;
+	// Ridah, pointer to Route-Table information
+	aas_rt_t    *routetable;
+	//hide travel times
+	unsigned short int *hidetraveltimes;
+	//vis data
+	byte *decompressedvis;
+	int decompressedvisarea;
+	byte **areavisibility;
+	// done.
+	// Ridah, store the area's waypoint for hidepos calculations (center traced downwards)
+	vec3_t *areawaypoints;
+	// Ridah, so we can cache the areas that have already been tested for visibility/attackability
+	byte *visCache;
 } aas_t;
 
 #define AASINTERN
@@ -281,5 +292,8 @@ typedef struct aas_s
 #include "be_aas_optimize.h"
 #include "be_aas_bsp.h"
 #include "be_aas_move.h"
+
+// Ridah, route-tables
+#include "be_aas_routetable.h"
 
 #endif //BSPCINCLUDE

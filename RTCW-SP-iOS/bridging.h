@@ -24,7 +24,8 @@ void CL_AddReliableCommand(const char *cmd, qboolean isDisconnectCmd);
 
 int Sys_Milliseconds (void);
 
-kbutton_t    in_strafe;
+//kbutton_t    in_strafe;
+static kbutton_t kb[NUM_BUTTONS];
 
 void Sys_SetHomeDir( const char *newHomeDir );
 

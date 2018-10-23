@@ -10,7 +10,7 @@
 #include "../client/client.h"
 #include "ios_glimp.h"
 #include "ios_local.h"
-#include "../renderergl1/tr_local.h"
+#include "../renderer/tr_local.h"
 
 //#import "Q3Application.h"
 //#import "Q3ScreenView.h"

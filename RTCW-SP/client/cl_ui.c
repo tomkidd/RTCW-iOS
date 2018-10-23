@@ -1159,9 +1159,16 @@ CL_InitUI
 
 void CL_InitUI( void ) {
 	int v;
+    vmInterpret_t        interpret;
+    
+    // load the dll or bytecode
+#ifdef IOS
+    interpret = VMI_BYTECODE;
+#else
+    interpret = Cvar_VariableValue("vm_ui");
+#endif
 
-	// load the dll or bytecode
-	uivm = VM_Create( "ui", CL_UISystemCalls, Cvar_VariableValue("vm_ui") );
+    uivm = VM_Create( "ui", CL_UISystemCalls, interpret );
 	if ( !uivm ) {
 		Com_Error( ERR_FATAL, "VM_Create on UI failed" );
 	}

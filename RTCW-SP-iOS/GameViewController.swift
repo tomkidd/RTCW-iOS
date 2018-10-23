@@ -160,7 +160,9 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     override func viewDidAppear(_ animated: Bool) {
         // from Beben 3 init code
         
-        var argv: [String?] = ["b3", "+set", "com_basegame", "baseq3", "+name", defaults.string(forKey: "playerName")]
+//        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+name", defaults.string(forKey: "playerName")]
+
+        var argv: [String?] = ["b3", "+set", "com_basegame", "Main"]
 
         if !selectedMap.isEmpty {
             argv.append("+spmap")

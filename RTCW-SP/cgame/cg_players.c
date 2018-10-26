@@ -592,7 +592,7 @@ qboolean CG_CheckForExistingModelInfo( clientInfo_t *ci, char *modelName, animMo
 
 				// manually load for demos
 				if ( !CG_ParseAnimationFiles( modelName, cgs.animScriptData.modelInfo[i], ci->clientNum ) ) {
-					CG_Error( "Failed to load animation scripts for model %s\n", modelName );
+					CG_Error( "cgp! Failed to load animation scripts for model %s\n", modelName );
 				}
 			}
 

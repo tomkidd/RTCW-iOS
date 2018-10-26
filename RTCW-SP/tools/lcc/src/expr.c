@@ -626,6 +626,7 @@ Tree cast(Tree p, Type type) {
 		if (src->op != dst->op)
 			p = simplify(CVP, dst, p, NULL);
 		else {
+			if (Aflag >= 1)
 			if ((isfunc(src->type) && !isfunc(dst->type))
 			|| (!isnullptr(p) && !isfunc(src->type) && isfunc(dst->type)))
 				warning("conversion from `%t' to `%t' is compiler dependent\n", p->type, type);

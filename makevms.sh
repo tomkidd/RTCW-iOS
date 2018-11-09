@@ -3,26 +3,26 @@
 
 # Lets make the user give us a target build system
 
-if [ $# -ne 1 ]; then
-	echo "Usage:   $0 target_architecture"
-	echo "Example: $0 x86"
-	echo "The other valid option is x86_64"
-	echo
-	echo "If you don't know or care about architectures please consider using make-macosx-ub.sh instead of this script."
-	exit 1
-fi
-
-if [ "$1" == "x86" ]; then
-	BUILDARCH=x86
-	ARCH=i386
-elif [ "$1" == "x86_64" ]; then
+# if [ $# -ne 1 ]; then
+# 	echo "Usage:   $0 target_architecture"
+# 	echo "Example: $0 x86"
+# 	echo "The other valid option is x86_64"
+# 	echo
+# 	echo "If you don't know or care about architectures please consider using make-macosx-ub.sh instead of this script."
+# 	exit 1
+# fi
+# 
+# if [ "$1" == "x86" ]; then
+# 	BUILDARCH=x86
+# 	ARCH=i386
+# elif [ "$1" == "x86_64" ]; then
 	BUILDARCH=x86_64
 	ARCH=x86_64
-else
-	echo "Invalid architecture: $1"
-	echo "Valid architectures are x86, x86_64"
-	exit 1
-fi
+# else
+# 	echo "Invalid architecture: $1"
+# 	echo "Valid architectures are x86, x86_64"
+# 	exit 1
+# fi
 
 CC=clang
 CXX=clang++

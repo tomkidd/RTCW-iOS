@@ -180,10 +180,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define ID_INLINE inline
 #define PATH_SEP '/'
 
-#if defined __arm64__
-#define ARCH_STRING "__arm64__"
+//#if defined __arm64__
+#define ARCH_STRING "arm64"
 #define Q3_LITTLE_ENDIAN
-#endif
+//#endif
 
 #define DLL_EXT ".dylib"
 

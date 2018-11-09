@@ -626,7 +626,7 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 		if(retval == VMI_NATIVE)
 		{
 			Com_DPrintf("Try loading dll file %s\n", filename);
-#ifndef IOS
+//#ifndef IOS
 			vm->dllHandle = Sys_LoadGameDll(filename, &vm->entryPoint, VM_DllSyscall);
 			
 			if(vm->dllHandle)
@@ -634,7 +634,7 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 				vm->systemCall = systemCalls;
 				return vm;
 			}
-#endif
+//#endif
 			Com_DPrintf("Failed loading dll, trying next\n");
 		}
 		else if(retval == VMI_COMPILED)

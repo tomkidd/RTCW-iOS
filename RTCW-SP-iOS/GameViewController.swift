@@ -162,7 +162,8 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         
 //        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+name", defaults.string(forKey: "playerName")]
 
-        var argv: [String?] = ["b3", "+set", "com_basegame", "Main"]
+        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+set", "com_introplayed", "1"]
+//        var argv: [String?] = ["b3", "+set", "com_basegame", "Main"]
 
         if !selectedMap.isEmpty {
             argv.append("+spmap")
@@ -276,14 +277,16 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
             
             //                ri.Printf(PRINT_DEVELOPER, "%s: deltaX = %d, deltaY = %d\n", __PRETTY_FUNCTION__, deltaX, deltaY);
             
-            CL_MouseEvent(Int32(deltaX), Int32(deltaY), Sys_Milliseconds());
+            CL_MouseEvent(Int32(deltaX), Int32(deltaY), Sys_Milliseconds(), qtrue);
             
         }
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
-            handleTouches(touches)
+            for touch in touches {
+                handleMenuDragToPoint(point: touch.location(in: self.view))
+            }
         } else {
             super.touchesBegan(touches, with: event)
         }
@@ -291,7 +294,9 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
-            handleTouches(touches)
+            for touch in touches {
+                handleMenuDragToPoint(point: touch.location(in: self.view))
+            }
         } else {
             super.touchesBegan(touches, with: event)
         }
@@ -305,6 +310,21 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
             super.touchesBegan(touches, with: event)
         }
     }
+    
+//    - (void)_handleMenuDragToPoint:(CGPoint)point {
+//    int deltaX = (point.x - (self.bounds.size.width-640)) * 640/480;
+//    int deltaY = point.y * 1.3;
+//    ri.Printf(PRINT_DEVELOPER, "%s: deltaX = %d, deltaY = %d\n", __PRETTY_FUNCTION__, deltaX, deltaY);
+//    CL_MouseEvent(deltaX, deltaY, Sys_Milliseconds(), qtrue);
+//    }
+    
+    func handleMenuDragToPoint(point: CGPoint) {
+        let deltaX:Int32 = Int32((point.x - (self.view.bounds.size.width-640)) * 640/480)
+        let deltaY:Int32 = Int32(point.y * 1.3)
+        print("handleMenuDragToPoint deltaX: \(deltaX) deltaY: \(deltaY)")
+        CL_MouseEvent(deltaX, deltaY, Sys_Milliseconds(), qtrue)
+    }
+
 
     // MARK: GLKViewControllerDelegate
     

@@ -873,32 +873,33 @@ void UI_KeyEvent( int key, int down ) {
 UI_MouseEvent
 =================
 */
-void UI_MouseEvent( int dx, int dy )
-{
+void UI_MouseEvent ( int dx, int dy, qboolean absolute ) {
 	int				i;
-	int				bias;
 	menucommon_s*	m;
 
 	if (!uis.activemenu)
 		return;
 
-	// convert X bias to 640 coords
-	bias = uis.bias / uis.xscale;
-
 	// update mouse screen position
-	uis.cursorx += dx;
-	if (uis.cursorx < -bias)
-		uis.cursorx = -bias;
-	else if (uis.cursorx > SCREEN_WIDTH+bias)
-		uis.cursorx = SCREEN_WIDTH+bias;
+	
+	if (absolute) uis.cursorx = dx;
+	else uis.cursorx += dx;
 
-	uis.cursory += dy;
+	if (uis.cursorx < -uis.bias)
+		uis.cursorx = -uis.bias;
+	else if (uis.cursorx > SCREEN_WIDTH+uis.bias)
+		uis.cursorx = SCREEN_WIDTH+uis.bias;
+
+	if (absolute) uis.cursory = dy;
+	else uis.cursory += dy;
+	
 	if (uis.cursory < 0)
 		uis.cursory = 0;
 	else if (uis.cursory > SCREEN_HEIGHT)
 		uis.cursory = SCREEN_HEIGHT;
 
 	// region test the active menu items
+	
 	for (i=0; i<uis.activemenu->nitems; i++)
 	{
 		m = (menucommon_s*)uis.activemenu->items[i];
@@ -1227,7 +1228,7 @@ void UI_Refresh( int realtime )
 			Menu_Draw( uis.activemenu );
 
 		if( uis.firstdraw ) {
-			UI_MouseEvent( 0, 0 );
+			UI_MouseEvent( 0, 0, qtrue );
 			uis.firstdraw = qfalse;
 		}
 	}

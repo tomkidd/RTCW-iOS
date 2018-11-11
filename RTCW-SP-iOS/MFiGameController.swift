@@ -92,23 +92,36 @@ class MFiGameController: NSObject
                 
                 remote!.extendedGamepad!.leftThumbstick.yAxis.valueChangedHandler = { (button: GCControllerAxisInput, value: Float) -> () in
                     
-                    if (value > 0) {
-                        cl_joyscale_y.0 = Int32(fabsf(value) * 60)
-                        KeyEvent(key: K_UPARROW, down: true)
-                        KeyEvent(key: K_DOWNARROW, down: false)
+                    if Key_GetCatcher() & KEYCATCH_UI != 0 {
+                        
+//                        CL_MouseEvent(<#T##dx: Int32##Int32#>, <#T##dy: Int32##Int32#>, <#T##time: Int32##Int32#>)
+                        
+                    } else {
+                        if (value > 0) {
+                            cl_joyscale_y.0 = Int32(fabsf(value) * 60)
+                            KeyEvent(key: K_UPARROW, down: true)
+                            KeyEvent(key: K_DOWNARROW, down: false)
+                        }
+                        else if (value < 0) {
+                            cl_joyscale_y.1 = Int32(fabsf(value) * 60)
+                            KeyEvent(key: K_UPARROW, down: false)
+                            KeyEvent(key: K_DOWNARROW, down: true)
+                        }
+                        else {
+                            cl_joyscale_y.0 = 0
+                            cl_joyscale_y.1 = 0
+                            KeyEvent(key: K_UPARROW, down: false)
+                            KeyEvent(key: K_DOWNARROW, down: false)
+                        }
                     }
-                    else if (value < 0) {
-                        cl_joyscale_y.1 = Int32(fabsf(value) * 60)
-                        KeyEvent(key: K_UPARROW, down: false)
-                        KeyEvent(key: K_DOWNARROW, down: true)
+
+                }
+                
+                remote?.extendedGamepad?.leftThumbstick.valueChangedHandler = { (pad, x, y) -> () in
+                    if Key_GetCatcher() & KEYCATCH_UI != 0 {
+                        print("x: \(Int32(x)) \(Int32(x) * 5) y: \(Int32(y)) \(Int32(y) * -5)")
+                        CL_MouseEvent(Int32(x) * 5, Int32(y) * -5, Sys_Milliseconds(), qfalse)
                     }
-                    else {
-                        cl_joyscale_y.0 = 0
-                        cl_joyscale_y.1 = 0
-                        KeyEvent(key: K_UPARROW, down: false)
-                        KeyEvent(key: K_DOWNARROW, down: false)
-                    }
-                    
                 }
                 
                 remote!.extendedGamepad!.rightThumbstick.xAxis.valueChangedHandler = { (button: GCControllerAxisInput, value: Float) -> () in

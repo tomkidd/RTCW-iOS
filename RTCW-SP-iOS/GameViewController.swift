@@ -41,6 +41,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     var joystick1: JoyStickView!
     var fireButton: UIButton!
     var jumpButton: UIButton!
+    var useButton: UIButton!
     @IBOutlet weak var tildeButton: UIButton!
     #endif
     
@@ -150,6 +151,15 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
             
             view.addSubview(jumpButton)
             
+            useButton = UIButton(frame: CGRect(x: rect.width - 90, y: rect.height - 210, width: 75, height: 75))
+            useButton.setTitle("USE", for: .normal)
+            useButton.setBackgroundImage(UIImage(named: "JoyStickBase")!, for: .normal)
+            useButton.addTarget(self, action: #selector(usePressed), for: .touchDown)
+            useButton.addTarget(self, action: #selector(useReleased), for: .touchUpInside)
+            useButton.alpha = 0.5
+            
+            view.addSubview(useButton)
+            
             joysticksInitialized = true
         }
         
@@ -218,7 +228,15 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     @objc func jumpReleased(sender: UIButton!) {
         MFiGameController.KeyEvent(key: K_SPACE, down: false)
     }
-
+    
+    @objc func usePressed(sender: UIButton!) {
+        CL_KeyEvent(Int32(102), qtrue, UInt32(Sys_Milliseconds()))
+    }
+    
+    @objc func useReleased(sender: UIButton!) {
+        CL_KeyEvent(Int32(102), qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
     @IBAction func snd_restart(_ sender: UIButton) {
         CL_AddReliableCommand("snd_restart", qfalse)
     }
@@ -340,6 +358,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
                 joystick1.isHidden = true
                 fireButton.isHidden = true
                 jumpButton.isHidden = true
+                useButton.isHidden = true
                 prevWeaponButton.isHidden = true
                 nextWeaponButton.isHidden = true
                 tildeButton.isHidden = true
@@ -347,6 +366,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
                 joystick1.isHidden = false
                 fireButton.isHidden = false
                 jumpButton.isHidden = false
+                useButton.isHidden = false
                 prevWeaponButton.isHidden = false
                 nextWeaponButton.isHidden = false
                 tildeButton.isHidden = false

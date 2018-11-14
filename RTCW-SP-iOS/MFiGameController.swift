@@ -61,8 +61,8 @@ class MFiGameController: NSObject
                 
                 remote!.extendedGamepad!.buttonB.pressedChangedHandler = { (button: GCControllerButtonInput, value: Float, pressed: Bool) -> () in
                     
-                    //                    Sys_Key_Event(27, qboolean(pressed ? 1 : 0)) // K_ESCAPE, true / false
-                    
+                    CL_KeyEvent(Int32(102), qboolean(rawValue: pressed ? 1 : 0), UInt32(Sys_Milliseconds()))
+
                 }
                 
                 remote!.extendedGamepad!.buttonY.pressedChangedHandler = { (button: GCControllerButtonInput, value: Float, pressed: Bool) -> () in
@@ -93,8 +93,6 @@ class MFiGameController: NSObject
                 remote!.extendedGamepad!.leftThumbstick.yAxis.valueChangedHandler = { (button: GCControllerAxisInput, value: Float) -> () in
                     
                     if Key_GetCatcher() & KEYCATCH_UI != 0 {
-                        
-//                        CL_MouseEvent(<#T##dx: Int32##Int32#>, <#T##dy: Int32##Int32#>, <#T##time: Int32##Int32#>)
                         
                     } else {
                         if (value > 0) {

@@ -830,7 +830,18 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		// - NERVE - SMF
 
 	case CG_GETMODELINFO:
-		return SV_GetModelInfo( args[1], VMA( 2 ), VMA( 3 ) );
+		if ( VM_IsNative( cgvm ) ) {
+			return SV_GetModelInfo( args[1], VMA( 2 ), VMA( 3 ) );
+		} else {
+			// The intention of the syscall is to set a CGame pointer to Game VM memory
+			// to reduce memory usage and load time. This is not possible for CGame QVM
+			// due to QVM pointers being an offset in QVM's memory and each QVM using a
+			// separate memory block. There is additional issues if Game VM is a DLL,
+			// see SV_GetModelInfo().
+			// It seems like the best solution is to just make CGame QVM load the animation
+			// file for itself. --zturtleman
+			return qfalse;
+		}
 
 	// New in IORTCW
 	case CG_ALLOC:
@@ -912,7 +923,7 @@ void CL_UpdateLevelHunkUsage( void ) {
 		// input file is parsed, now output to the new file
 		len = strlen( outbuf );
 		if ( FS_Write( (void *)outbuf, len, handle ) != len ) {
-			Com_Error( ERR_DROP, "cannot write to %s\n", memlistfile );
+			Com_Error( ERR_DROP, "c2! cannot write to %s\n", memlistfile );
 		}
 		FS_FCloseFile( handle );
 
@@ -922,7 +933,7 @@ void CL_UpdateLevelHunkUsage( void ) {
 	// now append the current map to the current file
 	FS_FOpenFileByMode( memlistfile, &handle, FS_APPEND );
 	if ( handle < 0 ) {
-		Com_Error( ERR_DROP, "cannot write to hunkusage.dat, check disk full\n" );
+		Com_Error( ERR_DROP, "c1! cannot write to hunkusage.dat, check disk full\n" );
 	}
 	Com_sprintf( outstr, sizeof( outstr ), "%s %i\n", cl.mapname, memusage );
 	FS_Write( outstr, strlen( outstr ), handle );
@@ -959,9 +970,9 @@ void CL_InitCGame( void ) {
 	Com_sprintf( cl.mapname, sizeof( cl.mapname ), "maps/%s.bsp", mapname );
 
 	// load the dll or bytecode
-//#ifdef IOS
-//    interpret = VMI_BYTECODE;
-//#else
+#ifdef IOS
+    interpret = VMI_BYTECODE;
+#else
     interpret = Cvar_VariableValue("vm_cgame");
 	if(cl_connectedToPureServer)
 	{
@@ -969,7 +980,7 @@ void CL_InitCGame( void ) {
 		if(interpret != VMI_COMPILED && interpret != VMI_BYTECODE)
 			interpret = VMI_COMPILED;
 	}
-//#endif
+#endif
 
 	cgvm = VM_Create( "cgame", CL_CgameSystemCalls, interpret );
 	if ( !cgvm ) {
@@ -1007,7 +1018,7 @@ void CL_InitCGame( void ) {
 	Con_ClearNotify();
 
 	// Ridah, update the memory usage file
-	CL_UpdateLevelHunkUsage();
+	//CL_UpdateLevelHunkUsage();
 }
 
 
@@ -1122,11 +1133,6 @@ void CL_FirstSnapshot( void ) {
 		return;
 	}
 	clc.state = CA_ACTIVE;
-    
-#ifdef IOS
-    // Force the device into right landscape mode:
-    GLimp_SetMode(90);
-#endif // IOS
     
 	// set the timedelta so we are exactly on this first frame
 	cl.serverTimeDelta = cl.snap.serverTime - cls.realtime;

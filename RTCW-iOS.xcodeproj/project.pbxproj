@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A1327098219BBA0000165485 /* Main in Resources */ = {isa = PBXBuildFile; fileRef = A1327097219BB9FF00165485 /* Main */; };
+		A1327099219BBA0000165485 /* Main in Resources */ = {isa = PBXBuildFile; fileRef = A1327097219BB9FF00165485 /* Main */; };
+		A132709A219BBA0000165485 /* Main in Resources */ = {isa = PBXBuildFile; fileRef = A1327097219BB9FF00165485 /* Main */; };
+		A132709B219BBA0000165485 /* Main in Resources */ = {isa = PBXBuildFile; fileRef = A1327097219BB9FF00165485 /* Main */; };
 		A1366909217E7AF200E0AC0B /* be_aas_routetable.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366907217E7AF200E0AC0B /* be_aas_routetable.c */; };
 		A136690A217E7AF200E0AC0B /* be_aas_routetable.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366907217E7AF200E0AC0B /* be_aas_routetable.c */; };
 		A136690B217E7AF200E0AC0B /* be_aas_routetable.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366907217E7AF200E0AC0B /* be_aas_routetable.c */; };
@@ -39,10 +43,6 @@
 		A136695F217E885D00E0AC0B /* util_str.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366940217E885D00E0AC0B /* util_str.cpp */; };
 		A1366960217E885D00E0AC0B /* util_str.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366940217E885D00E0AC0B /* util_str.cpp */; };
 		A1366961217E885D00E0AC0B /* util_str.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1366940217E885D00E0AC0B /* util_str.cpp */; };
-		A1366963217E88BF00E0AC0B /* Main in Resources */ = {isa = PBXBuildFile; fileRef = A1366962217E88BF00E0AC0B /* Main */; };
-		A1366964217E88BF00E0AC0B /* Main in Resources */ = {isa = PBXBuildFile; fileRef = A1366962217E88BF00E0AC0B /* Main */; };
-		A1366965217E88BF00E0AC0B /* Main in Resources */ = {isa = PBXBuildFile; fileRef = A1366962217E88BF00E0AC0B /* Main */; };
-		A1366966217E88BF00E0AC0B /* Main in Resources */ = {isa = PBXBuildFile; fileRef = A1366962217E88BF00E0AC0B /* Main */; };
 		A136698F217E89E900E0AC0B /* tr_model_iqm.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366969217E89E900E0AC0B /* tr_model_iqm.c */; };
 		A1366990217E89E900E0AC0B /* tr_model_iqm.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366969217E89E900E0AC0B /* tr_model_iqm.c */; };
 		A1366991217E89E900E0AC0B /* tr_model_iqm.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366969217E89E900E0AC0B /* tr_model_iqm.c */; };
@@ -1093,6 +1093,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A1327097219BB9FF00165485 /* Main */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Main; path = "../../../Library/Application Support/RTCW/Main"; sourceTree = "<group>"; };
 		A1366906217E7AF200E0AC0B /* be_aas_routetable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = be_aas_routetable.h; sourceTree = "<group>"; };
 		A1366907217E7AF200E0AC0B /* be_aas_routetable.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = be_aas_routetable.c; sourceTree = "<group>"; };
 		A1366908217E7AF200E0AC0B /* botai.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = botai.h; sourceTree = "<group>"; };
@@ -1144,7 +1145,6 @@
 		A136693F217E885D00E0AC0B /* math_angles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = math_angles.cpp; sourceTree = "<group>"; };
 		A1366940217E885D00E0AC0B /* util_str.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = util_str.cpp; sourceTree = "<group>"; };
 		A1366941217E885D00E0AC0B /* q_splineshared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = q_splineshared.h; sourceTree = "<group>"; };
-		A1366962217E88BF00E0AC0B /* Main */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Main; path = ../../../Dropbox/Files/rtcw/Main; sourceTree = "<group>"; };
 		A1366968217E89E900E0AC0B /* anorms256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = anorms256.h; sourceTree = "<group>"; };
 		A1366969217E89E900E0AC0B /* tr_model_iqm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tr_model_iqm.c; sourceTree = "<group>"; };
 		A136696A217E89E900E0AC0B /* tr_curve.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tr_curve.c; sourceTree = "<group>"; };
@@ -1908,7 +1908,7 @@
 		A179BFDA210142F900D3C611 = {
 			isa = PBXGroup;
 			children = (
-				A1366962217E88BF00E0AC0B /* Main */,
+				A1327097219BB9FF00165485 /* Main */,
 				A179BFFA210146BF00D3C611 /* RTCW-SP */,
 				A179BFE5210142FA00D3C611 /* RTCW-SP-iOS */,
 				A1902F60210939BA008823BB /* RTCW-SP-tvOS */,
@@ -2982,7 +2982,7 @@
 				A1565FD42109F30E00FA9BC9 /* Assets.xcassets in Resources */,
 				A1565FD52109F30E00FA9BC9 /* Main.storyboard in Resources */,
 				A15AA922211A68E900DE867F /* ServerListViewCell.xib in Resources */,
-				A1366965217E88BF00E0AC0B /* Main in Resources */,
+				A132709A219BBA0000165485 /* Main in Resources */,
 				A15103A1210D50DC0087EA86 /* dpquake.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2996,7 +2996,7 @@
 				A151039F210D50D50087EA86 /* dpquake.ttf in Resources */,
 				A179BFEE210142FB00D3C611 /* Assets.xcassets in Resources */,
 				A179BFEC210142FA00D3C611 /* Main.storyboard in Resources */,
-				A1366963217E88BF00E0AC0B /* Main in Resources */,
+				A1327098219BBA0000165485 /* Main in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3009,7 +3009,7 @@
 				A15103A0210D50D50087EA86 /* dpquake.ttf in Resources */,
 				A1902F512108237E008823BB /* Assets.xcassets in Resources */,
 				A1902F522108237E008823BB /* Main.storyboard in Resources */,
-				A1366964217E88BF00E0AC0B /* Main in Resources */,
+				A1327099219BBA0000165485 /* Main in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3020,7 +3020,7 @@
 				A1902F69210939BC008823BB /* Assets.xcassets in Resources */,
 				A1902F67210939BA008823BB /* Main.storyboard in Resources */,
 				A15AA923211A68E900DE867F /* ServerListViewCell.xib in Resources */,
-				A1366966217E88BF00E0AC0B /* Main in Resources */,
+				A132709B219BBA0000165485 /* Main in Resources */,
 				A15103A2210D50DC0087EA86 /* dpquake.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

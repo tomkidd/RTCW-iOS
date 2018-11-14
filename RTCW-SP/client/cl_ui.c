@@ -1162,11 +1162,11 @@ void CL_InitUI( void ) {
     vmInterpret_t        interpret;
     
     // load the dll or bytecode
-//#ifdef IOS
-//    interpret = VMI_BYTECODE;
-//#else
+#ifdef IOS
+    interpret = VMI_BYTECODE;
+#else
     interpret = Cvar_VariableValue("vm_ui");
-//#endif
+#endif
 
     uivm = VM_Create( "ui", CL_UISystemCalls, interpret );
 	if ( !uivm ) {

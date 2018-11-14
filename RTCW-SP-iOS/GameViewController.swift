@@ -162,8 +162,8 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         
 //        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+name", defaults.string(forKey: "playerName")]
 
-        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+set", "com_introplayed", "1"]
-//        var argv: [String?] = ["b3", "+set", "com_basegame", "Main"]
+//        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+set", "com_introplayed", "1"]
+        var argv: [String?] = ["b3", "+set", "com_basegame", "Main"]
 
         if !selectedMap.isEmpty {
             argv.append("+spmap")

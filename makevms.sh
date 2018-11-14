@@ -83,7 +83,7 @@ if [ -d build/release-darwin-${BUILDARCH} ]; then
 fi
 (CC=${CC} CXX=${CXX} ARCH=${BUILDARCH} CFLAGS=$ARCH_CFLAGS make -j$NCPU) || exit 1;
 
-cp $QVM_OBJ /Users/tomkidd/Dropbox/Files/rtcw/Main/vm
+cp $QVM_OBJ "$HOME/Library/Application Support/rtcw/Main/vm"
 
 
 # echo "Creating .app bundle $DESTDIR/$APPBUNDLE"

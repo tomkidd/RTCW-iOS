@@ -980,11 +980,11 @@ void SV_InitGameProgs( void ) {
 	}
 
 	// load the dll or bytecode
-//#ifdef IOS
-//    gvm = VM_Create( "qagame", SV_GameSystemCalls, VMI_BYTECODE );
-//#else
+#ifdef IOS
+    gvm = VM_Create( "qagame", SV_GameSystemCalls, VMI_BYTECODE );
+#else
     gvm = VM_Create( "qagame", SV_GameSystemCalls, Cvar_VariableValue( "vm_game" ) );
-//#endif
+#endif
 	if ( !gvm ) {
 		Com_Error( ERR_FATAL, "VM_Create on game failed" );
 	}
@@ -1078,5 +1078,24 @@ qboolean SV_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **mode
 	if ( !gvm ) {
 		return qfalse;
 	}
-	return VM_Call( gvm, GAME_GETMODELINFO, clientNum, modelName, modelInfo );
+
+	if ( VM_IsNative( gvm ) ) {
+		return VM_Call( gvm, GAME_GETMODELINFO, clientNum, modelName, modelInfo );
+	} else {
+		// Setting a pointer to Game QVM animModelInfo_t struct won't work
+		// as it contains pointers (offset in QVM memory block) that will
+		// have to be converted to a real pointers for CGame DLL to use it.
+		// Additionally, there may be different struct alignment.
+		//
+		// That would require making a copy for CGame using VM_Alloc()
+		// (and tracking modelinfo to reuse?) to fix pointers and alignment
+		// issues. That would need means having to hard code animModelInfo_t.
+		// Which is a lot of weird hard coding work and iortcw already added
+		// a fall back for trap_GetModelInfo() in CGame to allow demo playback
+		// so this is unnecessary.
+		//
+		// FIXME: It would be necessary for using Game QVM with vanilla CGame DLL.
+		// --zturtleman
+		return qfalse;
+	}
 }

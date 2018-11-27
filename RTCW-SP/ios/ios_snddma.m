@@ -12,7 +12,10 @@
 #include <AudioToolbox/AudioOutputUnit.h>
 
 // For 'ri'
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include "../renderer/tr_local.h"
+#pragma clang diagnostic pop
 
 #include "../client/client.h"
 #include "../client/snd_local.h"
@@ -128,7 +131,7 @@ qboolean SNDDMA_Init(void) {
 		return qfalse;
 	}
     
-	outputFormat.mSampleRate = 22050;
+    outputFormat.mSampleRate = [[AVAudioSession sharedInstance] sampleRate];
 	outputFormat.mFormatID = kAudioFormatLinearPCM;
 	outputFormat.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsPacked;
 	outputFormat.mChannelsPerFrame = 2;

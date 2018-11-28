@@ -24,8 +24,6 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     
     var joysticksInitialized = false
     
-    var selectedMap = ""
-    
     var selectedServer:Server?
     
     var selectedDifficulty = 0
@@ -178,12 +176,13 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
 //        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+set", "com_introplayed", "1"]
         var argv: [String?] = [Bundle.main.resourcePath! + "/rtcw", "+set", "com_basegame", "Main"]
 
-        if !selectedMap.isEmpty {
-            argv.append("+spmap")
-            argv.append(selectedMap)
-            argv.append("+g_spSkill")
-            argv.append(String(selectedDifficulty))
-        }
+//        if !selectedMap.isEmpty {
+//            argv.append("+map")
+//        argv.append("cutscene1")
+//        argv.append("cutscene1 ;")
+//            argv.append("+g_spSkill")
+//            argv.append(String(selectedDifficulty))
+//        }
         
         if selectedServer != nil {
             argv.append("+connect")

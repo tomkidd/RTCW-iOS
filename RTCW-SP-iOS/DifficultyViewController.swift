@@ -10,8 +10,6 @@ import UIKit
 
 class DifficultyViewController: UIViewController {
     
-    var selectedMap = ""
-    var selectedMapName = ""
     var selectedDifficulty = 0
     
     @IBAction func difficulty1(_ sender: UIButton) {
@@ -29,18 +27,7 @@ class DifficultyViewController: UIViewController {
         performSegue(withIdentifier: "GameSegue", sender: self)
     }
 
-    @IBAction func difficulty4(_ sender: UIButton) {
-        selectedDifficulty = 4
-        performSegue(withIdentifier: "GameSegue", sender: self)
-    }
-
-    @IBAction func difficulty5(_ sender: UIButton) {
-        selectedDifficulty = 5
-        performSegue(withIdentifier: "GameSegue", sender: self)
-    }
-    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        (segue.destination as! GameViewController).selectedMap = selectedMap
         (segue.destination as! GameViewController).selectedDifficulty = selectedDifficulty
     }
 

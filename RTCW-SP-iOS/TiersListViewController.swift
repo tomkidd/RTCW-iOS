@@ -66,7 +66,7 @@ class TiersListViewController: UIViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        (segue.destination as! DifficultyViewController).selectedMap = selectedMap
+//        (segue.destination as! DifficultyViewController).selectedMap = selectedMap
     }
 
     /*

@@ -109,7 +109,10 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         
         #endif
         
-        Sys_SetHomeDir(Bundle.main.resourcePath!)
+        let documentsDir = try! FileManager().url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true).path
+        
+        //        Sys_SetHomeDir(Bundle.main.resourcePath!)
+        Sys_SetHomeDir(documentsDir)
 
         // disabled for now -tkidd
 //        in_strafe.active = qtrue
@@ -173,7 +176,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
 //        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+name", defaults.string(forKey: "playerName")]
 
 //        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+set", "com_introplayed", "1"]
-        var argv: [String?] = ["b3", "+set", "com_basegame", "Main"]
+        var argv: [String?] = [Bundle.main.resourcePath! + "/rtcw", "+set", "com_basegame", "Main"]
 
         if !selectedMap.isEmpty {
             argv.append("+spmap")

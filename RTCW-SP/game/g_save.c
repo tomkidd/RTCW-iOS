@@ -1088,287 +1088,277 @@ G_SaveGame
 ===============
 */
 qboolean G_SaveGame( char *username ) {
-    
-    // temp just to test stuff
+
+    char filename[MAX_QPATH];
+    char mapstr[MAX_QPATH];
+    char leveltime[MAX_QPATH];
+    char healthstr[MAX_QPATH];
+    vmCvar_t mapname, episode;
+    fileHandle_t f;
+    int i, len;
+    gentity_t   *ent;
+    gclient_t   *cl;
+    cast_state_t    *cs;
+    int playtime, minutes;
+
+    //if (reloading)
+    //    return qtrue;    // actually this should be qtrue, but we should make it silent during reloading
+
+    if ( g_entities[0].health <= 0 ) { // no save when dead
+        return qtrue;
+    }
+
+    if ( g_gametype.integer != GT_SINGLE_PLAYER ) {    // don't allow saves in MP
+        return qtrue;
+    }
+
+    G_DPrintf( "G_SaveGame '%s'\n", username );
+
+    // update the playtime
+    AICast_AgePlayTime( 0 );
+
+    if ( !username ) {
+        username = "current";
+    }
+
+    // validate the filename
+    for ( i = 0; i < strlen( username ); i++ ) {
+        if ( !Q_isforfilename( username[i] ) && username[i] != '\\' ) { // (allow '\\' so games can be saved in subdirs)
+            G_Printf( "G_SaveGame: '%s'.  Invalid character (%c) in filename. Must use alphanumeric characters only.\n", username, username[i] );
+            return qtrue;
+        }
+    }
+
+    saveByteCount = 0;
+
+    // open the file
+    Com_sprintf( filename, MAX_QPATH, "save\\temp.svg" );
+    if ( trap_FS_FOpenFile( filename, &f, FS_WRITE ) < 0 ) {
+        G_Printf( "G_SaveGame: '%s'\n", filename );
+        G_Error( "G_SaveGame: cannot open file for saving\n" );
+    }
+
+    // write the version
+    i = SAVE_VERSION;
+    // TTimo
+    // show_bug.cgi?id=434
+    // make sure we keep the global version number consistent with what we are doing
+    ver = SAVE_VERSION;
+    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+        G_SaveWriteError();
+    }
+
+    // write the mapname
+    trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
+    Com_sprintf( mapstr, MAX_QPATH, "%s", mapname.string );
+    if ( !G_SaveWrite( mapstr, MAX_QPATH, f ) ) {
+        G_SaveWriteError();
+    }
+
+    // write out the level time
+    if ( !G_SaveWrite( &level.time, sizeof( level.time ), f ) ) {
+        G_SaveWriteError();
+    }
+
+    // write the totalPlayTime
+    i = caststates[0].totalPlayTime;
+    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+        G_SaveWriteError();
+    }
+
+//----(SA)    had to add 'episode' tracking.
+    // this is only set in the map scripts, and was previously only handled in the menu's
+
+    // write the 'episode'
+    if ( SAVE_VERSION >= 13 ) {
+        trap_Cvar_Register( &episode, "g_episode", "0", CVAR_ROM );
+
+        i = episode.integer;
+        if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+            G_SaveWriteError();
+        }
+
+    }
+//----(SA)    end
+
+
+
+    playtime = caststates[0].totalPlayTime;
+    if ( playtime < 3600000 ) {
+        minutes = ( playtime / 1000 ) / 60;
+    } else {
+        minutes = ( ( playtime % 3600000 ) / 1000 ) / 60; // handle hours in a map
+
+    }
+    // create and write the info string
+    // (SA) I made another cvar so there's no confusion
+    Q_strncpyz( mapstr, mapname.string, sizeof( mapstr ) );
+    for ( i = 0; i < strlen( mapstr ); i++ ) mapstr[i] = toupper( mapstr[i] );
+    memset( infoString, 0, sizeof( infoString ) );
+
+    trap_Cvar_VariableStringBuffer( "svg_timestring", leveltime, sizeof( leveltime ) );
+    if ( !strlen( leveltime ) ) {
+        Com_sprintf( leveltime, sizeof( leveltime ), "Leveltime" );
+    }
+
+    trap_Cvar_VariableStringBuffer( "svg_healthstring", healthstr, sizeof( healthstr ) );
+    if ( !strlen( healthstr ) ) {
+        Com_sprintf( healthstr, sizeof( healthstr ), "Health" );
+    }
+
+
+//    Com_sprintf( infoString, sizeof(infoString), "Mission: %s\nDate: %s\nTime: %s\nGametime: %s\nHealth: %i",
+    Com_sprintf( infoString, sizeof( infoString ), "%s\n%s: %s\n%s: %i",
+                 mapstr,
+                 leveltime,
+//        G_Save_DateStr(),
+//        G_Save_TimeStr(),
+                 va( "%2ih%s%im%s%is",
+                     ( ( ( playtime / 1000 ) / 60 ) / 60 ), // hour
+                     ( minutes > 9 ? "" : "0" ), // minute padding
+                     minutes,
+                     ( ( playtime / 1000 ) % 60 > 9 ? "" : "0" ), // second padding
+                     ( ( playtime / 1000 ) % 60 ) ),
+                 healthstr,
+                 g_entities[0].health );
+    // write it out
+    // length
+    i = strlen( infoString );
+    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+        G_SaveWriteError();
+    }
+    // string
+    if ( !G_SaveWrite( infoString, strlen( infoString ), f ) ) {
+        G_SaveWriteError();
+    }
+
+
+    // write out current time/date info
+    WriteTime( f );
+
+//----(SA)    added
+
+//----(SA)    end
+
+    // write music
+    trap_Cvar_Register( &musicCvar, "s_currentMusic", "", CVAR_ROM );
+    if ( !G_SaveWrite( musicCvar.string, MAX_QPATH, f ) ) {
+        G_SaveWriteError();
+    }
+
+//----(SA)    write fog
+//    trap_Cvar_VariableStringBuffer( "sg_fog", infoString, sizeof(infoString) );
+    trap_GetConfigstring( CS_FOGVARS, infoString, sizeof( infoString ) );
+
+    i = strlen( infoString );
+    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+        G_SaveWriteError();
+    }
+    // if there's fog info to save
+    if ( !i ) {
+        Q_strncpyz( &infoString[0], "none", sizeof( infoString ) );
+    }
+
+    if ( !G_SaveWrite( infoString, strlen( infoString ), f ) ) {
+        G_SaveWriteError();
+    }
+//----(SA)    end
+
+    // save the skill level
+    if ( !G_SaveWrite( &g_gameskill.integer, sizeof( g_gameskill.integer ), f ) ) {
+        G_SaveWriteError();
+    }
+
+    // write out the entity structures
+    i = sizeof( gentity_t );
+    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+        G_SaveWriteError();
+    }
+    for ( i = 0 ; i < level.num_entities ; i++ )
+    {
+        ent = &g_entities[i];
+        if ( !ent->inuse || ent->s.number == ENTITYNUM_WORLD ) {
+            continue;
+        }
+        if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+            G_SaveWriteError();
+        }
+        WriteEntity( f, ent );
+    }
+    i = -1;
+    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+        G_SaveWriteError();
+    }
+
+    // write out the client structures
+    i = sizeof( gclient_t );
+    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+        G_SaveWriteError();
+    }
+    for ( i = 0 ; i < MAX_CLIENTS ; i++ )
+    {
+        cl = &level.clients[i];
+        if ( cl->pers.connected != CON_CONNECTED ) {
+            continue;
+        }
+        if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+            G_SaveWriteError();
+        }
+        WriteClient( f, cl );
+    }
+    i = -1;
+    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+        G_SaveWriteError();
+    }
+
+    // write out the cast_state structures
+    i = sizeof( cast_state_t );
+    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+        G_SaveWriteError();
+    }
+    for ( i = 0 ; i < level.numConnectedClients ; i++ )
+    {
+        cs = &caststates[i];
+        if ( !g_entities[i].inuse ) {
+            continue;
+        }
+        if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+            G_SaveWriteError();
+        }
+        WriteCastState( f, cs );
+    }
+
+    i = -1;
+    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
+        G_SaveWriteError();
+    }
+
+    trap_FS_FCloseFile( f );
+
+    // check the byte count
+    if ( ( len = trap_FS_FOpenFile( filename, &f, FS_READ ) ) != saveByteCount ) {
+        trap_FS_FCloseFile( f );
+        G_SaveWriteError();
+        return qfalse;
+    }
+
+    trap_FS_FCloseFile( f );
+
+    // now rename the file to the actual file
+    Com_sprintf( mapstr, MAX_QPATH, "save\\%s.svg", username );
+    trap_FS_Rename( filename, mapstr );
+
+    // double check that it saved ok
+    if ( ( len = trap_FS_FOpenFile( mapstr, &f, FS_READ ) ) != saveByteCount ) {
+        trap_FS_FCloseFile( f );
+        G_SaveWriteError();
+        return qfalse;
+    }
+
+    trap_FS_FCloseFile( f );
+
     return qtrue;
 }
-
-
-//qboolean G_SaveGame( char *username ) {
-//
-//    // temp just to test stuff
-//    return qtrue;
-//
-//    char filename[MAX_QPATH];
-//    char mapstr[MAX_QPATH];
-//    char leveltime[MAX_QPATH];
-//    char healthstr[MAX_QPATH];
-//    vmCvar_t mapname, episode;
-//    fileHandle_t f;
-//    int i, len;
-//    gentity_t   *ent;
-//    gclient_t   *cl;
-//    cast_state_t    *cs;
-//    int playtime, minutes;
-//
-//    //if (reloading)
-//    //    return qtrue;    // actually this should be qtrue, but we should make it silent during reloading
-//
-//    if ( g_entities[0].health <= 0 ) { // no save when dead
-//        return qtrue;
-//    }
-//
-//    if ( g_gametype.integer != GT_SINGLE_PLAYER ) {    // don't allow saves in MP
-//        return qtrue;
-//    }
-//
-//    G_DPrintf( "G_SaveGame '%s'\n", username );
-//
-//    // update the playtime
-//    AICast_AgePlayTime( 0 );
-//
-//    if ( !username ) {
-//        username = "current";
-//    }
-//
-//    // validate the filename
-//    for ( i = 0; i < strlen( username ); i++ ) {
-//        if ( !Q_isforfilename( username[i] ) && username[i] != '\\' ) { // (allow '\\' so games can be saved in subdirs)
-//            G_Printf( "G_SaveGame: '%s'.  Invalid character (%c) in filename. Must use alphanumeric characters only.\n", username, username[i] );
-//            return qtrue;
-//        }
-//    }
-//
-//    saveByteCount = 0;
-//
-//    // open the file
-//    Com_sprintf( filename, MAX_QPATH, "save\\temp.svg" );
-//    if ( trap_FS_FOpenFile( filename, &f, FS_WRITE ) < 0 ) {
-//        G_Printf( "G_SaveGame: '%s'\n", filename );
-//        G_Error( "G_SaveGame: cannot open file for saving\n" );
-//    }
-//
-//    // write the version
-//    i = SAVE_VERSION;
-//    // TTimo
-//    // show_bug.cgi?id=434
-//    // make sure we keep the global version number consistent with what we are doing
-//    ver = SAVE_VERSION;
-//    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//
-//    // write the mapname
-//    trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
-//    Com_sprintf( mapstr, MAX_QPATH, "%s", mapname.string );
-//    if ( !G_SaveWrite( mapstr, MAX_QPATH, f ) ) {
-//        G_SaveWriteError();
-//    }
-//
-//    // write out the level time
-//    if ( !G_SaveWrite( &level.time, sizeof( level.time ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//
-//    // write the totalPlayTime
-//    i = caststates[0].totalPlayTime;
-//    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//
-////----(SA)    had to add 'episode' tracking.
-//    // this is only set in the map scripts, and was previously only handled in the menu's
-//
-//    // write the 'episode'
-//    if ( SAVE_VERSION >= 13 ) {
-//        trap_Cvar_Register( &episode, "g_episode", "0", CVAR_ROM );
-//
-//        i = episode.integer;
-//        if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//            G_SaveWriteError();
-//        }
-//
-//    }
-////----(SA)    end
-//
-//
-//
-//    playtime = caststates[0].totalPlayTime;
-//    if ( playtime < 3600000 ) {
-//        minutes = ( playtime / 1000 ) / 60;
-//    } else {
-//        minutes = ( ( playtime % 3600000 ) / 1000 ) / 60; // handle hours in a map
-//
-//    }
-//    // create and write the info string
-//    // (SA) I made another cvar so there's no confusion
-//    Q_strncpyz( mapstr, mapname.string, sizeof( mapstr ) );
-//    for ( i = 0; i < strlen( mapstr ); i++ ) mapstr[i] = toupper( mapstr[i] );
-//    memset( infoString, 0, sizeof( infoString ) );
-//
-//    trap_Cvar_VariableStringBuffer( "svg_timestring", leveltime, sizeof( leveltime ) );
-//    if ( !strlen( leveltime ) ) {
-//        Com_sprintf( leveltime, sizeof( leveltime ), "Leveltime" );
-//    }
-//
-//    trap_Cvar_VariableStringBuffer( "svg_healthstring", healthstr, sizeof( healthstr ) );
-//    if ( !strlen( healthstr ) ) {
-//        Com_sprintf( healthstr, sizeof( healthstr ), "Health" );
-//    }
-//
-//
-////    Com_sprintf( infoString, sizeof(infoString), "Mission: %s\nDate: %s\nTime: %s\nGametime: %s\nHealth: %i",
-//    Com_sprintf( infoString, sizeof( infoString ), "%s\n%s: %s\n%s: %i",
-//                 mapstr,
-//                 leveltime,
-////        G_Save_DateStr(),
-////        G_Save_TimeStr(),
-//                 va( "%2ih%s%im%s%is",
-//                     ( ( ( playtime / 1000 ) / 60 ) / 60 ), // hour
-//                     ( minutes > 9 ? "" : "0" ), // minute padding
-//                     minutes,
-//                     ( ( playtime / 1000 ) % 60 > 9 ? "" : "0" ), // second padding
-//                     ( ( playtime / 1000 ) % 60 ) ),
-//                 healthstr,
-//                 g_entities[0].health );
-//    // write it out
-//    // length
-//    i = strlen( infoString );
-//    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//    // string
-//    if ( !G_SaveWrite( infoString, strlen( infoString ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//
-//
-//    // write out current time/date info
-//    WriteTime( f );
-//
-////----(SA)    added
-//
-////----(SA)    end
-//
-//    // write music
-//    trap_Cvar_Register( &musicCvar, "s_currentMusic", "", CVAR_ROM );
-//    if ( !G_SaveWrite( musicCvar.string, MAX_QPATH, f ) ) {
-//        G_SaveWriteError();
-//    }
-//
-////----(SA)    write fog
-////    trap_Cvar_VariableStringBuffer( "sg_fog", infoString, sizeof(infoString) );
-//    trap_GetConfigstring( CS_FOGVARS, infoString, sizeof( infoString ) );
-//
-//    i = strlen( infoString );
-//    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//    // if there's fog info to save
-//    if ( !i ) {
-//        Q_strncpyz( &infoString[0], "none", sizeof( infoString ) );
-//    }
-//
-//    if ( !G_SaveWrite( infoString, strlen( infoString ), f ) ) {
-//        G_SaveWriteError();
-//    }
-////----(SA)    end
-//
-//    // save the skill level
-//    if ( !G_SaveWrite( &g_gameskill.integer, sizeof( g_gameskill.integer ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//
-//    // write out the entity structures
-//    i = sizeof( gentity_t );
-//    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//    for ( i = 0 ; i < level.num_entities ; i++ )
-//    {
-//        ent = &g_entities[i];
-//        if ( !ent->inuse || ent->s.number == ENTITYNUM_WORLD ) {
-//            continue;
-//        }
-//        if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//            G_SaveWriteError();
-//        }
-//        WriteEntity( f, ent );
-//    }
-//    i = -1;
-//    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//
-//    // write out the client structures
-//    i = sizeof( gclient_t );
-//    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//    for ( i = 0 ; i < MAX_CLIENTS ; i++ )
-//    {
-//        cl = &level.clients[i];
-//        if ( cl->pers.connected != CON_CONNECTED ) {
-//            continue;
-//        }
-//        if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//            G_SaveWriteError();
-//        }
-//        WriteClient( f, cl );
-//    }
-//    i = -1;
-//    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//
-//    // write out the cast_state structures
-//    i = sizeof( cast_state_t );
-//    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//    for ( i = 0 ; i < level.numConnectedClients ; i++ )
-//    {
-//        cs = &caststates[i];
-//        if ( !g_entities[i].inuse ) {
-//            continue;
-//        }
-//        if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//            G_SaveWriteError();
-//        }
-//        WriteCastState( f, cs );
-//    }
-//
-//    i = -1;
-//    if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
-//        G_SaveWriteError();
-//    }
-//
-//    trap_FS_FCloseFile( f );
-//
-//    // check the byte count
-//    if ( ( len = trap_FS_FOpenFile( filename, &f, FS_READ ) ) != saveByteCount ) {
-//        trap_FS_FCloseFile( f );
-//        G_SaveWriteError();
-//        return qfalse;
-//    }
-//
-//    trap_FS_FCloseFile( f );
-//
-//    // now rename the file to the actual file
-//    Com_sprintf( mapstr, MAX_QPATH, "save\\%s.svg", username );
-//    trap_FS_Rename( filename, mapstr );
-//
-//    // double check that it saved ok
-//    if ( ( len = trap_FS_FOpenFile( mapstr, &f, FS_READ ) ) != saveByteCount ) {
-//        trap_FS_FCloseFile( f );
-//        G_SaveWriteError();
-//        return qfalse;
-//    }
-//
-//    trap_FS_FCloseFile( f );
-//
-//    return qtrue;
-//}
 
 
 

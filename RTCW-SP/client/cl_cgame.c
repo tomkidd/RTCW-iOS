@@ -1018,7 +1018,7 @@ void CL_InitCGame( void ) {
 	Con_ClearNotify();
 
 	// Ridah, update the memory usage file
-	//CL_UpdateLevelHunkUsage();
+    CL_UpdateLevelHunkUsage();
 }
 
 

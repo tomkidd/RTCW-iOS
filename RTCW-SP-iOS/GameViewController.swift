@@ -340,9 +340,8 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
 //    }
     
     func handleMenuDragToPoint(point: CGPoint) {
-        let deltaX:Int32 = Int32((point.x - (self.view.bounds.size.width-640)) * 640/480)
+        let deltaX:Int32 = Int32((point.x/self.view.bounds.size.width) * 640)
         let deltaY:Int32 = Int32(point.y * 1.3)
-        print("handleMenuDragToPoint deltaX: \(deltaX) deltaY: \(deltaY)")
         CL_MouseEvent(deltaX, deltaY, Sys_Milliseconds(), qtrue)
     }
 

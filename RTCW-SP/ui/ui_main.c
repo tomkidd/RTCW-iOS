@@ -6933,8 +6933,6 @@ UI_MouseEvent
 */
 void _UI_MouseEvent(int dx, int dy, qboolean absolute) {
     
-    Com_Printf("_UI_MouseEvent dx: %i dy: %i, absolute: %s\n", dx, dy, absolute ? "true" : "false");
-    
 	// update mouse screen position
     if (absolute) uiInfo.uiDC.cursorx = dx;
     else uiInfo.uiDC.cursorx += dx;

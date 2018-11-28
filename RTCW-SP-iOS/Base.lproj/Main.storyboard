@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14313.18" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="6RI-kZ-qLC">
-    <device id="ipad10_5" orientation="landscape">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="6RI-kZ-qLC">
+    <device id="retina5_9" orientation="landscape">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14283.14"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -18,13 +18,13 @@
         <!--Main Menu View Controller-->
         <scene sceneID="CXV-mc-6oD">
             <objects>
-                <viewController id="dWF-vJ-0ad" customClass="MainMenuViewController" customModule="Quake3_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="dWF-vJ-0ad" customClass="MainMenuViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="uuz-Jq-TKC">
-                        <rect key="frame" x="0.0" y="0.0" width="1112" height="834"/>
+                        <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" alpha="0.90000000000000002" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="quake_3_background" translatesAutoresizingMaskIntoConstraints="NO" id="J3f-2W-XPP">
-                                <rect key="frame" x="0.0" y="20" width="1440" height="814"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rtcw_sp_background" translatesAutoresizingMaskIntoConstraints="NO" id="J3f-2W-XPP">
+                                <rect key="frame" x="-110" y="0.0" width="1000" height="375"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="J3f-2W-XPP" secondAttribute="height" multiplier="720:407" id="AQi-uG-8Ij"/>
                                     <constraint firstAttribute="width" constant="1000" id="So7-MT-UbU"/>
@@ -42,7 +42,7 @@
                                 </variation>
                             </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Q U A K E  I I I  A R E N A" textAlignment="right" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iW9-Ha-ihQ">
-                                <rect key="frame" x="721" y="40" width="371" height="68"/>
+                                <rect key="frame" x="377" y="20" width="371" height="68"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="68" id="Dw9-m8-S3X"/>
                                     <constraint firstAttribute="height" constant="68" id="abX-Hm-uFg"/>
@@ -55,7 +55,7 @@
                                 <size key="shadowOffset" width="2" height="2"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PKP-Tz-OUu">
-                                <rect key="frame" x="886" y="116" width="206" height="49"/>
+                                <rect key="frame" x="542" y="96" width="206" height="49"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="27"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="SINGLE PLAYER">
@@ -67,7 +67,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Jtn-oD-jOT">
-                                <rect key="frame" x="908" y="173" width="184" height="49"/>
+                                <rect key="frame" x="564" y="153" width="184" height="49"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="27"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="MULTIPLAYER">
@@ -79,7 +79,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fj0-uq-AC4">
-                                <rect key="frame" x="1082" y="804" width="30" height="30"/>
+                                <rect key="frame" x="738" y="324" width="30" height="30"/>
                                 <state key="normal" title="π">
                                     <color key="titleColor" red="1" green="0.14913141730000001" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
@@ -88,7 +88,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uPq-ng-ZBi">
-                                <rect key="frame" x="967" y="230" width="125" height="49"/>
+                                <rect key="frame" x="623" y="210" width="125" height="49"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="27"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="OPTIONS">
@@ -135,9 +135,9 @@
         <!--Options View Controller-->
         <scene sceneID="fRO-bQ-Mng">
             <objects>
-                <viewController id="WvD-UG-yat" customClass="OptionsViewController" customModule="Quake3_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="WvD-UG-yat" customClass="OptionsViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="6Ha-7k-E9S">
-                        <rect key="frame" x="0.0" y="0.0" width="1112" height="834"/>
+                        <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Player Name:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QMD-Yr-wr0">
@@ -196,13 +196,13 @@
         <!--Delegate-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="GameViewController" customModule="Quake3_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="GameViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC" customClass="GLKView">
-                        <rect key="frame" x="0.0" y="0.0" width="1112" height="834"/>
+                        <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IJ5-xm-vLq">
-                                <rect key="frame" x="0.0" y="20" width="30" height="30"/>
+                                <rect key="frame" x="44" y="0.0" width="30" height="30"/>
                                 <state key="normal" title="~">
                                     <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
@@ -211,13 +211,13 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="UPr-ud-ycR">
-                                <rect key="frame" x="372.5" y="20" width="367" height="417"/>
+                                <rect key="frame" x="272" y="0.0" width="268" height="187.66666666666666"/>
                                 <connections>
                                     <action selector="nextWeaponWithSender:" destination="BYZ-38-t0r" eventType="touchUpInside" id="1dc-wk-H5e"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5CF-kQ-2OE">
-                                <rect key="frame" x="372.5" y="417" width="367" height="417"/>
+                                <rect key="frame" x="272" y="166.66666666666663" width="268" height="187.33333333333337"/>
                                 <connections>
                                     <action selector="prevWeaponWithSender:" destination="BYZ-38-t0r" eventType="touchUpInside" id="YQe-Kv-n3z"/>
                                 </connections>
@@ -255,13 +255,13 @@
         <!--Tiers List View Controller-->
         <scene sceneID="ojQ-Rf-YIS">
             <objects>
-                <viewController id="ytm-JD-gql" customClass="TiersListViewController" customModule="Quake3_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="ytm-JD-gql" customClass="TiersListViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="iMo-fD-Gqy">
-                        <rect key="frame" x="0.0" y="0.0" width="1112" height="834"/>
+                        <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="0Dt-1U-06w">
-                                <rect key="frame" x="20" y="40" width="1072" height="774"/>
+                                <rect key="frame" x="64" y="20" width="684" height="314"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <connections>
                                     <outlet property="dataSource" destination="ytm-JD-gql" id="7Pp-n7-ZnB"/>
@@ -290,13 +290,13 @@
         <!--Server Browser View Controller-->
         <scene sceneID="98B-oY-pEO">
             <objects>
-                <viewController id="gOE-px-5yC" customClass="ServerBrowserViewController" customModule="Quake3_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="gOE-px-5yC" customClass="ServerBrowserViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="53K-Kb-nZQ">
-                        <rect key="frame" x="0.0" y="0.0" width="1112" height="834"/>
+                        <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="rso-ux-2dW">
-                                <rect key="frame" x="20" y="40" width="1072" height="734"/>
+                                <rect key="frame" x="64" y="20" width="684" height="274"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <connections>
                                     <outlet property="dataSource" destination="gOE-px-5yC" id="FCr-eb-EYo"/>
@@ -304,7 +304,7 @@
                                 </connections>
                             </tableView>
                             <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OlM-0b-IFw">
-                                <rect key="frame" x="1007" y="782" width="85" height="51"/>
+                                <rect key="frame" x="663" y="302" width="85" height="51"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="28"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="FIGHT">
@@ -316,7 +316,7 @@
                                 </connections>
                             </button>
                             <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="0ni-l6-EF9">
-                                <rect key="frame" x="20" y="787" width="190" height="37"/>
+                                <rect key="frame" x="64" y="307" width="190" height="37"/>
                                 <subviews>
                                     <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="Nvl-Bv-Lat">
                                         <rect key="frame" x="0.0" y="0.0" width="37" height="37"/>
@@ -339,7 +339,7 @@
                                 </subviews>
                             </stackView>
                             <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xcQ-ut-mNp">
-                                <rect key="frame" x="802" y="782" width="185" height="51"/>
+                                <rect key="frame" x="458" y="302" width="185" height="51"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="28"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="SERVER INFO">
@@ -385,13 +385,13 @@
         <!--Server Filter View Controller-->
         <scene sceneID="Xhm-jx-Yto">
             <objects>
-                <viewController id="LuR-jY-oBi" customClass="ServerFilterViewController" customModule="Quake3_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="LuR-jY-oBi" customClass="ServerFilterViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="nzI-HR-g5I">
-                        <rect key="frame" x="0.0" y="0.0" width="1112" height="834"/>
+                        <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="3ux-MU-lJU">
-                                <rect key="frame" x="20" y="40" width="135" height="190"/>
+                                <rect key="frame" x="64" y="20" width="135" height="190"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="Cxm-EY-BbC">
                                         <rect key="frame" x="0.0" y="0.0" width="135" height="36"/>
@@ -440,13 +440,13 @@
                                         <rect key="frame" x="0.0" y="82" width="135" height="36"/>
                                         <subviews>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="GameType:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ajx-um-VVU">
-                                                <rect key="frame" x="0.0" y="0.0" width="66.5" height="36"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="66.666666666666671" height="36"/>
                                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Regular" family="Avenir Next Condensed" pointSize="17"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="trailing" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dkZ-I5-Pgd">
-                                                <rect key="frame" x="74.5" y="0.0" width="60.5" height="36"/>
+                                                <rect key="frame" x="74.666666666666657" y="0.0" width="60.333333333333343" height="36"/>
                                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Bold" family="Avenir Next Condensed" pointSize="17"/>
                                                 <state key="normal" title="Any">
                                                     <color key="titleColor" red="0.87058824300000004" green="0.089310286559999993" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -499,7 +499,7 @@
                                 </subviews>
                             </stackView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KaA-jM-zne">
-                                <rect key="frame" x="10" y="773" width="104" height="51"/>
+                                <rect key="frame" x="54" y="293" width="104" height="51"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="28"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="&lt; BACK">
@@ -537,13 +537,13 @@
         <!--Difficulty View Controller-->
         <scene sceneID="dsk-0B-TIF">
             <objects>
-                <viewController id="dBM-hw-OcU" customClass="DifficultyViewController" customModule="Quake3_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="dBM-hw-OcU" customClass="DifficultyViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="IRp-sc-De8">
-                        <rect key="frame" x="0.0" y="0.0" width="1112" height="834"/>
+                        <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fTq-wa-mWv">
-                                <rect key="frame" x="473.5" y="261" width="165" height="56"/>
+                                <rect key="frame" x="323.66666666666669" y="31.666666666666686" width="165" height="56"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="32"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="I CAN WIN">
@@ -555,7 +555,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Lhf-IW-WTU">
-                                <rect key="frame" x="456" y="325" width="200" height="56"/>
+                                <rect key="frame" x="306" y="95.666666666666686" width="200" height="56.000000000000014"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="32"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="BRING IT ON">
@@ -567,7 +567,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SuW-sx-R42">
-                                <rect key="frame" x="418.5" y="389" width="275" height="56"/>
+                                <rect key="frame" x="268.66666666666669" y="159.66666666666666" width="275.00000000000006" height="56"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="32"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="HURT ME PLENTY">
@@ -579,7 +579,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="u95-ZK-53H">
-                                <rect key="frame" x="464" y="453" width="184" height="56"/>
+                                <rect key="frame" x="314" y="223.66666666666666" width="184" height="55.999999999999972"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="32"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="HARDCORE">
@@ -591,7 +591,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3ar-zK-sKb">
-                                <rect key="frame" x="451" y="517" width="210" height="56"/>
+                                <rect key="frame" x="301" y="287.66666666666669" width="210" height="56"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="32"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="NIGHTMARE!">
@@ -629,13 +629,13 @@
         <!--Server Info View Controller-->
         <scene sceneID="jF4-t5-Hpj">
             <objects>
-                <viewController id="i2Z-g0-ZUh" customClass="ServerInfoViewController" customModule="Quake3_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="i2Z-g0-ZUh" customClass="ServerInfoViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Kbg-K2-e50">
-                        <rect key="frame" x="0.0" y="0.0" width="1112" height="834"/>
+                        <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="DjY-3E-K3Q">
-                                <rect key="frame" x="10" y="773" width="104" height="51"/>
+                                <rect key="frame" x="54" y="293" width="104" height="51"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="28"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="&lt; BACK">
@@ -647,7 +647,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="TWh-5I-eKw">
-                                <rect key="frame" x="1017" y="773" width="85" height="51"/>
+                                <rect key="frame" x="673" y="293" width="85" height="51"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="28"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="FIGHT">
@@ -660,7 +660,7 @@
                                 </connections>
                             </button>
                             <tableView clipsSubviews="YES" tag="1" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="FV9-o6-gcq">
-                                <rect key="frame" x="36" y="95" width="500.5" height="665"/>
+                                <rect key="frame" x="79.999999999999972" y="75" width="365.33333333333326" height="205"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <connections>
                                     <outlet property="dataSource" destination="i2Z-g0-ZUh" id="g4a-7j-e4o"/>
@@ -668,7 +668,7 @@
                                 </connections>
                             </tableView>
                             <tableView clipsSubviews="YES" tag="2" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="MLc-63-Pey">
-                                <rect key="frame" x="591.5" y="95" width="500.5" height="665"/>
+                                <rect key="frame" x="382.66666666666674" y="75" width="365.33333333333326" height="205"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <connections>
                                     <outlet property="dataSource" destination="i2Z-g0-ZUh" id="Pr7-cC-sAR"/>
@@ -676,19 +676,19 @@
                                 </connections>
                             </tableView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Players" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="k11-6g-5bn">
-                                <rect key="frame" x="36" y="64.5" width="59.5" height="27.5"/>
+                                <rect key="frame" x="80" y="44.666666666666664" width="59.666666666666657" height="27.333333333333336"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Bold" family="Avenir Next Condensed" pointSize="20"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Rules" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B5O-4Y-BsG">
-                                <rect key="frame" x="792" y="64" width="45" height="28"/>
+                                <rect key="frame" x="492" y="44" width="45" height="28"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Bold" family="Avenir Next Condensed" pointSize="20"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Server Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5bP-7y-x7h">
-                                <rect key="frame" x="36" y="21.5" width="128" height="35"/>
+                                <rect key="frame" x="80" y="1.6666666666666643" width="128" height="35"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Bold" family="Avenir Next Condensed" pointSize="25"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
@@ -752,7 +752,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="quake_3_background" width="1440" height="540"/>
+        <image name="rtcw_sp_background" width="1440" height="540"/>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="T1e-r3-Itb"/>

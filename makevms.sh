@@ -85,6 +85,12 @@ fi
 
 cp $QVM_OBJ "$HOME/Library/Application Support/rtcw/Main/vm"
 
+if [ ! -d "Main/vm" ]; then
+	mkdir -p "Main/vm" || exit 1;
+fi
+
+cp $QVM_OBJ "$HOME/Library/Application Support/rtcw/Main/vm"
+cp $QVM_OBJ "Main/vm"
 
 # echo "Creating .app bundle $DESTDIR/$APPBUNDLE"
 # if [ ! -d $DESTDIR/$APPBUNDLE/Contents/MacOS/$BASEDIR ]; then

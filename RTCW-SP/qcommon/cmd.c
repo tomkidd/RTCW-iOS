@@ -146,9 +146,6 @@ Cbuf_ExecuteText
 ============
 */
 void Cbuf_ExecuteText( int exec_when, const char *text ) {
-    
-    printf("COMMAND -> %s\n", text);
-    
 	switch ( exec_when )
 	{
 	case EXEC_NOW:

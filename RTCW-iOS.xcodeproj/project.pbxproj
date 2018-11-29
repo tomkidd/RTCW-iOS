@@ -1392,52 +1392,6 @@
 		A179C1F92101472C00D3C611 /* g_bot.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_bot.c; sourceTree = "<group>"; };
 		A179C1FA2101472C00D3C611 /* g_trigger.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_trigger.c; sourceTree = "<group>"; };
 		A179C1FB2101472C00D3C611 /* inv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inv.h; sourceTree = "<group>"; };
-		A179C1FD2101472D00D3C611 /* ui_confirm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_confirm.c; sourceTree = "<group>"; };
-		A179C1FE2101472D00D3C611 /* ui_setup.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_setup.c; sourceTree = "<group>"; };
-		A179C1FF2101472D00D3C611 /* ui_options.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_options.c; sourceTree = "<group>"; };
-		A179C2002101472D00D3C611 /* ui_saveconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_saveconfig.c; sourceTree = "<group>"; };
-		A179C2012101472D00D3C611 /* ui_sound.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_sound.c; sourceTree = "<group>"; };
-		A179C2022101472D00D3C611 /* ui_main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_main.c; sourceTree = "<group>"; };
-		A179C2032101472D00D3C611 /* ui_servers2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_servers2.c; sourceTree = "<group>"; };
-		A179C2042101472D00D3C611 /* ui_spskill.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_spskill.c; sourceTree = "<group>"; };
-		A179C2052101472D00D3C611 /* ui_connect.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_connect.c; sourceTree = "<group>"; };
-		A179C2062101472D00D3C611 /* ui_ingame.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_ingame.c; sourceTree = "<group>"; };
-		A179C2072101472D00D3C611 /* ui_teamorders.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_teamorders.c; sourceTree = "<group>"; };
-		A179C2082101472D00D3C611 /* ui_local.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_local.h; sourceTree = "<group>"; };
-		A179C2092101472D00D3C611 /* ui_specifyserver.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_specifyserver.c; sourceTree = "<group>"; };
-		A179C20A2101472D00D3C611 /* ui_cinematics.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_cinematics.c; sourceTree = "<group>"; };
-		A179C20B2101472D00D3C611 /* ui_rankstatus.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_rankstatus.c; sourceTree = "<group>"; };
-		A179C20C2101472D00D3C611 /* ui_qmenu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_qmenu.c; sourceTree = "<group>"; };
-		A179C20D2101472D00D3C611 /* ui_menu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_menu.c; sourceTree = "<group>"; };
-		A179C20E2101472D00D3C611 /* ui_mods.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_mods.c; sourceTree = "<group>"; };
-		A179C20F2101472D00D3C611 /* ui_signup.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_signup.c; sourceTree = "<group>"; };
-		A179C2102101472D00D3C611 /* ui_rankings.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_rankings.c; sourceTree = "<group>"; };
-		A179C2112101472D00D3C611 /* ui_cdkey.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_cdkey.c; sourceTree = "<group>"; };
-		A179C2122101472D00D3C611 /* ui_atoms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_atoms.c; sourceTree = "<group>"; };
-		A179C2132101472D00D3C611 /* ui_video.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_video.c; sourceTree = "<group>"; };
-		A179C2142101472D00D3C611 /* ui_players.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_players.c; sourceTree = "<group>"; };
-		A179C2152101472D00D3C611 /* ui_specifyleague.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_specifyleague.c; sourceTree = "<group>"; };
-		A179C2162101472D00D3C611 /* ui_splevel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_splevel.c; sourceTree = "<group>"; };
-		A179C2172101472D00D3C611 /* ui_removebots.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_removebots.c; sourceTree = "<group>"; };
-		A179C2182101472D00D3C611 /* ui_addbots.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_addbots.c; sourceTree = "<group>"; };
-		A179C2192101472D00D3C611 /* ui_credits.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_credits.c; sourceTree = "<group>"; };
-		A179C21A2101472D00D3C611 /* ui_gameinfo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_gameinfo.c; sourceTree = "<group>"; };
-		A179C21B2101472D00D3C611 /* ui_loadconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_loadconfig.c; sourceTree = "<group>"; };
-		A179C21C2101472D00D3C611 /* ui_sparena.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_sparena.c; sourceTree = "<group>"; };
-		A179C21D2101472D00D3C611 /* ui_spreset.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_spreset.c; sourceTree = "<group>"; };
-		A179C21E2101472D00D3C611 /* ui_playersettings.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_playersettings.c; sourceTree = "<group>"; };
-		A179C21F2101472D00D3C611 /* ui_playermodel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_playermodel.c; sourceTree = "<group>"; };
-		A179C2202101472D00D3C611 /* ui_demo2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_demo2.c; sourceTree = "<group>"; };
-		A179C2212101472D00D3C611 /* ui_team.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_team.c; sourceTree = "<group>"; };
-		A179C2222101472D00D3C611 /* ui_login.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_login.c; sourceTree = "<group>"; };
-		A179C2232101472D00D3C611 /* ui_display.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_display.c; sourceTree = "<group>"; };
-		A179C2242101472D00D3C611 /* ui_mfield.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_mfield.c; sourceTree = "<group>"; };
-		A179C2252101472D00D3C611 /* ui_startserver.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_startserver.c; sourceTree = "<group>"; };
-		A179C2262101472D00D3C611 /* ui_sppostgame.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_sppostgame.c; sourceTree = "<group>"; };
-		A179C2272101472D00D3C611 /* ui_controls2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_controls2.c; sourceTree = "<group>"; };
-		A179C2282101472D00D3C611 /* ui_network.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_network.c; sourceTree = "<group>"; };
-		A179C2292101472D00D3C611 /* ui_preferences.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_preferences.c; sourceTree = "<group>"; };
-		A179C22A2101472D00D3C611 /* ui_serverinfo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_serverinfo.c; sourceTree = "<group>"; };
 		A179C22D2101472D00D3C611 /* notes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = notes.txt; sourceTree = "<group>"; };
 		A179C22E2101472D00D3C611 /* mathlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mathlib.h; sourceTree = "<group>"; };
 		A179C22F2101472D00D3C611 /* cmdlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cmdlib.h; sourceTree = "<group>"; };
@@ -1838,7 +1792,6 @@
 				A1902E8721028F46008823BB /* ios */,
 				A179C05B2101470F00D3C611 /* jpeg-8c */,
 				A179C0142101470F00D3C611 /* null */,
-				A179C1FC2101472D00D3C611 /* q3_ui */,
 				A179C2912101472E00D3C611 /* qcommon */,
 				A1366967217E89E900E0AC0B /* renderer */,
 				A179C0E92101471000D3C611 /* server */,
@@ -2222,59 +2175,6 @@
 				A179C1D52101472C00D3C611 /* syn.h */,
 			);
 			path = game;
-			sourceTree = "<group>";
-		};
-		A179C1FC2101472D00D3C611 /* q3_ui */ = {
-			isa = PBXGroup;
-			children = (
-				A179C2182101472D00D3C611 /* ui_addbots.c */,
-				A179C2122101472D00D3C611 /* ui_atoms.c */,
-				A179C2112101472D00D3C611 /* ui_cdkey.c */,
-				A179C20A2101472D00D3C611 /* ui_cinematics.c */,
-				A179C1FD2101472D00D3C611 /* ui_confirm.c */,
-				A179C2052101472D00D3C611 /* ui_connect.c */,
-				A179C2272101472D00D3C611 /* ui_controls2.c */,
-				A179C2192101472D00D3C611 /* ui_credits.c */,
-				A179C2202101472D00D3C611 /* ui_demo2.c */,
-				A179C2232101472D00D3C611 /* ui_display.c */,
-				A179C21A2101472D00D3C611 /* ui_gameinfo.c */,
-				A179C2062101472D00D3C611 /* ui_ingame.c */,
-				A179C21B2101472D00D3C611 /* ui_loadconfig.c */,
-				A179C2082101472D00D3C611 /* ui_local.h */,
-				A179C2222101472D00D3C611 /* ui_login.c */,
-				A179C2022101472D00D3C611 /* ui_main.c */,
-				A179C20D2101472D00D3C611 /* ui_menu.c */,
-				A179C2242101472D00D3C611 /* ui_mfield.c */,
-				A179C20E2101472D00D3C611 /* ui_mods.c */,
-				A179C2282101472D00D3C611 /* ui_network.c */,
-				A179C1FF2101472D00D3C611 /* ui_options.c */,
-				A179C21F2101472D00D3C611 /* ui_playermodel.c */,
-				A179C2142101472D00D3C611 /* ui_players.c */,
-				A179C21E2101472D00D3C611 /* ui_playersettings.c */,
-				A179C2292101472D00D3C611 /* ui_preferences.c */,
-				A179C20C2101472D00D3C611 /* ui_qmenu.c */,
-				A179C2102101472D00D3C611 /* ui_rankings.c */,
-				A179C20B2101472D00D3C611 /* ui_rankstatus.c */,
-				A179C2172101472D00D3C611 /* ui_removebots.c */,
-				A179C2002101472D00D3C611 /* ui_saveconfig.c */,
-				A179C22A2101472D00D3C611 /* ui_serverinfo.c */,
-				A179C2032101472D00D3C611 /* ui_servers2.c */,
-				A179C1FE2101472D00D3C611 /* ui_setup.c */,
-				A179C20F2101472D00D3C611 /* ui_signup.c */,
-				A179C2012101472D00D3C611 /* ui_sound.c */,
-				A179C21C2101472D00D3C611 /* ui_sparena.c */,
-				A179C2152101472D00D3C611 /* ui_specifyleague.c */,
-				A179C2092101472D00D3C611 /* ui_specifyserver.c */,
-				A179C2162101472D00D3C611 /* ui_splevel.c */,
-				A179C2262101472D00D3C611 /* ui_sppostgame.c */,
-				A179C21D2101472D00D3C611 /* ui_spreset.c */,
-				A179C2042101472D00D3C611 /* ui_spskill.c */,
-				A179C2252101472D00D3C611 /* ui_startserver.c */,
-				A179C2212101472D00D3C611 /* ui_team.c */,
-				A179C2072101472D00D3C611 /* ui_teamorders.c */,
-				A179C2132101472D00D3C611 /* ui_video.c */,
-			);
-			path = q3_ui;
 			sourceTree = "<group>";
 		};
 		A179C22B2101472D00D3C611 /* tools */ = {

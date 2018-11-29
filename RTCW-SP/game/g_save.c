@@ -1134,7 +1134,6 @@ qboolean G_SaveGame( char *username ) {
     // open the file
     Com_sprintf( filename, MAX_QPATH, "save\\temp.svg" );
     if ( trap_FS_FOpenFile( filename, &f, FS_WRITE ) < 0 ) {
-        G_Printf( "G_SaveGame: '%s'\n", filename );
         G_Error( "G_SaveGame: cannot open file for saving\n" );
     }
 

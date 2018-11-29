@@ -1203,7 +1203,7 @@ qboolean G_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **model
 	if ( !G_CheckForExistingModelInfo( &level.clients[clientNum], modelName, modelInfo ) ) {
 		level.clients[clientNum].modelInfo = *modelInfo;
 		if ( !G_ParseAnimationFiles( modelName, &level.clients[clientNum] ) ) {
-			G_Error( "g1! Failed to load animation scripts for model %s\n", modelName );
+			G_Error( "Failed to load animation scripts for model %s\n", modelName );
 		}
 	}
 
@@ -1401,7 +1401,7 @@ void ClientUserinfoChanged( int clientNum ) {
 
 	if ( !G_CheckForExistingModelInfo( client, modelname, &client->modelInfo ) ) {
 		if ( !G_ParseAnimationFiles( modelname, client ) ) {
-			G_Error( "g2! Failed to load animation scripts for model %s\n", modelname );
+			G_Error( "Failed to load animation scripts for model %s\n", modelname );
 		}
 	}
 

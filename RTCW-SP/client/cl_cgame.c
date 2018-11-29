@@ -923,7 +923,7 @@ void CL_UpdateLevelHunkUsage( void ) {
 		// input file is parsed, now output to the new file
 		len = strlen( outbuf );
 		if ( FS_Write( (void *)outbuf, len, handle ) != len ) {
-			Com_Error( ERR_DROP, "c2! cannot write to %s\n", memlistfile );
+			Com_Error( ERR_DROP, "cannot write to %s\n", memlistfile );
 		}
 		FS_FCloseFile( handle );
 

@@ -1105,6 +1105,9 @@ void CL_InitInput( void ) {
 
 	cl_nodelta = Cvar_Get( "cl_nodelta", "0", 0 );
 	cl_debugMove = Cvar_Get( "cl_debugMove", "0", 0 );
+    
+    // DEBUG
+    kb[KB_STRAFE].active = qtrue;
 }
 
 /*

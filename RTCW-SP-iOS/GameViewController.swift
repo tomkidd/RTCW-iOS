@@ -112,8 +112,8 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         //        Sys_SetHomeDir(Bundle.main.resourcePath!)
         Sys_SetHomeDir(documentsDir)
 
-        // disabled for now -tkidd
-//        in_strafe.active = qtrue
+        // KB_STRAFE?
+//        kb.8.active = qtrue
         
         #if os(iOS)
         
@@ -340,7 +340,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     
     func handleMenuDragToPoint(point: CGPoint) {
         let deltaX:Int32 = Int32((point.x/self.view.bounds.size.width) * 640)
-        let deltaY:Int32 = Int32(point.y * 1.3)
+        let deltaY:Int32 = Int32((point.y/self.view.bounds.size.height) * 480)
         CL_MouseEvent(deltaX, deltaY, Sys_Milliseconds(), qtrue)
     }
 

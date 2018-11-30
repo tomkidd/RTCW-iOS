@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "A1565F212109F30E00FA9BC9"
-               BuildableName = "Quake3-tvOS.app"
-               BlueprintName = "Quake3-tvOS"
+               BlueprintIdentifier = "A1902F5E210939B9008823BB"
+               BuildableName = "Quake3-tvOS Simulator.app"
+               BlueprintName = "Quake3-tvOS Simulator"
                ReferencedContainer = "container:Quake3-iOS.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -32,10 +32,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "A1565F212109F30E00FA9BC9"
-            BuildableName = "RTCW-SP-tvOS.app"
-            BlueprintName = "RTCW-SP-tvOS"
-            ReferencedContainer = "container:RTCW-iOS-SP.xcodeproj">
+            BlueprintIdentifier = "A1902F5E210939B9008823BB"
+            BuildableName = "RTCW-SP-tvOS Simulator.app"
+            BlueprintName = "RTCW-SP-tvOS Simulator"
+            ReferencedContainer = "container:RTCW-SP-iOS.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -55,10 +55,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "A1565F212109F30E00FA9BC9"
-            BuildableName = "RTCW-SP-tvOS.app"
-            BlueprintName = "RTCW-SP-tvOS"
-            ReferencedContainer = "container:RTCW-iOS-SP.xcodeproj">
+            BlueprintIdentifier = "A1902F5E210939B9008823BB"
+            BuildableName = "RTCW-SP-tvOS Simulator.app"
+            BlueprintName = "RTCW-SP-tvOS Simulator"
+            ReferencedContainer = "container:RTCW-SP-iOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -74,9 +74,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "A1565F212109F30E00FA9BC9"
-            BuildableName = "Quake3-tvOS.app"
-            BlueprintName = "Quake3-tvOS"
+            BlueprintIdentifier = "A1902F5E210939B9008823BB"
+            BuildableName = "Quake3-tvOS Simulator.app"
+            BlueprintName = "Quake3-tvOS Simulator"
             ReferencedContainer = "container:Quake3-iOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

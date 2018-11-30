@@ -2634,7 +2634,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A179BFDE210142F900D3C611 /* Build configuration list for PBXProject "RTCW-iOS-SP" */;
+			buildConfigurationList = A179BFDE210142F900D3C611 /* Build configuration list for PBXProject "RTCW-SP-iOS" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -4055,7 +4055,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A179BFDE210142F900D3C611 /* Build configuration list for PBXProject "RTCW-iOS-SP" */ = {
+		A179BFDE210142F900D3C611 /* Build configuration list for PBXProject "RTCW-SP-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A179BFF3210142FB00D3C611 /* Debug */,

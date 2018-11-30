@@ -18,14 +18,14 @@
                         <rect key="frame" x="0.0" y="0.0" width="667" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rtcw_sp_box" translatesAutoresizingMaskIntoConstraints="NO" id="fOs-WC-BLh">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rtcw_mp_box" translatesAutoresizingMaskIntoConstraints="NO" id="fOs-WC-BLh">
                                 <rect key="frame" x="180.5" y="0.0" width="306" height="375"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="fOs-WC-BLh" secondAttribute="height" multiplier="2791:3425" id="8EH-kH-xio"/>
                                 </constraints>
                             </imageView>
                         </subviews>
-                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="backgroundColor" red="0.60392156862745094" green="0.11764705882352941" blue="0.070588235294117646" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="fOs-WC-BLh" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="4tx-kX-R7F"/>
                             <constraint firstAttribute="bottom" secondItem="fOs-WC-BLh" secondAttribute="bottom" id="OHU-sp-Qle"/>
@@ -40,6 +40,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="rtcw_sp_box" width="192" height="233.52000427246094"/>
+        <image name="rtcw_mp_box" width="192" height="233.52000427246094"/>
     </resources>
 </document>

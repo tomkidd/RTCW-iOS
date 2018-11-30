@@ -27,7 +27,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="1920" height="1080"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rtcw_sp_background" translatesAutoresizingMaskIntoConstraints="NO" id="J3f-2W-XPP">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rtcw_mp_background" translatesAutoresizingMaskIntoConstraints="NO" id="J3f-2W-XPP">
                                 <rect key="frame" x="-313" y="0.0" width="2880" height="1080"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="J3f-2W-XPP" secondAttribute="height" multiplier="8:3" id="Fqb-c1-Nxa"/>
@@ -671,7 +671,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="rtcw_sp_background" width="1440" height="540"/>
+        <image name="rtcw_mp_background" width="1440" height="540"/>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="CVW-g3-IVQ"/>

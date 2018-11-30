@@ -13,12 +13,12 @@
         <!--Main Menu View Controller-->
         <scene sceneID="CXV-mc-6oD">
             <objects>
-                <viewController id="dWF-vJ-0ad" customClass="MainMenuViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="dWF-vJ-0ad" customClass="MainMenuViewController" customModule="RTCW_MP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="uuz-Jq-TKC">
                         <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rtcw_sp_background" translatesAutoresizingMaskIntoConstraints="NO" id="J3f-2W-XPP">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rtcw_mp_background" translatesAutoresizingMaskIntoConstraints="NO" id="J3f-2W-XPP">
                                 <rect key="frame" x="-110" y="0.0" width="1000" height="375"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="J3f-2W-XPP" secondAttribute="height" multiplier="720:407" id="AQi-uG-8Ij"/>
@@ -88,7 +88,7 @@
                                     <segue destination="WvD-UG-yat" kind="show" id="dBx-eq-leY"/>
                                 </connections>
                             </button>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rtcw_sp_logo" translatesAutoresizingMaskIntoConstraints="NO" id="rKd-mB-ZO5">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rtcw_mp_logo" translatesAutoresizingMaskIntoConstraints="NO" id="rKd-mB-ZO5">
                                 <rect key="frame" x="471" y="0.0" width="289" height="135"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="289" id="Lyf-qR-V5W"/>
@@ -133,7 +133,7 @@
         <!--Options View Controller-->
         <scene sceneID="fRO-bQ-Mng">
             <objects>
-                <viewController id="WvD-UG-yat" customClass="OptionsViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="WvD-UG-yat" customClass="OptionsViewController" customModule="RTCW_MP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="6Ha-7k-E9S">
                         <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -194,7 +194,7 @@
         <!--Delegate-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="GameViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="GameViewController" customModule="RTCW_MP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC" customClass="GLKView">
                         <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -253,7 +253,7 @@
         <!--Server Browser View Controller-->
         <scene sceneID="98B-oY-pEO">
             <objects>
-                <viewController id="gOE-px-5yC" customClass="ServerBrowserViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="gOE-px-5yC" customClass="ServerBrowserViewController" customModule="RTCW_MP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="53K-Kb-nZQ">
                         <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -347,7 +347,7 @@
         <!--Server Filter View Controller-->
         <scene sceneID="Xhm-jx-Yto">
             <objects>
-                <viewController id="LuR-jY-oBi" customClass="ServerFilterViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="LuR-jY-oBi" customClass="ServerFilterViewController" customModule="RTCW_MP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="nzI-HR-g5I">
                         <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -499,7 +499,7 @@
         <!--Difficulty View Controller-->
         <scene sceneID="dsk-0B-TIF">
             <objects>
-                <viewController id="dBM-hw-OcU" customClass="DifficultyViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="dBM-hw-OcU" customClass="DifficultyViewController" customModule="RTCW_MP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="IRp-sc-De8">
                         <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -563,7 +563,7 @@
         <!--Server Info View Controller-->
         <scene sceneID="jF4-t5-Hpj">
             <objects>
-                <viewController id="i2Z-g0-ZUh" customClass="ServerInfoViewController" customModule="RTCW_SP_iOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="i2Z-g0-ZUh" customClass="ServerInfoViewController" customModule="RTCW_MP_iOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Kbg-K2-e50">
                         <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -685,8 +685,8 @@
         </scene>
     </scenes>
     <resources>
-        <image name="rtcw_sp_background" width="1440" height="540"/>
-        <image name="rtcw_sp_logo" width="615" height="288"/>
+        <image name="rtcw_mp_background" width="1440" height="540"/>
+        <image name="rtcw_mp_logo" width="615" height="288"/>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="T1e-r3-Itb"/>

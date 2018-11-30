@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -93,11 +93,6 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 			}
 			other->client->ps.stats[STAT_HEALTH] = other->health;
 		}
-
-		// cap stamina
-		if ( other->client->ps.powerups[PW_NOFATIGUE] > 60000 ) {
-			other->client->ps.powerups[PW_NOFATIGUE] = 60000;
-		}
 	}
 
 
@@ -157,9 +152,7 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 
 	// single player has no respawns	(SA)
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
-		if ( !( ent->spawnflags & 8 ) ) {
-			return RESPAWN_SP;
-		}
+		return RESPAWN_SP;
 	}
 
 	return RESPAWN_POWERUP;
@@ -170,12 +163,10 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 int Pickup_Key( gentity_t *ent, gentity_t *other ) {
 	other->client->ps.stats[STAT_KEYS] |= ( 1 << ent->item->giTag );
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
-		if ( !( ent->spawnflags & 8 ) ) {
-			return RESPAWN_SP;
-		}
+		return RESPAWN_SP;
+	} else {
+		return RESPAWN_KEY;
 	}
-
-	return RESPAWN_KEY;
 }
 
 
@@ -201,9 +192,7 @@ Pickup_Treasure
 ==============
 */
 int Pickup_Treasure( gentity_t *ent, gentity_t *other ) {
-	gentity_t *player = AICast_FindEntityForName( "player" );
-	player->numTreasureFound++;
-	G_SendMissionStats();
+	// TODO: increment treasure counter
 	return RESPAWN_SP;  // no respawn
 }
 
@@ -216,11 +205,31 @@ UseHoldableItem
 */
 void UseHoldableItem( gentity_t *ent, int item ) {
 	switch ( item ) {
+	case HI_MEDKIT:
+		ent->health = ent->client->ps.stats[STAT_MAX_HEALTH];
+		break;
+
 	case HI_WINE:           // 1921 Chateu Lafite - gives 25 pts health up to max health
 		ent->health += 25;
 		if ( ent->health > ent->client->ps.stats[STAT_MAX_HEALTH] ) {
 			ent->health = ent->client->ps.stats[STAT_MAX_HEALTH];
 		}
+		break;
+
+	case HI_SKULL:          // skull of invulnerable - 30 sec invincible
+		ent->client->ps.powerups[PW_INVULNERABLE] = level.time + 30000;
+		break;
+
+	case HI_WATER:          // protection from drowning - 30 sec underwater breathing time
+		ent->client->ps.powerups[PW_BREATHER] = 30000;
+		break;
+
+	case HI_ELECTRIC:       // protection from electric attacks - absorbs 500 points of electric damage
+		ent->client->ps.powerups[PW_ELECTRIC] = 500;
+		break;
+
+	case HI_FIRE:           // protection from fire attacks - absorbs 500 points of fire damage
+		ent->client->ps.powerups[PW_FIRE] = 500;
 		break;
 
 	case HI_STAMINA:        // restores fatigue bar and sets "nofatigue" for a time period (currently forced to 60 sec)
@@ -258,12 +267,10 @@ int Pickup_Holdable( gentity_t *ent, gentity_t *other ) {
 	other->client->ps.stats[STAT_HOLDABLE_ITEM] |= ( 1 << ent->item->giTag );   //----(SA)	added
 
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
-		if ( !( ent->spawnflags & 8 ) ) {
-			return RESPAWN_SP;
-		}
+		return RESPAWN_SP;
+	} else {
+		return RESPAWN_HOLDABLE;
 	}
-
-	return RESPAWN_HOLDABLE;
 }
 
 
@@ -298,9 +305,7 @@ void Fill_Clip( playerState_t *ps, int weapon ) {
 	}
 
 	if ( ammomove ) {
-		if ( !ps->aiChar || ps->ammo[ammoweap] < 999 ) {  // RF, dont take ammo away if they need unlimited supplies
-			ps->ammo[ammoweap] -= ammomove;
-		}
+		ps->ammo[ammoweap] -= ammomove;
 		ps->ammoclip[BG_FindClipForWeapon( weapon )] += ammomove;
 	}
 }
@@ -314,54 +319,50 @@ Add_Ammo
 	fillClip will push the ammo straight through into the clip and leave the rest in reserve
 ==============
 */
+//----(SA)	modified
 void Add_Ammo( gentity_t *ent, int weapon, int count, qboolean fillClip ) {
 	int ammoweap = BG_FindAmmoForWeapon( weapon );
-	qboolean noPack = qfalse;       // no extra ammo in your 'pack'
+	int totalcount;
 
 	ent->client->ps.ammo[ammoweap] += count;
 
-	switch ( ammoweap ) {
-		// some weaps load straight into the 'clip' since they have no storage outside the clip
-
-	case WP_GRENADE_LAUNCHER:       // make sure if he picks up a grenade that he get's the "launcher" too
-	case WP_GRENADE_PINEAPPLE:
-	case WP_DYNAMITE:
-		COM_BitSet( ent->client->ps.weapons, ammoweap );
-
-	case WP_TESLA:
-	case WP_FLAMETHROWER:
-		noPack = qtrue;
-		break;
-	default:
-		break;
+	if ( ammoweap == WP_GRENADE_LAUNCHER ) {         // make sure if he picks up a grenade that he get's the "launcher" too
+		COM_BitSet( ent->client->ps.weapons, WP_GRENADE_LAUNCHER );
+		fillClip = qtrue;   // grenades always filter into the "clip"
+	} else if ( ammoweap == WP_GRENADE_PINEAPPLE ) {
+		COM_BitSet( ent->client->ps.weapons, WP_GRENADE_PINEAPPLE );
+		fillClip = qtrue;   // grenades always filter into the "clip"
+	} else if ( ammoweap == WP_DYNAMITE || ammoweap == WP_DYNAMITE2 ) {
+		COM_BitSet( ent->client->ps.weapons, WP_DYNAMITE );
+		fillClip = qtrue;
 	}
 
-	if ( fillClip || noPack ) {
+	if ( fillClip ) {
 		Fill_Clip( &ent->client->ps, weapon );
 	}
 
-	if ( ent->aiCharacter ) {
-		noPack = qfalse;    // let AI's deal with their own clip/ammo handling
-
-	}
 	// cap to max ammo
-	if ( noPack ) {
-		ent->client->ps.ammo[ammoweap] = 0;
-	} else {
-		if ( ent->client->ps.ammo[ammoweap] > ammoTable[ammoweap].maxammo ) {
+	if ( g_dmflags.integer & DF_NO_WEAPRELOAD ) {      // no clips
+		totalcount = ent->client->ps.ammo[ammoweap];
+		if ( totalcount > ammoTable[ammoweap].maxammo ) {
 			ent->client->ps.ammo[ammoweap] = ammoTable[ammoweap].maxammo;
 		}
 
-		if ( count >= 999 ) { // 'really, give /all/'
-			ent->client->ps.ammo[ammoweap] = count;
+	} else {                                        // using clips
+		totalcount = ent->client->ps.ammo[ammoweap] + ent->client->ps.ammoclip[BG_FindClipForWeapon( weapon )];
+		if ( totalcount > ammoTable[ammoweap].maxammo ) {
+			ent->client->ps.ammo[ammoweap] = ammoTable[ammoweap].maxammo - ent->client->ps.ammoclip[BG_FindClipForWeapon( weapon )];
 		}
+
 	}
 
-	if ( ent->client->ps.ammoclip[ammoweap] > ammoTable[ammoweap].maxclip ) {
-		ent->client->ps.ammoclip[ammoweap] = ammoTable[ammoweap].maxclip;
-	}
+
+	if ( count >= 999 ) { // 'really, give /all/'
+		ent->client->ps.ammo[ammoweap] = count;
+	}   // JPW NERVE
 
 }
+//----(SA)	end
 
 
 /*
@@ -377,7 +378,7 @@ int Pickup_Ammo( gentity_t *ent, gentity_t *other ) {
 	} else {
 		// quantity = ent->item->quantity;
 
-		quantity = ent->item->gameskillnumber[g_gameskill.integer];
+		quantity = ent->item->gameskillnumber[( g_gameskill.integer ) - 1];
 
 		// FIXME just for now
 		if ( !quantity ) {
@@ -389,9 +390,7 @@ int Pickup_Ammo( gentity_t *ent, gentity_t *other ) {
 
 	// single player has no respawns	(SA)
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
-		if ( !( ent->spawnflags & 8 ) ) {
-			return RESPAWN_SP;
-		}
+		return RESPAWN_SP;
 	}
 
 	return RESPAWN_AMMO;
@@ -403,10 +402,81 @@ int Pickup_Ammo( gentity_t *ent, gentity_t *other ) {
 int Pickup_Weapon( gentity_t *ent, gentity_t *other ) {
 	int quantity;
 	qboolean alreadyHave = qfalse;
-	int weapon;
+	int i,weapon;         // JPW NERVE
 
-	weapon = ent->item->giTag;
+// JPW NERVE -- magic ammo for any two-handed weapon
+	if ( ent->item->giTag == WP_AMMO ) {
+// if LT isn't giving ammo to self or another LT or the enemy, give him some props
+		if ( other->client->ps.stats[STAT_PLAYER_CLASS] != PC_LT ) {
+			if ( ent->parent ) {
+				if ( other->client->sess.sessionTeam == ent->parent->client->sess.sessionTeam ) {
+					if ( ent->parent->client ) {
+						if ( !( ent->parent->client->PCSpecialPickedUpCount % LT_SPECIAL_PICKUP_MOD ) ) {
+							AddScore( ent->parent, WOLF_AMMO_UP );
+						}
+						ent->parent->client->PCSpecialPickedUpCount++;
+					}
+				}
+			}
+		}
 
+		// everybody likes grenades -- abuse weapon var as grenade type and i as max # grenades class can carry
+		switch ( other->client->ps.stats[STAT_PLAYER_CLASS] ) {
+		case PC_LT: // redundant but added for completeness/flexibility
+		case PC_MEDIC:
+			i = 1;
+			break;
+		case PC_SOLDIER:
+			i = 4;
+			break;
+		case PC_ENGINEER:
+			i = 8;
+			break;
+		default:
+			i = 1;
+			break;
+		}
+		if ( other->client->sess.sessionTeam == TEAM_RED ) {
+			weapon = WP_GRENADE_LAUNCHER;
+		} else {
+			weapon = WP_GRENADE_PINEAPPLE;
+		}
+		if ( other->client->ps.ammoclip[BG_FindClipForWeapon( weapon )] < i ) {
+			other->client->ps.ammoclip[BG_FindClipForWeapon( weapon )]++;
+		}
+		COM_BitSet( other->client->ps.weapons,weapon );
+
+		// TTimo - add 8 pistol bullets
+		if ( other->client->sess.sessionTeam == TEAM_RED ) {
+			weapon = WP_LUGER;
+		} else {
+			weapon = WP_COLT;
+		}
+//		G_Printf("filling magazine for weapon %d colt/luger (%d rounds)\n", weapon, ammoTable[weapon].maxclip);
+		other->client->ps.ammo[BG_FindAmmoForWeapon( weapon )] += ammoTable[weapon].maxclip;
+		if ( other->client->ps.ammo[BG_FindAmmoForWeapon( weapon )] > ammoTable[weapon].maxclip * 4 ) {
+			other->client->ps.ammo[BG_FindAmmoForWeapon( weapon )] = ammoTable[weapon].maxclip * 4;
+		}
+
+		// and some two-handed ammo
+		for ( i = 0; i < MAX_WEAPS_IN_BANK_MP; i++ ) {
+			weapon = weapBanksMultiPlayer[3][i];
+			if ( COM_BitCheck( other->client->ps.weapons, weapon ) ) {
+//				G_Printf("filling magazine for weapon %d (%d rounds)\n",weapon,ammoTable[weapon].maxclip);
+				if ( weapon == WP_FLAMETHROWER ) { // FT doesn't use magazines so refill tank
+					other->client->ps.ammoclip[BG_FindAmmoForWeapon( WP_FLAMETHROWER )] = ammoTable[weapon].maxclip;
+				} else {
+					other->client->ps.ammo[BG_FindAmmoForWeapon( weapon )] += ammoTable[weapon].maxclip;
+					if ( other->client->ps.ammo[BG_FindAmmoForWeapon( weapon )] > ammoTable[weapon].maxclip * 3 ) {
+						other->client->ps.ammo[BG_FindAmmoForWeapon( weapon )] = ammoTable[weapon].maxclip * 3;
+					}
+				}
+				return RESPAWN_SP;
+			}
+		}
+		return RESPAWN_SP;
+	}
+// jpw
 	if ( ent->count < 0 ) {
 		quantity = 0; // None for you, sir!
 	} else {
@@ -414,76 +484,55 @@ int Pickup_Weapon( gentity_t *ent, gentity_t *other ) {
 			quantity = ent->count;
 		} else {
 //----(SA) modified
-//			quantity = ent->item->quantity;
-//			quantity = (random() * (ent->item->quantity - 1)) + 1;	// giving 1-<item default count>
-			quantity = ( random() * ( ammoTable[weapon].maxclip - 4 ) ) + 4;    // giving 4-<item default count>
-
-		}
-
-		// dropped items and teamplay weapons always have full ammo
-//		if ( ! (ent->flags & FL_DROPPED_ITEM) && g_gametype.integer != GT_TEAM ) {
-//			// respawning rules
-//			// drop the quantity if the already have over the minimum
-//			if ( other->client->ps.ammo[ BG_FindAmmoForWeapon(weapon)] < quantity ) {
-//				quantity = quantity - other->client->ps.ammo[ BG_FindAmmoForWeapon(weapon)];
-//			} else {
-//				quantity = 1;		// only add a single shot
-//			}
-//		}
-//----(SA) end
-	}
-
-
-	//----(SA)	added
-	// check for special colt->akimbo add (if you've got a colt already, add the second now)
-	if ( weapon == WP_COLT ) {
-		if ( COM_BitCheck( other->client->ps.weapons, WP_COLT ) ) {
-			weapon = WP_AKIMBO;
+// JPW NERVE did this so ammocounts work right on dropped weapons
+			if ( g_gametype.integer != GT_SINGLE_PLAYER ) {
+				quantity = ent->item->quantity;
+			} else {
+// jpw
+				quantity = ( random() * ( ent->item->quantity - 1 ) ) + 1;  // giving 1-<item default count>
+			}
 		}
 	}
-//----(SA)	end
 
 	// check if player already had the weapon
-	alreadyHave = COM_BitCheck( other->client->ps.weapons, weapon );
+	alreadyHave = COM_BitCheck( other->client->ps.weapons, ent->item->giTag );
 
 	// add the weapon
-	COM_BitSet( other->client->ps.weapons, weapon );
+	COM_BitSet( other->client->ps.weapons, ent->item->giTag );
 
-//----(SA)	added
-	// snooper/garand
-	if ( weapon == WP_SNOOPERSCOPE ) {
-		COM_BitSet( other->client->ps.weapons, WP_GARAND );
-	} else if ( weapon == WP_GARAND ) {
-		COM_BitSet( other->client->ps.weapons, WP_SNOOPERSCOPE );
+	// DHM - Fixup mauser/sniper issues
+	if ( ent->item->giTag == WP_MAUSER ) {
+		COM_BitSet( other->client->ps.weapons, WP_SNIPERRIFLE );
 	}
-	// fg42/scope
-	else if ( weapon == WP_FG42SCOPE ) {
-		COM_BitSet( other->client->ps.weapons, WP_FG42 );
-	} else if ( weapon == WP_FG42 ) {
-		COM_BitSet( other->client->ps.weapons, WP_FG42SCOPE );
-	} else if ( weapon == WP_SNIPERRIFLE ) {
+	if ( ent->item->giTag == WP_SNIPERRIFLE ) {
 		COM_BitSet( other->client->ps.weapons, WP_MAUSER );
 	}
 
-//----(SA)	end
+	//----(SA)	added
+	// snooper == automatic garand mod
+	if ( ent->item->giTag == WP_SNOOPERSCOPE ) {
+		COM_BitSet( other->client->ps.weapons, WP_GARAND );
+	}
+	// fg42scope == automatic fg42 mod
+	else if ( ent->item->giTag == WP_FG42SCOPE ) {
+		COM_BitSet( other->client->ps.weapons, WP_FG42 );
+	} else if ( ent->item->giTag == WP_GARAND ) {
+		COM_BitSet( other->client->ps.weapons, WP_SNOOPERSCOPE );
+	}
+	//----(SA)	end
 
-	Add_Ammo( other, weapon, quantity, !alreadyHave );
-
-//----(SA) no hook
-//	if (weapon == WP_GRAPPLING_HOOK)
-//		other->client->ps.ammo[BG_FindAmmoForWeapon(weapon)] = -1; // unlimited ammo
+// JPW NERVE  prevents drop/pickup weapon "quick reload" exploit
+	if ( alreadyHave ) {
+		Add_Ammo( other, ent->item->giTag, quantity, !alreadyHave );
+	} else {
+		other->client->ps.ammoclip[BG_FindClipForWeapon( ent->item->giTag )] = quantity;
+	}
+// jpw
 
 	// single player has no respawns	(SA)
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
-		if ( !( ent->spawnflags & 8 ) ) {
-			return RESPAWN_SP;
-		}
+		return RESPAWN_SP;
 	}
-
-//	// team deathmatch has slow weapon respawns
-//	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
-//		return RESPAWN_TEAM_WEAPON;
-//	}
 
 	if ( g_gametype.integer == GT_TEAM ) {
 		return g_weaponTeamRespawn.integer;
@@ -499,6 +548,25 @@ int Pickup_Health( gentity_t *ent, gentity_t *other ) {
 	int max;
 	int quantity = 0;
 
+// JPW NERVE
+// if medic isn't giving ammo to self or another medic or the enemy, give him some props
+	if ( other->client->ps.stats[STAT_PLAYER_CLASS] != PC_MEDIC ) {
+		if ( ent->parent ) {
+			if ( other->client->sess.sessionTeam == ent->parent->client->sess.sessionTeam ) {
+				if ( ent->parent->client ) {
+					if ( !( ent->parent->client->PCSpecialPickedUpCount % MEDIC_SPECIAL_PICKUP_MOD ) ) {
+						AddScore( ent->parent, WOLF_HEALTH_UP );
+					}
+					ent->parent->client->PCSpecialPickedUpCount++;
+				}
+			}
+		}
+	}
+
+// jpw
+
+
+
 	// small and mega healths will go over the max
 	if ( ent->item->quantity != 5 && ent->item->quantity != 100  ) {
 		max = other->client->ps.stats[STAT_MAX_HEALTH];
@@ -511,12 +579,12 @@ int Pickup_Health( gentity_t *ent, gentity_t *other ) {
 	} else {
 		if ( ent->s.density ) {    // multi-stage health
 			if ( ent->s.density == 2 ) {       // first stage (it counts down)
-				quantity = ent->item->gameskillnumber[g_gameskill.integer];
+				quantity = ent->item->gameskillnumber[( g_gameskill.integer ) - 1];
 			} else if ( ent->s.density == 1 )      { // second stage
 				quantity = ent->item->quantity;
 			}
 		} else {
-			quantity = ent->item->gameskillnumber[g_gameskill.integer];
+			quantity = ent->item->gameskillnumber[( g_gameskill.integer ) - 1];
 		}
 	}
 
@@ -549,10 +617,8 @@ int Pickup_Health( gentity_t *ent, gentity_t *other ) {
 
 int Pickup_Armor( gentity_t *ent, gentity_t *other ) {
 	other->client->ps.stats[STAT_ARMOR] += ent->item->quantity;
-//	if ( other->client->ps.stats[STAT_ARMOR] > other->client->ps.stats[STAT_MAX_HEALTH] * 2 ) {
-//		other->client->ps.stats[STAT_ARMOR] = other->client->ps.stats[STAT_MAX_HEALTH] * 2;
-	if ( other->client->ps.stats[STAT_ARMOR] > 100 ) {
-		other->client->ps.stats[STAT_ARMOR] = 100;
+	if ( other->client->ps.stats[STAT_ARMOR] > other->client->ps.stats[STAT_MAX_HEALTH] * 2 ) {
+		other->client->ps.stats[STAT_ARMOR] = other->client->ps.stats[STAT_MAX_HEALTH] * 2;
 	}
 
 	// single player has no respawns	(SA)
@@ -571,7 +637,7 @@ RespawnItem
 ===============
 */
 void RespawnItem( gentity_t *ent ) {
-	if ( !ent ) {
+	if (! ent ) {
 		return;
 	}
 
@@ -595,7 +661,7 @@ void RespawnItem( gentity_t *ent ) {
 			;
 	}
 
-	if ( !ent ) {
+	if (! ent ) {
 		return;
 	}
 
@@ -709,10 +775,9 @@ void Touch_Item( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 		respawn = Pickup_Clipboard( ent, other );
 		// send the event to the client to request that the UI draw a popup
 		// (specified by the configstring in ent->s.density).
-		G_AddEvent( other, EV_POPUP, ent->s.density );
-		if ( ent->key ) {
-			G_AddEvent( other, EV_GIVEPAGE, ent->key );
-		}
+		//G_AddEvent( other, EV_POPUP, ent->s.density);
+		//if(ent->key)
+		//G_AddEvent( other, EV_GIVEPAGE, ent->key );
 		break;
 	default:
 		return;
@@ -760,7 +825,7 @@ void Touch_Item( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 	// wait of -1 will not respawn
 	if ( ent->wait == -1 ) {
 		ent->flags |= FL_NODRAW;
-		ent->r.svFlags |= SVF_NOCLIENT; // (SA) commented back in.
+		//ent->r.svFlags |= SVF_NOCLIENT;
 		ent->s.eFlags |= EF_NODRAW;
 		ent->r.contents = 0;
 		ent->unlinkAfterEvent = qtrue;
@@ -836,25 +901,43 @@ LaunchItem
 Spawns an item and tosses it forward
 ================
 */
-gentity_t *LaunchItem( gitem_t *item, vec3_t origin, vec3_t velocity ) {
+gentity_t *LaunchItem( gitem_t *item, vec3_t origin, vec3_t velocity, int ownerNum ) {
 	gentity_t   *dropped;
+	trace_t tr;
+	vec3_t vec, temp;
+	int i;
 
 	dropped = G_Spawn();
 
 	dropped->s.eType = ET_ITEM;
 	dropped->s.modelindex = item - bg_itemlist; // store item number in modelindex
-//	dropped->s.modelindex2 = 1; // This is non-zero is it's a dropped item	//----(SA)	commented out since I'm using modelindex2 for model indexing now
-	dropped->s.otherEntityNum2 = 1;     // DHM - Nerve :: this is taking modelindex2's place for signaling a dropped item
+	dropped->s.otherEntityNum2 = 1; // DHM - Nerve :: this is taking modelindex2's place for a dropped item
 
 	dropped->classname = item->classname;
 	dropped->item = item;
-//	VectorSet (dropped->r.mins, -ITEM_RADIUS, -ITEM_RADIUS, -ITEM_RADIUS);
-//	VectorSet (dropped->r.maxs, ITEM_RADIUS, ITEM_RADIUS, ITEM_RADIUS);
 	VectorSet( dropped->r.mins, -ITEM_RADIUS, -ITEM_RADIUS, 0 );            //----(SA)	so items sit on the ground
 	VectorSet( dropped->r.maxs, ITEM_RADIUS, ITEM_RADIUS, 2 * ITEM_RADIUS );  //----(SA)	so items sit on the ground
 	dropped->r.contents = CONTENTS_TRIGGER | CONTENTS_ITEM;
 
+	dropped->clipmask = CONTENTS_SOLID | CONTENTS_MISSILECLIP;      // NERVE - SMF - fix for items falling through grates
+
 	dropped->touch = Touch_Item_Auto;
+
+	trap_Trace( &tr, origin, dropped->r.mins, dropped->r.maxs, origin, ownerNum, MASK_SOLID );
+	if ( tr.startsolid ) {
+		VectorSubtract( g_entities[ownerNum].s.origin, origin, temp );
+		VectorNormalize( temp );
+
+		for ( i = 16; i <= 48; i += 16 ) {
+			VectorScale( temp, i, vec );
+			VectorAdd( origin, vec, origin );
+
+			trap_Trace( &tr, origin, dropped->r.mins, dropped->r.maxs, origin, ownerNum, MASK_SOLID );
+			if ( !tr.startsolid ) {
+				break;
+			}
+		}
+	}
 
 	G_SetOrigin( dropped, origin );
 	dropped->s.pos.trType = TR_GRAVITY;
@@ -862,11 +945,6 @@ gentity_t *LaunchItem( gitem_t *item, vec3_t origin, vec3_t velocity ) {
 	VectorCopy( velocity, dropped->s.pos.trDelta );
 
 	dropped->s.eFlags |= EF_BOUNCE_HALF;
-
-	// (SA) TODO: FIXME: don't do this right now.  bug needs to be found.
-//	if(item->giType == IT_WEAPON)
-//		dropped->s.eFlags |= EF_SPINNING;	// spin the weapon as it flies from the dead player.  it will stop when it hits the ground
-
 
 	if ( item->giType == IT_TEAM ) { // Special case for CTF flags
 		dropped->think = Team_DroppedFlagThink;
@@ -907,7 +985,7 @@ gentity_t *Drop_Item( gentity_t *ent, gitem_t *item, float angle, qboolean novel
 		velocity[2] += 200 + crandom() * 50;
 	}
 
-	return LaunchItem( item, ent->s.pos.trBase, velocity );
+	return LaunchItem( item, ent->s.pos.trBase, velocity, ent->s.number );
 }
 
 
@@ -977,9 +1055,15 @@ void FinishSpawningItem( gentity_t *ent ) {
 		if ( ent->item->giTag >= HI_BOOK1 && ent->item->giTag <= HI_BOOK3 ) {
 			G_FindConfigstringIndex( va( "hbook%d", ent->item->giTag - HI_BOOK1 ), CS_CLIPBOARDS, MAX_CLIPBOARD_CONFIGSTRINGS, qtrue );
 		}
-//		ent->touch = Touch_Item;	// no auto-pickup, only activate
+		ent->touch = Touch_Item;    // no auto-pickup, only activate
 	}
 
+
+//----(SA)	added
+	if ( ent->item->giType == IT_TREASURE ) {
+		ent->touch = Touch_Item;    // no auto-pickup, only activate
+	}
+//----(SA)	end
 
 	// using an item causes it to respawn
 	ent->use = Use_Item;
@@ -1039,12 +1123,9 @@ void FinishSpawningItem( gentity_t *ent ) {
 		int i;
 
 		// having alternate models defined in bg_misc.c for a health or ammo item specify it as "multi-stage"
-		// TTimo: left-hand operand of comma expression has no effect
-		// was:
-		// for(i=0;i<4,ent->item->world_model[i];i++) {}
-		i = 0;
-		while ( i < 4 && ent->item->world_model[i] )
-			i++;
+		// TTimo left-hand operand of comma expression has no effect
+		// initial line: for(i=0;i<4,ent->item->world_model[i];i++) {}
+		for ( i = 0; i < 4 && ent->item->world_model[i] ; i++ ) {}
 
 		ent->s.density = i - 1;   // store number of stages in 'density' for client (most will have '1')
 	}
@@ -1080,11 +1161,11 @@ void G_CheckTeamItems( void ) {
 		// make sure we actually have two flags...
 		item = BG_FindItem( "Red Flag" );
 		if ( !item || !itemRegistered[ item - bg_itemlist ] ) {
-			G_Error( "No team_CTF_redflag in map\n" );
+			G_Error( "No team_CTF_redflag in map" );
 		}
 		item = BG_FindItem( "Blue Flag" );
 		if ( !item || !itemRegistered[ item - bg_itemlist ] ) {
-			G_Error( "No team_CTF_blueflag in map\n" );
+			G_Error( "No team_CTF_blueflag in map" );
 		}
 	}
 }
@@ -1142,6 +1223,12 @@ void SaveRegisteredItems( void ) {
 		} else {
 			string[i] = '0';
 		}
+
+		// DHM - Nerve :: Make sure and register all weapons we use in WolfMP
+		if ( g_gametype.integer >= GT_WOLF && string[i] == '0' && bg_itemlist[i].giType == IT_WEAPON && BG_WeaponInWolfMP( bg_itemlist[i].giTag ) ) {
+			count++;
+			string[i] = '1';
+		}
 	}
 	string[ bg_numItems ] = 0;
 
@@ -1194,11 +1281,6 @@ void G_SpawnItem( gentity_t *ent, gitem_t *item ) {
 
 	if ( item->giType == IT_POWERUP ) {
 		G_SoundIndex( "sound/items/poweruprespawn.wav" );
-	}
-
-	if ( item->giType == IT_TREASURE ) {
-		level.numTreasure++;
-		G_SendMissionStats();
 	}
 }
 
@@ -1316,7 +1398,7 @@ void G_RunItem( gentity_t *ent ) {
 	if ( ent->clipmask ) {
 		mask = ent->clipmask;
 	} else {
-		mask = MASK_SOLID | CONTENTS_MISSILECLIP;
+		mask = MASK_SOLID;
 	}
 	trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin,
 				ent->r.ownerNum, mask );

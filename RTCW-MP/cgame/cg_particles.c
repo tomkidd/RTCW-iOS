@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -103,8 +103,8 @@ static char *shaderAnimNames[MAX_SHADER_ANIMS] = {
 	"explode1",
 	"blacksmokeanim",
 	"twiltb2",
-	"expblue",
-	"blacksmokeanimb",   // uses 'explode1' sequence
+//	"expblue",
+//	"blacksmokeanimb",	// uses 'explode1' sequence // JPW NERVE pulled
 	"blood",
 	NULL
 };
@@ -118,7 +118,7 @@ static int shaderAnimCounts[MAX_SHADER_ANIMS] = {
 	5,
 };
 static float shaderAnimSTRatio[MAX_SHADER_ANIMS] = {
-	1.405,
+	1,          // NERVE - SMF - changed from 1.405 to 1
 	1,
 	1,
 	1,
@@ -139,25 +139,6 @@ vec3_t vforward, vright, vup;
 vec3_t rforward, rright, rup;
 
 float oldtime;
-
-
-/*
-==============
-CG_ParticleLODCheck
-==============
-*/
-qboolean CG_ParticleLODCheck( void ) {
-	if ( cg_particleLOD.integer <= 1 ) {
-		return qtrue;
-	}
-
-
-	if ( !( rand() % ( cg_particleLOD.integer ) ) ) { // let particle lod thin out particles
-		return qtrue;
-	}
-
-	return qfalse;
-}
 
 /*
 ===============
@@ -262,19 +243,8 @@ void CG_AddParticleToScene( cparticle_t *p, vec3_t org, float alpha ) {
 		}
 
 		// Ridah, had to do this or MAX_POLYS is being exceeded in village1.bsp
-		//----(SA)	made the dist a cvar
-
-		// dot product removal  (gets you the dist^2, which you needed anyway, also dot lets you adjust lod when zooming)
-		if ( 1 ) {
-			vec3_t dir;
-			float distSqrd;
-
-			VectorSubtract( cg.refdef.vieworg, org, dir );
-			distSqrd = dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2];
-
-			if ( distSqrd > ( cg_particleDist.value * cg_particleDist.value ) ) {
-				return;
-			}
+		if ( Distance( cg.snap->ps.origin, org ) > 1024 ) {
+			return;
 		}
 		// done.
 
@@ -424,37 +394,8 @@ void CG_AddParticleToScene( cparticle_t *p, vec3_t org, float alpha ) {
 		verts[3].modulate[3] = 255;
 	} else if ( p->type == P_SMOKE || p->type == P_SMOKE_IMPACT )     { // create a front rotating facing polygon
 
-//		if ( p->type == P_SMOKE_IMPACT && Distance( cg.snap->ps.origin, org ) > 1024) {
-//			return;
-//		}
-
-		// dot product removal  (gets you the dist^2, which you needed anyway, also dot lets you adjust lod when zooming)
-		if ( 1 ) {
-			vec3_t dir;
-			float dot, distSqrd, fardist;
-
-			VectorSubtract( org, cg.refdef.vieworg, dir );
-			distSqrd = dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2];
-
-			VectorNormalize( dir );
-			dot = DotProduct( dir, cg.refdef.viewaxis[0] );
-
-			if ( dot < 0 ) { // behind camera
-				return;
-			}
-
-			fardist = ( cg_particleDist.value * cg_particleDist.value );
-			// push distance out when zooming
-			if ( cg.predictedPlayerState.eFlags & EF_ZOOMING ) {
-				fardist *= 2;
-			}
-
-//			if(fabs(dot) < 0.8)
-//				return;
-
-			if ( distSqrd > fardist ) {
-				return;
-			}
+		if ( p->type == P_SMOKE_IMPACT && Distance( cg.snap->ps.origin, org ) > 1024 ) {
+			return;
 		}
 
 		if ( p->color == MUSTARD ) {
@@ -832,6 +773,13 @@ void CG_AddParticleToScene( cparticle_t *p, vec3_t org, float alpha ) {
 		j = (int)floor( ratio * shaderAnimCounts[p->shaderAnim] );
 		p->pshader = shaderAnims[i][j];
 
+// JPW NERVE more particle testing
+		if ( cg_fxflags & 1 ) {
+			p->roll = 0;
+			p->pshader = getTestShader();
+			rotate_ang[ROLL] = 90;
+		}
+// jpw
 		if ( p->roll ) {
 			vectoangles( cg.refdef.viewaxis[0], rotate_ang );
 			rotate_ang[ROLL] += p->roll;
@@ -1053,11 +1001,6 @@ void CG_ParticleSnowFlurry( qhandle_t pshader, centity_t *cent ) {
 	if ( !free_particles ) {
 		return;
 	}
-
-	if ( !CG_ParticleLODCheck() ) {
-		return;
-	}
-
 	p = free_particles;
 	free_particles = p->next;
 	p->next = active_particles;
@@ -1120,11 +1063,6 @@ void CG_ParticleSnow( qhandle_t pshader, vec3_t origin, vec3_t origin2, int turb
 	if ( !free_particles ) {
 		return;
 	}
-
-	if ( !CG_ParticleLODCheck() ) {
-		return;
-	}
-
 	p = free_particles;
 	free_particles = p->next;
 	p->next = active_particles;
@@ -1181,11 +1119,6 @@ void CG_ParticleBubble( qhandle_t pshader, vec3_t origin, vec3_t origin2, int tu
 	if ( !free_particles ) {
 		return;
 	}
-
-	if ( !CG_ParticleLODCheck() ) {
-		return;
-	}
-
 	p = free_particles;
 	free_particles = p->next;
 	p->next = active_particles;
@@ -1248,11 +1181,6 @@ void CG_ParticleSmoke( qhandle_t pshader, centity_t *cent ) {
 	if ( !free_particles ) {
 		return;
 	}
-
-	if ( !CG_ParticleLODCheck() ) {
-		return;
-	}
-
 	p = free_particles;
 	free_particles = p->next;
 	p->next = active_particles;
@@ -1365,9 +1293,7 @@ void CG_ParticleSmoke( qhandle_t pshader, centity_t *cent ) {
 		p->vel[2] *= -1;
 	}
 
-//	p->roll = 8 + (crandom() * 4);
-	p->roll = rand() % ( 2 * 8 );
-	p->roll -= 8;
+	p->roll = 8 + ( crandom() * 4 );
 }
 
 
@@ -1378,11 +1304,6 @@ void CG_ParticleBulletDebris( vec3_t org, vec3_t vel, int duration ) {
 	if ( !free_particles ) {
 		return;
 	}
-
-	if ( !CG_ParticleLODCheck() ) {
-		return;
-	}
-
 	p = free_particles;
 	free_particles = p->next;
 	p->next = active_particles;
@@ -1497,6 +1418,14 @@ void CG_ParticleDirtBulletDebris_Core( vec3_t org, vec3_t vel, int duration,
 	p->type = P_SMOKE;
 
 	p->pshader = trap_R_RegisterShader( shadername ); // JPW NERVE was "dirt_splash"
+// JPW NERVE
+	if ( cg_fxflags & 1 ) {
+		p->pshader = getTestShader();
+		p->rotate = 0;
+		p->roll = 0;
+		p->type = P_SPRITE;
+	}
+// jpw
 
 	VectorCopy( org, p->org );
 	VectorCopy( vel, p->vel );
@@ -1522,10 +1451,6 @@ void CG_ParticleExplosion( char *animStr, vec3_t origin, vec3_t vel, int duratio
 
 	if ( animStr < (char *)10 ) {
 		CG_Error( "CG_ParticleExplosion: animStr is probably an index rather than a string" );
-	}
-
-	if ( !CG_ParticleLODCheck() ) {
-		return;
 	}
 
 	// find the animation string
@@ -1777,7 +1702,7 @@ void CG_BatsUpdatePosition( centity_t *cent ) {
 }
 
 
-void CG_ParticleImpactSmokePuffExtended( qhandle_t pshader, vec3_t origin, vec3_t dir, int radius, int lifetime, int vel, int acc, int maxroll, float alpha ) {
+void CG_ParticleImpactSmokePuffExtended( qhandle_t pshader, vec3_t origin, int lifetime, int vel, int acc, int maxroll, float alpha ) {
 	cparticle_t *p;
 
 	if ( !pshader ) {
@@ -1787,11 +1712,6 @@ void CG_ParticleImpactSmokePuffExtended( qhandle_t pshader, vec3_t origin, vec3_
 	if ( !free_particles ) {
 		return;
 	}
-
-	if ( !CG_ParticleLODCheck() ) {
-		return;
-	}
-
 	p = free_particles;
 	free_particles = p->next;
 	p->next = active_particles;
@@ -1810,8 +1730,8 @@ void CG_ParticleImpactSmokePuffExtended( qhandle_t pshader, vec3_t origin, vec3_
 	p->endtime = cg.time + lifetime;
 	p->startfade = cg.time + 100;
 
-	p->width = rand() % 4 + radius;   //----(SA)
-	p->height = rand() % 4 + radius;  //----(SA)
+	p->width = rand() % 4 + 8;
+	p->height = rand() % 4 + 8;
 
 	p->endheight = p->height * 2;
 	p->endwidth = p->width * 2;
@@ -1819,16 +1739,14 @@ void CG_ParticleImpactSmokePuffExtended( qhandle_t pshader, vec3_t origin, vec3_
 	p->type = P_SMOKE_IMPACT;
 
 	VectorCopy( origin, p->org );
-	VectorScale( dir, vel, p->vel );
-	VectorScale( dir, acc, p->accel );
-//	VectorSet(p->vel, 0, 0, vel);
-//	VectorSet(p->accel, 0, 0, acc);
+	VectorSet( p->vel, 0, 0, vel );
+	VectorSet( p->accel, 0, 0, acc );
 
 	p->rotate = qtrue;
 }
 
 void CG_ParticleImpactSmokePuff( qhandle_t pshader, vec3_t origin ) {
-	CG_ParticleImpactSmokePuffExtended( pshader, origin, tv( 0,0,1 ), 8, 500, 20, 20, 30, 0.25f );
+	CG_ParticleImpactSmokePuffExtended( pshader, origin, 500, 20, 20, 30, 0.25f );
 }
 
 
@@ -1837,10 +1755,6 @@ void CG_Particle_Bleed( qhandle_t pshader, vec3_t start, vec3_t dir, int fleshEn
 
 	if ( !pshader ) {
 		CG_Printf( "CG_Particle_Bleed pshader == ZERO!\n" );
-	}
-
-	if ( !CG_ParticleLODCheck() ) {
-		return;
 	}
 
 	if ( !free_particles ) {
@@ -1915,11 +1829,6 @@ void CG_Particle_OilParticle( qhandle_t pshader, vec3_t origin, vec3_t dir, int 
 	if ( !free_particles ) {
 		return;
 	}
-
-	if ( !CG_ParticleLODCheck() ) {
-		return;
-	}
-
 	p = free_particles;
 	free_particles = p->next;
 	p->next = active_particles;
@@ -1976,11 +1885,6 @@ void CG_Particle_OilSlick( qhandle_t pshader, centity_t *cent ) {
 	if ( !free_particles ) {
 		return;
 	}
-
-	if ( !CG_ParticleLODCheck() ) {
-		return;
-	}
-
 	p = free_particles;
 	free_particles = p->next;
 	p->next = active_particles;
@@ -2226,12 +2130,7 @@ void CG_ParticleBloodCloud( centity_t *cent, vec3_t origin, vec3_t dir ) {
 
 		p->pshader = cgs.media.smokePuffShader;
 
-		p->endtime = cg.time + 450 + ( crandom() * 100 );
-
-		if ( cent->currentState.aiChar == AICHAR_HELGA || cent->currentState.aiChar == AICHAR_HEINRICH ) {
-			// stick around longer
-			p->endtime += 3000;
-		}
+		p->endtime = cg.time + 350 + ( crandom() * 100 );
 
 		p->startfade = cg.time;
 
@@ -2394,11 +2293,6 @@ void CG_ParticleSparks( vec3_t org, vec3_t vel, int duration, float x, float y, 
 	if ( !free_particles ) {
 		return;
 	}
-
-	if ( !CG_ParticleLODCheck() ) {
-		return;
-	}
-
 	p = free_particles;
 	free_particles = p->next;
 	p->next = active_particles;
@@ -2567,10 +2461,6 @@ void CG_ParticleMisc( qhandle_t pshader, vec3_t origin, int size, int duration, 
 	}
 
 	if ( !free_particles ) {
-		return;
-	}
-
-	if ( !CG_ParticleLODCheck() ) {
 		return;
 	}
 

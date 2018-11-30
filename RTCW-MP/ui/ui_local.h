@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -68,7 +68,6 @@ extern vmCvar_t ui_brassTime;
 extern vmCvar_t ui_drawCrosshair;
 extern vmCvar_t ui_drawCrosshairNames;
 extern vmCvar_t ui_drawCrosshairPickups;    //----(SA) added
-extern vmCvar_t ui_useSuggestedWeapons;     //----(SA)	added
 extern vmCvar_t ui_marks;
 // JOSEPH 12-3-99
 extern vmCvar_t ui_autoactivate;
@@ -111,10 +110,6 @@ extern vmCvar_t ui_dedicated;
 extern vmCvar_t ui_notebookCurrentPage;
 extern vmCvar_t ui_clipboardName;
 extern vmCvar_t ui_hudAlpha;
-extern vmCvar_t ui_hunkUsed;    //----(SA)	added
-extern vmCvar_t ui_cameraMode;  //----(SA)	added
-extern vmCvar_t ui_savegameListAutosave;    //----(SA)	added
-extern vmCvar_t ui_savegameName;    //----(SA)	added
 
 // NERVE - SMF - multiplayer cvars
 extern vmCvar_t ui_serverFilterType;
@@ -126,8 +121,16 @@ extern vmCvar_t ui_browserMaster;
 extern vmCvar_t ui_browserGameType;
 extern vmCvar_t ui_browserShowFull;
 extern vmCvar_t ui_browserShowEmpty;
+extern vmCvar_t ui_browserShowFriendlyFire;
+extern vmCvar_t ui_browserShowMaxlives;
+extern vmCvar_t ui_browserShowTourney;
+extern vmCvar_t ui_browserShowPunkBuster;
+extern vmCvar_t ui_browserShowAntilag;
 
 extern vmCvar_t ui_serverStatusTimeOut;
+extern vmCvar_t ui_limboOptions;
+
+extern vmCvar_t ui_isSpectator;
 // -NERVE - SMF
 
 //
@@ -141,8 +144,8 @@ extern vmCvar_t ui_serverStatusTimeOut;
 #define MAX_EDIT_LINE           256
 
 #define MAX_MENUDEPTH           8
-//#define MAX_MENUITEMS			128
-#define MAX_MENUITEMS           256
+#define MAX_MENUITEMS           128 // JPW NERVE put this back for MP
+//#define MAX_MENUITEMS			256
 
 #define MTYPE_NULL              0
 #define MTYPE_SLIDER            1
@@ -647,7 +650,6 @@ typedef struct {
 #define MAX_LISTBOXWIDTH        59
 #define UI_FONT_THRESHOLD       0.1
 #define MAX_DISPLAY_SERVERS     2048
-#define MAX_DISPLAY_SAVEGAMES   256
 #define MAX_SERVERSTATUS_LINES  128
 #define MAX_SERVERSTATUS_TEXT   1024
 #define MAX_FOUNDPLAYER_SERVERS 16
@@ -666,6 +668,8 @@ typedef struct {
 #define MAX_SAVEGAMES 256
 #define MAX_SPAWNPOINTS 128     // NERVE - SMF
 #define MAX_SPAWNDESC   128     // NERVE - SMF
+#define MAX_PBLINES     128     // DHM - Nerve
+#define MAX_PBWIDTH     42      // DHM - Nerve
 
 typedef struct {
 	const char *name;
@@ -676,21 +680,8 @@ typedef struct {
 
 //----(SA)	added
 typedef struct {
-	const char *savegameFile;       // mysave[.svg]
-	const char *savegameName;       // "beginning of game (SA)"
-	const char *imageName;          //
-	const char *mapName;            // escape1
-	const char *savegameInfoText;   // "[mapname]/n[attempts]/n[health]/n[etc]"	 loaded from savegame file
-	qhandle_t sshotImage;           // handle to 'levelshots/<mapName>.tga'
-
-	int episode;                    // 1
-//	int			time;
-//	int			date;
-	const char *time;               // formatted time string
-	const char *date;
-
-	qtime_t tm;
-
+	const char  *name;
+	qhandle_t sshotImage;
 } savegameInfo;
 //----(SA)	end
 
@@ -720,12 +711,20 @@ typedef struct {
 	const char *mapLoadName;
 	const char *imageName;
 	const char *opponentName;
+
 	int teamMembers;
 	int typeBits;
 	int cinematic;
 	int timeToBeat[MAX_GAMETYPES];
+
 	qhandle_t levelShot;
 	qboolean active;
+
+	// NERVE - SMF
+	int Timelimit;
+	int AxisRespawnTime;
+	int AlliedRespawnTime;
+	// -NERVE - SMF
 } mapInfo;
 
 typedef struct {
@@ -774,16 +773,6 @@ typedef struct serverStatus_s {
 	int motdTime;
 	char motd[MAX_STRING_CHARS];
 } serverStatus_t;
-
-
-typedef struct savegameStatus_s {
-
-	int sortKey;
-	int sortDir;
-	int displaySavegames[MAX_DISPLAY_SAVEGAMES];
-//	int				numDisplaySavegames;
-
-} savegameStatus_t;
 
 
 typedef struct {
@@ -872,11 +861,10 @@ typedef struct {
 	int previewMovie;
 
 //----(SA)	added
-//	const char			*savegameList[MAX_SAVEGAMES];
+//	const char		*savegameList[MAX_SAVEGAMES];
 	savegameInfo savegameList[MAX_SAVEGAMES];
 	int savegameCount;
-//	int					savegameIndex;
-	savegameStatus_t savegameStatus;
+	int savegameIndex;
 //----(SA)	end
 
 	serverStatus_t serverStatus;
@@ -911,8 +899,11 @@ typedef struct {
 	// NERVE - SMF
 	char spawnPoints[MAX_SPAWNPOINTS][MAX_SPAWNDESC];
 	int spawnCount;
-	// -NERVE - SMF
 
+	int selectedObjective;
+
+	int activeFont;
+	// -NERVE - SMF
 }   uiInfo_t;
 
 extern uiInfo_t uiInfo;
@@ -921,7 +912,7 @@ extern uiInfo_t uiInfo;
 extern void         UI_Init( void );
 extern void         UI_Shutdown( void );
 extern void         UI_KeyEvent( int key );
-extern void         UI_MouseEvent( int dx, int dy, qboolean absolute );
+extern void         UI_MouseEvent( int dx, int dy );
 extern void         UI_Refresh( int realtime );
 extern qboolean     UI_ConsoleCommand( int realTime );
 extern float        UI_ClampCvar( float min, float max, float value );
@@ -1002,7 +993,6 @@ void            trap_Argv( int n, char *buffer, int bufferLength );
 void            trap_Cmd_ExecuteText( int exec_when, const char *text );    // don't use EXEC_NOW!
 int             trap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode );
 void            trap_FS_Read( void *buffer, int len, fileHandle_t f );
-void            trap_FS_Seek( fileHandle_t f, long offset, int origin ); //----(SA)	added
 void            trap_FS_Write( const void *buffer, int len, fileHandle_t f );
 void            trap_FS_FCloseFile( fileHandle_t f );
 int             trap_FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize );
@@ -1014,7 +1004,7 @@ void            trap_R_ClearScene( void );
 void            trap_R_AddRefEntityToScene( const refEntity_t *re );
 void            trap_R_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts );
 void            trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b, int overdraw );
-void            trap_R_AddCoronaToScene( const vec3_t org, float r, float g, float b, float scale, int id, int flags );
+void            trap_R_AddCoronaToScene( const vec3_t org, float r, float g, float b, float scale, int id, qboolean visible );
 void            trap_R_RenderScene( const refdef_t *fd );
 void            trap_R_SetColor( const float *rgba );
 void            trap_R_DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader );
@@ -1023,7 +1013,6 @@ void            trap_UpdateScreen( void );
 int             trap_CM_LerpTag( orientation_t *tag, const refEntity_t *refent, const char *tagName, int startIndex );
 void            trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum );
 sfxHandle_t     trap_S_RegisterSound( const char *sample );
-void            trap_S_FadeAllSound( float targetvol, int time ); //----(SA)	added
 void            trap_Key_KeynumToStringBuf( int keynum, char *buf, int buflen );
 void            trap_Key_GetBindingBuf( int keynum, char *buf, int buflen );
 void            trap_Key_SetBinding( int keynum, const char *binding );
@@ -1055,7 +1044,7 @@ void            trap_LAN_ResetPings( int n );
 void            trap_LAN_SaveCachedServers( void );
 int             trap_LAN_CompareServers( int source, int sortKey, int sortDir, int s1, int s2 );
 void            trap_LAN_GetServerAddressString( int source, int n, char *buf, int buflen );
-void trap_LAN_GetServerInfo( int source, int n, char *buf, int buflen );
+void            trap_LAN_GetServerInfo( int source, int n, char *buf, int buflen );
 int             trap_LAN_AddServer( int source, const char *name, const char *addr );
 void            trap_LAN_RemoveServer( int source, const char *addr );
 int             trap_LAN_GetServerPing( int source, int n );
@@ -1063,14 +1052,18 @@ int             trap_LAN_ServerIsVisible( int source, int n );
 int             trap_LAN_ServerStatus( const char *serverAddress, char *serverStatus, int maxLen );
 void            trap_LAN_SaveCachedServers( void );
 void            trap_LAN_LoadCachedServers( void );
-void            trap_LAN_MarkServerVisible( int source, int n, qboolean visible );
+
+void            trap_SetPbClStatus( int status );                               // DHM - Nerve
+void            trap_SetPbSvStatus( int status );                               // TTimo
+
+
 // -NERVE - SMF
 
 void            trap_GetCDKey( char *buf, int buflen );
 void            trap_SetCDKey( char *buf );
 void            trap_R_RegisterFont( const char *pFontname, int pointSize, fontInfo_t *font );
 void            trap_S_StopBackgroundTrack( void );
-void            trap_S_StartBackgroundTrack( const char *intro, const char *loop, int fadeupTime );
+void            trap_S_StartBackgroundTrack( const char *intro, const char *loop );
 int             trap_CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits );
 e_status        trap_CIN_StopCinematic( int handle );
 e_status        trap_CIN_RunCinematic( int handle );
@@ -1080,10 +1073,12 @@ int             trap_RealTime( qtime_t *qtime );
 void            trap_R_RemapShader( const char *oldShader, const char *newShader, const char *timeOffset );
 qboolean        trap_VerifyCDKey( const char *key, const char *chksum );
 qboolean        trap_GetLimboString( int index, char *buf );            // NERVE - SMF
+void            trap_CheckAutoUpdate( void );                           // DHM - Nerve
+void            trap_GetAutoUpdate( void );                             // DHM - Nerve
 
-// New in IORTCW
-void			*trap_Alloc( int size );
+void            trap_openURL( const char *url ); // TTimo
 
+void            trap_TranslateString( const char *string, char *buf );             // NERVE - SMF - localization
 //
 // ui_addbots.c
 //

@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -108,9 +108,13 @@ BotDrawDebugPolygons
 */
 void BotDrawDebugPolygons( void ( *drawPoly )( int color, int numPoints, float *points ), int value ) {
 	static cvar_t *bot_debug, *bot_groundonly, *bot_reachability, *bot_highlightarea;
-	static cvar_t *bot_testhidepos, *bot_testroutevispos;
+	static cvar_t *bot_testhidepos;
 	bot_debugpoly_t *poly;
 	int i, parm0;
+
+#ifdef PRE_RELEASE_DEMO
+	return;
+#endif
 
 	if ( !bot_enable ) {
 		return;
@@ -136,10 +140,6 @@ void BotDrawDebugPolygons( void ( *drawPoly )( int color, int numPoints, float *
 		bot_testhidepos = Cvar_Get( "bot_testhidepos", "0", 0 );
 	}
 	//
-	if ( !bot_testroutevispos ) {
-		bot_testroutevispos = Cvar_Get( "bot_testroutevispos", "0", 0 );
-	}
-	//
 	if ( bot_debug->integer ) {
 		parm0 = 0;
 		if ( svs.clients[0].lastUsercmd.buttons & BUTTON_ATTACK ) {
@@ -153,7 +153,6 @@ void BotDrawDebugPolygons( void ( *drawPoly )( int color, int numPoints, float *
 		}
 		botlib_export->BotLibVarSet( "bot_highlightarea", bot_highlightarea->string );
 		botlib_export->BotLibVarSet( "bot_testhidepos", bot_testhidepos->string );
-		botlib_export->BotLibVarSet( "bot_testroutevispos", bot_testroutevispos->string );
 		botlib_export->Test( parm0, NULL, svs.clients[0].gentity->r.currentOrigin,
 							 svs.clients[0].gentity->r.currentAngles );
 	} //end if
@@ -172,13 +171,12 @@ void BotDrawDebugPolygons( void ( *drawPoly )( int color, int numPoints, float *
 BotImport_Print
 ==================
 */
-static __attribute__ ((format (printf, 2, 3))) void QDECL BotImport_Print(int type, char *fmt, ...)
-{
+static __attribute__ ((format (printf, 2, 3))) void QDECL BotImport_Print(int type, char *fmt, ...) {
 	char str[2048];
 	va_list ap;
 
 	va_start( ap, fmt );
-	Q_vsnprintf(str, sizeof(str), fmt, ap);
+	Q_vsnprintf( str, sizeof( str ), fmt, ap );
 	va_end( ap );
 
 	switch ( type ) {
@@ -278,7 +276,7 @@ static int BotImport_PointContents(vec3_t point) {
 BotImport_inPVS
 ==================
 */
-static int BotImport_inPVS(vec3_t p1, vec3_t p2) {
+static int BotImport_inPVS( vec3_t p1, vec3_t p2 ) {
 	return SV_inPVS( p1, p2 );
 }
 
@@ -287,7 +285,7 @@ static int BotImport_inPVS(vec3_t p1, vec3_t p2) {
 BotImport_BSPEntityData
 ==================
 */
-static char *BotImport_BSPEntityData(void) {
+static char *BotImport_BSPEntityData( void ) {
 	return CM_EntityString();
 }
 
@@ -296,7 +294,7 @@ static char *BotImport_BSPEntityData(void) {
 BotImport_BSPModelMinsMaxsOrigin
 ==================
 */
-static void BotImport_BSPModelMinsMaxsOrigin(int modelnum, vec3_t angles, vec3_t outmins, vec3_t outmaxs, vec3_t origin) {
+static void BotImport_BSPModelMinsMaxsOrigin( int modelnum, vec3_t angles, vec3_t outmins, vec3_t outmaxs, vec3_t origin ) {
 	clipHandle_t h;
 	vec3_t mins, maxs;
 	float max;
@@ -330,8 +328,11 @@ static void BotImport_BSPModelMinsMaxsOrigin(int modelnum, vec3_t angles, vec3_t
 BotImport_GetMemory
 ==================
 */
-static void *BotImport_GetMemory(int size) {
-	return malloc( size );
+static void *BotImport_GetMemory( int size ) {
+	void *ptr;
+
+	ptr = Z_TagMalloc( size, TAG_BOTLIB );
+	return ptr;
 }
 
 /*
@@ -339,8 +340,17 @@ static void *BotImport_GetMemory(int size) {
 BotImport_FreeMemory
 ==================
 */
-static void BotImport_FreeMemory(void *ptr) {
-	free( ptr );
+static void BotImport_FreeMemory( void *ptr ) {
+	Z_Free( ptr );
+}
+
+/*
+==================
+BotImport_FreeZoneMemory
+==================
+*/
+static void BotImport_FreeZoneMemory( void ) {
+	Z_FreeTags( TAG_BOTLIB );
 }
 
 /*
@@ -386,7 +396,7 @@ int BotImport_DebugPolygonCreate( int color, int numPoints, vec3_t *points ) {
 BotImport_DebugPolygonShow
 ==================
 */
-static void BotImport_DebugPolygonShow(int id, int color, int numPoints, vec3_t *points) {
+static void BotImport_DebugPolygonShow( int id, int color, int numPoints, vec3_t *points ) {
 	bot_debugpoly_t *poly;
 
 	poly = &debugpolygons[id];
@@ -410,7 +420,7 @@ void BotImport_DebugPolygonDelete( int id ) {
 BotImport_DebugLineCreate
 ==================
 */
-static int BotImport_DebugLineCreate(void) {
+static int BotImport_DebugLineCreate( void ) {
 	vec3_t points[1];
 	return BotImport_DebugPolygonCreate( 0, 0, points );
 }
@@ -420,7 +430,7 @@ static int BotImport_DebugLineCreate(void) {
 BotImport_DebugLineDelete
 ==================
 */
-static void BotImport_DebugLineDelete(int line) {
+static void BotImport_DebugLineDelete( int line ) {
 	BotImport_DebugPolygonDelete( line );
 }
 
@@ -429,7 +439,7 @@ static void BotImport_DebugLineDelete(int line) {
 BotImport_DebugLineShow
 ==================
 */
-static void BotImport_DebugLineShow(int line, vec3_t start, vec3_t end, int color) {
+static void BotImport_DebugLineShow( int line, vec3_t start, vec3_t end, int color ) {
 	vec3_t points[4], dir, cross, up = {0, 0, 1};
 	float dot;
 
@@ -473,6 +483,11 @@ SV_BotFrame
 ==================
 */
 void SV_BotFrame( int time ) {
+
+#ifdef PRE_RELEASE_DEMO
+	return;
+#endif
+
 	if ( !bot_enable ) {
 		return;
 	}
@@ -489,6 +504,11 @@ SV_BotLibSetup
 ===============
 */
 int SV_BotLibSetup( void ) {
+
+#ifdef PRE_RELEASE_DEMO
+	return 0;
+#endif
+
 	if ( !bot_enable ) {
 		return 0;
 	}
@@ -527,7 +547,8 @@ SV_BotInitCvars
 */
 void SV_BotInitCvars( void ) {
 
-	Cvar_Get( "bot_enable", "1", 0 );               //enable the bot
+	// DHM - Nerve :: bot_enable defaults to 0
+	Cvar_Get( "bot_enable", "0", 0 );               //enable the bot
 	Cvar_Get( "bot_developer", "0", 0 );            //bot developer mode
 	Cvar_Get( "bot_debug", "0", 0 );                //enable bot debugging
 	Cvar_Get( "bot_groundonly", "1", 0 );           //only show ground faces of areas
@@ -603,11 +624,6 @@ void SV_BotInitBotLib( void ) {
 
 	Com_Printf( "Bypassing CD checks\n" );
 
-	/*
-	if ( botlib_export ) {
-		SV_BotLibShutdown();
-	}*/
-
 	botlib_import.Print = BotImport_Print;
 	botlib_import.Trace = BotImport_Trace;
 	botlib_import.EntityTrace = BotImport_EntityTrace;
@@ -620,6 +636,7 @@ void SV_BotInitBotLib( void ) {
 	//memory management
 	botlib_import.GetMemory = BotImport_GetMemory;
 	botlib_import.FreeMemory = BotImport_FreeMemory;
+	botlib_import.FreeZoneMemory = BotImport_FreeZoneMemory;
 	botlib_import.HunkAlloc = BotImport_HunkAlloc;
 
 	// file system acess
@@ -644,7 +661,6 @@ void SV_BotInitBotLib( void ) {
 	// done.
 
 	botlib_export = (botlib_export_t *)GetBotLibAPI( BOTLIB_API_VERSION, &botlib_import );
-	assert(botlib_export); 	// somehow we end up with a zero import.
 }
 
 
@@ -660,7 +676,6 @@ SV_BotGetConsoleMessage
 int SV_BotGetConsoleMessage( int client, char *buf, int size ) {
 	client_t    *cl;
 	int index;
-	char        *msg;
 
 	cl = &svs.clients[client];
 	cl->lastPacketTime = svs.time;
@@ -672,13 +687,11 @@ int SV_BotGetConsoleMessage( int client, char *buf, int size ) {
 	cl->reliableAcknowledge++;
 	index = cl->reliableAcknowledge & ( MAX_RELIABLE_COMMANDS - 1 );
 
-	//if ( !cl->reliableCommands[index][0] ) {
-	if ( !( msg = SV_GetReliableCommand( cl, index ) ) || !msg[0] ) {
+	if ( !cl->reliableCommands[index][0] ) {
 		return qfalse;
 	}
 
-	//Q_strncpyz( buf, cl->reliableCommands[index], size );
-	Q_strncpyz( buf, msg, size );
+	Q_strncpyz( buf, cl->reliableCommands[index], size );
 	return qtrue;
 }
 

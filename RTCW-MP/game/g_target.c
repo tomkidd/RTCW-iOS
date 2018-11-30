@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -459,8 +459,7 @@ void target_relay_use( gentity_t *self, gentity_t *other, gentity_t *activator )
 		if ( self->key ) {
 			gitem_t *item;
 
-//			if(self->key == -1)	// relay permanently locked
-			if ( self->key >= KEY_LOCKED_ENT ) { // relay permanently locked
+			if ( self->key == -1 ) { // relay permanently locked
 				if ( self->soundPos1 ) {
 					G_Sound( self, self->soundPos1 );    //----(SA)	added
 				}
@@ -510,24 +509,10 @@ SP_target_relay
 ==============
 */
 void SP_target_relay( gentity_t *self ) {
-	char    *sound;
-	int key;
+	char        *sound;
 
 	self->use = target_relay_use;
 	self->AIScript_AlertEntity = relay_AIScript_AlertEntity;
-
-	if ( G_SpawnInt( "key", "", &key ) ) {    // if door has a key entered, set it
-		self->key = key;
-
-		if ( key == -1 ) {
-			self->key = KEY_LOCKED_ENT; // locked
-		} else if ( self->key > KEY_NUM_KEYS || self->key < KEY_NONE ) {          // if the key is invalid, set the key in the finishSpawning routine
-			G_Error( "invalid key (%d) set for func_door_rotating\n", self->key );
-			self->key = KEY_NONE;   // un-locked
-		}
-	} else {
-		self->key = KEY_NONE;   // un-locked
-	}
 
 	if ( !( self->spawnflags & 32 ) ) {  // !NO_LOCKED_NOISE
 		if ( G_SpawnString( "lockednoise", "0", &sound ) ) {
@@ -654,9 +639,9 @@ Use_Target_Autosave
 	save game for emergency backup or convienience
 ==============
 */
-void Use_Target_Autosave( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
-	G_SaveGame( "autosave.svg" );
-}
+/*void Use_Target_Autosave( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
+	G_SaveGame("autosave.svg");
+}*/
 
 
 
@@ -680,6 +665,23 @@ void Use_Target_Counter( gentity_t *ent, gentity_t *other, gentity_t *activator 
 	}
 }
 
+/*
+==============
+Use_Target_Lock
+==============
+*/
+void Use_Target_Lock( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
+	gentity_t   *t = 0;
+
+	while ( ( t = G_Find( t, FOFS( targetname ), ent->target ) ) != NULL )
+	{
+//		G_Printf("target_lock locking entity with key: %d\n", ent->count);
+		t->key = ent->key;
+		G_SetAASBlockingEntity( t, t->key != 0 );
+	}
+
+}
+
 //==========================================================
 
 /*
@@ -694,37 +696,32 @@ void Use_target_fog( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 //		density
 //		r,g,b
 //		time to complete
-	trap_SetConfigstring( CS_FOGVARS, va( "%f %f %f %f %f %f %i", ent->accuracy, ent->random, 1.0f, (float)ent->dl_color[0], (float)ent->dl_color[1], (float)ent->dl_color[2], ent->s.time ) );
+	trap_SetConfigstring( CS_FOGVARS, va( "%f %f %f %f %f %f %i", 1.0f, (float)ent->s.density, 1.0f, (float)ent->dl_color[0], (float)ent->dl_color[1], (float)ent->dl_color[2], ent->s.time ) );
 }
 
 /*QUAKED target_fog (1 1 0) (-8 -8 -8) (8 8 8)
 color picker chooses color of fog
 "distance" sets fog distance.  Use value '0' to give control back to the game (and use the fog values specified in the sky shader if present)
-distance value sets the type of fog.  values > 1 are distance fog (ex. 2048), values < 1 are density fog (ex. .0002)
-"near" is fog start distance when using distance fog
 "time" time it takes to change fog to new value.  default time is 1 sec
 */
 void SP_target_fog( gentity_t *ent ) {
 	int dist;
-	float startdist;
 	float ftime;
 
 	ent->use = Use_target_fog;
 
-	// ent->random will carry the 'far' or density value
-	G_SpawnInt( "distance", "0", &dist );
-	if ( dist >= 0 ) {
-		ent->random = dist;
+	// ent->s.density will carry the 'distance' value
+	if ( G_SpawnInt( "distance", "0", &dist ) ) {
+		if ( dist >= 0 ) {
+			ent->s.density = dist;
+		}
 	}
 
-	G_SpawnFloat( "near", "1.0", &startdist );
-	ent->accuracy = startdist;
-
-
 	// ent->s.time will carry the 'time' value
-	G_SpawnFloat( "time", "0.5", &ftime );
-	if ( ftime >= 0 ) {
-		ent->s.time = ftime * 1000; // sec to ms
+	if ( G_SpawnFloat( "time", "0.5", &ftime ) ) {
+		if ( ftime >= 0 ) {
+			ent->s.time = ftime * 1000; // sec to ms
+		}
 	}
 }
 
@@ -745,7 +742,8 @@ void SP_target_counter( gentity_t *ent ) {
 saves game to 'autosave.svg' when triggered then dies.
 */
 void SP_target_autosave( gentity_t *ent ) {
-	ent->use = Use_Target_Autosave;
+	//ent->use = Use_Target_Autosave;
+	G_FreeEntity( ent );
 }
 
 //==========================================================
@@ -758,22 +756,8 @@ key:0  unlocks the door
 key:-1 locks the door until a target_lock with key:0
 key:n  means the door now requires key n
 */
-
-void Use_Target_Lock( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
-	gentity_t   *t = 0;
-
-	while ( ( t = G_Find( t, FOFS( targetname ), ent->target ) ) != NULL ) {
-		t->key = ent->key;
-		G_SetAASBlockingEntity( t, t->key != 0 );
-	}
-
-}
-
 void SP_target_lock( gentity_t *ent ) {
 	ent->use = Use_Target_Lock;
-	if ( ent->key == -1 ) { // force locked
-		ent->key = KEY_LOCKED_TRIGGERED;
-	}
 }
 
 
@@ -791,7 +775,7 @@ void SP_target_alarm( gentity_t *ent ) {
 
 //---- end
 
-/*QUAKED target_smoke (1 0 0) (-4 -4 -4) (4 4 4) Black White SmokeON Gravity STEAM
+/*QUAKED target_smoke (1 0 0) (-32 -32 -16) (32 32 16) Black White SmokeON Gravity
 1 second = 1000
 1 FRAME = 100
 delay = 100 = one millisecond default this is the maximum smoke that will show up
@@ -802,25 +786,27 @@ end_size = 96 default
 wait	= default is 50 the rate at which it will travel up
 */
 
-void smoke_think( gentity_t *ent ) {
-	gentity_t   *tent;
+/*void smoke_think (gentity_t *ent)
+{
+	gentity_t	*tent;
 
 	ent->nextthink = level.time + ent->delay;
 
-	if ( !( ent->spawnflags & 4 ) ) {
+	if (!(ent->spawnflags & 4))
 		return;
-	}
 
-	if ( ent->health ) {
-		ent->health--;
-		if ( !ent->health ) {
+	if (ent->health)
+	{
+		ent->health --;
+		if (!ent->health)
+		{
 			ent->think = G_FreeEntity;
 			ent->nextthink = level.time + FRAMETIME;
 		}
 	}
 
-	tent = G_TempEntity( ent->r.currentOrigin, EV_SMOKE );
-	VectorCopy( ent->r.currentOrigin, tent->s.origin );
+	tent = G_TempEntity (ent->r.currentOrigin, EV_SMOKE);
+	VectorCopy (ent->r.currentOrigin, tent->s.origin);
 	tent->s.time = ent->speed;
 	tent->s.time2 = ent->duration;
 	tent->s.density = ent->s.density;
@@ -830,20 +816,37 @@ void smoke_think( gentity_t *ent ) {
 	tent->s.angles2[1] = ent->end_size;
 	tent->s.angles2[2] = ent->wait;
 
-	VectorCopy( ent->pos3, tent->s.origin2 );
+	VectorCopy (ent->pos3, tent->s.origin2);
 
-	if ( ent->s.frame ) { // denotes reverse gravity effect
+	if (ent->s.frame) // denotes reverse gravity effect
 		tent->s.frame = 1;
+
+}*/
+
+void smoke_think( gentity_t *ent ) {
+	ent->nextthink = level.time + ent->s.constantLight;
+
+	if ( !( ent->spawnflags & 4 ) ) {
+		return;
 	}
 
+	if ( ent->s.dl_intensity ) {
+		ent->s.dl_intensity--;
+		if ( !ent->s.dl_intensity ) {
+			ent->think = G_FreeEntity;
+			ent->nextthink = level.time + FRAMETIME;
+		}
+	}
 }
 
 void smoke_toggle( gentity_t *ent, gentity_t *self, gentity_t *activator ) {
 	if ( ent->spawnflags & 4 ) { // smoke is on turn it off
 		ent->spawnflags &= ~4;
+		trap_UnlinkEntity( ent );
 	} else
 	{
 		ent->spawnflags |= 4;
+		trap_LinkEntity( ent );
 	}
 }
 
@@ -860,23 +863,24 @@ void smoke_init( gentity_t *ent ) {
 			VectorSubtract( target->s.origin, ent->s.origin, vec );
 			VectorCopy( vec, ent->pos3 );
 		} else {
-			VectorSet( ent->pos3, 0, 0, 1 );
+			VectorSet( ent->s.origin2, 0, 0, 1 );
 		}
 	} else
 	{
-		VectorSet( ent->pos3, 0, 0, 1 );
+		VectorSet( ent->s.origin2, 0, 0, 1 );
 	}
 
-	trap_LinkEntity( ent );
+	if ( ent->spawnflags & 4 ) {
+		trap_LinkEntity( ent );
+	}
 }
 
 void SP_target_smoke( gentity_t *ent ) {
 
 	// (SA) don't use in multiplayer right now since it makes decyphering net messages almost impossible
-	if ( g_gametype.integer != GT_SINGLE_PLAYER ) {
-		ent->think = G_FreeEntity;
-		return;
-	}
+//	ent->think = G_FreeEntity;
+//	return;
+	// Arnout - modified this a lot to be sent to the client as one entity and then is shown at the client
 
 	if ( !ent->delay ) {
 		ent->delay = 100;
@@ -889,47 +893,55 @@ void SP_target_smoke( gentity_t *ent ) {
 
 	G_SetOrigin( ent, ent->s.origin );
 	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
-	ent->s.eType = ET_GENERAL;
+	ent->s.eType = ET_SMOKER;
 
 	if ( ent->spawnflags & 2 ) {
 		ent->s.density = 4;
-	} else if ( ent->spawnflags & 16 ) {
-		ent->s.density = 7; // steam
 	} else {
 		ent->s.density = 0;
 	}
 
 	// using "time"
-	if ( !ent->speed ) {
-		ent->speed = 5000; // 5 seconds
+	ent->s.time = ent->speed;
+	if ( !ent->s.time ) {
+		ent->s.time = 5000; // 5 seconds
 
 	}
-	if ( !ent->duration ) {
-		ent->duration = 2000;
+	ent->s.time2 = ent->duration;
+	if ( !ent->s.time2 ) {
+		ent->s.time2 = 2000;
 	}
 
-	if ( !ent->start_size ) {
-		ent->start_size = 24;
+	ent->s.angles2[0] = ent->start_size;
+	if ( !ent->s.angles2[0] ) {
+		ent->s.angles2[0] = 24;
 	}
 
-	if ( !ent->end_size ) {
-		ent->end_size = 96;
+	ent->s.angles2[1] = ent->end_size;
+	if ( !ent->s.angles2[1] ) {
+		ent->s.angles2[1] = 96;
 	}
 
-	if ( !ent->wait ) {
-		ent->wait = 50;
+	ent->s.angles2[2] = ent->wait;
+	if ( !ent->s.angles2[2] ) {
+		ent->s.angles2[2] = 50;
 	}
 
 	// idiot check
-	if ( ent->speed < ent->duration ) {
-		ent->speed = ent->duration + 100;
+	if ( ent->s.time < ent->s.time2 ) {
+		ent->s.time = ent->s.time2 + 100;
 	}
 
 	if ( ent->spawnflags & 8 ) {
 		ent->s.frame = 1;
 	}
 
-	trap_LinkEntity( ent );
+	ent->s.dl_intensity = ent->health;
+	ent->s.constantLight = ent->delay;
+
+	if ( ent->spawnflags & 4 ) {
+		trap_LinkEntity( ent );
+	}
 
 }
 
@@ -951,7 +963,7 @@ void target_script_trigger_use( gentity_t *ent, gentity_t *other, gentity_t *act
 	}
 
 	// DHM - Nerve :: In multiplayer, we use the brush scripting only
-	if ( g_gametype.integer == GT_WOLF && ent->scriptName ) {
+	if ( g_gametype.integer >= GT_WOLF && ent->scriptName ) {
 		G_Script_ScriptEvent( ent, "trigger", ent->target );
 	}
 
@@ -984,10 +996,10 @@ wait = default is 2 seconds = time the entity will enable rumble effect
 int rumble_snd;
 
 void target_rumble_think( gentity_t * ent ) {
-	//gentity_t	*tent;
+	gentity_t   *tent;
 	float ratio;
 	float time, time2;
-	float dapitch;
+	float dapitch, dayaw;
 	qboolean validrumble = qtrue;
 
 	if ( !( ent->count ) ) {
@@ -1004,6 +1016,7 @@ void target_rumble_think( gentity_t * ent ) {
 	}
 
 	dapitch = ent->delay;
+	dayaw = ent->random;
 	ratio = 1.0f;
 
 	if ( ent->start_size ) {
@@ -1020,10 +1033,11 @@ void target_rumble_think( gentity_t * ent ) {
 		}
 	}
 
-	VectorClear( ent->s.angles );
-
 	if ( validrumble ) {
-		ent->s.angles[2] = ratio * dapitch / 24.0f; // CGAME uses this for shake effects, this is the scale
+		tent = G_TempEntity( ent->r.currentOrigin, EV_RUMBLE_EFX );
+
+		tent->s.angles[0] = dapitch * ratio;
+		tent->s.angles[1] = dayaw * ratio;
 	}
 
 	// end sound
@@ -1042,16 +1056,12 @@ void target_rumble_think( gentity_t * ent ) {
 
 void target_rumble_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 	if ( ent->spawnflags & 1 ) {
-		// RF, broadcast this entity
-		ent->r.svFlags |= SVF_BROADCAST;
 		ent->spawnflags &= ~1;
 		ent->think = target_rumble_think;
 		ent->count = 0;
 		ent->nextthink = level.time + 50;
 	} else
 	{
-		// RF, don't broadcast this entity
-		ent->r.svFlags &= ~SVF_BROADCAST;
 		ent->spawnflags |= 1;
 		ent->think = 0;
 		ent->count = 0;
@@ -1080,8 +1090,6 @@ void SP_target_rumble( gentity_t *self ) {
 	if ( G_SpawnString( "endnoise", "100", &endsound ) ) {
 		self->soundPos2 = G_SoundIndex( endsound );
 	}
-
-	self->s.eType = ET_RUMBLE;
 
 	self->use = target_rumble_use;
 

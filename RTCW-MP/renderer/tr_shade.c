@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -167,6 +167,7 @@ static void R_DrawStripElements( int numIndexes, const glIndex_t *indexes, void 
 #endif // USE_OPENGLES
 
 
+
 /*
 ==================
 R_DrawElements
@@ -196,6 +197,7 @@ void R_DrawElements( int numIndexes, const glIndex_t *indexes ) {
 			primitives = 1;
 		}
 	}
+
 
 	if ( primitives == 2 ) {
 		qglDrawElements( GL_TRIANGLES,
@@ -289,10 +291,7 @@ static void DrawTris( shaderCommands_t *input ) {
 	qglColor3f( 1,1,1 );
 
 	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE );
-
-	if ( r_showtris->integer == 1 ) {
-		qglDepthRange( 0, 0 );
-	}
+	qglDepthRange( 0, 0 );
 
 	qglDisableClientState( GL_COLOR_ARRAY );
 	qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -334,10 +333,7 @@ static void DrawNormals( shaderCommands_t *input ) {
 
 	GL_Bind( tr.whiteImage );
 	qglColor3f( 1,1,1 );
-
-	if ( r_shownormals->integer == 1 ) {
-		qglDepthRange( 0, 0 );  // never occluded
-	}
+	qglDepthRange( 0, 0 );  // never occluded
 	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE );
 
 #ifdef USE_OPENGLES
@@ -360,6 +356,7 @@ static void DrawNormals( shaderCommands_t *input ) {
 		qglVertex3fv( temp );
 #endif
 	}
+
 #ifdef USE_OPENGLES
 	//*TODO* restaure state for texture & color
 #else
@@ -382,7 +379,6 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 
 	shader_t *state = ( shader->remappedShader ) ? shader->remappedShader : shader;
 
-	tess.ATI_tess = qfalse;     //----(SA)	added
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
 	tess.shader = state;
@@ -470,7 +466,6 @@ static void DrawMultitextured( shaderCommands_t *input, int stage ) {
 
 	GL_SelectTexture( 0 );
 }
-
 
 /*
 ===================
@@ -975,7 +970,7 @@ static void ComputeColors( shaderStage_t *pStage ) {
 		for(i = 0; i < tess.numVertexes; i++)
 		{
 			scale = LUMA(tess.svars.colors[i][0], tess.svars.colors[i][1], tess.svars.colors[i][2]);
-			tess.svars.colors[i][0] = tess.svars.colors[i][1] = tess.svars.colors[i][2] = scale;
+ 			tess.svars.colors[i][0] = tess.svars.colors[i][1] = tess.svars.colors[i][2] = scale;
 		}
 	}
 	else if(r_greyscale->value)
@@ -1272,13 +1267,6 @@ void RB_StageIteratorGeneric( void ) {
 	// set GL fog
 	SetIteratorFog();
 
-#if !defined(USE_OPENGLES) && !defined(IOS)
-	if ( qglPNTrianglesiATI && tess.ATI_tess ) {
-		// RF< so we can send the normals as an array
-		qglEnableClientState( GL_NORMAL_ARRAY );
-		qglEnable( GL_PN_TRIANGLES_ATI ); // ATI PN-Triangles extension
-	}
-#endif
 
 	//
 	// set face culling appropriately
@@ -1311,15 +1299,6 @@ void RB_StageIteratorGeneric( void ) {
 		qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
 		qglTexCoordPointer( 2, GL_FLOAT, 0, tess.svars.texcoords[0] );
 	}
-
-	// RF, send normals only if required
-	// This must be done first, since we can't change the arrays once they have been
-	// locked
-#if !defined(USE_OPENGLES) && !defined(IOS)
-	if ( qglPNTrianglesiATI && tess.ATI_tess ) {
-		qglNormalPointer( GL_FLOAT, 16, input->normal );
-	}
-#endif
 
 	//
 	// lock XYZ
@@ -1372,14 +1351,6 @@ void RB_StageIteratorGeneric( void ) {
 	if ( shader->polygonOffset ) {
 		qglDisable( GL_POLYGON_OFFSET_FILL );
 	}
-
-	// turn truform back off
-#if !defined(USE_OPENGLES) && !defined(IOS)
-    if ( qglPNTrianglesiATI && tess.ATI_tess ) {
-		qglDisable( GL_PN_TRIANGLES_ATI );    // ATI PN-Triangles extension
-		qglDisableClientState( GL_NORMAL_ARRAY );
-	}
-#endif
 }
 
 
@@ -1423,18 +1394,9 @@ void RB_StageIteratorVertexLitTexture( void ) {
 	qglEnableClientState( GL_COLOR_ARRAY );
 	qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
-#if !defined(USE_OPENGLES) && !defined(IOS)
-    if ( qglPNTrianglesiATI && tess.ATI_tess ) {
-		qglEnable( GL_PN_TRIANGLES_ATI ); // ATI PN-Triangles extension
-		qglEnableClientState( GL_NORMAL_ARRAY );         // RF< so we can send the normals as an array
-		qglNormalPointer( GL_FLOAT, 16, input->normal );
-	}
-#endif
-
 	qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
 	qglTexCoordPointer( 2, GL_FLOAT, 16, tess.texCoords[0][0] );
 	qglVertexPointer( 3, GL_FLOAT, 16, input->xyz );
-
 
 	if ( qglLockArraysEXT ) {
 		qglLockArraysEXT( 0, input->numVertexes );
@@ -1469,12 +1431,6 @@ void RB_StageIteratorVertexLitTexture( void ) {
 		qglUnlockArraysEXT();
 		GLimp_LogComment( "glUnlockArraysEXT\n" );
 	}
-
-#if !defined(USE_OPENGLES) && !defined(IOS)
-    if ( qglPNTrianglesiATI && tess.ATI_tess ) {
-		qglDisable( GL_PN_TRIANGLES_ATI );    // ATI PN-Triangles extension
-	}
-#endif
 }
 
 //define	REPLACE_MODE
@@ -1508,13 +1464,6 @@ void RB_StageIteratorLightmappedMultitexture( void ) {
 	//
 	GL_State( GLS_DEFAULT );
 	qglVertexPointer( 3, GL_FLOAT, 16, input->xyz );
-
-#if !defined(USE_OPENGLES) && !defined(IOS)
-	if ( qglPNTrianglesiATI && tess.ATI_tess ) {
-		qglEnable( GL_PN_TRIANGLES_ATI ); // ATI PN-Triangles extension
-		qglNormalPointer( GL_FLOAT, 16, input->normal );
-	}
-#endif
 
 #ifdef REPLACE_MODE
 	qglDisableClientState( GL_COLOR_ARRAY );
@@ -1598,12 +1547,6 @@ void RB_StageIteratorLightmappedMultitexture( void ) {
 		qglUnlockArraysEXT();
 		GLimp_LogComment( "glUnlockArraysEXT\n" );
 	}
-
-#if !defined(USE_OPENGLES) && !defined(IOS)
-	if ( qglPNTrianglesiATI && tess.ATI_tess ) {
-		qglDisable( GL_PN_TRIANGLES_ATI );    // ATI PN-Triangles extension
-	}
-#endif
 }
 
 /*
@@ -1633,23 +1576,6 @@ void RB_EndSurface( void ) {
 	// for debugging of sort order issues, stop rendering after a given sort value
 	if ( r_debugSort->integer && r_debugSort->integer < tess.shader->sort ) {
 		return;
-	}
-
-	if ( skyboxportal ) {
-		// world
-		if ( !( backEnd.refdef.rdflags & RDF_SKYBOXPORTAL ) ) {
-			if ( tess.currentStageIteratorFunc == RB_StageIteratorSky ) {  // don't process these tris at all
-				return;
-			}
-		}
-		// portal sky
-		else {
-			if ( !drawskyboxportal ) {
-				if ( !( tess.currentStageIteratorFunc == RB_StageIteratorSky ) ) {  // /only/ process sky tris
-					return;
-				}
-			}
-		}
 	}
 
 	//

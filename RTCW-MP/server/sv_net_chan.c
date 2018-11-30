@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -32,7 +32,6 @@ If you have questions concerning this license or the applicable additional terms
 #include "server.h"
 
 #ifdef LEGACY_PROTOCOL
-#if DO_NET_ENCODE
 /*
 ==============
 SV_Netchan_Encode
@@ -118,7 +117,7 @@ static void SV_Netchan_Decode( client_t *client, msg_t *msg ) {
 	msg->bit = sbit;
 	msg->readcount = srdc;
 
-	string = (byte *)SV_GetReliableCommand( client, reliableAcknowledge & ( MAX_RELIABLE_COMMANDS - 1 ) );
+	string = (byte *)client->reliableCommands[ reliableAcknowledge & ( MAX_RELIABLE_COMMANDS - 1 ) ];
 	index = 0;
 	//
 	key = client->challenge ^ serverId ^ messageAcknowledge;
@@ -137,8 +136,7 @@ static void SV_Netchan_Decode( client_t *client, msg_t *msg ) {
 		*( msg->data + i ) = *( msg->data + i ) ^ key;
 	}
 }
-#endif // DO_NET_ENCODE
-#endif // LEGACY_PROTOCOL
+#endif
 
 /*
 =================
@@ -172,11 +170,8 @@ void SV_Netchan_TransmitNextInQueue(client_t *client)
 	netbuf = client->netchan_start_queue;
 
 #ifdef LEGACY_PROTOCOL
-	if(client->compat) {
-#if DO_NET_ENCODE
+	if(client->compat)
 		SV_Netchan_Encode(client, &netbuf->msg, netbuf->clientCommandString);
-#endif
-	}
 #endif
 
 	Netchan_Transmit(&client->netchan, netbuf->msg.cursize, netbuf->msg.data);
@@ -202,6 +197,7 @@ Return number of ms until next message can be sent based on throughput given by 
 -1 if no packet was sent.
 =================
 */
+
 int SV_Netchan_TransmitNextFragment(client_t *client)
 {
 	if(client->netchan.unsentFragments)
@@ -221,14 +217,14 @@ int SV_Netchan_TransmitNextFragment(client_t *client)
 /*
 ===============
 SV_Netchan_Transmit
+
 TTimo
-https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=462
+show_bug.cgi?id=462
 if there are some unsent fragments (which may happen if the snapshots
 and the gamestate are fragmenting, and collide on send for instance)
 then buffer them and make sure they get sent in correct order
 ================
 */
-
 void SV_Netchan_Transmit( client_t *client, msg_t *msg)
 {
 	MSG_WriteByte( msg, svc_EOF );
@@ -236,10 +232,10 @@ void SV_Netchan_Transmit( client_t *client, msg_t *msg)
 	if(client->netchan.unsentFragments || client->netchan_start_queue)
 	{
 		netchan_buffer_t *netbuf;
-		Com_DPrintf("#462 SV_Netchan_Transmit: unsent fragments, stacked\n");
+		//Com_DPrintf("SV_Netchan_Transmit: there are unsent fragments remaining\n");
 		netbuf = (netchan_buffer_t *) Z_Malloc(sizeof(netchan_buffer_t));
 		// store the msg, we can't store it encoded, as the encoding depends on stuff we still have to finish sending
-		MSG_Copy(&netbuf->msg, netbuf->msgBuffer, sizeof( netbuf->msgBuffer ), msg);
+		MSG_Copy( &netbuf->msg, netbuf->msgBuffer, sizeof( netbuf->msgBuffer ), msg );
 #ifdef LEGACY_PROTOCOL
 		if(client->compat)
 		{
@@ -250,16 +246,13 @@ void SV_Netchan_Transmit( client_t *client, msg_t *msg)
 		netbuf->next = NULL;
 		// insert it in the queue, the message will be encoded and sent later
 		*client->netchan_end_queue = netbuf;
-		client->netchan_end_queue = &(*client->netchan_end_queue)->next;
+		client->netchan_end_queue = &( *client->netchan_end_queue )->next;
 	}
 	else
 	{
 #ifdef LEGACY_PROTOCOL
-		if(client->compat) {
-#if DO_NET_ENCODE
+		if(client->compat)
 			SV_Netchan_Encode(client, msg, client->lastClientCommandString);
-#endif
-		}
 #endif
 		Netchan_Transmit( &client->netchan, msg->cursize, msg->data );
 	}
@@ -273,15 +266,13 @@ Netchan_SV_Process
 qboolean SV_Netchan_Process( client_t *client, msg_t *msg ) {
 	int ret;
 	ret = Netchan_Process( &client->netchan, msg );
-	if (!ret)
+	if ( !ret ) {
 		return qfalse;
+	}
 
 #ifdef LEGACY_PROTOCOL
-	if(client->compat) {
-#if DO_NET_ENCODE
+	if(client->compat)
 		SV_Netchan_Decode(client, msg);
-#endif
-	}
 #endif
 
 	return qtrue;

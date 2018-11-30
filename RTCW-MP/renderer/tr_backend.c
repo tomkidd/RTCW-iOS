@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -27,11 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 #include "tr_local.h"
-#ifdef IOS
-#include "../ios/qgl.h"
-#else
 #include "qgl.h"
-#endif
 
 backEndData_t  *backEndData;
 backEndState_t backEnd;
@@ -137,11 +133,11 @@ void GL_Cull( int cullType ) {
 
 	glState.faceCulling = cullType;
 
-	if ( cullType == CT_TWO_SIDED )
+	if ( cullType == CT_TWO_SIDED ) 
 	{
 		qglDisable( GL_CULL_FACE );
-	}
-	else
+	} 
+	else 
 	{
 		qboolean cullFront;
 		qglEnable( GL_CULL_FACE );
@@ -390,16 +386,10 @@ static void SetViewportAndScissor( void ) {
 	qglMatrixMode( GL_MODELVIEW );
 
 	// set the window clipping
-	qglViewport(    backEnd.viewParms.viewportX,
-					backEnd.viewParms.viewportY,
-					backEnd.viewParms.viewportWidth,
-					backEnd.viewParms.viewportHeight );
-
-// TODO: insert handling for widescreen?  (when looking through camera)
-	qglScissor(     backEnd.viewParms.viewportX,
-					backEnd.viewParms.viewportY,
-					backEnd.viewParms.viewportWidth,
-					backEnd.viewParms.viewportHeight );
+	qglViewport( backEnd.viewParms.viewportX, backEnd.viewParms.viewportY,
+				 backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight );
+	qglScissor( backEnd.viewParms.viewportX, backEnd.viewParms.viewportY,
+				backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight );
 }
 
 /*
@@ -448,7 +438,8 @@ void RB_BeginDrawingView( void ) {
 		clearBits = GL_DEPTH_BUFFER_BIT;    // (SA) always just clear depth for menus
 
 	} else if ( skyboxportal ) {
-		if ( backEnd.refdef.rdflags & RDF_SKYBOXPORTAL ) {   // portal scene, clear whatever is necessary
+		if ( backEnd.refdef.rdflags & RDF_SKYBOXPORTAL ) { // portal scene, clear whatever is necessary
+
 			clearBits |= GL_DEPTH_BUFFER_BIT;
 
 			if ( r_fastsky->integer || backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {  // fastsky: clear color
@@ -498,8 +489,7 @@ void RB_BeginDrawingView( void ) {
 			clearBits &= ~GL_COLOR_BUFFER_BIT;
 		}
 		// -NERVE - SMF
-		// (SA) well, this is silly then
-		else if ( r_fastsky->integer ) {   //  || backEnd.refdef.rdflags & RDF_NOWORLDMODEL
+		else if ( r_fastsky->integer || backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {
 
 			clearBits |= GL_COLOR_BUFFER_BIT;
 
@@ -507,7 +497,7 @@ void RB_BeginDrawingView( void ) {
 				qglClearColor( glfogsettings[FOG_CURRENT].color[0], glfogsettings[FOG_CURRENT].color[1], glfogsettings[FOG_CURRENT].color[2], glfogsettings[FOG_CURRENT].color[3] );
 			} else {
 //				qglClearColor ( 0.0, 0.0, 1.0, 1.0 );	// blue clear for testing world sky clear
-				qglClearColor( 0.5, 0.5, 0.5, 1.0 );
+				qglClearColor( 0.05, 0.05, 0.05, 1.0 );  // JPW NERVE changed per id req was 0.5s
 			}
 		} else {        // world scene, no portal sky, not fastsky, clear color if fog says to, otherwise, just set the clearcolor
 			if ( glfogsettings[FOG_CURRENT].registered ) { // try to clear fastsky with current fog color
@@ -543,12 +533,8 @@ void RB_BeginDrawingView( void ) {
 	// clip to the plane of the portal
 	if ( backEnd.viewParms.isPortal ) {
 		float plane[4];
-#ifdef IOS
-        float        plane2[4];
-#else
-        GLdouble    plane2[4];
-#endif
-        
+		GLdouble plane2[4];
+
 		plane[0] = backEnd.viewParms.portalPlane.normal[0];
 		plane[1] = backEnd.viewParms.portalPlane.normal[1];
 		plane[2] = backEnd.viewParms.portalPlane.normal[2];
@@ -567,302 +553,6 @@ void RB_BeginDrawingView( void ) {
 	}
 }
 
-/*
-============
-RB_ZombieFX
-
-  This is post-tesselation filtering, made especially for the Zombie.
-============
-*/
-
-extern void GlobalVectorToLocal( const vec3_t in, vec3_t out );
-extern vec_t VectorLengthSquared( const vec3_t v );
-
-#define ZOMBIEFX_MAX_VERTS              2048
-#define ZOMBIEFX_FADEOUT_TIME_SEC       ( 0.001 * ZOMBIEFX_FADEOUT_TIME )
-#define ZOMBIEFX_MAX_HITS               128
-#define ZOMBIEFX_MAX_NEWHITS            4
-#define ZOMBIEFX_HIT_OKRANGE_SQR        9   // all verts within this range will be hit
-#define ZOMBIEFX_HIT_MAXRANGE_SQR       36  // each bullet that strikes the bounding box, will effect verts inside this range (allowing for projections onto the mesh)
-#define ZOMBIEFX_PERHIT_TAKEALPHA       150
-#define ZOMBIEFX_MAX_HITS_PER_VERT      2
-
-static char *zombieFxFleshHitSurfaceNames[2] = {"u_body","l_legs"};
-
-// this stores each of the flesh hits for each of the zombies in the game
-typedef struct {
-	qboolean isHit;
-	unsigned short numHits;
-	unsigned short vertHits[ZOMBIEFX_MAX_HITS]; // bit flags to represent those verts that have been hit
-	int numNewHits;
-	vec3_t newHitPos[ZOMBIEFX_MAX_NEWHITS];
-	vec3_t newHitDir[ZOMBIEFX_MAX_NEWHITS];
-} trZombieFleshHitverts_t;
-//
-trZombieFleshHitverts_t zombieFleshHitVerts[MAX_SP_CLIENTS][2]; // one for upper, one for lower
-
-void RB_ZombieFXInit( void ) {
-	memset( zombieFleshHitVerts, 0, sizeof( zombieFleshHitVerts ) );
-}
-
-void RB_ZombieFXAddNewHit( int entityNum, const vec3_t hitPos, const vec3_t hitDir ) {
-	int part = 0;
-
-	if ( entityNum == -1 ) {
-		// hack, reset data
-		RB_ZombieFXInit();
-		return;
-	}
-
-	if ( entityNum & ( 1 << 30 ) ) {
-		part = 1;
-		entityNum &= ~( 1 << 30 );
-	}
-
-	if ( entityNum >= MAX_SP_CLIENTS ) {
-		Com_Printf( "RB_ZombieFXAddNewHit: entityNum (%i) outside allowable range (%i)\n", entityNum, MAX_SP_CLIENTS );
-		return;
-	}
-	if ( zombieFleshHitVerts[entityNum][part].numHits + zombieFleshHitVerts[entityNum][part].numNewHits >= ZOMBIEFX_MAX_HITS ) {
-		// already full of hits
-		return;
-	}
-	if ( zombieFleshHitVerts[entityNum][part].numNewHits >= ZOMBIEFX_MAX_NEWHITS ) {
-		// just ignore this hit
-		return;
-	}
-	// add it to the list
-	VectorCopy( hitPos, zombieFleshHitVerts[entityNum][part].newHitPos[zombieFleshHitVerts[entityNum][part].numNewHits] );
-	VectorCopy( hitDir, zombieFleshHitVerts[entityNum][part].newHitDir[zombieFleshHitVerts[entityNum][part].numNewHits] );
-	zombieFleshHitVerts[entityNum][part].numNewHits++;
-}
-
-void RB_ZombieFXProcessNewHits( trZombieFleshHitverts_t *fleshHitVerts, int oldNumVerts, int numSurfVerts ) {
-	float *xyzTrav, *normTrav;
-	vec3_t hitPos, hitDir, v, testDir;
-	float bestHitDist, thisDist;
-	qboolean foundHit;
-	int i, j, bestHit = 0;
-	unsigned short *hitTrav;
-	byte hitCounts[ZOMBIEFX_MAX_VERTS];     // so we can quickly tell if a particular vert has been hit enough times already
-
-	// first build the hitCount list
-	memset( hitCounts, 0, sizeof( hitCounts ) );
-	for ( i = 0, hitTrav = fleshHitVerts->vertHits; i < fleshHitVerts->numHits; i++, hitTrav++ ) {
-		hitCounts[*hitTrav]++;
-	}
-
-	// for each new hit
-	for ( i = 0; i < fleshHitVerts->numNewHits; i++ ) {
-		// calc the local hitPos
-		VectorCopy( fleshHitVerts->newHitPos[i], v );
-		VectorSubtract( v, backEnd.currentEntity->e.origin, v );
-		GlobalVectorToLocal( v, hitPos );
-		// calc the local hitDir
-		VectorCopy( fleshHitVerts->newHitDir[i], v );
-		GlobalVectorToLocal( v, hitDir );
-
-		// look for close matches
-		foundHit = qfalse;
-
-		// for each vertex
-		for (   j = 0, bestHitDist = -1, xyzTrav = tess.xyz[oldNumVerts], normTrav = tess.normal[oldNumVerts];
-				j < numSurfVerts;
-				j++, xyzTrav += 4, normTrav += 4 ) {
-
-			// if this vert has been hit enough times already
-			if ( hitCounts[j] > ZOMBIEFX_MAX_HITS_PER_VERT ) {
-				continue;
-			}
-			// if this normal faces the wrong way, reject it
-			if ( DotProduct( normTrav, hitDir ) > 0 ) {
-				continue;
-			}
-			// get the diff vector
-			VectorSubtract( xyzTrav, hitPos, testDir );
-			// check for distance within range
-			thisDist = VectorLengthSquared( testDir );
-			if ( thisDist < ZOMBIEFX_HIT_OKRANGE_SQR ) {
-				goto hitCheckDone;
-			}
-			thisDist = sqrt( thisDist );
-			// check for the projection being inside range
-			VectorMA( hitPos, thisDist, hitDir, v );
-			VectorSubtract( xyzTrav, v, testDir );
-			thisDist = VectorLengthSquared( testDir );
-			if ( thisDist < ZOMBIEFX_HIT_OKRANGE_SQR ) {
-				goto hitCheckDone;
-			}
-			// if we are still struggling to find a hit, then pick the closest outside the OK range
-			if ( !foundHit ) {
-				if ( thisDist < ZOMBIEFX_HIT_MAXRANGE_SQR && ( bestHitDist < 0 || thisDist < bestHitDist ) ) {
-					bestHitDist = thisDist;
-					bestHit = j;
-				}
-			}
-
-			// if it gets to here, then it failed
-			continue;
-
-hitCheckDone:
-
-			// this vertex was hit
-			foundHit = qtrue;
-			// set the appropriate bit-flag
-			fleshHitVerts->isHit = qtrue;
-			fleshHitVerts->vertHits[fleshHitVerts->numHits++] = (unsigned short)j;
-			//if (fleshHitVerts->numHits == ZOMBIEFX_MAX_HITS)
-			//	break;	// only find one close match per shot
-			if ( fleshHitVerts->numHits == ZOMBIEFX_MAX_HITS ) {
-				break;
-			}
-		}
-
-		if ( fleshHitVerts->numHits == ZOMBIEFX_MAX_HITS ) {
-			break;
-		}
-
-		// if we didn't find a hit vertex, grab the closest acceptible match
-		if ( !foundHit && bestHitDist >= 0 ) {
-			// set the appropriate bit-flag
-			fleshHitVerts->isHit = qtrue;
-			fleshHitVerts->vertHits[fleshHitVerts->numHits++] = (unsigned short)bestHit;
-			if ( fleshHitVerts->numHits == ZOMBIEFX_MAX_HITS ) {
-				break;
-			}
-		}
-	}
-
-	// we've processed any new hits
-	fleshHitVerts->numNewHits = 0;
-}
-
-void RB_ZombieFXShowFleshHits( trZombieFleshHitverts_t *fleshHitVerts, int oldNumVerts, int numSurfVerts ) {
-	byte *vertColors;
-	unsigned short *vertHits;
-	int i;
-
-	vertColors = tess.vertexColors[oldNumVerts];
-	vertHits = fleshHitVerts->vertHits;
-
-	// for each hit entry, adjust that verts alpha component
-	for ( i = 0; i < fleshHitVerts->numHits; i++, vertHits++ ) {
-		if ( vertColors[( *vertHits ) * 4 + 3] < ZOMBIEFX_PERHIT_TAKEALPHA ) {
-			vertColors[( *vertHits ) * 4 + 3] = 0;
-		} else {
-			vertColors[( *vertHits ) * 4 + 3] -= ZOMBIEFX_PERHIT_TAKEALPHA;
-		}
-	}
-}
-
-void RB_ZombieFXDecompose( int oldNumVerts, int numSurfVerts, float deltaTimeScale ) {
-	byte *vertColors;
-	float   *xyz, *norm;
-	int i;
-	float alpha;
-
-	vertColors = tess.vertexColors[oldNumVerts];
-	xyz = tess.xyz[oldNumVerts];
-	norm = tess.normal[oldNumVerts];
-
-	for ( i = 0; i < numSurfVerts; i++, vertColors += 4, xyz += 4, norm += 4 ) {
-		alpha = 255.0 * ( (float)( 1 + i % 3 ) / 3.0 ) * deltaTimeScale * 2;
-		if ( alpha > 255.0 ) {
-			alpha = 255.0;
-		}
-		if ( (float)vertColors[3] - alpha < 0 ) {
-			vertColors[3] = 0;
-		} else {
-			vertColors[3] -= (byte)alpha;
-		}
-
-		// skin shrinks with age
-		VectorMA( xyz, -2.0 * deltaTimeScale, norm, xyz );
-	}
-}
-
-void RB_ZombieFXFullAlpha( int oldNumVerts, int numSurfVerts ) {
-	byte *vertColors;
-	int i;
-
-	vertColors = tess.vertexColors[oldNumVerts];
-
-	for ( i = 0; i < numSurfVerts; i++, vertColors += 4 ) {
-		vertColors[3] = 255;
-	}
-}
-
-void RB_ZombieFX( int part, drawSurf_t *drawSurf, int oldNumVerts, int oldNumIndex ) {
-	int numSurfVerts;
-	float deltaTime;
-	char    *surfName;
-	trZombieFleshHitverts_t *fleshHitVerts;
-
-	// Central point for Zombie post-tess processing. Various effects can be added from this point
-
-	if ( *drawSurf->surface == SF_MD3 ) {
-		surfName = ( (md3Surface_t *)drawSurf->surface )->name;
-	} else if ( *drawSurf->surface == SF_MDC ) {
-		surfName = ( (mdcSurface_t *)drawSurf->surface )->name;
-	} else {
-		Com_Printf( "RB_ZombieFX: unknown surface type\n" );
-		return;
-	}
-
-	// ignore all surfaces starting with u_sk (skeleton)
-	if ( !Q_strncmp( surfName, "u_sk", 4 ) ) {
-		return;
-	}
-	// legs
-	if ( !Q_strncmp( surfName, "l_sk", 4 ) ) {
-		return;
-	}
-	// head
-	if ( !Q_strncmp( surfName, "h_sk", 4 ) ) {
-		return;
-	}
-
-	numSurfVerts = tess.numVertexes - oldNumVerts;
-
-	if ( numSurfVerts > ZOMBIEFX_MAX_VERTS ) {
-		Com_Printf( "RB_ZombieFX: exceeded ZOMBIEFX_MAX_VERTS\n" );
-		return;
-	}
-
-	deltaTime = backEnd.currentEntity->e.shaderTime;
-	if ( ZOMBIEFX_FADEOUT_TIME_SEC < deltaTime ) {
-		// nothing to do, it's done fading out
-		tess.numVertexes = oldNumVerts;
-		tess.numIndexes = oldNumIndex;
-		return;
-	}
-
-	fleshHitVerts = &zombieFleshHitVerts[backEnd.currentEntity->e.entityNum][part];
-
-	// set everything to full alpha
-	RB_ZombieFXFullAlpha( oldNumVerts, numSurfVerts );
-
-	// if this is the chest surface, do flesh hits
-	if ( !Q_stricmp( surfName, zombieFxFleshHitSurfaceNames[part] ) ) {
-
-		// check for any new bullet impacts that need to be scanned for triangle collisions
-		if ( fleshHitVerts->numNewHits ) {
-			RB_ZombieFXProcessNewHits( fleshHitVerts, oldNumVerts, numSurfVerts );
-		}
-
-		// hide vertices marked as being torn off
-		if ( fleshHitVerts->isHit ) {
-			RB_ZombieFXShowFleshHits( fleshHitVerts, oldNumVerts, numSurfVerts );
-		}
-	}
-
-	// decompose?
-	if ( deltaTime ) {
-		RB_ZombieFXDecompose( oldNumVerts, numSurfVerts, deltaTime / ZOMBIEFX_FADEOUT_TIME_SEC );
-	}
-
-}
-
 
 /*
 ==================
@@ -879,9 +569,6 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	drawSurf_t      *drawSurf;
 	int oldSort;
 	double originalTime;
-	int oldNumVerts, oldNumIndex;
-//GR - tessellation flag
-	int atiTess = 0, oldAtiTess;
 
 	// save original time for entity shader offsets
 	originalTime = backEnd.refdef.floatTime;
@@ -899,53 +586,31 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	oldDlighted = qfalse;
 	oldSort = -1;
 	depthRange = qfalse;
-// GR - tessellation also forces to draw everything
-	oldAtiTess = -1;
 
 	backEnd.pc.c_surfaces += numDrawSurfs;
 
 	for ( i = 0, drawSurf = drawSurfs ; i < numDrawSurfs ; i++, drawSurf++ ) {
 		if ( drawSurf->sort == oldSort ) {
 			// fast path, same as previous sort
-			oldNumVerts = tess.numVertexes;
-			oldNumIndex = tess.numIndexes;
-
 			rb_surfaceTable[ *drawSurf->surface ]( drawSurf->surface );
-
-			// RF, convert the newly created vertexes into dust particles, and overwrite
-			if (backEnd.currentEntity->e.reFlags & REFLAG_ZOMBIEFX) {
-				RB_ZombieFX( 0, drawSurf, oldNumVerts, oldNumIndex );
-			}
-			else if (backEnd.currentEntity->e.reFlags & REFLAG_ZOMBIEFX2) {
-				RB_ZombieFX( 1, drawSurf, oldNumVerts, oldNumIndex );
-			}
 			continue;
 		}
 		oldSort = drawSurf->sort;
-// GR - also extract tesselation flag
-		R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlighted, &atiTess );
+		R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlighted );
 
 		//
 		// change the tess parameters if needed
 		// a "entityMergable" shader is a shader that can have surfaces from seperate
 		// entities merged into a single batch, like smoke and blood puff sprites
 		if ( shader != NULL && ( shader != oldShader || fogNum != oldFogNum || dlighted != oldDlighted
-// GR - force draw on tessellation flag change
-			 || ( atiTess != oldAtiTess )
-			 || ( entityNum != oldEntityNum && !shader->entityMergable ) ) ){
+			 || ( entityNum != oldEntityNum && !shader->entityMergable) ) ) {
 			if ( oldShader != NULL ) {
-// GR - pass tessellation flag to the shader command
-//		make sure to use oldAtiTess!!!
-				tess.ATI_tess = ( oldAtiTess == ATI_TESS_TRUFORM );
-
 				RB_EndSurface();
 			}
 			RB_BeginSurface( shader, fogNum );
 			oldShader = shader;
 			oldFogNum = fogNum;
 			oldDlighted = dlighted;
-// GR - update old tessellation flag
-			oldAtiTess = atiTess;
 		}
 
 		//
@@ -958,7 +623,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 				backEnd.currentEntity = &backEnd.refdef.entities[entityNum];
 
 				// FIXME: e.shaderTime must be passed as int to avoid fp-precision loss issues
-				backEnd.refdef.floatTime = originalTime - (double)backEnd.currentEntity->e.shaderTime;
+				backEnd.refdef.floatTime = originalTime; // - (double)backEnd.currentEntity->e.shaderTime; // JPW NERVE pulled this to match q3ta
 
 				// we have to reset the shaderTime as well otherwise image animations start
 				// from the wrong frame
@@ -1046,28 +711,12 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 			oldEntityNum = entityNum;
 		}
 
-		// RF, ZOMBIEFX, store the tess indexes, so we can grab the calculated
-		// vertex positions and normals, and convert them into dust particles
-		oldNumVerts = tess.numVertexes;
-		oldNumIndex = tess.numIndexes;
-
 		// add the triangles for this surface
 		rb_surfaceTable[ *drawSurf->surface ]( drawSurf->surface );
-
-		// RF, convert the newly created vertexes into dust particles, and overwrite
-		if ( backEnd.currentEntity->e.reFlags & REFLAG_ZOMBIEFX ) {
-			RB_ZombieFX( 0, drawSurf, oldNumVerts, oldNumIndex );
-		} else if ( backEnd.currentEntity->e.reFlags & REFLAG_ZOMBIEFX2 )     {
-			RB_ZombieFX( 1, drawSurf, oldNumVerts, oldNumIndex );
-		}
 	}
 
 	// draw the contents of the last shader batch
 	if ( oldShader != NULL ) {
-// GR - pass tessellation flag to the shader command
-//		make sure to use oldAtiTess!!!
-		tess.ATI_tess = ( oldAtiTess == ATI_TESS_TRUFORM );
-
 		RB_EndSurface();
 	}
 
@@ -1089,10 +738,9 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	// darken down any stencil shadows
 	RB_ShadowFinish();
 
-#ifndef IOS
-    // add light flares on lights that aren't obscured
-    RB_RenderFlares();
-#endif // !IOS
+	// add light flares on lights that aren't obscured
+	RB_RenderFlares();
+
 }
 
 
@@ -1125,8 +773,6 @@ void    RB_SetGL2D( void ) {
 	GL_State( GLS_DEPTHTEST_DISABLE |
 			  GLS_SRCBLEND_SRC_ALPHA |
 			  GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA );
-
-	qglDisable( GL_FOG ); //----(SA)	added
 
 	GL_Cull( CT_TWO_SIDED );
 	qglDisable( GL_CLIP_PLANE0 );
@@ -1235,7 +881,7 @@ void RE_UploadCinematic( int w, int h, int cols, int rows, const byte *data, int
 	if ( cols != tr.scratchImage[client]->width || rows != tr.scratchImage[client]->height ) {
 		tr.scratchImage[client]->width = tr.scratchImage[client]->uploadWidth = cols;
 		tr.scratchImage[client]->height = tr.scratchImage[client]->uploadHeight = rows;
-#if defined(USE_OPENGLES) || defined(IOS)
+#ifdef USE_OPENGLES
 		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
 #else
 		qglTexImage2D( GL_TEXTURE_2D, 0, 3, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
@@ -1347,6 +993,89 @@ const void *RB_StretchPic( const void *data ) {
 
 	return (const void *)( cmd + 1 );
 }
+
+// NERVE - SMF
+/*
+=============
+RB_RotatedPic
+=============
+*/
+const void *RB_RotatedPic( const void *data ) {
+	const stretchPicCommand_t   *cmd;
+	shader_t *shader;
+	int numVerts, numIndexes;
+	float angle;
+	float pi2 = M_PI * 2;
+
+	cmd = (const stretchPicCommand_t *)data;
+
+	if ( !backEnd.projection2D ) {
+		RB_SetGL2D();
+	}
+
+	shader = cmd->shader;
+	if ( shader != tess.shader ) {
+		if ( tess.numIndexes ) {
+			RB_EndSurface();
+		}
+		backEnd.currentEntity = &backEnd.entity2D;
+		RB_BeginSurface( shader, 0 );
+	}
+
+	RB_CHECKOVERFLOW( 4, 6 );
+	numVerts = tess.numVertexes;
+	numIndexes = tess.numIndexes;
+
+	tess.numVertexes += 4;
+	tess.numIndexes += 6;
+
+	tess.indexes[ numIndexes ] = numVerts + 3;
+	tess.indexes[ numIndexes + 1 ] = numVerts + 0;
+	tess.indexes[ numIndexes + 2 ] = numVerts + 2;
+	tess.indexes[ numIndexes + 3 ] = numVerts + 2;
+	tess.indexes[ numIndexes + 4 ] = numVerts + 0;
+	tess.indexes[ numIndexes + 5 ] = numVerts + 1;
+
+	*(int *)tess.vertexColors[ numVerts ] =
+		*(int *)tess.vertexColors[ numVerts + 1 ] =
+			*(int *)tess.vertexColors[ numVerts + 2 ] =
+				*(int *)tess.vertexColors[ numVerts + 3 ] = *(int *)backEnd.color2D;
+
+	angle = cmd->angle * pi2;
+	tess.xyz[ numVerts ][0] = cmd->x + ( cos( angle ) * cmd->w );
+	tess.xyz[ numVerts ][1] = cmd->y + ( sin( angle ) * cmd->h );
+	tess.xyz[ numVerts ][2] = 0;
+
+	tess.texCoords[ numVerts ][0][0] = cmd->s1;
+	tess.texCoords[ numVerts ][0][1] = cmd->t1;
+
+	angle = cmd->angle * pi2 + 0.25 * pi2;
+	tess.xyz[ numVerts + 1 ][0] = cmd->x + ( cos( angle ) * cmd->w );
+	tess.xyz[ numVerts + 1 ][1] = cmd->y + ( sin( angle ) * cmd->h );
+	tess.xyz[ numVerts + 1 ][2] = 0;
+
+	tess.texCoords[ numVerts + 1 ][0][0] = cmd->s2;
+	tess.texCoords[ numVerts + 1 ][0][1] = cmd->t1;
+
+	angle = cmd->angle * pi2 + 0.50 * pi2;
+	tess.xyz[ numVerts + 2 ][0] = cmd->x + ( cos( angle ) * cmd->w );
+	tess.xyz[ numVerts + 2 ][1] = cmd->y + ( sin( angle ) * cmd->h );
+	tess.xyz[ numVerts + 2 ][2] = 0;
+
+	tess.texCoords[ numVerts + 2 ][0][0] = cmd->s2;
+	tess.texCoords[ numVerts + 2 ][0][1] = cmd->t2;
+
+	angle = cmd->angle * pi2 + 0.75 * pi2;
+	tess.xyz[ numVerts + 3 ][0] = cmd->x + ( cos( angle ) * cmd->w );
+	tess.xyz[ numVerts + 3 ][1] = cmd->y + ( sin( angle ) * cmd->h );
+	tess.xyz[ numVerts + 3 ][2] = 0;
+
+	tess.texCoords[ numVerts + 3 ][0][0] = cmd->s1;
+	tess.texCoords[ numVerts + 3 ][0][1] = cmd->t2;
+
+	return (const void *)( cmd + 1 );
+}
+// -NERVE - SMF
 
 /*
 ==============
@@ -1631,7 +1360,6 @@ const void  *RB_SwapBuffers( const void *data ) {
 
 	// we measure overdraw by reading back the stencil buffer and
 	// counting up the number of increments that have happened
-#ifndef IOS
 #ifndef USE_OPENGLES
 	if ( r_measureOverdraw->integer ) {
 		int i;
@@ -1649,7 +1377,6 @@ const void  *RB_SwapBuffers( const void *data ) {
 		ri.Hunk_FreeTempMemory( stencilReadback );
 	}
 #endif
-#endif
 
 
 	if ( !glState.finishCalled ) {
@@ -1666,13 +1393,13 @@ const void  *RB_SwapBuffers( const void *data ) {
 	backEnd.doneBloom = qfalse;
 	backEnd.doneSurfaces = qfalse;
 #endif
-
 	return (const void *)( cmd + 1 );
 }
 
 /*
 ====================
 RB_ExecuteRenderCommands
+
 ====================
 */
 void RB_ExecuteRenderCommands( const void *data ) {
@@ -1693,6 +1420,13 @@ void RB_ExecuteRenderCommands( const void *data ) {
 			R_BloomScreen();
 #endif
 			data = RB_StretchPic( data );
+			break;
+		case RC_ROTATED_PIC:
+#ifdef USE_BLOOM
+			//Check if it's time for BLOOM!
+			R_BloomScreen();
+#endif
+			data = RB_RotatedPic( data );
 			break;
 		case RC_STRETCH_PIC_GRADIENT:
 #ifdef USE_BLOOM

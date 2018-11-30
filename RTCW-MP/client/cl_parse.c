@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -47,7 +47,7 @@ char *svc_strings[256] = {
 
 void SHOWNET( msg_t *msg, char *s ) {
 	if ( cl_shownet->integer >= 2 ) {
-		Com_Printf( "%3i %3i:%s\n", msg->readcount - 1, msg->cursize, s );
+		Com_Printf( "%3i:%s\n", msg->readcount - 1, s );
 	}
 }
 
@@ -59,6 +59,112 @@ MESSAGE PARSING
 
 =========================================================================
 */
+#if 1
+
+int entLastVisible[MAX_CLIENTS];
+
+qboolean isEntVisible( entityState_t *ent ) {
+	trace_t tr;
+	vec3_t start, end, temp;
+	vec3_t forward, up, right, right2;
+	float view_height;
+
+	VectorCopy( cl.cgameClientLerpOrigin, start );
+	start[2] += ( cl.snap.ps.viewheight - 1 );
+	if ( cl.snap.ps.leanf != 0 ) {
+		vec3_t lright, v3ViewAngles;
+		VectorCopy( cl.snap.ps.viewangles, v3ViewAngles );
+		v3ViewAngles[2] += cl.snap.ps.leanf / 2.0f;
+		AngleVectors( v3ViewAngles, NULL, lright, NULL );
+		VectorMA( start, cl.snap.ps.leanf, lright, start );
+	}
+
+	VectorCopy( ent->pos.trBase, end );
+
+	// Compute vector perpindicular to view to ent
+	VectorSubtract( end, start, forward );
+	VectorNormalizeFast( forward );
+	VectorSet( up, 0, 0, 1 );
+	CrossProduct( forward, up, right );
+	VectorNormalizeFast( right );
+	VectorScale( right, 10, right2 );
+	VectorScale( right, 18, right );
+
+	// Set viewheight
+	if ( ent->animMovetype ) {
+		view_height = 16;
+	} else {
+		view_height = 40;
+	}
+
+	// First, viewpoint to viewpoint
+	end[2] += view_height;
+	CM_BoxTrace( &tr, start, end, NULL, NULL, 0, CONTENTS_SOLID, qfalse );
+	if ( tr.fraction == 1.f ) {
+		return qtrue;
+	}
+
+	// First-b, viewpoint to top of head
+	end[2] += 16;
+	CM_BoxTrace( &tr, start, end, NULL, NULL, 0, CONTENTS_SOLID, qfalse );
+	if ( tr.fraction == 1.f ) {
+		return qtrue;
+	}
+	end[2] -= 16;
+
+	// Second, viewpoint to ent's origin
+	end[2] -= view_height;
+	CM_BoxTrace( &tr, start, end, NULL, NULL, 0, CONTENTS_SOLID, qfalse );
+	if ( tr.fraction == 1.f ) {
+		return qtrue;
+	}
+
+	// Third, to ent's right knee
+	VectorAdd( end, right, temp );
+	temp[2] += 8;
+	CM_BoxTrace( &tr, start, temp, NULL, NULL, 0, CONTENTS_SOLID, qfalse );
+	if ( tr.fraction == 1.f ) {
+		return qtrue;
+	}
+
+	// Fourth, to ent's right shoulder
+	VectorAdd( end, right2, temp );
+	if ( ent->animMovetype ) {
+		temp[2] += 28;
+	} else {
+		temp[2] += 52;
+	}
+	CM_BoxTrace( &tr, start, temp, NULL, NULL, 0, CONTENTS_SOLID, qfalse );
+	if ( tr.fraction == 1.f ) {
+		return qtrue;
+	}
+
+	// Fifth, to ent's left knee
+	VectorScale( right, -1, right );
+	VectorScale( right2, -1, right2 );
+	VectorAdd( end, right2, temp );
+	temp[2] += 2;
+	CM_BoxTrace( &tr, start, temp, NULL, NULL, 0, CONTENTS_SOLID, qfalse );
+	if ( tr.fraction == 1.f ) {
+		return qtrue;
+	}
+
+	// Sixth, to ent's left shoulder
+	VectorAdd( end, right, temp );
+	if ( ent->animMovetype ) {
+		temp[2] += 16;
+	} else {
+		temp[2] += 36;
+	}
+	CM_BoxTrace( &tr, start, temp, NULL, NULL, 0, CONTENTS_SOLID, qfalse );
+	if ( tr.fraction == 1.f ) {
+		return qtrue;
+	}
+
+	return qfalse;
+}
+
+#endif
 
 /*
 ==================
@@ -85,6 +191,23 @@ void CL_DeltaEntity( msg_t *msg, clSnapshot_t *frame, int newnum, entityState_t 
 	if ( state->number == ( MAX_GENTITIES - 1 ) ) {
 		return;     // entity was delta removed
 	}
+
+#if 1
+	// DHM - Nerve :: Only draw clients if visible
+	if ( clc.onlyVisibleClients ) {
+		if ( state->number < MAX_CLIENTS ) {
+			if ( isEntVisible( state ) ) {
+				entLastVisible[state->number] = frame->serverTime;
+				state->eFlags &= ~EF_NODRAW;
+			} else {
+				if ( entLastVisible[state->number] < ( frame->serverTime - 600 ) ) {
+					state->eFlags |= EF_NODRAW;
+				}
+			}
+		}
+	}
+#endif
+
 	cl.parseEntitiesNum++;
 	frame->numEntities++;
 }
@@ -194,6 +317,10 @@ void CL_ParsePacketEntities( msg_t *msg, clSnapshot_t *oldframe, clSnapshot_t *n
 				( oldframe->parseEntitiesNum + oldindex ) & ( MAX_PARSE_ENTITIES - 1 )];
 			oldnum = oldstate->number;
 		}
+	}
+
+	if ( cl_shownuments->integer ) {
+		Com_Printf( "Entities in packet: %i\n", newframe->numEntities );
 	}
 }
 
@@ -354,6 +481,8 @@ void CL_SystemInfoChanged( void ) {
 
 	systemInfo = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SYSTEMINFO ];
 	cl.serverId = atoi( Info_ValueForKey( systemInfo, "sv_serverid" ) );
+
+	memset( &entLastVisible, 0, sizeof( entLastVisible ) );
 
 #ifdef USE_VOIP
 #ifdef LEGACY_PROTOCOL

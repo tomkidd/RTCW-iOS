@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -40,12 +40,20 @@ If you have questions concerning this license or the applicable additional terms
 #include "../qcommon/q_shared.h"
 #include "bg_public.h"
 
+// JPW NERVE -- added because I need to check single/multiplayer instances and branch accordingly
+#ifdef CGAMEDLL
+extern vmCvar_t cg_gameType;
+#endif
+#ifdef GAMEDLL
+extern vmCvar_t g_gametype;
+#endif
+
 // debug defines, to prevent doing costly string cvar lookups
 //#define	DBGANIMS
 //#define	DBGANIMEVENTS
 
 // this is used globally within this file to reduce redundant params
-animScriptData_t *globalScriptData = NULL;
+static animScriptData_t *globalScriptData = NULL;
 
 #define MAX_ANIM_DEFINES    16
 
@@ -94,6 +102,7 @@ static animStringItem_t animMoveTypesStr[] =
 	{"TURNLEFT", -1},
 	{"CLIMBUP", -1},
 	{"CLIMBDOWN", -1},
+	{"FALLEN", -1},                  // DHM - Nerve :: dead, before limbo
 
 	{NULL, -1},
 };
@@ -205,16 +214,6 @@ static animStringItem_t animHealthLevelStr[] =
 	{"3", -1},
 };
 
-static animStringItem_t animConditionSpecialConditionStr[] =
-{
-	{"** UNUSED **", -1},
-	{"ESCAPE1_CUTSCENE_1", -1},
-	{"VILL1_KARL", -1},
-	{"VILL1_KESSLER", -1},
-
-	{NULL, -1},
-};
-
 typedef enum
 {
 	ANIM_CONDTYPE_BITFLAGS,
@@ -249,8 +248,6 @@ static animStringItem_t animConditionsStr[] =
 	{"CHARGING", -1},
 	{"SECONDLIFE", -1},
 	{"HEALTH_LEVEL", -1},
-	{"DEFENSE", -1},
-	{"SPECIAL_CONDITION", -1},
 
 	{NULL, -1},
 };
@@ -275,8 +272,6 @@ static animConditionTable_t animConditionsTable[NUM_ANIM_CONDITIONS] =
 	{ANIM_CONDTYPE_VALUE,           NULL},
 	{ANIM_CONDTYPE_VALUE,           NULL},
 	{ANIM_CONDTYPE_VALUE,           animHealthLevelStr},
-	{ANIM_CONDTYPE_VALUE,           NULL},
-	{ANIM_CONDTYPE_VALUE,           animConditionSpecialConditionStr},
 };
 
 //------------------------------------------------------------
@@ -338,7 +333,7 @@ animModelInfo_t *BG_ModelInfoForClient( int client ) {
 		BG_AnimParseError( "BG_ModelInfoForClient: client %i has no modelinfo", client );
 	}
 	//
-	return globalScriptData->modelInfo[globalScriptData->clientModels[client] - 1];
+	return &globalScriptData->modelInfo[globalScriptData->clientModels[client] - 1];
 }
 
 /*
@@ -354,12 +349,7 @@ animModelInfo_t *BG_ModelInfoForModelname( char *modelname ) {
 		BG_AnimParseError( "BG_ModelInfoForModelname: NULL globalScriptData" );
 	}
 	//
-	for ( i = 0; i < MAX_ANIMSCRIPT_MODELS; i++ ) {
-		modelInfo = globalScriptData->modelInfo[i];
-		if ( modelInfo == NULL ) {
-			continue;
-		}
-
+	for ( i = 0, modelInfo = globalScriptData->modelInfo; i < MAX_ANIMSCRIPT_MODELS; i++, modelInfo++ ) {
 		if ( !modelInfo->modelname[0] ) {
 			continue;
 		}
@@ -514,7 +504,7 @@ BG_AnimParseAnimConfig
 ============
 */
 qboolean BG_AnimParseAnimConfig( animModelInfo_t *animModelInfo, const char *filename, const char *input ) {
-	char    *text_p, *token, *oldtext_p;
+	char    *text_p, *token;
 	animation_t *animations;
 	headAnimation_t *headAnims;
 	int i, fps, skip = -1;
@@ -672,7 +662,7 @@ qboolean BG_AnimParseAnimConfig( animModelInfo_t *animModelInfo, const char *fil
 
 		token = COM_ParseExt( &text_p, qfalse );
 		if ( !token[0] ) {
-			BG_AnimParseError( "end of file without ENDANIMS: line %i", COM_GetCurrentParseLine() + 1 );
+			BG_AnimParseError( "end of file without ENDANIMS: line %i", COM_GetCurrentParseLine() + 1  );
 			break;
 		}
 		fps = atof( token );
@@ -691,28 +681,11 @@ qboolean BG_AnimParseAnimConfig( animModelInfo_t *animModelInfo, const char *fil
 		animations[i].moveSpeed = atoi( token );
 
 		// animation blending
-		oldtext_p = text_p;
 		token = COM_ParseExt( &text_p, qfalse );    // must be on same line
 		if ( !token[0] ) {
-			text_p = oldtext_p;
 			animations[i].animBlend = 0;
 		} else {
 			animations[i].animBlend = atoi( token );
-		}
-
-		// priority
-		oldtext_p = text_p;
-		token = COM_ParseExt( &text_p, qfalse );    // must be on same line
-		if ( !token[0] ) {
-			text_p = oldtext_p;
-			// death anims have highest priority
-			if ( !Q_strncmp( animations[i].name, "death", 5 ) ) {
-				animations[i].priority = 99;
-			} else {
-				animations[i].priority = 0;
-			}
-		} else {
-			animations[i].priority = atoi( token );
 		}
 
 		// calculate the duration
@@ -953,8 +926,8 @@ qboolean BG_ParseConditions( char **text_pp, animScriptItem_t *scriptItem ) {
 				conditionValue[0] = 1;  // not used, just check for a positive condition
 			}
 			break;
-		default:
-			break; // TTimo NUM_ANIM_CONDTYPES
+		default: // TTimo gcc: NUM_ANIM_CONDTYPES not handled in switch
+			break;
 		}
 
 		// now append this condition to the item
@@ -978,10 +951,10 @@ BG_ParseCommands
 */
 void BG_ParseCommands( char **input, animScriptItem_t *scriptItem, animModelInfo_t *modelInfo, animScriptData_t *scriptData ) {
 	char    *token;
-	animScriptCommand_t *command = NULL; // TTimo: init
+	// TTimo gcc: might be used uninitialized
+	animScriptCommand_t *command = NULL;
 	int partIndex = 0;
 
-	globalScriptData = scriptData;
 	while ( 1 ) {
 
 		// parse the body part
@@ -1069,30 +1042,6 @@ void BG_ParseCommands( char **input, animScriptItem_t *scriptItem, animModelInfo
 				}
 				command->soundIndex = globalScriptData->soundIndex( token );
 
-//----(SA)	added
-			} else if ( !Q_stricmp( token, "showpart" ) ) {    // show
-				token = COM_ParseExt( input, qfalse );
-				if ( !token[0] ) {
-					BG_AnimParseError( "BG_ParseCommands: expected showpart number" );
-					break;
-				}
-				if ( atoi( token ) > 7 ) {
-					BG_AnimParseError( "BG_ParseCommands: showpart number '%d' is too big! (max 8)", atoi( token ) ) ;
-				}
-
-				command->accShowBits &= atoi( token );
-			} else if ( !Q_stricmp( token, "hidepart" ) ) {
-				token = COM_ParseExt( input, qfalse );
-				if ( !token[0] ) {
-					BG_AnimParseError( "BG_ParseCommands: expected hidepart number" );
-					break;
-				}
-				if ( atoi( token ) > 7 ) {
-					BG_AnimParseError( "BG_ParseCommands: hidepart number '%d' is too big! (max 8)", atoi( token ) ) ;
-				}
-
-				command->accHideBits &= atoi( token );
-//----(SA)	end
 			} else {
 				// unknown??
 				BG_AnimParseError( "BG_ParseCommands: unknown parameter '%s'", token );
@@ -1137,7 +1086,9 @@ void BG_AnimParseAnimScript( animModelInfo_t *modelInfo, animScriptData_t *scrip
 	char    *text_p, *token;
 	animScriptParseMode_t parseMode;
 	animScript_t        *currentScript;
-	animScriptItem_t tempScriptItem, *currentScriptItem = NULL;    // TTimo: init
+	animScriptItem_t tempScriptItem;
+	// TTimo gcc: might be used unitialized
+	animScriptItem_t *currentScriptItem = NULL;
 	int indexes[MAX_INDENT_LEVELS], indentLevel, oldState, newParseMode;
 	int i, defineType;
 
@@ -1151,9 +1102,7 @@ void BG_AnimParseAnimScript( animModelInfo_t *modelInfo, animScriptData_t *scrip
 	parseMode = PARSEMODE_DEFINES;
 
 	// record which modelInfo this client is using
-	// Duffy
-	// This is done in each of the calling routines, and assumes all sorts of badness doing it this way anyway
-	//scriptData->clientModels[client] = 1 + (int)(modelInfo - *scriptData->modelInfo);
+	scriptData->clientModels[client] = 1 + (int)( modelInfo - scriptData->modelInfo );
 
 	// init the global defines
 	globalFilename = filename;
@@ -1508,8 +1457,8 @@ qboolean BG_EvaluateConditions( int client, animScriptItem_t *scriptItem ) {
 				return qfalse;
 			}
 			break;
-		default:
-			break; // TTimo: NUM_ANIM_CONDTYPES
+		default: // TTimo NUM_ANIM_CONDTYPES not handled
+			break;
 		}
 	}
 	//
@@ -1550,33 +1499,28 @@ int BG_PlayAnim( playerState_t *ps, int animNum, animBodyPart_t bodyPart, int fo
 	int duration;
 	qboolean wasSet = qfalse;
 	animModelInfo_t *modelInfo;
-	animation_t *oldAnim, *newAnim;
-	#define TIMER_PADDING   150
 
 	modelInfo = BG_ModelInfoForClient( ps->clientNum );
 
 	if ( forceDuration ) {
 		duration = forceDuration;
 	} else {
-		duration = modelInfo->animations[animNum].duration; // account for lerping between anims
+		duration = modelInfo->animations[animNum].duration + 50;    // account for lerping between anims
 	}
 
 	switch ( bodyPart ) {
 	case ANIM_BP_BOTH:
 	case ANIM_BP_LEGS:
 
-		oldAnim = &modelInfo->animations[( ps->legsAnim & ~ANIM_TOGGLEBIT )];
-		newAnim = &modelInfo->animations[animNum];
-
-		if ( ( ps->legsTimer < 50 ) || ( force && ( newAnim->priority >= oldAnim->priority ) ) ) {
+		if ( ( ps->legsTimer < 50 ) || force ) {
 			if ( !isContinue || !( ( ps->legsAnim & ~ANIM_TOGGLEBIT ) == animNum ) ) {
 				wasSet = qtrue;
 				ps->legsAnim = ( ( ps->legsAnim & ANIM_TOGGLEBIT ) ^ ANIM_TOGGLEBIT ) | animNum;
 				if ( setTimer ) {
-					ps->legsTimer = duration + TIMER_PADDING;
+					ps->legsTimer = duration;
 				}
 			} else if ( setTimer && modelInfo->animations[animNum].loopFrames ) {
-				ps->legsTimer = duration + TIMER_PADDING;
+				ps->legsTimer = duration;
 			}
 		}
 
@@ -1586,23 +1530,20 @@ int BG_PlayAnim( playerState_t *ps, int animNum, animBodyPart_t bodyPart, int fo
 
 	case ANIM_BP_TORSO:
 
-		oldAnim = &modelInfo->animations[ps->torsoAnim & ~ANIM_TOGGLEBIT];
-		newAnim = &modelInfo->animations[animNum];
-
-		if ( ( ps->torsoTimer < 50 ) || ( force && ( newAnim->priority >= oldAnim->priority ) ) ) {
+		if ( ( ps->torsoTimer < 50 ) || force ) {
 			if ( !isContinue || !( ( ps->torsoAnim & ~ANIM_TOGGLEBIT ) == animNum ) ) {
 				ps->torsoAnim = ( ( ps->torsoAnim & ANIM_TOGGLEBIT ) ^ ANIM_TOGGLEBIT ) | animNum;
 				if ( setTimer ) {
-					ps->torsoTimer = duration + TIMER_PADDING;
+					ps->torsoTimer = duration;
 				}
 			} else if ( setTimer && modelInfo->animations[animNum].loopFrames ) {
-				ps->torsoTimer = duration + TIMER_PADDING;
+				ps->torsoTimer = duration;
 			}
 		}
 
 		break;
-	default:
-		break; // TTimo:
+	default: // TTimo default ANIM_BP_UNUSED NUM_ANIM_BODYPARTS not handled
+		break;
 	}
 
 	if ( !wasSet ) {
@@ -1656,11 +1597,6 @@ int BG_ExecuteCommand( playerState_t *ps, animScriptCommand_t *scriptCommand, qb
 		globalScriptData->playSound( scriptCommand->soundIndex, ps->origin, ps->clientNum );
 	}
 
-//----(SA)	added
-	ps->accShowBits = scriptCommand->accShowBits;
-	ps->accHideBits = scriptCommand->accHideBits;
-//----(SA)	end
-
 	if ( !playedLegsAnim ) {
 		return -1;
 	}
@@ -1677,15 +1613,14 @@ BG_AnimScriptAnimation
   returns 1 if an animation was set, -1 if no animation was found, 0 otherwise
 ================
 */
-int BG_AnimScriptAnimation( playerState_t *ps, aistateEnum_t estate, scriptAnimMoveTypes_t movetype, qboolean isContinue ) {
+int BG_AnimScriptAnimation( playerState_t *ps, aistateEnum_t state, scriptAnimMoveTypes_t movetype, qboolean isContinue ) {
 	animModelInfo_t     *modelInfo = NULL;
 	animScript_t        *script = NULL;
-	int state = estate;                                 // enum types are not always signed
 	animScriptItem_t    *scriptItem = NULL;
 	animScriptCommand_t *scriptCommand = NULL;
 
-
-	if ( ps->eFlags & EF_DEAD ) {
+	// DHM - Nerve :: Allow fallen movetype while dead
+	if ( ps->eFlags & EF_DEAD && movetype != ANIM_MT_FALLEN ) {
 		return -1;
 	}
 
@@ -1856,12 +1791,6 @@ int BG_AnimScriptEvent( playerState_t *ps, scriptAnimEventTypes_t event, qboolea
 #endif
 		return -1;
 	}
-	//
-	// if no command, dont do anything
-	if ( !scriptItem->numCommands ) {
-		return -1;
-	}
-	//
 	// pick a random command
 	scriptCommand = &scriptItem->commands[ rand() % scriptItem->numCommands ];
 
@@ -1891,7 +1820,7 @@ qboolean BG_ValidAnimScript( int clientNum ) {
 		return qfalse;
 	}
 	//
-	if ( !globalScriptData->modelInfo[ globalScriptData->clientModels[clientNum] ]->numScriptItems ) {
+	if ( !globalScriptData->modelInfo[ globalScriptData->clientModels[clientNum] ].numScriptItems ) {
 		return qfalse;
 	}
 	//
@@ -1936,21 +1865,6 @@ void BG_UpdateConditionValue( int client, int condition, int value, qboolean che
 	globalScriptData->clientConditions[client][condition][0] = value;
 }
 
-
-/*
-==============
-BG_UpdateConditionValueStrings
-==============
-*/
-void BG_UpdateConditionValueStrings( int client, char *conditionStr, char *valueStr ) {
-	int condition, value;
-	//
-	condition = BG_IndexForString( conditionStr, animConditionsStr, qfalse );
-	value = BG_IndexForString( valueStr, animConditionsTable[condition].values, qfalse );
-	//
-	globalScriptData->clientConditions[client][condition][0] = value;
-}
-
 /*
 ==============
 BG_GetConditionValue
@@ -1959,7 +1873,8 @@ BG_GetConditionValue
 int BG_GetConditionValue( int client, int condition, qboolean checkConversion ) {
 	int value, i;
 
-	value = (intptr_t)globalScriptData->clientConditions[client][condition][0];
+	// TTimo gcc: assignment makes integer from pointer without a cast
+	value = (intptr_t)globalScriptData->clientConditions[client][condition];
 
 	if ( checkConversion ) {
 		// we may need to convert to a value
@@ -1987,12 +1902,11 @@ BG_GetAnimScriptAnimation
   returns the locomotion animation index, -1 if no animation was found, 0 otherwise
 ================
 */
-int BG_GetAnimScriptAnimation( int client, aistateEnum_t estate, scriptAnimMoveTypes_t movetype ) {
+int BG_GetAnimScriptAnimation( int client, aistateEnum_t state, scriptAnimMoveTypes_t movetype ) {
 	animModelInfo_t     *modelInfo;
 	animScript_t        *script;
 	animScriptItem_t    *scriptItem = NULL;
 	animScriptCommand_t *scriptCommand;
-	int state = estate;                                 // enums are not always signed
 
 	modelInfo = BG_ModelInfoForClient( client );
 
@@ -2084,7 +1998,11 @@ void BG_AnimUpdatePlayerStateConditions( pmove_t *pmove ) {
 	playerState_t *ps = pmove->ps;
 
 	// WEAPON
-	BG_UpdateConditionValue( ps->clientNum, ANIM_COND_WEAPON, ps->weapon, qtrue );
+	if ( ps->eFlags & EF_ZOOMING ) {
+		BG_UpdateConditionValue( ps->clientNum, ANIM_COND_WEAPON, WP_BINOCULARS, qtrue );
+	} else {
+		BG_UpdateConditionValue( ps->clientNum, ANIM_COND_WEAPON, ps->weapon, qtrue );
+	}
 
 	// MOUNTED
 	if ( ps->eFlags & EF_MG42_ACTIVE ) {
@@ -2095,15 +2013,6 @@ void BG_AnimUpdatePlayerStateConditions( pmove_t *pmove ) {
 
 	// UNDERHAND
 	BG_UpdateConditionValue( ps->clientNum, ANIM_COND_UNDERHAND, ps->viewangles[0] > 0, qtrue );
-
-	// LEANING
-	if ( ps->leanf > 0 ) {
-		BG_UpdateConditionValue( ps->clientNum, ANIM_COND_LEANING, LEANING_RIGHT, qtrue );
-	} else if ( ps->leanf < 0 ) {
-		BG_UpdateConditionValue( ps->clientNum, ANIM_COND_LEANING, LEANING_LEFT, qtrue );
-	} else {
-		BG_UpdateConditionValue( ps->clientNum, ANIM_COND_LEANING, LEANING_UNUSED, qtrue );
-	}
 
 	if ( ps->viewheight == ps->crouchViewHeight ) {
 		ps->eFlags |= EF_CROUCHING;
@@ -2117,40 +2026,3 @@ void BG_AnimUpdatePlayerStateConditions( pmove_t *pmove ) {
 		BG_UpdateConditionValue( ps->clientNum, ANIM_COND_FIRING, qfalse, qtrue );
 	}
 }
-
-/*
-===================
-BG_AnimGetFootstepGap
-===================
-*/
-float BG_AnimGetFootstepGap( playerState_t *ps, float xyspeed ) {
-	animModelInfo_t     *modelInfo;
-	int index;
-	animation_t     *anim;
-	float gap;
-#define MAX_ANIM_SCALE  1.1
-
-	modelInfo = BG_ModelInfoForClient( ps->clientNum );
-	index = ps->legsAnim & ~ANIM_TOGGLEBIT;
-	if ( index < 0 || index >= modelInfo->numAnimations ) {
-		Com_Error( ERR_DROP, "BG_AnimGetFootstepGap: anim index out of bounds" );
-	}
-
-	anim = &modelInfo->animations[index];
-
-	if ( !anim->moveSpeed ) {
-		// ACK, return -1, use old method
-		return -1;
-	}
-
-	gap = anim->stepGap;
-
-	// if they are travelling faster than the moveSpeed, then scale up the gap to counter, since the
-	// animation can't play faster than MAX_ANIM_SCALE speed
-	if ( xyspeed > anim->moveSpeed * MAX_ANIM_SCALE ) {
-		gap *= xyspeed / anim->moveSpeed * MAX_ANIM_SCALE;
-	}
-
-	return gap;
-}
-

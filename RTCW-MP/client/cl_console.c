@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -70,6 +70,9 @@ cvar_t      *con_conspeed;
 cvar_t      *con_autoclear;
 cvar_t      *con_notifytime;
 
+// DHM - Nerve :: Must hold CTRL + SHIFT + ~ to get console
+cvar_t      *con_restricted;
+
 #define DEFAULT_CONSOLE_WIDTH   78
 
 
@@ -81,6 +84,11 @@ Con_ToggleConsole_f
 void Con_ToggleConsole_f( void ) {
 	// Can't toggle the console when it's the only thing available
 	if ( clc.state == CA_DISCONNECTED && Key_GetCatcher( ) == KEYCATCH_CONSOLE ) {
+		CL_StartDemoLoop();
+		return;
+	}
+
+	if ( con_restricted->integer && ( !keys[K_CTRL].down || !keys[K_SHIFT].down ) ) {
 		return;
 	}
 
@@ -384,10 +392,11 @@ Con_Init
 void Con_Init( void ) {
 	int i;
 
-	con_notifytime = Cvar_Get( "con_notifytime", "3", 0 );
+	con_notifytime = Cvar_Get( "con_notifytime", "7", 0 ); // JPW NERVE increased per id req for obits
 	con_conspeed = Cvar_Get( "scr_conspeed", "3", 0 );
 	con_autoclear = Cvar_Get( "con_autoclear", "1", CVAR_ARCHIVE );
 	con_debug = Cvar_Get( "con_debug", "0", CVAR_ARCHIVE ); //----(SA)	added
+	con_restricted = Cvar_Get( "con_restricted", "0", CVAR_INIT );      // DHM - Nerve
 
 	Field_Clear( &g_consoleField );
 	g_consoleField.widthInChars = g_console_field_width;
@@ -434,12 +443,16 @@ void Con_Shutdown(void)
 Con_Linefeed
 ===============
 */
-void Con_Linefeed( void ) {
+void Con_Linefeed( qboolean skipnotify ) {
 	int i;
 
 	// mark time for transparent overlay
 	if ( con.current >= 0 ) {
-		con.times[con.current % NUM_CON_TIMES] = cls.realtime;
+		if ( skipnotify ) {
+			con.times[con.current % NUM_CON_TIMES] = 0;
+		} else {
+			con.times[con.current % NUM_CON_TIMES] = cls.realtime;
+		}
 	}
 
 	con.x = 0;
@@ -464,6 +477,14 @@ void CL_ConsolePrint( char *txt ) {
 	int	y, l;
 	unsigned char	c;
 	unsigned short	color;
+	qboolean skipnotify = qfalse;       // NERVE - SMF
+	int prev;                           // NERVE - SMF
+
+	// NERVE - SMF - work around for text that shows up in console but not in notify
+	if ( !Q_strncmp( txt, "[skipnotify]", 12 ) ) {
+		skipnotify = qtrue;
+		txt += 12;
+	}
 
 	// for some demos we don't want to ever show anything on the console
 	if ( cl_noprint && cl_noprint->integer ) {
@@ -499,7 +520,7 @@ void CL_ConsolePrint( char *txt ) {
 
 		// word wrap
 		if ( l != con.linewidth && ( con.x + l >= con.linewidth ) ) {
-			Con_Linefeed();
+			Con_Linefeed( skipnotify );
 
 		}
 
@@ -508,7 +529,7 @@ void CL_ConsolePrint( char *txt ) {
 		switch ( c )
 		{
 		case '\n':
-			Con_Linefeed();
+			Con_Linefeed( skipnotify );
 			break;
 		case '\r':
 			con.x = 0;
@@ -518,14 +539,24 @@ void CL_ConsolePrint( char *txt ) {
 			con.text[y * con.linewidth + con.x] = ( color << 8 ) | c;
 			con.x++;
 			if(con.x >= con.linewidth)
-				Con_Linefeed();
+				Con_Linefeed( skipnotify );
 			break;
 		}
 	}
 
 	// mark time for transparent overlay
 	if ( con.current >= 0 ) {
-		con.times[con.current % NUM_CON_TIMES] = cls.realtime;
+		// NERVE - SMF
+		if ( skipnotify ) {
+			prev = con.current % NUM_CON_TIMES - 1;
+			if ( prev < 0 ) {
+				prev = NUM_CON_TIMES - 1;
+			}
+			con.times[prev] = 0;
+		} else {
+			// -NERVE - SMF
+			con.times[con.current % NUM_CON_TIMES] = cls.realtime;
+		}
 	}
 }
 
@@ -578,6 +609,11 @@ void Con_DrawNotify( void ) {
 	int skip;
 	int currentColor;
 
+	// NERVE - SMF - we dont want draw notify in limbo mode
+	if ( Cvar_VariableIntegerValue( "ui_limboMode" ) ) {
+		return;
+	}
+
 	currentColor = 7;
 	re.SetColor( g_color_table[currentColor] );
 
@@ -624,12 +660,16 @@ void Con_DrawNotify( void ) {
 	// draw the chat line
 	if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE ) {
 		if ( chat_team ) {
-			SCR_DrawBigString (8, v, "say_team:", 1.0f, qfalse );
-			skip = 10;
+			char buf[128];
+			CL_TranslateString( "say_team:", buf );
+			SCR_DrawBigString( 8, v, buf, 1.0f, qfalse );
+			skip = strlen( buf ) + 2;
 		} else
 		{
-			SCR_DrawBigString (8, v, "say:", 1.0f, qfalse );
-			skip = 5;
+			char buf[128];
+			CL_TranslateString( "say:", buf );
+			SCR_DrawBigString( 8, v, buf, 1.0f, qfalse );
+			skip = strlen( buf ) + 1;
 		}
 
 		Field_BigDraw( &chatField, skip * BIGCHAR_WIDTH, v, SCREEN_WIDTH - ( skip + 1 ) * BIGCHAR_WIDTH, qtrue, qtrue );
@@ -771,52 +811,20 @@ void Con_DrawConsole( void ) {
 	Con_CheckResize();
 
 	// if disconnected, render console full screen
-	switch ( clc.state ) {
-	case CA_UNINITIALIZED:
-	case CA_CONNECTING:         // sending request packets to the server
-	case CA_CHALLENGING:        // sending challenge packets to the server
-	case CA_CONNECTED:          // netchan_t established, getting gamestate
-	case CA_PRIMED:             // got gamestate, waiting for first frame
-	case CA_LOADING:            // only during cgame initialization, never during main loop
-		if ( !con_debug->integer ) { // these are all 'no console at all' when con_debug is not set
-			return;
-		}
-
-		if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
-			return;
-		}
-
-		Con_DrawSolidConsole( 1.0 );
-		return;
-
-	case CA_DISCONNECTED:       // not talking to a server
-		if ( !( Key_GetCatcher( ) & KEYCATCH_UI ) ) {
+	if ( clc.state == CA_DISCONNECTED ) {
+		if ( !( Key_GetCatcher( ) & (KEYCATCH_UI | KEYCATCH_CGAME)) ) {
 			Con_DrawSolidConsole( 1.0 );
 			return;
 		}
-		break;
-
-	case CA_ACTIVE:             // game views should be displayed
-		if ( con.displayFrac ) {
-			if ( con_debug->integer == 2 ) {    // 2 means draw full screen console at '~'
-//					Con_DrawSolidConsole( 1.0f );
-				Con_DrawSolidConsole( con.displayFrac * 2.0f );
-				return;
-			}
-		}
-
-		break;
-
-
-	case CA_CINEMATIC:          // playing a cinematic or a static pic, not connected to a server
-	default:
-		break;
 	}
 
 	if ( con.displayFrac ) {
 		Con_DrawSolidConsole( con.displayFrac );
 	} else {
-		Con_DrawNotify();       // draw notify lines
+		// draw notify lines
+		if ( clc.state == CA_ACTIVE ) {
+			Con_DrawNotify();
+		}
 	}
 }
 

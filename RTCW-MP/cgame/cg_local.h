@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -71,7 +71,7 @@ If you have questions concerning this license or the applicable additional terms
 #define MAX_STEP_CHANGE     32
 
 #define MAX_VERTS_ON_POLY   10
-#define MAX_MARK_POLYS      1024
+#define MAX_MARK_POLYS      256 // JPW NERVE was 1024
 
 #define STAT_MINUS          10  // num frame for '-' stats digit
 
@@ -82,6 +82,9 @@ If you have questions concerning this license or the applicable additional terms
 
 #define TEAMCHAT_WIDTH      80
 #define TEAMCHAT_HEIGHT     8
+
+#define NOTIFY_WIDTH        80
+#define NOTIFY_HEIGHT       5
 
 // very large characters
 #define GIANT_WIDTH         32
@@ -103,9 +106,9 @@ If you have questions concerning this license or the applicable additional terms
 
 // NERVE - SMF - limbo mode 3d view position
 #define LIMBO_3D_X  10
-#define LIMBO_3D_Y  120
+#define LIMBO_3D_Y  158
 #define LIMBO_3D_W  420
-#define LIMBO_3D_H  330
+#define LIMBO_3D_H  312
 // -NERVE - SMF
 
 //=================================================
@@ -145,16 +148,15 @@ typedef struct {
 	headAnimation_t *headAnim;
 	// done.
 
-	animation_t *cgAnim;    // pointer to the root of the animation array to use (*animation above points at the current sequence)	//----(SA)	added
 } lerpFrame_t;
 
 // Ridah, effect defines
-#define MAX_ZOMBIE_SPIRITS          4
-#define MAX_ZOMBIE_DEATH_TRAILS     16
+#define MAX_ZOMBIE_SPIRITS          1 // JPW NERVE was 4
+#define MAX_ZOMBIE_DEATH_TRAILS     1 // JPW NERVE was 16
 
-#define MAX_LOPER_LIGHTNING_POINTS  24
+#define MAX_LOPER_LIGHTNING_POINTS  1 // JPW NERVE was 24
 
-#define MAX_TESLA_BOLTS             4
+#define MAX_TESLA_BOLTS             1 // JPW NERVE was 4
 
 #define MAX_EFFECT_ENTS             20
 
@@ -166,8 +168,6 @@ typedef struct {
 	// done.
 
 	lerpFrame_t weap;       //----(SA)	autonomous weapon animations
-
-	int lastTime;                   // last time we were processed/ If the time goes backwards, reset.
 
 	int painTime;
 	int painDuration;
@@ -337,6 +337,9 @@ typedef struct centity_s {
 	refEntity_t refEnt;
 	int processedFrame;                 // frame we were last added to the scene
 
+	int voiceChatSprite;                    // DHM - Nerve
+	int voiceChatSpriteTime;                // DHM - Nerve
+
 	// client-side lightning
 	int boltTimes[MAX_TESLA_BOLTS];
 	vec3_t boltLocs[MAX_TESLA_BOLTS];
@@ -346,11 +349,6 @@ typedef struct centity_s {
 
 	int highlightTime;
 	qboolean highlighted;
-
-	animation_t centAnim[2];
-
-	// (SA) added to help akimbo effects attach to the correct model
-	qboolean akimboFire;
 } centity_t;
 
 
@@ -405,11 +403,9 @@ typedef enum {
 	LE_BLOOD,
 	LE_FUSE_SPARK,
 	LE_ZOMBIE_SPIRIT,
-	LE_HELGA_SPIRIT,
 	LE_ZOMBIE_BAT,
 	LE_MOVING_TRACER,
-	LE_EMITTER,
-	LE_SPIRIT_VIEWFLASH
+	LE_EMITTER
 } leType_t;
 
 typedef enum {
@@ -417,8 +413,6 @@ typedef enum {
 	,LEF_TUMBLE          = 0x0002           // tumble over time, used for ejecting shells
 	,LEF_NOFADEALPHA     = 0x0004           // Ridah, sparks
 	,LEF_SMOKING         = 0x0008           // (SA) smoking
-	,LEF_NOTOUCHPARENT   = 0x0010           // (SA) when tracing to eval trajectory, ignore parent cent
-	,LEF_PLAYER_DAMAGE   = 0x0020           // hurt the player on impact
 } leFlag_t;
 
 typedef enum {
@@ -434,8 +428,6 @@ typedef enum {
 	LEBS_BRASS,
 	LEBS_BONE
 } leBounceSoundType_t;  // fragment local entities can make sounds on impacts
-
-#define MAX_OLD_POS     3
 
 typedef struct localEntity_s {
 	struct localEntity_s    *prev, *next;
@@ -480,10 +472,6 @@ typedef struct localEntity_s {
 
 	int breakCount;                     // break-up this many times before we can break no more
 	float sizeScale;
-
-	char validOldPos[MAX_OLD_POS];
-	vec3_t oldPos[MAX_OLD_POS];
-	int oldPosHead;
 	// done.
 
 } localEntity_t;
@@ -507,6 +495,8 @@ typedef struct {
 	int captures;
 	qboolean perfect;
 	int team;
+	int playerClass;                    // NERVE - SMF
+	int respawnsLeft;                   // NERVE - SMF
 } score_t;
 
 
@@ -585,8 +575,7 @@ typedef struct {
 	qhandle_t accSkins[ACC_MAX];        // FIXME: put the #define for number of accessory models somewhere. (SA)
 
 	//----(SA)	additional parts for specialized characters (the loper's spinning trunk for example)
-	qhandle_t partModels[9];        // [0-7] are optionally called in scripts, [8] is reserved for internal use
-	qhandle_t partSkins[9];
+	qhandle_t partModels[1];        // expand to [2], [3], etc as necessary
 	//----(SA)	end
 
 	qhandle_t headModel;
@@ -604,6 +593,11 @@ typedef struct {
 	vec3_t playermodelScale;            //----(SA)	set in the skin.  client-side only
 
 	int blinkTime;              //----(SA)
+
+	// NERVE - SMF
+	char headModelName[MAX_QPATH];
+	gender_t gender;                // from model
+	// -NERVE - SMF
 } clientInfo_t;
 
 
@@ -645,7 +639,7 @@ typedef struct weaponInfo_s {
 
 //----(SA) mod for 1st/3rd person weap views
 	qhandle_t weaponModel[W_NUM_TYPES];
-	qhandle_t wpPartModels[W_NUM_TYPES][W_MAX_PARTS];
+	qhandle_t partModels[W_NUM_TYPES][W_MAX_PARTS];
 	qhandle_t flashModel[W_NUM_TYPES];
 	qhandle_t modModel[W_NUM_TYPES];        // like the scope for the rifles
 //----(SA) end
@@ -659,8 +653,6 @@ typedef struct weaponInfo_s {
 	sfxHandle_t flashSound[4];          // fast firing weapons randomly choose
 	sfxHandle_t flashEchoSound[4];      //----(SA)	added - distant gun firing sound
 	sfxHandle_t lastShotSound[4];       // sound of the last shot can be different (mauser doesn't have bolt action on last shot for example)
-
-	sfxHandle_t switchSound[4];     //----(SA)	added
 
 	qhandle_t weaponIcon[2];            //----(SA)	[0] is weap icon, [1] is highlight icon
 	qhandle_t ammoIcon;
@@ -709,21 +701,15 @@ typedef struct {
 	float damageX, damageY, damageValue;
 } viewDamage_t;
 
-#define MAX_CAMERA_SHAKE    4
-typedef struct {
-	int time;
-	float scale;
-	float length;
-	float radius;
-	vec3_t src;
-} cameraShake_t;
-
 //======================================================================
 
 // all cg.stepTime, cg.duckTime, cg.landTime, etc are set to cg.time when the action
 // occurs, and they will have visible effects for #define STEP_TIME or whatever msec after
 
 #define MAX_PREDICTED_EVENTS    16
+
+#define MAX_SPAWN_VARS          64
+#define MAX_SPAWN_VARS_CHARS    2048
 
 typedef struct {
 	int clientFrame;                // incremented each frame
@@ -818,6 +804,7 @@ typedef struct {
 	int numScores;
 	int selectedScore;
 	int teamScores[2];
+	int teamPlayers[TEAM_NUM_TEAMS];         // JPW NERVE for scoreboard
 	score_t scores[MAX_CLIENTS];
 	qboolean showScores;
 	qboolean scoreBoardShowing;
@@ -843,32 +830,13 @@ typedef struct {
 	int centerPrintY;
 	char centerPrint[1024];
 	int centerPrintLines;
+	int centerPrintPriority;                    // NERVE - SMF
 
 	// fade in/out
 	int fadeTime;
 	float fadeRate;
 	vec4_t fadeColor1;
 	vec4_t fadeColor2;
-
-//----(SA)	added
-	// game stats
-	int exitStatsTime;
-	int exitStatsFade;
-	// just a copy of what's on the server, updated by configstring.  better way to communicate/store this I'm sure
-	int playTimeH;
-	int playTimeM;
-	int playTimeS;
-	int attempts;
-	int numObjectives;
-	int numObjectivesFound;
-	int numSecrets;
-	int numSecretsFound;
-	int numTreasure;
-	int numTreasureFound;
-	int numArtifacts;
-	int numArtifactsFound;
-//----(SA)	end
-
 
 	// low ammo warning state
 	int lowAmmoWarning;             // 1 = low, 2 = empty
@@ -879,6 +847,11 @@ typedef struct {
 
 	int crosshairPowerupNum;
 	int crosshairPowerupTime;
+
+	int identifyClientNum;                  // NERVE - SMF
+	int identifyClientHealth;               // NERVE - SMF
+	int identifyNextTime;                   // NERVE - SMF
+	int identifyClientRequest;              // NERVE - SMF
 
 //----(SA)	added
 	// cursorhints
@@ -905,9 +878,6 @@ typedef struct {
 	int warmup;
 	int warmupCount;
 
-	// message icon popup time	//----(SA)	added
-	int yougotmailTime;
-
 	//==========================
 
 	int itemPickup;
@@ -925,7 +895,6 @@ typedef struct {
 	float damageTime;           // last time any kind of damage was recieved
 	int damageIndex;            // slot that was filled in
 	float damageX, damageY, damageValue;
-	float viewFade;
 
 	int grenLastTime;
 
@@ -977,7 +946,6 @@ typedef struct {
 	qboolean cameraMode;        // if rendering from a camera
 	// Duffy end
 
-	unsigned int cld;
 	qboolean limboMenu;
 
 	int oidTeam;
@@ -987,11 +955,36 @@ typedef struct {
 	char oidPrint[1024];
 	int oidPrintLines;
 
-	cameraShake_t cameraShake[MAX_CAMERA_SHAKE];
-	float cameraShakePhase;
-	vec3_t cameraShakeAngles;
+	// for voice chat buffer
+	int voiceChatTime;
+	int voiceChatBufferIn;
+	int voiceChatBufferOut;
 
-	float rumbleScale;          //RUMBLE FX using new shakeCamera code
+	int newCrosshairIndex;
+	qhandle_t crosshairShaderAlt[NUM_CROSSHAIRS];
+
+	int cameraShakeTime;
+	float cameraShakePhase;
+	float cameraShakeScale;
+	float cameraShakeLength;
+
+	qboolean latchVictorySound;
+	// -NERVE - SMF
+
+	// spawn variables
+	qboolean spawning;                  // the CG_Spawn*() functions are valid
+	int numSpawnVars;
+	char        *spawnVars[MAX_SPAWN_VARS][2];  // key / value pairs
+	int numSpawnVarChars;
+	char spawnVarChars[MAX_SPAWN_VARS_CHARS];
+
+	// Arnout: allow overriding of countdown sounds
+	char twoMinuteSound_g[MAX_QPATH];
+	char twoMinuteSound_a[MAX_QPATH];
+	char thirtySecondSound_g[MAX_QPATH];
+	char thirtySecondSound_a[MAX_QPATH];
+
+	pmoveExt_t pmext;
 
 } cg_t;
 
@@ -1017,6 +1010,14 @@ typedef struct {
 
 	qhandle_t armorModel;
 
+// JPW NERVE
+	qhandle_t hudSprintBar;
+	qhandle_t hudPowerBar;
+	qhandle_t hudAxisHelmet;
+	qhandle_t hudAlliedHelmet;
+	qhandle_t redColorBar;
+	qhandle_t blueColorBar;
+// jpw
 	qhandle_t teamStatusBar;
 
 	qhandle_t deferShader;
@@ -1056,7 +1057,11 @@ typedef struct {
 
 	qhandle_t friendShader;
 
-//	qhandle_t medicReviveShader;	//----(SA)	commented out from MP
+	qhandle_t spawnInvincibleShader;
+	qhandle_t scoreEliminatedShader;
+
+	qhandle_t voiceChatShader;
+	qhandle_t medicReviveShader;
 	qhandle_t balloonShader;
 	qhandle_t connectionShader;
 
@@ -1066,19 +1071,26 @@ typedef struct {
 	qhandle_t viewBloodShader;
 	qhandle_t tracerShader;
 	qhandle_t crosshairShader[NUM_CROSSHAIRS];
-	qhandle_t crosshairFriendly;    //----(SA)	added
 	qhandle_t lagometerShader;
 	qhandle_t backTileShader;
 	qhandle_t noammoShader;
 
 	qhandle_t reticleShader;
-//	qhandle_t reticleShaderSimple;
-	qhandle_t reticleShaderSimpleQ;
-//	qhandle_t snooperShader;
+	qhandle_t reticleShaderSimple;
+	qhandle_t snooperShader;
 	qhandle_t snooperShaderSimple;
-//	qhandle_t binocShaderSimple;
-	qhandle_t binocShaderSimpleQ;   // same as above, but quartered.  (trying to save texture space)
-
+	qhandle_t binocShader;
+	qhandle_t binocShaderSimple;
+// JPW NERVE
+	qhandle_t fleshSmokePuffShader;   // JPW NERVE for bullet hit flesh smoke puffs
+	qhandle_t nerveTestShader;
+	qhandle_t idTestShader;
+	qhandle_t hud1Shader;
+	qhandle_t hud2Shader;
+	qhandle_t hud3Shader;
+	qhandle_t hud4Shader;
+	qhandle_t hud5Shader;
+// jpw
 	qhandle_t smokePuffShader;
 	qhandle_t smokePuffRageProShader;
 	qhandle_t shotgunSmokePuffShader;
@@ -1089,10 +1101,47 @@ typedef struct {
 
 	//----(SA)	cursor hints
 	// would be nice to specify these in the menu scripts instead of permanent handles...
-	qhandle_t hintShaders[HINT_NUM_HINTS];
+	qhandle_t usableHintShader;
+	qhandle_t notUsableHintShader;
+	qhandle_t doorHintShader;
+	qhandle_t doorRotateHintShader;
+	qhandle_t doorLockHintShader;
+	qhandle_t doorRotateLockHintShader;
+	qhandle_t mg42HintShader;
+	qhandle_t breakableHintShader;
+	qhandle_t chairHintShader;
+	qhandle_t alarmHintShader;
+	qhandle_t healthHintShader;
+	qhandle_t treasureHintShader;
+	qhandle_t knifeHintShader;
+	qhandle_t ladderHintShader;
+	qhandle_t buttonHintShader;
+	qhandle_t waterHintShader;
+	qhandle_t cautionHintShader;
+	qhandle_t dangerHintShader;
+	qhandle_t secretHintShader;
+	qhandle_t qeustionHintShader;
+	qhandle_t exclamationHintShader;
+	qhandle_t clipboardHintShader;
+	qhandle_t weaponHintShader;
+	qhandle_t ammoHintShader;
+	qhandle_t armorHintShader;
+	qhandle_t powerupHintShader;
+	qhandle_t holdableHintShader;
+	qhandle_t inventoryHintShader;
+	qhandle_t exitHintShader;
 
-	qhandle_t youGotMailShader;         // '!' - new entry in notebook
-	qhandle_t youGotObjectiveShader;    // '<checkmark> - you completed objective
+	qhandle_t hintPlrFriendShader;
+	qhandle_t hintPlrNeutralShader;
+	qhandle_t hintPlrEnemyShader;
+	qhandle_t hintPlrUnknownShader;
+
+	// DHM - Nerve :: Multiplayer hints
+	qhandle_t buildHintShader;
+	qhandle_t disarmHintShader;
+	qhandle_t reviveHintShader;
+	qhandle_t dynamiteHintShader;
+	// dhm - end
 //----(SA)	end
 
 	// Rafael
@@ -1194,11 +1243,9 @@ typedef struct {
 	qhandle_t waterSplashShader;
 
 	qhandle_t thirdPersonBinocModel;    //----(SA)	added
-	qhandle_t cigModel;     //----(SA)	added
 
 	qhandle_t batModel;
 	qhandle_t spiritSkullModel;
-	qhandle_t helgaGhostModel;
 
 	// weapon effect shaders
 	qhandle_t railExplosionShader;
@@ -1225,7 +1272,7 @@ typedef struct {
 	qhandle_t smokeTrailShader;
 	qhandle_t fireTrailShader;
 	qhandle_t lightningBoltShader;
-	qhandle_t lightningBoltShaderGreen;
+	qhandle_t lightningBoss1Shader;
 	qhandle_t flamethrowerFireStream;
 	qhandle_t flamethrowerBlueStream;
 	qhandle_t flamethrowerFuelStream;
@@ -1237,10 +1284,6 @@ typedef struct {
 	qhandle_t funnelFireShader[NUM_FUNNEL_SPRITES];
 	qhandle_t spotLightShader;
 	qhandle_t spotLightBeamShader;
-	qhandle_t spotLightBaseModel;       //----(SA)	added
-	qhandle_t spotLightLightModel;      //----(SA)	added
-	qhandle_t spotLightLightModelBroke;     //----(SA)	added
-
 	qhandle_t lightningHitWallShader;
 	qhandle_t lightningWaveShader;
 	qhandle_t bulletParticleTrailShader;
@@ -1257,11 +1300,6 @@ typedef struct {
 	qhandle_t zombieDeathDustShader;
 	qhandle_t zombieBodyFadeShader;
 	qhandle_t zombieHeadFadeShader;
-
-	qhandle_t helgaSpiritSkullShader;
-	qhandle_t helgaSpiritTrailShader;
-
-	qhandle_t ssSpiritSkullModel;
 
 	qhandle_t skeletonSkinShader;
 	qhandle_t skeletonLegsModel;
@@ -1309,6 +1347,7 @@ typedef struct {
 	sfxHandle_t sfx_ric3;
 	//sfxHandle_t sfx_railg;
 	sfxHandle_t sfx_rockexp;
+	sfxHandle_t sfx_rockexpDist; // JPW NERVE
 	sfxHandle_t sfx_dynamiteexp;
 	sfxHandle_t sfx_dynamiteexpDist;    //----(SA)	added
 	sfxHandle_t sfx_spearhit;
@@ -1331,9 +1370,12 @@ typedef struct {
 	sfxHandle_t fallSound;
 	sfxHandle_t jumpPadSound;
 
-	sfxHandle_t oneMinuteSound;
-	sfxHandle_t fiveMinuteSound;
-	sfxHandle_t suddenDeathSound;
+//	sfxHandle_t oneMinuteSound;
+//	sfxHandle_t fiveMinuteSound;
+//	sfxHandle_t suddenDeathSound;
+
+	sfxHandle_t twoMinuteSound_g, twoMinuteSound_a;
+	sfxHandle_t thirtySecondSound_g, thirtySecondSound_a;
 
 	sfxHandle_t threeFragSound;
 	sfxHandle_t twoFragSound;
@@ -1358,8 +1400,6 @@ typedef struct {
 	sfxHandle_t underWaterSound;
 	sfxHandle_t medkitSound;
 	sfxHandle_t wineSound;
-	sfxHandle_t bookSound;      //----(SA)	added
-	sfxHandle_t staminaSound;   //----(SA)	added
 	sfxHandle_t elecSound;
 	sfxHandle_t fireSound;
 	sfxHandle_t waterSound;
@@ -1407,17 +1447,6 @@ typedef struct {
 	sfxHandle_t zombieSpiritLoopSound;
 	sfxHandle_t zombieDeathSound;
 
-	sfxHandle_t helgaSpiritLoopSound;
-	sfxHandle_t helgaSpiritSound;
-	sfxHandle_t helgaGaspSound;
-
-	sfxHandle_t heinrichArmorBreak; //----(SA)
-	sfxHandle_t protoArmorBreak;    //----(SA)
-	sfxHandle_t superArmorBreak;    //----(SA)
-
-
-	sfxHandle_t debrisHitSound;
-
 	sfxHandle_t loperLightningSounds[3];
 	sfxHandle_t loperLightningZap;
 
@@ -1425,9 +1454,8 @@ typedef struct {
 
 	sfxHandle_t batsFlyingLoopSound;
 
-//	sfxHandle_t grenadebounce1;
-//	sfxHandle_t grenadebounce2;
-	sfxHandle_t grenadebounce[GRENBOUNCE_TOTAL][2]; //----(SA)	modified
+	sfxHandle_t grenadebounce1;
+	sfxHandle_t grenadebounce2;
 
 	sfxHandle_t dynamitebounce1;    //----(SA)	added
 
@@ -1439,7 +1467,6 @@ typedef struct {
 	sfxHandle_t fkickmiss;
 
 	int bulletHitFleshScript;
-	int bulletHitFleshMetalScript;
 
 	int teslaZapScript;
 	sfxHandle_t teslaLoopSound;
@@ -1450,58 +1477,6 @@ typedef struct {
 	qhandle_t sizeCursor;
 
 } cgMedia_t;
-
-
-//
-// SOUND SCRIPTING
-//
-
-typedef struct soundScriptSound_s
-{
-	char filename[MAX_QPATH];
-	sfxHandle_t sfxHandle;
-	int lastPlayed;
-
-	struct soundScriptSound_s   *next;
-} soundScriptSound_t;
-
-
-#define MAX_SOUND_SCRIPT_SOUNDS 8192
-extern soundScriptSound_t soundScriptSounds[MAX_SOUND_SCRIPT_SOUNDS];
-//DAJ defined in cg_sound.c int	numSoundScriptSounds;
-
-
-typedef struct soundScript_s
-{
-	int index;
-	char name[MAX_QPATH];
-	int channel;
-	int attenuation;
-	qboolean streaming;
-	qboolean looping;
-	float shakeScale;
-	float shakeRadius;
-	int shakeDuration;
-	qboolean random;    // TODO
-	int numSounds;
-	soundScriptSound_t  *soundList;         // pointer into the global list of soundScriptSounds (defined below)
-
-	struct soundScript_s    *nextHash;      // next soundScript in our hashTable list position
-} soundScript_t;
-
-// we have to define these static lists, since we can't alloc memory within the cgame
-
-#define FILE_HASH_SIZE          1024
-extern soundScript_t*      hashTable[FILE_HASH_SIZE];
-
-#define MAX_SOUND_SCRIPTS       4096
-extern soundScript_t soundScripts[MAX_SOUND_SCRIPTS];
-//DAJ defined in cg_sound.c int	numSoundScripts;
-
-extern soundScript_t soundScripts[MAX_SOUND_SCRIPTS];
-
-
-
 
 
 // The client game static (cgs) structure hold everything
@@ -1525,6 +1500,7 @@ typedef struct {
 
 	// parsed from serverinfo
 	gametype_t gametype;
+	int antilag;
 
 	// Rafael gameskill
 	gameskill_t gameskill;
@@ -1534,7 +1510,7 @@ typedef struct {
 	int teamflags;
 	int fraglimit;
 	int capturelimit;
-	int timelimit;
+	float timelimit;                        // NERVE - SMF - made this a float
 	int maxclients;
 	char mapname[MAX_QPATH];
 	char redTeam[MAX_QPATH];                // A team
@@ -1561,7 +1537,6 @@ typedef struct {
 	//
 	qhandle_t gameModels[MAX_MODELS];
 	sfxHandle_t gameSounds[MAX_SOUNDS];
-	int gameSoundTypes[MAX_SOUNDS];             //----(SA)	added
 
 	int numInlineModels;
 	qhandle_t inlineDrawModel[MAX_MODELS];
@@ -1575,7 +1550,11 @@ typedef struct {
 	int teamChatPos;
 	int teamLastChatPos;
 
-	char itemPrintNames[MAX_ITEMS][32];             //----(SA)	added
+	// New notify mechanism for obits
+	char notifyMsgs[NOTIFY_HEIGHT][NOTIFY_WIDTH * 3 + 1];
+	int notifyMsgTimes[NOTIFY_HEIGHT];
+	int notifyPos;
+	int notifyLastPos;
 
 	int cursorX;
 	int cursorY;
@@ -1586,10 +1565,9 @@ typedef struct {
 	qhandle_t activeCursor;
 
 	// screen fading
-	//----(SA)	modified just in name so global searching is easier to narrow down (added 'scrF')
-	float scrFadeAlpha, scrFadeAlphaCurrent;
-	int scrFadeStartTime;
-	int scrFadeDuration;
+	float fadeAlpha, fadeAlphaCurrent;
+	int fadeStartTime;
+	int fadeDuration;
 
 	// media
 	cgMedia_t media;
@@ -1597,6 +1575,17 @@ typedef struct {
 	// player/AI model scripting (client repository)
 	animScriptData_t animScriptData;
 
+	// NERVE - SMF
+	int currentVoiceClient;
+	int currentRound;
+	float nextTimeLimit;
+	int minclients;
+	gamestate_t gamestate;
+	// -NERVE - SMF
+
+	int complaintClient;        // DHM - Nerve
+	int complaintEndTime;       // DHM - Nerve
+	float smokeWindDir; // JPW NERVE for smoke puffs & wind (arty, airstrikes, bullet impacts)
 } cgs_t;
 
 //==============================================================================
@@ -1622,13 +1611,10 @@ extern vmCvar_t cg_drawFPS;
 extern vmCvar_t cg_drawSnapshot;
 extern vmCvar_t cg_draw3dIcons;
 extern vmCvar_t cg_drawIcons;
-extern vmCvar_t cg_youGotMail;          //----(SA)	added
 extern vmCvar_t cg_drawAmmoWarning;
 extern vmCvar_t cg_drawCrosshair;
-extern vmCvar_t cg_drawCrosshairBinoc;
 extern vmCvar_t cg_drawCrosshairNames;
 extern vmCvar_t cg_drawCrosshairPickups;
-extern vmCvar_t cg_drawCrosshairReticle;
 extern vmCvar_t cg_hudAlpha;
 extern vmCvar_t cg_useWeapsForZoom;
 extern vmCvar_t cg_weaponCycleDelay;            //----(SA)	added
@@ -1636,10 +1622,10 @@ extern vmCvar_t cg_cycleAllWeaps;
 extern vmCvar_t cg_drawAllWeaps;
 extern vmCvar_t cg_drawRewards;
 extern vmCvar_t cg_drawTeamOverlay;
+extern vmCvar_t cg_uselessNostalgia;         // JPW NERVE
 extern vmCvar_t cg_crosshairX;
 extern vmCvar_t cg_crosshairY;
 extern vmCvar_t cg_crosshairSize;
-extern vmCvar_t cg_crosshairAlpha;          //----(SA)	added
 extern vmCvar_t cg_crosshairHealth;
 extern vmCvar_t cg_drawStatus;
 extern vmCvar_t cg_draw2D;
@@ -1665,7 +1651,6 @@ extern vmCvar_t cg_drawGun;
 extern vmCvar_t cg_drawFPGun;
 extern vmCvar_t cg_drawGamemodels;
 extern vmCvar_t cg_cursorHints;
-extern vmCvar_t cg_hintFadeTime;            //----(SA)	added
 extern vmCvar_t cg_viewsize;
 extern vmCvar_t cg_letterbox;           //----(SA)	added
 extern vmCvar_t cg_tracerChance;
@@ -1678,8 +1663,6 @@ extern vmCvar_t cg_simpleItems;
 extern vmCvar_t cg_fov;
 extern vmCvar_t cg_fixedAspect;
 extern vmCvar_t cg_fixedAspectFOV;
-extern vmCvar_t cg_oldWolfUI;
-extern vmCvar_t cg_drawStatusHead;
 extern vmCvar_t cg_zoomFov;
 extern vmCvar_t cg_zoomDefaultBinoc;
 extern vmCvar_t cg_zoomDefaultSniper;
@@ -1690,6 +1673,7 @@ extern vmCvar_t cg_zoomStepSniper;
 extern vmCvar_t cg_zoomStepSnooper;
 extern vmCvar_t cg_zoomStepFG;
 extern vmCvar_t cg_reticles;
+extern vmCvar_t cg_reticleType;
 extern vmCvar_t cg_reticleBrightness;
 extern vmCvar_t cg_thirdPersonRange;
 extern vmCvar_t cg_thirdPersonAngle;
@@ -1709,12 +1693,11 @@ extern vmCvar_t cg_blood;
 extern vmCvar_t cg_predictItems;
 extern vmCvar_t cg_deferPlayers;
 extern vmCvar_t cg_teamChatsOnly;
+extern vmCvar_t cg_noVoiceChats;                    // NERVE - SMF
+extern vmCvar_t cg_noVoiceText;                     // NERVE - SMF
 extern vmCvar_t cg_enableBreath;
 extern vmCvar_t cg_autoactivate;
 extern vmCvar_t cg_emptyswitch;
-extern vmCvar_t cg_useSuggestedWeapons;         //----(SA)	added
-extern vmCvar_t cg_particleDist;
-extern vmCvar_t cg_particleLOD;
 extern vmCvar_t cg_smoothClients;
 extern vmCvar_t pmove_fixed;
 extern vmCvar_t pmove_msec;
@@ -1727,6 +1710,8 @@ extern vmCvar_t cg_timescale;
 extern vmCvar_t cg_cameraMode;
 extern vmCvar_t cg_smallFont;
 extern vmCvar_t cg_bigFont;
+extern vmCvar_t cg_noTaunt;             // NERVE - SMF
+extern vmCvar_t cg_voiceSpriteTime;             // DHM - Nerve
 
 extern vmCvar_t cg_blinktime;           //----(SA)	added
 
@@ -1746,8 +1731,6 @@ extern vmCvar_t cg_skybox;
 // Rafael gameskill
 extern vmCvar_t cg_gameSkill;
 // done
-
-extern vmCvar_t cg_reloading;           //----(SA)	added
 
 // JPW NERVE
 extern vmCvar_t cg_medicChargeTime;
@@ -1771,16 +1754,24 @@ extern vmCvar_t cg_animState;
 extern vmCvar_t cg_missionStats;
 extern vmCvar_t cg_waitForFire;
 
-extern vmCvar_t cg_loadWeaponSelect;
-
 // NERVE - SMF - Wolf multiplayer configuration cvars
 extern vmCvar_t mp_playerType;
+extern vmCvar_t mp_currentPlayerType;
+extern vmCvar_t mp_team;
+extern vmCvar_t mp_currentTeam;
 extern vmCvar_t mp_weapon;
 extern vmCvar_t mp_item1;
-extern vmCvar_t mp_item2;
-extern vmCvar_t mp_mapDesc;
-extern vmCvar_t mp_mapTitle;
+
+extern vmCvar_t cg_drawCompass;
+extern vmCvar_t cg_drawNotifyText;
+extern vmCvar_t cg_quickMessageAlt;
+extern vmCvar_t cg_popupLimboMenu;
+extern vmCvar_t cg_descriptiveText;
 // -NERVE - SMF
+
+// TTimo
+extern vmCvar_t cg_autoReload;
+extern vmCvar_t cg_antilag;
 
 //
 // cg_main.c
@@ -1788,11 +1779,12 @@ extern vmCvar_t mp_mapTitle;
 const char *CG_ConfigString( int index );
 const char *CG_Argv( int arg );
 
+float CG_Cvar_Get( const char *cvar );
+
 void QDECL CG_Printf( const char *msg, ... ) __attribute__ ((format (printf, 1, 2)));
 void QDECL CG_Error( const char *msg, ... ) __attribute__ ((noreturn, format (printf, 1, 2)));
 
 void CG_StartMusic( void );
-void CG_QueueMusic( void ); //----(SA)	added
 
 void CG_UpdateCvars( void );
 
@@ -1805,6 +1797,8 @@ void CG_EventHandling( int type );
 
 qboolean CG_GetTag( int clientNum, char *tagname, orientation_t * or );
 qboolean CG_GetWeaponTag( int clientNum, char *tagname, orientation_t * or );
+
+qboolean CG_CheckCenterView( void );
 
 //
 // cg_view.c
@@ -1832,8 +1826,10 @@ void CG_SetScreenPlacement(screenPlacement_e hpos, screenPlacement_e vpos);
 void CG_AdjustFrom640( float *x, float *y, float *w, float *h );
 void CG_FillRect( float x, float y, float width, float height, const float *color );
 void CG_HorizontalPercentBar( float x, float y, float width, float height, float percent );
+void CG_DrawMotd( void );
 void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
-void CG_FilledBar( float x, float y, float w, float h, const float *startColorIn, float *endColor, const float *bgColor, float frac, int flags );
+void CG_DrawRotatedPic( float x, float y, float width, float height, qhandle_t hShader, float angle );      // NERVE - SMF
+void CG_FilledBar( float x, float y, float w, float h, float *startColor, float *endColor, const float *bgColor, float frac, int flags );
 // JOSEPH 10-26-99
 void CG_DrawStretchPic( float x, float y, float width, float height, qhandle_t hShader );
 // END JOSEPH
@@ -1863,6 +1859,8 @@ void CG_TileClear( void );
 void CG_ColorForHealth( vec4_t hcolor );
 void CG_GetColorForHealth( int health, int armor, vec4_t hcolor );
 
+float UI_ProportionalSizeScale( int style );
+int UI_ProportionalStringWidth( const char* str );
 void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t color );
 
 // new hud stuff
@@ -1870,7 +1868,12 @@ void CG_DrawRect( float x, float y, float width, float height, float size, const
 void CG_DrawSides( float x, float y, float w, float h, float size );
 void CG_DrawTopBottom( float x, float y, float w, float h, float size );
 
-
+// NERVE - SMF - localization functions
+void CG_InitTranslation( void );
+char* CG_TranslateString( const char *string );
+void CG_SaveTransTable( void );
+void CG_ReloadTranslation( void );
+// -NERVE - SMF
 
 //
 // cg_draw.c, cg_newDraw.c
@@ -1881,20 +1884,22 @@ extern int drawTeamOverlayModificationCount;
 extern char systemChat[256];
 extern char teamChat1[256];
 extern char teamChat2[256];
+extern char cg_fxflags;  // JPW NERVE
 
 void CG_AddLagometerFrameInfo( void );
 void CG_AddLagometerSnapshotInfo( snapshot_t *snap );
 void CG_CenterPrint( const char *str, int y, int charWidth );
-void CG_ObjectivePrint( const char *str, int charWidth, int team );     // NERVE - SMF
+void CG_PriorityCenterPrint( const char *str, int y, int charWidth, int priority );     // NERVE - SMF
+void CG_ObjectivePrint( const char *str, int charWidth );                       // NERVE - SMF
 void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t headAngles );
 void CG_DrawActive( stereoFrame_t stereoView );
 void CG_DrawFlagModel( float x, float y, float w, float h, int team );
 
 void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team );
-void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, int font, float scale, vec4_t color, qhandle_t shader, int textStyle );
-void CG_Text_Paint( float x, float y, int font, float scale, vec4_t color, const char *text, float adjust, int limit, int style );    //----(SA)	modified
-int CG_Text_Width( const char *text, int font, float scale, int limit );
-int CG_Text_Height( const char *text, int font, float scale, int limit );
+void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle );
+void CG_Text_Paint( float x, float y, float scale, vec4_t color, const char *text, float adjust, int limit, int style );
+int CG_Text_Width( const char *text, float scale, int limit );
+int CG_Text_Height( const char *text, float scale, int limit );
 void CG_SelectPrevPlayer( void );
 void CG_SelectNextPlayer( void );
 float CG_GetValue( int ownerDraw, int type ); // 'type' is relative or absolute (fractional-'0.5' or absolute- '50' health)
@@ -1906,17 +1911,15 @@ void CG_InitTeamChat( void );
 void CG_GetTeamColor( vec4_t *color );
 const char *CG_GetGameStatusText( void );
 const char *CG_GetKillerText( void );
-void CG_Draw3DModel(float x, float y, float w, float h, qhandle_t model, qhandle_t skin, vec3_t origin, vec3_t angles);
+void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandle_t skin, vec3_t origin, vec3_t angles );
 void CG_Text_PaintChar( float x, float y, float width, float height, float scale, float s, float t, float s2, float t2, qhandle_t hShader );
 void CG_CheckOrderPending( void );
 const char *CG_GameTypeString( void );
 qboolean CG_YourTeamHasFlag( void );
 qboolean CG_OtherTeamHasFlag( void );
 qhandle_t CG_StatusHandle( int task );
-void CG_Fade( int r, int g, int b, int a, int time, int duration ); //----(SA)	modified
+void CG_Fade( int r, int g, int b, int a, float time );
 
-void CG_CalcShakeCamera( void );
-void CG_ApplyShakeCamera( void );
 
 
 
@@ -1960,7 +1963,7 @@ void CG_PainEvent( centity_t *cent, int health, qboolean crouching );
 void CG_SetEntitySoundPosition( centity_t *cent );
 void CG_AddPacketEntities( void );
 void CG_Beam( centity_t *cent );
-void CG_AdjustPositionForMover( const vec3_t in, int moverNum, int fromTime, int toTime, vec3_t out, vec3_t angles_in, vec3_t angles_out, vec3_t outDeltaAngles );
+void CG_AdjustPositionForMover(const vec3_t in, int moverNum, int fromTime, int toTime, vec3_t out, vec3_t angles_in, vec3_t angles_out);
 
 void CG_PositionEntityOnTag( refEntity_t *entity, const refEntity_t *parent,
 							 char *tagName, int startIndex, vec3_t *offset );
@@ -1986,7 +1989,6 @@ void CG_NextWeapon_f( void );
 void CG_PrevWeapon_f( void );
 void CG_Weapon_f( void );
 void CG_WeaponBank_f( void );
-void CG_WeaponSuggest( int weap );
 
 void CG_FinishWeaponChange( int lastweap, int newweap );
 
@@ -2018,7 +2020,7 @@ void CG_MissileHitPlayer( centity_t *cent, int weapon, vec3_t origin, vec3_t dir
 //----(SA)
 void CG_VenomFire( entityState_t *es, qboolean fullmode );
 //----(SA)
-void CG_Bullet( vec3_t origin, int sourceEntityNum, vec3_t normal, qboolean flesh, int fleshEntityNum, qboolean wolfkick, int otherEntNum2 );
+void CG_Bullet( vec3_t origin, int sourceEntityNum, vec3_t normal, qboolean flesh, int fleshEntityNum, qboolean wolfkick, int otherEntNum2, int seed );
 
 void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end, int type );   //----(SA)	added 'type'
 void CG_GrappleTrail( centity_t *ent, const weaponInfo_t *wi );
@@ -2035,8 +2037,6 @@ void CG_AddDebris( vec3_t origin, vec3_t dir, int speed, int duration, int count
 //----(SA) done
 
 void CG_ClientDamage( int entnum, int enemynum, int id );
-
-void CG_AddBulletParticles( vec3_t origin, vec3_t dir, int speed, int duration, int count, float randScale );
 
 //
 // cg_marks.c
@@ -2079,7 +2079,7 @@ void CG_ParticleBat( centity_t *cent );
 void    CG_ParticleBats( qhandle_t pshader, centity_t *cent );
 void    CG_BatsUpdatePosition( centity_t *cent );
 void CG_ParticleImpactSmokePuff( qhandle_t pshader, vec3_t origin );
-void CG_ParticleImpactSmokePuffExtended( qhandle_t pshader, vec3_t origin, vec3_t dir, int radius, int lifetime, int vel, int acc, int maxroll, float alpha );       // (SA) so I can add more parameters without screwing up the one that's there
+void CG_ParticleImpactSmokePuffExtended( qhandle_t pshader, vec3_t origin, int lifetime, int vel, int acc, int maxroll, float alpha );       // (SA) so I can add more parameters without screwing up the one that's there
 void CG_Particle_Bleed( qhandle_t pshader, vec3_t start, vec3_t dir, int fleshEntityNum, int duration );
 void CG_GetBleedOrigin( vec3_t head_origin, vec3_t torso_origin, vec3_t legs_origin, int fleshEntityNum );
 void CG_Particle_OilParticle( qhandle_t pshader, vec3_t origin, vec3_t origin2, int ptime, int snum );
@@ -2110,7 +2110,7 @@ void CG_SoundInit( void );
 // done.
 
 // Ridah, flamethrower
-void CG_FireFlameChunks( centity_t *cent, vec3_t origin, vec3_t angles, float speedScale, qboolean firing, int flags ); //----(SA)	added 'flags'
+void CG_FireFlameChunks( centity_t *cent, vec3_t origin, vec3_t angles, float speedScale, qboolean firing );
 void CG_InitFlameChunks( void );
 void CG_AddFlameChunks( void );
 void CG_UpdateFlamethrowerSounds( void );
@@ -2177,13 +2177,21 @@ void CG_RumbleEfx( float pitch, float yaw );
 void CG_ProcessSnapshots( void );
 
 //
+// cg_spawn.c
+//
+qboolean    CG_SpawnString( const char *key, const char *defaultString, char **out );
+qboolean    CG_SpawnFloat( const char *key, const char *defaultString, float *out );
+qboolean    CG_SpawnInt( const char *key, const char *defaultString, int *out );
+qboolean    CG_SpawnVector( const char *key, const char *defaultString, float *out );
+void        CG_ParseEntitiesFromString( void );
+
+//
 // cg_info.c
 //
 void CG_LoadingString( const char *s );
 void CG_LoadingItem( int itemNum );
 void CG_LoadingClient( int clientNum );
 void CG_DrawInformation( void );
-const char *CG_translateString( const char *str );
 
 //
 // cg_scoreboard.c
@@ -2202,16 +2210,19 @@ void CG_InitConsoleCommands( void );
 //
 void CG_ExecuteNewServerCommands( int latestSequence );
 void CG_ParseServerinfo( void );
+void CG_ParseWolfinfo( void );          // NERVE - SMF
 void CG_SetConfigValues( void );
 void CG_ShaderStateChanged( void );
 void CG_SendMoveSpeed( animation_t *animList, int numAnims, char *modelName );
+void CG_LoadVoiceChats( void );               // NERVE - SMF
+void CG_PlayBufferedVoiceChats( void );       // NERVE - SMF
+void CG_AddToNotify( const char *str );
 
 //
 // cg_playerstate.c
 //
 void CG_Respawn( void );
 void CG_TransitionPlayerState( playerState_t *ps, playerState_t *ops );
-void CG_LoadClientInfo( int clientNum, clientInfo_t *ci );
 
 
 //===============================================
@@ -2226,9 +2237,6 @@ void	trap_Print( const char *fmt );
 
 // abort the game
 void	trap_Error(const char *fmt) __attribute__((noreturn));
-
-// exit game to main menu (credits/etc)
-void        trap_Endgame( void );   //----(SA)	added
 
 // milliseconds should only be used for performance tuning, never
 // for anything game related.  Get time from the CG_DrawActiveFrame parameter
@@ -2251,7 +2259,6 @@ int         trap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode
 void        trap_FS_Read( void *buffer, int len, fileHandle_t f );
 void        trap_FS_Write( const void *buffer, int len, fileHandle_t f );
 void        trap_FS_FCloseFile( fileHandle_t f );
-void        trap_FS_CopyFile( char *from, char *to );   //DAJ
 
 // add commands to the local console as if they were typed in
 // for map changing, etc.  The command is not executed immediately,
@@ -2305,13 +2312,12 @@ int         trap_CM_MarkFragments( int numPoints, const vec3_t *points,
 void        trap_S_StartSound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx );
 void        trap_S_StartSoundEx( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx, int flags );
 void        trap_S_StopLoopingSound( int entnum );
-void        trap_S_StopStreamingSound( int entnum );  // usually AI.  character is talking and needs to be shut up /now/
 
 // a local sound is always played full volume
 void        trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum );
 void        trap_S_ClearLoopingSounds( qboolean killall );
 void        trap_S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume );
-//void        trap_S_AddRealLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume );
+void        trap_S_AddRealLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume );
 void        trap_S_UpdateEntityPosition( int entityNum, const vec3_t origin );
 
 // Ridah, talking animations
@@ -2322,11 +2328,9 @@ int         trap_S_GetVoiceAmplitude( int entityNum );
 // given entityNum and position
 void trap_S_Respatialize( int entityNum, const vec3_t origin, vec3_t axis[3], int inwater );
 sfxHandle_t trap_S_RegisterSound( const char *sample );     // returns buzz if not found
-void        trap_S_StartBackgroundTrack( const char *intro, const char *loop, int fadeupTime ); // empty name stops music
+void        trap_S_StartBackgroundTrack( const char *intro, const char *loop ); // empty name stops music
 void        trap_S_StopBackgroundTrack( void );
-void        trap_S_FadeBackgroundTrack( float targetvol, int time, int sound );  //----(SA)	added
 void        trap_S_StartStreamingSound( const char *intro, const char *loop, int entnum, int channel, int attenuation );
-void        trap_S_FadeAllSound( float targetvol, int time ); //----(SA)	added
 
 void        trap_R_LoadWorldMap( const char *mapname );
 
@@ -2350,15 +2354,16 @@ void        trap_R_AddRefEntityToScene( const refEntity_t *re );
 void        trap_R_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts );
 // Ridah
 void        trap_R_AddPolysToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int numPolys );
-void        trap_RB_ZombieFXAddNewHit( int entityNum, const vec3_t hitPos, const vec3_t hitDir );
 // done.
 void        trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b, int overdraw );
 void	    trap_R_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, float g, float b );
-void        trap_R_AddCoronaToScene( const vec3_t org, float r, float g, float b, float scale, int id, int flags );  //----(SA)	modified
+void        trap_R_AddCoronaToScene( const vec3_t org, float r, float g, float b, float scale, int id, qboolean visible );
 void        trap_R_RenderScene( const refdef_t *fd );
 void        trap_R_SetColor( const float *rgba );   // NULL = 1,1,1,1
 void        trap_R_DrawStretchPic( float x, float y, float w, float h,
 								   float s1, float t1, float s2, float t2, qhandle_t hShader );
+void        trap_R_DrawRotatedPic( float x, float y, float w, float h,
+								   float s1, float t1, float s2, float t2, qhandle_t hShader, float angle );    // NERVE - SMF
 void        trap_R_DrawStretchPicGradient( float x, float y, float w, float h,
 										   float s1, float t1, float s2, float t2, qhandle_t hShader, const float *gradientColor, int gradientType );
 
@@ -2405,7 +2410,8 @@ int         trap_GetCurrentCmdNumber( void );
 qboolean    trap_GetUserCmd( int cmdNumber, usercmd_t *ucmd );
 
 // used for the weapon/holdable select and zoom
-void        trap_SetUserCmdValue( int stateValue, int holdValue, float sensitivityScale, int cld );     // NERVE - SMF - added cld
+void        trap_SetUserCmdValue( int stateValue, int holdValue, float sensitivityScale, int mpSetup, int mpIdentClient );
+void        trap_SetClientLerpOrigin( float x, float y, float z );      // DHM - Nerve
 
 // aids for VM testing
 void        testPrintInt( char *string, int i );
@@ -2432,8 +2438,17 @@ typedef enum {
 } q3print_t;
 
 void trap_UI_Popup( const char *arg0 );   //----(SA)	added
-void trap_UI_ClosePopup( const char *arg0 );     // NERVE - SMF
-void trap_UI_LimboChat( const char *arg0 );     // NERVE - SMF
+
+// NERVE - SMF
+qhandle_t getTestShader( void ); // JPW NERVE shhh
+void trap_UI_ClosePopup( const char *arg0 );
+void trap_UI_LimboChat( const char *arg0 );
+void trap_Key_GetBindingBuf( int keynum, char *buf, int buflen );
+void trap_Key_SetBinding( int keynum, const char *binding );
+void trap_Key_KeynumToStringBuf( int keynum, char *buf, int buflen );
+// -NERVE - SMF
+
+void trap_TranslateString( const char *string, char *buf );       // NERVE - SMF - localization
 
 int trap_CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits );
 e_status trap_CIN_StopCinematic( int handle );
@@ -2450,19 +2465,10 @@ qboolean    trap_GetEntityToken( char *buffer, int bufferSize );
 #define CAM_PRIMARY 0   // the main camera for cutscenes, etc.
 qboolean    trap_loadCamera( int camNum, const char *name );
 void        trap_startCamera( int camNum, int time );
-void        trap_stopCamera( int camNum );    //----(SA)	added
 qboolean    trap_getCameraInfo( int camNum, int time, vec3_t *origin, vec3_t *angles, float *fov );
 void        CG_StartCamera( const char *name, qboolean startBlack );
-void        CG_StopCamera( void );
 
 //----(SA)	added
 int         CG_LoadCamera( const char *name );
 void        CG_FreeCamera( int camNum );
 //----(SA)	end
-
-void CG_StartShakeCamera( float p, int duration, vec3_t src, float radius );
-
-qboolean    trap_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **modelInfo );
-
-// New in IORTCW
-void		*trap_Alloc( int size );

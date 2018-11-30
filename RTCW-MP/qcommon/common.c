@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -41,27 +41,17 @@ If you have questions concerning this license or the applicable additional terms
 int demo_protocols[] =
 { 59, 58, 57, 0 };
 
-#define MAXPRINTMSG 4096
-
 #define MAX_NUM_ARGVS   50
 
 #define MIN_DEDICATED_COMHUNKMEGS 1
-#define MIN_COMHUNKMEGS		256
-
-//#if defined(IOS)
-//#define DEF_COMHUNKMEGS     128
-//#define DEF_COMZONEMEGS     16
-//#else
-#define DEF_COMHUNKMEGS 	256
-#define DEF_COMZONEMEGS		32
-//#endif
-
+#define MIN_COMHUNKMEGS 128 // JPW NERVE changed this to 42 for MP, was 56 for team arena and 75 for wolfSP
+#define DEF_COMHUNKMEGS 256 // RF, increased this, some maps are exceeding 56mb // JPW NERVE changed this for multiplayer back to 42, 56 for depot/mp_cpdepot, 42 for everything else
+#define DEF_COMZONEMEGS 32 // JPW NERVE cut this back too was 30
 #define DEF_COMHUNKMEGS_S	XSTRING(DEF_COMHUNKMEGS)
 #define DEF_COMZONEMEGS_S	XSTRING(DEF_COMZONEMEGS)
 
 int com_argc;
 char    *com_argv[MAX_NUM_ARGVS + 1];
-
 
 jmp_buf abortframe;     // an ERR_DROP occured, exit the entire frame
 
@@ -86,7 +76,9 @@ cvar_t  *com_cl_running;
 cvar_t  *com_logfile;       // 1 = buffer log, 2 = flush after each print
 cvar_t	*com_pipefile;
 cvar_t  *com_showtrace;
+cvar_t  *com_fsgame;
 cvar_t  *com_version;
+cvar_t	*com_legacyversion;
 cvar_t  *com_blood;
 cvar_t  *com_buildScript;   // for automated data building scripts
 #ifdef CINEMATICS_INTRO
@@ -98,6 +90,12 @@ cvar_t  *cl_packetdelay;
 cvar_t  *sv_packetdelay;
 cvar_t  *com_cameraMode;
 cvar_t  *com_recommendedSet;
+
+// Rafael Notebook
+cvar_t  *cl_notebook;
+
+cvar_t  *com_hunkused;      // Ridah
+
 cvar_t	*com_ansiColor;
 cvar_t	*com_unfocused;
 cvar_t	*com_maxfpsUnfocused;
@@ -124,11 +122,6 @@ cvar_t  *con_autochat;
 	int (QDECL *Q_VMftol)(void);
 	void (QDECL *Q_SnapVector)(vec3_t vec);
 #endif
-
-// Rafael Notebook
-cvar_t  *cl_notebook;
-
-cvar_t  *com_hunkused;      // Ridah
 
 // com_speeds times
 int time_game;
@@ -191,7 +184,7 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 	static qboolean opening_qconsole = qfalse;
 
 	va_start( argptr,fmt );
-	Q_vsnprintf( msg, sizeof (msg), fmt, argptr );
+	Q_vsnprintf( msg, sizeof( msg ), fmt, argptr );
 	va_end( argptr );
 
 	if ( rd_buffer ) {
@@ -227,7 +220,7 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 			time( &aclock );
 			newtime = localtime( &aclock );
 
-			logfile = FS_FOpenFileWrite( "rtcwconsole.log" );    //----(SA)	changed name for Wolf
+			logfile = FS_FOpenFileWrite( "rtcwconsole.log" );
 			if(logfile)
 			{
 				Com_Printf( "logfile opened on %s\n", asctime( newtime ) );
@@ -270,7 +263,7 @@ void QDECL Com_DPrintf( const char *fmt, ... ) {
 	}
 
 	va_start( argptr,fmt );
-	Q_vsnprintf( msg, sizeof ( msg ), fmt, argptr );
+	Q_vsnprintf( msg, sizeof( msg ), fmt, argptr );
 	va_end( argptr );
 
 	Com_Printf( "%s", msg );
@@ -301,11 +294,7 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 	// when we are running automated scripts, make sure we
 	// know if anything failed
 	if ( com_buildScript && com_buildScript->integer ) {
-
-		// ERR_ENDGAME is not really an error, don't die if building a script
-		if ( code != ERR_ENDGAME ) {
-			code = ERR_FATAL;
-		}
+		code = ERR_FATAL;
 	}
 
 	// if we are getting a solid stream of ERR_DROP, do an ERR_FATAL
@@ -323,9 +312,8 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 	Q_vsnprintf (com_errorMessage, sizeof(com_errorMessage),fmt,argptr);
 	va_end( argptr );
 
-	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD && code != ERR_ENDGAME ) {
+	if (code != ERR_DISCONNECT && code != ERR_NEED_CD)
 		Cvar_Set( "com_errorMessage", com_errorMessage );
-	}
 
 	restartClient = com_gameClientRestarting && !( com_cl_running && com_cl_running->integer );
 
@@ -343,25 +331,6 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 		VM_Forced_Unload_Done();
 		// make sure we can get at our local stuff
 		FS_PureServerSetLoadedPaks("", "");
-		com_errorEntered = qfalse;
-		longjmp( abortframe, -1 );
-	} else if ( code == ERR_ENDGAME ) {  //----(SA)	added
-		VM_Forced_Unload_Start();
-		SV_Shutdown( "endgame" );
-		if ( restartClient ) {
-			CL_Init();
-		}
-		if ( com_cl_running && com_cl_running->integer ) {
-			CL_Disconnect( qtrue );
-			CL_FlushMemory();
-			VM_Forced_Unload_Done();
-#ifndef DEDICATED
-			CL_EndgameMenu();
-#endif
-		}
-
-		FS_PureServerSetLoadedPaks("", "");
-
 		com_errorEntered = qfalse;
 		longjmp( abortframe, -1 );
 	} else if (code == ERR_DROP) {
@@ -531,7 +500,6 @@ void Com_StartupVariable( const char *match ) {
 		}
 
 		s = Cmd_Argv( 1 );
-
 		if(!match || !strcmp(s, match))
 		{
 			if(Cvar_Flags(s) == CVAR_NONEXISTENT)
@@ -773,6 +741,7 @@ int Com_FilterPath( char *filter, char *name, int casesensitive ) {
 	return Com_Filter( new_filter, new_name, casesensitive );
 }
 
+
 /*
 ================
 Com_RealTime
@@ -807,11 +776,76 @@ int Com_RealTime( qtime_t *qtime ) {
 
 						ZONE MEMORY ALLOCATION
 
-==============================================================================
+There is never any space between memblocks, and there will never be two
+contiguous free memblocks.
 
-  The old zone is gone, mallocs replaced it. To keep the widespread code changes down to a bare minimum
-  Z_Malloc and Z_Free still work.
+The rover can be left pointing at a non-empty block
+
+The zone calls are pretty much only used for small strings and structures,
+all big things are allocated on the hunk.
+==============================================================================
 */
+
+#define ZONEID  0x1d4a11
+#define MINFRAGMENT 64
+
+typedef struct zonedebug_s {
+	char *label;
+	char *file;
+	int line;
+	int allocSize;
+} zonedebug_t;
+
+typedef struct memblock_s {
+	int size;               // including the header and possibly tiny fragments
+	int tag;                // a tag of 0 is a free block
+	struct memblock_s       *next, *prev;
+	int id;                 // should be ZONEID
+#ifdef ZONE_DEBUG
+	zonedebug_t d;
+#endif
+} memblock_t;
+
+typedef struct {
+	int size;               // total bytes malloced, including header
+	int used;               // total bytes used
+	memblock_t blocklist;   // start / end cap for linked list
+	memblock_t  *rover;
+} memzone_t;
+
+// main zone for all "dynamic" memory allocation
+static memzone_t   *mainzone;
+// we also have a small zone for small allocations that would only
+// fragment the main zone (think of cvar and cmd strings)
+static memzone_t   *smallzone;
+
+
+static void Z_CheckHeap( void );
+
+/*
+========================
+Z_ClearZone
+========================
+*/
+static void Z_ClearZone( memzone_t *zone, int size ) {
+	memblock_t  *block;
+
+	// set the entire zone to one free block
+
+	zone->blocklist.next = zone->blocklist.prev = block =
+		( memblock_t * )( (byte *)zone + sizeof( memzone_t ) );
+	zone->blocklist.tag = 1;    // in use block
+	zone->blocklist.id = 0;
+	zone->blocklist.size = 0;
+	zone->rover = block;
+	zone->size = size;
+	zone->used = 0;
+
+	block->prev = block->next = &zone->blocklist;
+	block->tag = 0;         // free block
+	block->id = ZONEID;
+	block->size = size - sizeof( memzone_t );
+}
 
 
 /*
@@ -820,42 +854,66 @@ Z_Free
 ========================
 */
 void Z_Free( void *ptr ) {
-	free( ptr );
-}
+	memblock_t  *block, *other;
+	memzone_t *zone;
 
-
-/*
-================
-Z_Malloc
-================
-*/
-void *Z_Malloc( int size ) {
-	void *buf = malloc( size );
-	Com_Memset( buf, 0, size );
-	return buf;
-}
-
-#if 0
-/*
-================
-Z_TagMalloc
-================
-*/
-void *Z_TagMalloc( int size, int tag ) {
-
-	if ( tag != TAG_RENDERER ) {
-		assert( 0 );
+	if ( !ptr ) {
+		Com_Error( ERR_DROP, "Z_Free: NULL pointer" );
 	}
 
-	if ( g_numTaggedAllocs < MAX_TAG_ALLOCS ) {
-		void *ptr = Z_Malloc( size );
-		g_taggedAllocations[g_numTaggedAllocs++] = ptr;
-		return ptr;
+	block = ( memblock_t * )( (byte *)ptr - sizeof( memblock_t ) );
+	if ( block->id != ZONEID ) {
+		Com_Error( ERR_FATAL, "Z_Free: freed a pointer without ZONEID" );
+	}
+	if ( block->tag == 0 ) {
+		Com_Error( ERR_FATAL, "Z_Free: freed a freed pointer" );
+	}
+	// if static memory
+	if ( block->tag == TAG_STATIC ) {
+		return;
+	}
+
+	// check the memory trash tester
+	if ( *( int * )( (byte *)block + block->size - 4 ) != ZONEID ) {
+		Com_Error( ERR_FATAL, "Z_Free: memory block wrote past end" );
+	}
+
+	if ( block->tag == TAG_SMALL ) {
+		zone = smallzone;
 	} else {
-		Com_Error( ERR_FATAL, "Z_TagMalloc: out of tagged allocation space\n" );
+		zone = mainzone;
 	}
-	return NULL;
+
+	zone->used -= block->size;
+	// set the block to something that should cause problems
+	// if it is referenced...
+	memset( ptr, 0xaa, block->size - sizeof( *block ) );
+
+	block->tag = 0;     // mark as free
+
+	other = block->prev;
+	if ( !other->tag ) {
+		// merge with previous free block
+		other->size += block->size;
+		other->next = block->next;
+		other->next->prev = other;
+		if ( block == zone->rover ) {
+			zone->rover = other;
+		}
+		block = other;
+	}
+
+	zone->rover = block;
+
+	other = block->next;
+	if ( !other->tag ) {
+		// merge the next free block onto the end
+		block->size += other->size;
+		block->next = other->next;
+		block->next->prev = block;
+	}
 }
+
 
 /*
 ================
@@ -863,20 +921,268 @@ Z_FreeTags
 ================
 */
 void Z_FreeTags( int tag ) {
-	int i;
+	memzone_t   *zone;
 
-	if ( tag != TAG_RENDERER ) {
-		assert( 0 );
+	if ( tag == TAG_SMALL ) {
+		zone = smallzone;
+	} else {
+		zone = mainzone;
 	}
-
-	for ( i = 0; i < g_numTaggedAllocs; i++ ) {
-		free( g_taggedAllocations[i] );
-	}
-
-	g_numTaggedAllocs = 0;
+	// use the rover as our pointer, because
+	// Z_Free automatically adjusts it
+	zone->rover = zone->blocklist.next;
+	do {
+		if ( zone->rover->tag == tag ) {
+			Z_Free( ( void * )( zone->rover + 1 ) );
+			continue;
+		}
+		zone->rover = zone->rover->next;
+	} while ( zone->rover != &zone->blocklist );
 }
 
+/*
+================
+Z_TagMalloc
+================
+*/
+
+memblock_t *debugblock; // RF, jusy so we can track a block to find out when it's getting trashed
+
+#ifdef ZONE_DEBUG
+void *Z_TagMallocDebug( int size, int tag, char *label, char *file, int line ) {
+	int		allocSize;
+#else
+void *Z_TagMalloc( int size, int tag ) {
 #endif
+	int		extra;
+	memblock_t  *start, *rover, *new, *base;
+	memzone_t *zone;
+
+	if ( !tag ) {
+		Com_Error( ERR_FATAL, "Z_TagMalloc: tried to use a 0 tag" );
+	}
+
+	if ( tag == TAG_SMALL ) {
+		zone = smallzone;
+	} else {
+		zone = mainzone;
+	}
+
+#ifdef ZONE_DEBUG
+	allocSize = size;
+#endif
+	//
+	// scan through the block list looking for the first free block
+	// of sufficient size
+	//
+	size += sizeof( memblock_t ); // account for size of block header
+	size += 4;                  // space for memory trash tester
+	size = PAD(size, sizeof(intptr_t));		// align to 32/64 bit boundary
+
+	base = rover = zone->rover;
+	start = base->prev;
+
+	do {
+		if ( rover == start ) {
+			// scaned all the way around the list
+#ifdef ZONE_DEBUG
+			Z_LogHeap();
+			Com_Error(ERR_FATAL, "Z_Malloc: failed on allocation of %i bytes from the %s zone: %s, line: %d (%s)",
+								size, zone == smallzone ? "small" : "main", file, line, label);
+#else
+			Com_Error(ERR_FATAL, "Z_Malloc: failed on allocation of %i bytes from the %s zone",
+					   size, zone == smallzone ? "small" : "main" );
+#endif
+			return NULL;
+		}
+		if ( rover->tag ) {
+			base = rover = rover->next;
+		} else {
+			rover = rover->next;
+		}
+	} while ( base->tag || base->size < size );
+
+	//
+	// found a block big enough
+	//
+	extra = base->size - size;
+	if ( extra > MINFRAGMENT ) {
+		// there will be a free fragment after the allocated block
+		new = ( memblock_t * )( (byte *)base + size );
+		new->size = extra;
+		new->tag = 0;           // free block
+		new->prev = base;
+		new->id = ZONEID;
+		new->next = base->next;
+		new->next->prev = new;
+		base->next = new;
+		base->size = size;
+	}
+
+	base->tag = tag;            // no longer a free block
+
+	zone->rover = base->next;   // next allocation will start looking here
+	zone->used += base->size;   //
+
+	base->id = ZONEID;
+
+#ifdef ZONE_DEBUG
+	base->d.label = label;
+	base->d.file = file;
+	base->d.line = line;
+	base->d.allocSize = allocSize;
+#endif
+
+	// marker for memory trash testing
+	*( int * )( (byte *)base + base->size - 4 ) = ZONEID;
+
+	return ( void * )( (byte *)base + sizeof( memblock_t ) );
+}
+
+/*
+========================
+Z_Malloc
+========================
+*/
+#ifdef ZONE_DEBUG
+void *Z_MallocDebug( int size, char *label, char *file, int line ) {
+#else
+void *Z_Malloc( int size ) {
+#endif
+	void    *buf;
+
+	//Z_CheckHeap ();	// DEBUG
+
+#ifdef ZONE_DEBUG
+	buf = Z_TagMallocDebug( size, TAG_GENERAL, label, file, line );
+#else
+	buf = Z_TagMalloc( size, TAG_GENERAL );
+#endif
+	Com_Memset( buf, 0, size );
+
+	return buf;
+}
+
+#ifdef ZONE_DEBUG
+void *S_MallocDebug( int size, char *label, char *file, int line ) {
+	return Z_TagMallocDebug( size, TAG_SMALL, label, file, line );
+}
+#else
+void *S_Malloc( int size ) {
+	return Z_TagMalloc( size, TAG_SMALL );
+}
+#endif
+
+/*
+========================
+Z_CheckHeap
+========================
+*/
+static void Z_CheckHeap( void ) {
+	memblock_t  *block;
+
+	for ( block = mainzone->blocklist.next ; ; block = block->next ) {
+		if ( block->next == &mainzone->blocklist ) {
+			break;          // all blocks have been hit
+		}
+		if ( (byte *)block + block->size != (byte *)block->next ) {
+			Com_Error( ERR_FATAL, "Z_CheckHeap: block size does not touch the next block" );
+		}
+		if ( block->next->prev != block ) {
+			Com_Error( ERR_FATAL, "Z_CheckHeap: next block doesn't have proper back link" );
+		}
+		if ( !block->tag && !block->next->tag ) {
+			Com_Error( ERR_FATAL, "Z_CheckHeap: two consecutive free blocks" );
+		}
+	}
+}
+
+/*
+========================
+Z_LogZoneHeap
+========================
+*/
+void Z_LogZoneHeap( memzone_t *zone, char *name ) {
+#ifdef ZONE_DEBUG
+	char dump[32], *ptr;
+	int i, j;
+#endif
+	memblock_t  *block;
+	char buf[4096];
+	int size, allocSize, numBlocks;
+
+	if ( !logfile || !FS_Initialized() ) {
+		return;
+	}
+	size = numBlocks = 0;
+#ifdef ZONE_DEBUG
+	allocSize = 0;
+#endif
+	Com_sprintf( buf, sizeof( buf ), "\r\n================\r\n%s log\r\n================\r\n", name );
+	FS_Write( buf, strlen( buf ), logfile );
+	for ( block = zone->blocklist.next ; block->next != &zone->blocklist; block = block->next ) {
+		if ( block->tag ) {
+#ifdef ZONE_DEBUG
+			ptr = ( (char *) block ) + sizeof( memblock_t );
+			j = 0;
+			for ( i = 0; i < 20 && i < block->d.allocSize; i++ ) {
+				if ( ptr[i] >= 32 && ptr[i] < 127 ) {
+					dump[j++] = ptr[i];
+				} else {
+					dump[j++] = '_';
+				}
+			}
+			dump[j] = '\0';
+			Com_sprintf( buf, sizeof( buf ), "size = %8d: %s, line: %d (%s) [%s]\r\n", block->d.allocSize, block->d.file, block->d.line, block->d.label, dump );
+			FS_Write( buf, strlen( buf ), logfile );
+			allocSize += block->d.allocSize;
+#endif
+			size += block->size;
+			numBlocks++;
+		}
+	}
+#ifdef ZONE_DEBUG
+	// subtract debug memory
+	size -= numBlocks * sizeof( zonedebug_t );
+#else
+	allocSize = numBlocks * sizeof( memblock_t ); // + 32 bit alignment
+#endif
+	Com_sprintf( buf, sizeof( buf ), "%d %s memory in %d blocks\r\n", size, name, numBlocks );
+	FS_Write( buf, strlen( buf ), logfile );
+	Com_sprintf( buf, sizeof( buf ), "%d %s memory overhead\r\n", size - allocSize, name );
+	FS_Write( buf, strlen( buf ), logfile );
+}
+
+/*
+========================
+Z_LogHeap
+========================
+*/
+void Z_LogHeap( void ) {
+	Z_LogZoneHeap( mainzone, "MAIN" );
+	Z_LogZoneHeap( smallzone, "SMALL" );
+}
+
+// static mem blocks to reduce a lot of small zone overhead
+typedef struct memstatic_s {
+	memblock_t b;
+	byte mem[2];
+} memstatic_t;
+
+memstatic_t emptystring =
+{ {( sizeof( memblock_t ) + 2 + 3 ) & ~3, TAG_STATIC, NULL, NULL, ZONEID}, {'\0', '\0'} };
+memstatic_t numberstring[] = {
+	{ {( sizeof( memstatic_t ) + 3 ) & ~3, TAG_STATIC, NULL, NULL, ZONEID}, {'0', '\0'} },
+	{ {( sizeof( memstatic_t ) + 3 ) & ~3, TAG_STATIC, NULL, NULL, ZONEID}, {'1', '\0'} },
+	{ {( sizeof( memstatic_t ) + 3 ) & ~3, TAG_STATIC, NULL, NULL, ZONEID}, {'2', '\0'} },
+	{ {( sizeof( memstatic_t ) + 3 ) & ~3, TAG_STATIC, NULL, NULL, ZONEID}, {'3', '\0'} },
+	{ {( sizeof( memstatic_t ) + 3 ) & ~3, TAG_STATIC, NULL, NULL, ZONEID}, {'4', '\0'} },
+	{ {( sizeof( memstatic_t ) + 3 ) & ~3, TAG_STATIC, NULL, NULL, ZONEID}, {'5', '\0'} },
+	{ {( sizeof( memstatic_t ) + 3 ) & ~3, TAG_STATIC, NULL, NULL, ZONEID}, {'6', '\0'} },
+	{ {( sizeof( memstatic_t ) + 3 ) & ~3, TAG_STATIC, NULL, NULL, ZONEID}, {'7', '\0'} },
+	{ {( sizeof( memstatic_t ) + 3 ) & ~3, TAG_STATIC, NULL, NULL, ZONEID}, {'8', '\0'} },
+	{ {( sizeof( memstatic_t ) + 3 ) & ~3, TAG_STATIC, NULL, NULL, ZONEID}, {'9', '\0'} }
+};
 
 /*
 ========================
@@ -889,7 +1195,14 @@ CopyString
 char *CopyString( const char *in ) {
 	char    *out;
 
-	out = Z_Malloc( strlen( in ) + 1 );
+	if ( !in[0] ) {
+		return ( (char *)&emptystring ) + sizeof( memblock_t );
+	} else if ( !in[1] )     {
+		if ( in[0] >= '0' && in[0] <= '9' ) {
+			return ( (char *)&numberstring[in[0] - '0'] ) + sizeof( memblock_t );
+		}
+	}
+	out = S_Malloc( strlen( in ) + 1 );
 	strcpy( out, in );
 	return out;
 }
@@ -962,7 +1275,7 @@ static byte    *s_hunkData = NULL;
 static int s_hunkTotal;
 
 static int s_zoneTotal;
-//static	int		s_smallZoneTotal; // TTimo: unused
+static int s_smallZoneTotal;
 
 
 /*
@@ -971,7 +1284,55 @@ Com_Meminfo_f
 =================
 */
 void Com_Meminfo_f( void ) {
+	memblock_t  *block;
+	int zoneBytes, zoneBlocks;
+	int smallZoneBytes;
+	int botlibBytes, rendererBytes;
 	int unused;
+
+	zoneBytes = 0;
+	botlibBytes = 0;
+	rendererBytes = 0;
+	zoneBlocks = 0;
+	for ( block = mainzone->blocklist.next ; ; block = block->next ) {
+		if ( Cmd_Argc() != 1 ) {
+			Com_Printf( "block:%p    size:%7i    tag:%3i\n",
+				(void *)block, block->size, block->tag);
+		}
+		if ( block->tag ) {
+			zoneBytes += block->size;
+			zoneBlocks++;
+			if ( block->tag == TAG_BOTLIB ) {
+				botlibBytes += block->size;
+			} else if ( block->tag == TAG_RENDERER ) {
+				rendererBytes += block->size;
+			}
+		}
+
+		if ( block->next == &mainzone->blocklist ) {
+			break;          // all blocks have been hit
+		}
+		if ( (byte *)block + block->size != (byte *)block->next ) {
+			Com_Printf( "ERROR: block size does not touch the next block\n" );
+		}
+		if ( block->next->prev != block ) {
+			Com_Printf( "ERROR: next block doesn't have proper back link\n" );
+		}
+		if ( !block->tag && !block->next->tag ) {
+			Com_Printf( "ERROR: two consecutive free blocks\n" );
+		}
+	}
+
+	smallZoneBytes = 0;
+	for ( block = smallzone->blocklist.next ; ; block = block->next ) {
+		if ( block->tag ) {
+			smallZoneBytes += block->size;
+		}
+
+		if ( block->next == &smallzone->blocklist ) {
+			break;          // all blocks have been hit
+		}
+	}
 
 	Com_Printf( "%8i bytes total hunk\n", s_hunkTotal );
 	Com_Printf( "%8i bytes total zone\n", s_zoneTotal );
@@ -1000,8 +1361,11 @@ void Com_Meminfo_f( void ) {
 	}
 	Com_Printf( "%8i unused highwater\n", unused );
 	Com_Printf( "\n" );
-
-	//Com_Printf( "        %i number of tagged renderer allocations\n", g_numTaggedAllocs);
+	Com_Printf( "%8i bytes in %i zone blocks\n", zoneBytes, zoneBlocks    );
+	Com_Printf( "        %8i bytes in dynamic botlib\n", botlibBytes );
+	Com_Printf( "        %8i bytes in dynamic renderer\n", rendererBytes );
+	Com_Printf( "        %8i bytes in dynamic other\n", zoneBytes - ( botlibBytes + rendererBytes ) );
+	Com_Printf( "        %8i bytes in small Zone memory\n", smallZoneBytes );
 }
 
 /*
@@ -1015,6 +1379,9 @@ void Com_TouchMemory( void ) {
 	int start, end;
 	int i, j;
 	unsigned sum;
+	memblock_t  *block;
+
+	Z_CheckHeap();
 
 	start = Sys_Milliseconds();
 
@@ -1031,6 +1398,18 @@ void Com_TouchMemory( void ) {
 		sum += ( (int *)s_hunkData )[i];
 	}
 
+	for ( block = mainzone->blocklist.next ; ; block = block->next ) {
+		if ( block->tag ) {
+			j = block->size >> 2;
+			for ( i = 0 ; i < j ; i += 64 ) {             // only need to touch each page
+				sum += ( (int *)block )[i];
+			}
+		}
+		if ( block->next == &mainzone->blocklist ) {
+			break;          // all blocks have been hit
+		}
+	}
+
 	end = Sys_Milliseconds();
 
 	Com_Printf( "Com_TouchMemory: %i msec\n", end - start );
@@ -1038,10 +1417,70 @@ void Com_TouchMemory( void ) {
 
 
 
+/*
+=================
+Com_InitZoneMemory
+=================
+*/
+void Com_InitSmallZoneMemory( void ) {
+	s_smallZoneTotal = 512 * 1024;
+	smallzone = calloc( s_smallZoneTotal, 1 );
+	if ( !smallzone ) {
+		Com_Error( ERR_FATAL, "Small zone data failed to allocate %1.1f megs", (float)s_smallZoneTotal / ( 1024 * 1024 ) );
+	}
+	Z_ClearZone( smallzone, s_smallZoneTotal );
+}
 
+/*
 void Com_InitZoneMemory( void ) {
-	//memset(g_taggedAllocations, 0, sizeof(g_taggedAllocations));
-	//g_numTaggedAllocs = 0;
+	cvar_t	*cv;
+	s_smallZoneTotal = 512 * 1024;
+	smallzone = malloc( s_smallZoneTotal );
+	if ( !smallzone ) {
+		Com_Error( ERR_FATAL, "Small zone data failed to allocate %1.1f megs", (float)s_smallZoneTotal / (1024*1024) );
+	}
+	Z_ClearZone( smallzone, s_smallZoneTotal );
+
+	// allocate the random block zone
+	cv = Cvar_Get( "com_zoneMegs", DEF_COMZONEMEGS, CVAR_LATCH | CVAR_ARCHIVE );
+
+	if ( cv->integer < 16 ) {
+		s_zoneTotal = 1024 * 1024 * 16;
+	} else {
+		s_zoneTotal = cv->integer * 1024 * 1024;
+	}
+
+	mainzone = malloc( s_zoneTotal );
+	if ( !mainzone ) {
+		Com_Error( ERR_FATAL, "Zone data failed to allocate %i megs", s_zoneTotal / (1024*1024) );
+	}
+	Z_ClearZone( mainzone, s_zoneTotal );
+}
+*/
+void Com_InitZoneMemory( void ) {
+	cvar_t  *cv;
+
+	// Please note: com_zoneMegs can only be set on the command line, and
+	// not in wolfconfig_mp.cfg or Com_StartupVariable, as they haven't been
+	// executed by this point. It's a chicken and egg problem. We need the
+	// memory manager configured to handle those places where you would
+	// configure the memory manager.
+
+	// allocate the random block zone
+	cv = Cvar_Get( "com_zoneMegs", DEF_COMZONEMEGS_S, CVAR_LATCH | CVAR_ARCHIVE );
+
+	if ( cv->integer < DEF_COMZONEMEGS ) {
+		s_zoneTotal = 1024 * 1024 * DEF_COMZONEMEGS;
+ 	} else {
+		s_zoneTotal = cv->integer * 1024 * 1024;
+	}
+
+	mainzone = calloc( s_zoneTotal, 1 );
+	if ( !mainzone ) {
+		Com_Error( ERR_FATAL, "Zone data failed to allocate %i megs", s_zoneTotal / ( 1024 * 1024 ) );
+	}
+	Z_ClearZone( mainzone, s_zoneTotal );
+
 }
 
 /*
@@ -1171,6 +1610,9 @@ void Com_InitHunkMemory( void ) {
 	Hunk_Clear();
 
 	Cmd_AddCommand( "meminfo", Com_Meminfo_f );
+#ifdef ZONE_DEBUG
+	Cmd_AddCommand( "zonelog", Z_LogHeap );
+#endif
 #ifdef HUNK_DEBUG
 	Cmd_AddCommand( "hunklog", Hunk_Log );
 	Cmd_AddCommand( "hunksmalllog", Hunk_SmallLog );
@@ -1479,7 +1921,7 @@ journaled file
 ===================================================================
 */
 
-#define MAX_PUSHED_EVENTS              1024 
+#define MAX_PUSHED_EVENTS               1024
 static int com_pushedEventsHead = 0;
 static int com_pushedEventsTail = 0;
 static sysEvent_t com_pushedEvents[MAX_PUSHED_EVENTS];
@@ -1677,7 +2119,6 @@ sysEvent_t  Com_GetRealEvent( void ) {
 Com_InitPushEvent
 =================
 */
-// bk001129 - added
 void Com_InitPushEvent( void ) {
 	// clear the static buffer array
 	// this requires SE_NONE to be accepted as a valid but NOP event
@@ -1794,28 +2235,26 @@ int Com_EventLoop( void ) {
 		}
 
 
-		switch ( ev.evType ) {
-		case SE_KEY:
-			CL_KeyEvent( ev.evValue, ev.evValue2, ev.evTime );
+		switch(ev.evType)
+		{
+			case SE_KEY:
+				CL_KeyEvent( ev.evValue, ev.evValue2, ev.evTime );
 			break;
-		case SE_CHAR:
-			CL_CharEvent( ev.evValue );
+			case SE_CHAR:
+				CL_CharEvent( ev.evValue );
 			break;
-		case SE_MOUSE:
-			CL_MouseEvent( ev.evValue, ev.evValue2, ev.evTime, qfalse );
+			case SE_MOUSE:
+				CL_MouseEvent( ev.evValue, ev.evValue2, ev.evTime );
 			break;
-        case SE_MOUSE_ABS:
-            CL_MouseEvent( ev.evValue, ev.evValue2, ev.evTime, qtrue );
-            break;
-		case SE_JOYSTICK_AXIS:
-			CL_JoystickEvent( ev.evValue, ev.evValue2, ev.evTime );
+			case SE_JOYSTICK_AXIS:
+				CL_JoystickEvent( ev.evValue, ev.evValue2, ev.evTime );
 			break;
-		case SE_CONSOLE:
-			Cbuf_AddText( (char *)ev.evPtr );
-			Cbuf_AddText( "\n" );
+			case SE_CONSOLE:
+				Cbuf_AddText( (char *)ev.evPtr );
+				Cbuf_AddText( "\n" );
 			break;
-		default:
-			Com_Error( ERR_FATAL, "Com_EventLoop: bad event type %i", ev.evType );
+			default:
+				Com_Error( ERR_FATAL, "Com_EventLoop: bad event type %i", ev.evType );
 			break;
 		}
 
@@ -1947,6 +2386,8 @@ For controlling environment variables
 
 void Com_ExecuteCfg(void)
 {
+// DHM - Nerve
+#ifndef UPDATE_SERVER
 	Cbuf_ExecuteText(EXEC_NOW, "exec default.cfg\n");
 	if ( FS_ReadFile( "language.cfg", NULL ) > 0 ) {
 		Cbuf_ExecuteText(EXEC_APPEND, "exec language.cfg\n");
@@ -1957,12 +2398,13 @@ void Com_ExecuteCfg(void)
 
 	if(!Com_SafeMode())
 	{
-		// skip the wolfconfig.cfg and autoexec.cfg if "safe" is on the command line
+		// skip the wolfconfig_mp.cfg and autoexec.cfg if "safe" is on the command line
 		Cbuf_ExecuteText(EXEC_NOW, "exec " Q3CONFIG_CFG "\n");
 		Cbuf_Execute();
 		Cbuf_ExecuteText(EXEC_NOW, "exec autoexec.cfg\n");
 		Cbuf_Execute();
 	}
+#endif
 }
 
 /*
@@ -2035,8 +2477,6 @@ void Com_GameRestart_f(void)
 
 #ifndef STANDALONE
 
-qboolean CL_CDKeyValidate( const char *key, const char *checksum );
-
 // TTimo: centralizing the cl_cdkey stuff after I discovered a buffer overflow problem with the dedicated server version
 //   not sure it's necessary to have different defaults for regular and dedicated, but I don't want to take the risk
 #ifndef DEDICATED
@@ -2050,6 +2490,7 @@ char cl_cdkey[34] = "123456789";
 Com_ReadCDKey
 =================
 */
+qboolean CL_CDKeyValidate( const char *key, const char *checksum );
 void Com_ReadCDKey( const char *filename ) {
 	fileHandle_t f;
 	char buffer[33];
@@ -2131,6 +2572,7 @@ static void Com_WriteCDKey( const char *filename, const char *ikey ) {
 #ifndef _WIN32
 	savedumask = umask(0077);
 #endif
+
 	f = FS_SV_FOpenFileWrite( fbuffer );
 	if ( !f ) {
 		Com_Printf ("Couldn't write CD key to %s.\n", fbuffer );
@@ -2141,7 +2583,7 @@ static void Com_WriteCDKey( const char *filename, const char *ikey ) {
 
 	FS_Printf( f, "\n// generated by RTCW, do not modify\r\n" );
 	FS_Printf( f, "// Do not give this file to ANYONE.\r\n" );
-#ifdef __APPLE__ // TTimo
+#ifdef __APPLE__
 	FS_Printf( f, "// Aspyr will NOT ask you to send this file to them.\r\n" );
 #else
 	FS_Printf( f, "// id Software and Activision will NOT ask you to send this file to them.\r\n" );
@@ -2158,33 +2600,14 @@ out:
 
 #endif // STANDALONE
 
-static void Com_DetectAltivec(void)
-{
-	// Only detect if user hasn't forcibly disabled it.
-	if (com_altivec->integer) {
-		static qboolean altivec = qfalse;
-		static qboolean detected = qfalse;
-		if (!detected) {
-			altivec = ( Sys_GetProcessorFeatures( ) & CF_ALTIVEC );
-			detected = qtrue;
-		}
-
-		if (!altivec) {
-			Cvar_Set( "com_altivec", "0" );  // we don't have it! Disable support!
-		}
-	}
-}
-
-void Com_SetRecommended( qboolean vidrestart ) {
+void Com_SetRecommended( void ) {
 	cvar_t *cv;
 	qboolean goodVideo;
 	qboolean goodCPU;
-	qboolean lowMemory;
 	// will use this for recommended settings as well.. do i outside the lower check so it gets done even with command line stuff
 	cv = Cvar_Get( "r_highQualityVideo", "1", CVAR_ARCHIVE );
 	goodVideo = ( cv && cv->integer );
 	goodCPU = Sys_GetHighQualityCPU();
-	lowMemory = Sys_LowPhysicalMemory();
 
 	if ( goodVideo && goodCPU ) {
 		Com_Printf( "Found high quality video and CPU\n" );
@@ -2201,19 +2624,23 @@ void Com_SetRecommended( qboolean vidrestart ) {
 	}
 
 // (SA) set the cvar so the menu will reflect this on first run
-	Cvar_Set( "ui_glCustom", "999" );   // 'recommended'
+//	Cvar_Set("ui_glCustom", "999");	// 'recommended'
+}
 
-
-	if ( lowMemory ) {
-		Com_Printf( "Found minimum memory requirement\n" );
-		Cvar_Set( "s_khz", "11" );
-		if ( !goodVideo ) {
-			Cvar_Set( "r_lowMemTextureSize", "256" );
-			Cvar_Set( "r_lowMemTextureThreshold", "40.0" );
+static void Com_DetectAltivec(void)
+{
+	// Only detect if user hasn't forcibly disabled it.
+	if (com_altivec->integer) {
+		static qboolean altivec = qfalse;
+		static qboolean detected = qfalse;
+		if (!detected) {
+			altivec = ( Sys_GetProcessorFeatures( ) & CF_ALTIVEC );
+			detected = qtrue;
 		}
-	}
-	if ( vidrestart ) {
-		Cbuf_AddText( "vid_restart\n" );
+
+		if (!altivec) {
+			Cvar_Set( "com_altivec", "0" );  // we don't have it! Disable support!
+		}
 	}
 }
 
@@ -2287,7 +2714,11 @@ Com_Init
 */
 void Com_Init( char *commandLine ) {
 	char    *s;
+	char	*t;
 	int	qport;
+
+	// TTimo gcc warning: variable `safeMode' might be clobbered by `longjmp' or `vfork'
+	volatile qboolean safeMode = qtrue;
 
 	Com_Printf( "%s %s %s\n", Q3_VERSION, PLATFORM_STRING, PRODUCT_DATE );
 
@@ -2304,6 +2735,7 @@ void Com_Init( char *commandLine ) {
 	// do this before anything else decides to push events
 	Com_InitPushEvent();
 
+	Com_InitSmallZoneMemory();
 	Cvar_Init();
 
 	// prepare enough of the subsystems to handle
@@ -2342,7 +2774,7 @@ void Com_Init( char *commandLine ) {
 		Cmd_AddCommand ("error", Com_Error_f);
 		Cmd_AddCommand ("crash", Com_Crash_f);
 		Cmd_AddCommand ("freeze", Com_Freeze_f);
- 	}
+	}
 	Cmd_AddCommand ("quit", Com_Quit_f);
 	Cmd_AddCommand ("changeVectors", MSG_ReportChangeVectors_f );
 	Cmd_AddCommand ("writeconfig", Com_WriteConfig_f );
@@ -2355,9 +2787,13 @@ void Com_Init( char *commandLine ) {
 	Com_StartupVariable( NULL );
 
 	// get dedicated here for proper hunk megs initialization
-#ifdef DEDICATED
-	com_dedicated = Cvar_Get ("dedicated", "1", CVAR_INIT);
+#ifdef UPDATE_SERVER
+	com_dedicated = Cvar_Get( "dedicated", "1", CVAR_LATCH );
 	Cvar_CheckRange( com_dedicated, 1, 2, qtrue );
+#elif DEDICATED
+	// TTimo: default to internet dedicated, not LAN dedicated
+	com_dedicated = Cvar_Get( "dedicated", "2", CVAR_INIT );
+	Cvar_CheckRange( com_dedicated, 2, 2, qtrue );
 #else
 	com_dedicated = Cvar_Get( "dedicated", "0", CVAR_LATCH );
 	Cvar_CheckRange( com_dedicated, 0, 2, qtrue );
@@ -2373,7 +2809,7 @@ void Com_Init( char *commandLine ) {
 	// init commands and vars
 	//
 	com_altivec = Cvar_Get ("com_altivec", "1", CVAR_ARCHIVE);
-	com_maxfps = Cvar_Get( "com_maxfps", "76", CVAR_ARCHIVE );
+	com_maxfps = Cvar_Get( "com_maxfps", "76", CVAR_ARCHIVE | CVAR_LATCH );
 	com_blood = Cvar_Get( "com_blood", "1", CVAR_ARCHIVE );
 
 	com_logfile = Cvar_Get( "logfile", "0", CVAR_TEMP );
@@ -2407,10 +2843,16 @@ void Com_Init( char *commandLine ) {
 #endif
 	com_recommendedSet = Cvar_Get( "com_recommendedSet", "0", CVAR_ARCHIVE );
 
-	Cvar_Get( "savegame_loading", "0", CVAR_ROM );
+	s = va( "%s %s %s", Q3_VERSION, PLATFORM_STRING, PRODUCT_DATE );
+	t = va( "%s %s %s", OLDVERSION, PLATFORM_STRING, PRODUCT_DATE );
+	com_fsgame = Cvar_Get( "fs_game", "", CVAR_INIT | CVAR_SYSTEMINFO );
+	com_legacyversion = Cvar_Get( "com_legacyversion", "0", CVAR_ARCHIVE );
 
-	s = va("%s %s %s", Q3_VERSION, PLATFORM_STRING, PRODUCT_DATE );
-	com_version = Cvar_Get ("version", s, CVAR_ROM | CVAR_SERVERINFO );
+	if ( strcmp(com_fsgame->string,"banimod") == 0 || strcmp(com_fsgame->string,"bani") == 0 || com_legacyversion->integer ) {
+			com_version = Cvar_Get( "version", t, CVAR_ROM | CVAR_SERVERINFO );
+	} else {
+			com_version = Cvar_Get( "version", s, CVAR_ROM | CVAR_SERVERINFO );
+	}
 	com_gamename = Cvar_Get("com_gamename", GAMENAME_FOR_MASTER, CVAR_SERVERINFO | CVAR_INIT);
 	com_protocol = Cvar_Get("com_protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_INIT);
 #ifdef LEGACY_PROTOCOL
@@ -2461,20 +2903,21 @@ void Com_Init( char *commandLine ) {
 
 	CL_StartHunkUsers( qfalse );
 
-	if ( !com_recommendedSet->integer ) {
-		Com_SetRecommended( qtrue );
-		Cvar_Set( "com_recommendedSet", "1" );
+	// NERVE - SMF - force recommendedSet and don't do vid_restart if in safe mode
+	if ( !com_recommendedSet->integer && !safeMode ) {
+		Com_SetRecommended();
+		Cbuf_ExecuteText( EXEC_APPEND, "vid_restart\n" );
 	}
+	Cvar_Set( "com_recommendedSet", "1" );
 
 	if ( !com_dedicated->integer ) {
 #ifdef CINEMATICS_LOGO
-		//Cbuf_AddText ("cinematic " CINEMATICS_LOGO "\n");
+		Cbuf_AddText( "cinematic " CINEMATICS_LOGO "\n" );
 #endif
 #ifdef CINEMATICS_INTRO
 		if ( !com_introPlayed->integer ) {
-			//Cvar_Set( com_introPlayed->name, "1" );		//----(SA)	force this to get played every time (but leave cvar for override)
-			Cbuf_AddText( "cinematic " CINEMATICS_INTRO " 3\n" );
-			//Cvar_Set( "nextmap", "cinematic " CINEMATICS_INTRO );
+			Cvar_Set( com_introPlayed->name, "1" );
+			Cvar_Set( "nextmap", "cinematic " CINEMATICS_INTRO );
 		}
 #endif
 	}
@@ -2657,9 +3100,9 @@ int Com_ModifyMsec( int msec ) {
 		// dedicated servers don't want to clamp for a much longer
 		// period, because it would mess up all the client's views
 		// of time.
-		if (com_sv_running->integer && msec > 500)
+		if ( com_sv_running->integer && msec > 500 && msec < 500000 ) {
 			Com_Printf( "Hitch warning: %i msec frame time\n", msec );
-
+		}
 		clampTime = 5000;
 	} else
 	if ( !com_sv_running->integer ) {
@@ -2718,9 +3161,6 @@ void Com_Frame( void ) {
 	int timeAfter;
 
 
-
-
-
 	if ( setjmp( abortframe ) ) {
 		return;         // an ERR_DROP was thrown
 	}
@@ -2732,8 +3172,11 @@ void Com_Frame( void ) {
 	timeAfter = 0;
 
 
+	// DHM - Nerve :: Don't write config on Update Server
+#ifndef UPDATE_SERVER
 	// write config file if anything changed
 	Com_WriteConfiguration();
+#endif
 
 	//
 	// main event loop
@@ -2837,7 +3280,6 @@ void Com_Frame( void ) {
 	//
 	// client system
 	//
-
 	//
 	// run event loop a second time to get server to client packets
 	// without a frame of latency
@@ -2847,6 +3289,7 @@ void Com_Frame( void ) {
 	}
 	Com_EventLoop();
 	Cbuf_Execute ();
+
 
 	//
 	// client side
@@ -2867,6 +3310,7 @@ void Com_Frame( void ) {
 		timeBeforeClient = timeAfter;
 	}
 #endif
+
 
 	NET_FlushPacketQueue();
 
@@ -2934,8 +3378,6 @@ void Com_Shutdown( void ) {
 	}
 
 }
-
-
 
 /*
 ===========================================
@@ -3257,4 +3699,3 @@ qboolean Com_IsVoipTarget(uint8_t *voipTargets, int voipTargetsSize, int clientN
 
 	return qfalse;
 }
-

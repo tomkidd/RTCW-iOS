@@ -47,6 +47,19 @@ streamingSound_t streamingSounds[MAX_RAW_STREAMS];
 int numStreamingSounds = 0;
 static vec3_t entityPositions[MAX_GENTITIES];
 
+typedef struct {
+	vec3_t origin;
+	qboolean fixedOrigin;
+	int entityNum;
+	int entityChannel;
+	sfxHandle_t sfx;
+	int flags;
+} s_pushStack;
+
+#define MAX_PUSHSTACK 64
+static s_pushStack pushPop[MAX_PUSHSTACK];
+static int tart = 0;
+
 
 // =======================================================================
 // Internal sound data & structures
@@ -199,10 +212,6 @@ void S_ChannelFree(channel_t *v) {
 channel_t*	S_ChannelMalloc( void ) {
 	channel_t *v;
 	if (freelist == NULL) {
-		return NULL;
-	}
-	// RF, be careful not to lose our freelist
-	if ( *(channel_t **)freelist == NULL ) {
 		return NULL;
 	}
 	v = freelist;
@@ -562,21 +571,11 @@ Entchannel 0 will never override a playing sound
 	SND_CUTOFF_ALL		0x008	- cut off all sounds on this channel
 ====================
 */
-static void S_Base_MainStartSound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle, qboolean localSound, int flags );
 
 void S_Base_StartSoundEx( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle, int flags ) {
 	if ( !s_soundStarted || s_soundMuted || ( clc.state != CA_ACTIVE && clc.state != CA_DISCONNECTED ) ) {
 		return;
 	}
-
-	// RF, we have lots of NULL sounds using up valuable channels, so just ignore them
-	if ( !sfxHandle && entchannel != CHAN_WEAPON ) {  // let null weapon sounds try to play.  they kill any weapon sounds playing when a guy dies
-		return;
-	}
-
-	// RF, make the call now, or else we could override following streaming sounds in the same frame, due to the delay
-	S_Base_MainStartSound( origin, entityNum, entchannel, sfxHandle, qfalse, flags );
-/*
 	if ( tart < MAX_PUSHSTACK ) {
 		sfx_t       *sfx;
 		if ( origin ) {
@@ -597,7 +596,6 @@ void S_Base_StartSoundEx( vec3_t origin, int entityNum, int entchannel, sfxHandl
 
 		tart++;
 	}
-*/
 }
 
 /*
@@ -708,12 +706,6 @@ static void S_Base_MainStartSound( vec3_t origin, int entityNum, int entchannel,
 				continue;
 			}
 
-			// RF, let client voice sounds be overwritten
-			if ( entityNum < MAX_CLIENTS && s_channels[i].entchannel != CHAN_AUTO && s_channels[i].entchannel != CHAN_WEAPON ) {
-				S_ChannelFree( &s_channels[i] );
-				continue;
-			}
-
 			// cutoff sounds that expect to be overwritten
 			if ( s_channels[i].flags & SND_OKTOCUT ) {
 				S_ChannelFree( &s_channels[i] );
@@ -732,7 +724,7 @@ static void S_Base_MainStartSound( vec3_t origin, int entityNum, int entchannel,
 
 	// re-use channel if applicable
 	for ( i = 0 ; i < MAX_CHANNELS ; i++ ) {
-		if ( s_channels[i].entnum == entityNum && s_channels[i].entchannel == entchannel && entchannel != CHAN_AUTO ) {
+		if ( s_channels[i].entnum == entityNum && s_channels[i].entchannel == entchannel ) {
 			if ( !( s_channels[i].flags & SND_NOCUT ) && s_channels[i].thesfx == sfx ) {
 				ch = &s_channels[i];
 				break;
@@ -886,17 +878,8 @@ S_StopAllSounds
 ==================
 */
 void S_Base_StopAllSounds(void) {
-	int i;
-
 	if ( !s_soundStarted ) {
 		return;
-	}
-
-	//DAJ numStreamingSounds can get bigger than the MAX array size
-	for ( i = 0; i < MAX_RAW_STREAMS; i++ ) {
-		if ( i == 0 )
-			continue;   // ignore music
-		streamingSounds[i].kill = qtrue;
 	}
 
 	// stop the background music
@@ -1434,9 +1417,6 @@ void S_Base_Update( void ) {
 		return;
 	}
 
-	// default to ZERO amplitude, overwrite if sound is playing
-	memset( s_entityTalkAmplitude, 0, sizeof( s_entityTalkAmplitude ) );
-
 	//
 	// debugging output
 	//
@@ -1515,6 +1495,7 @@ void S_GetSoundtime(void)
 
 void S_Update_(void) {
 	unsigned        endtime;
+	int				i;
 	static			float	lastTime = 0.0f;
 	float			ma, op;
 	float			thisTime, sane;
@@ -1524,10 +1505,6 @@ void S_Update_(void) {
 		return;
 	}
 
-	// RF, this isn't used anymore, since it was causing timing problems with streaming sounds, since the
-	// starting of the sound is delayed, it could cause streaming sounds to be cutoff, when the steaming sound was issued after
-	// this sound
-/*
 	for ( i = 0; i < tart; i++ ) {
 		if ( pushPop[i].fixedOrigin ) {
 			S_Base_MainStartSound( pushPop[i].origin, pushPop[i].entityNum, pushPop[i].entityChannel, pushPop[i].sfx, qtrue, pushPop[i].flags );
@@ -1537,7 +1514,6 @@ void S_Update_(void) {
 	}
 
 	tart = 0;
-*/
 
 	thisTime = Com_Milliseconds();
 
@@ -1573,11 +1549,7 @@ void S_Update_(void) {
 		& ~(dma.submission_chunk-1);
 
 	// never mix more than the complete buffer
-#ifdef IOS
-    // todo: this is supposed to be calculated by SDL2
-    dma.fullsamples = dma.samples / dma.channels;
-#endif
-    if (endtime - s_soundtime > dma.fullsamples)
+	if (endtime - s_soundtime > dma.fullsamples)
 		endtime = s_soundtime + dma.fullsamples;
 
 	SNDDMA_BeginPainting ();
@@ -1626,8 +1598,6 @@ static void S_OpenBackgroundStream( const char *filename ) {
 		s_backgroundStream = NULL;
 	}
 
-	Cvar_Set( "s_currentMusic", "" ); //----(SA)	so the savegame will have the right music
-
 	// Open stream
 	s_backgroundStream = S_CodecOpenStream(filename);
 	if(!s_backgroundStream) {
@@ -1638,8 +1608,6 @@ static void S_OpenBackgroundStream( const char *filename ) {
 	if(s_backgroundStream->info.channels != 2 || s_backgroundStream->info.rate != 22050) {
 		Com_Printf(S_COLOR_YELLOW "WARNING: music file %s is not 22k stereo\n", filename );
 	}
-
-	Cvar_Set( "s_currentMusic", s_backgroundLoop ); //----(SA)	so the savegame will have the right music
 }
 
 /*
@@ -1745,24 +1713,6 @@ void S_UpdateBackgroundTrack( void ) {
 
 /*
 ======================
-S_FadeStreamingSound
-======================
-*/
-void S_Base_FadeStreamingSound( float targetvol, int time, int ssNum ) {
-	// FIXME: Stub
-}
-
-/*
-======================
-S_FadeAllSounds
-======================
-*/
-void S_Base_FadeAllSounds( float targetvol, int time ) {
-	// FIXME: Stub
-}
-
-/*
-======================
 S_StartStreamingSound
 ======================
 */
@@ -1772,26 +1722,14 @@ void S_Base_StartStreamingSound( const char *intro, const char *loop, int entnum
 
 /*
 ======================
-S_StopEntStreamingSound
-======================
-*/
-void S_Base_StopEntStreamingSound( int entnum ) {
-	// FIXME: Stub
-}
-
-/*
-======================
 S_GetVoiceAmplitude
 ======================
 */
 int S_Base_GetVoiceAmplitude( int entityNum ) {
-	if ( entityNum >= MAX_CLIENTS ) {
-		Com_Printf( "Error: S_GetVoiceAmplitude() called for a non-client\n" );
-		return 0;
-	}
-
-	return (int)s_entityTalkAmplitude[entityNum] * 2;
+	// FIXME: Stub
+	return 0;
 }
+
 
 /*
 ======================
@@ -1887,10 +1825,7 @@ qboolean S_Base_Init( soundInterface_t *si ) {
 	si->StartLocalSound = S_Base_StartLocalSound;
 	si->StartBackgroundTrack = S_Base_StartBackgroundTrack;
 	si->StopBackgroundTrack = S_Base_StopBackgroundTrack;
-	si->FadeStreamingSound = S_Base_FadeStreamingSound;
-	si->FadeAllSounds = S_Base_FadeAllSounds;
 	si->StartStreamingSound = S_Base_StartStreamingSound;
-	si->StopEntStreamingSound = S_Base_StopEntStreamingSound;
 	si->GetVoiceAmplitude = S_Base_GetVoiceAmplitude;
 	si->RawSamples = S_Base_RawSamples;
 	si->StopAllSounds = S_Base_StopAllSounds;

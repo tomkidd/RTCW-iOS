@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -131,11 +131,11 @@ static void CG_LoadHud_f( void ) {
 	String_Init();
 	Menu_Reset();
 
-	trap_Cvar_VariableStringBuffer( "cg_hudFiles", buff, sizeof( buff ) );
-	hudSet = buff;
-	if ( hudSet[0] == '\0' ) {
-		hudSet = "ui/hud.txt";
-	}
+//	trap_Cvar_VariableStringBuffer( "cg_hudFiles", buff, sizeof( buff ) );
+//	hudSet = buff;
+//	if ( hudSet[0] == '\0' ) {
+		hudSet = "ui_mp/hud.txt";
+//	}
 
 	CG_LoadMenus( hudSet );
 	menuScoreboard = NULL;
@@ -268,8 +268,9 @@ CG_StartCamera
 void CG_StartCamera( const char *name, qboolean startBlack ) {
 	char lname[MAX_QPATH];
 
-	//if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 )	// don't allow camera to start if you're dead
-	//	return;
+	if ( cgs.gametype != GT_SINGLE_PLAYER ) {
+		return;
+	}
 
 	COM_StripExtension( name, lname, sizeof( lname ) );    //----(SA)	added
 	Q_strcat( lname, sizeof( lname ), ".camera" );
@@ -277,46 +278,42 @@ void CG_StartCamera( const char *name, qboolean startBlack ) {
 	if ( trap_loadCamera( CAM_PRIMARY, va( "cameras/%s", lname ) ) ) {
 		cg.cameraMode = qtrue;				// camera on in cgame
 		if ( startBlack ) {
-			CG_Fade( 0, 0, 0, 255, cg.time, 0 );		// go black
+			CG_Fade( 0, 0, 0, 255, 0 );		// go black
 		}
 		trap_Cvar_Set( "cg_letterbox", "1" ); // go letterbox
 		trap_SendClientCommand( "startCamera" );	// camera on in game
 		trap_startCamera( CAM_PRIMARY, cg.time );	// camera on in client
 	} else {
-		//----(SA)	removed check for cams in main dir
-		cg.cameraMode = qfalse;                 // camera off in cgame
-		trap_SendClientCommand( "stopCamera" );    // camera off in game
-		trap_stopCamera( CAM_PRIMARY );           // camera off in client
-		CG_Fade( 0, 0, 0, 0, cg.time, 0 );        // ensure fadeup
+		//----(SA)	temp until radiant stores cameras in own directory
+		//			check cameras dir then main dir
+		if ( trap_loadCamera( CAM_PRIMARY, name ) ) {
+			cg.cameraMode = qtrue;
+			trap_SendClientCommand( "startCamera" );
+			trap_startCamera( CAM_PRIMARY, cg.time );
+			return;
+		}
+		//----(SA)	end (remove when radiant stores cameras...)
+		cg.cameraMode = qfalse;
+		trap_SendClientCommand( "stopCamera" );
+		CG_Fade( 0, 0, 0, 0, 0 );             // ensure fadeup
 		trap_Cvar_Set( "cg_letterbox", "0" );
 		CG_Printf( "Unable to load camera %s\n",lname );
 	}
 }
 
+// TTimo: defined but not used
 /*
-==============
-CG_StopCamera
-==============
-*/
-void CG_StopCamera( void ) {
-	cg.cameraMode = qfalse;                 // camera off in cgame
-	trap_SendClientCommand( "stopCamera" );    // camera off in game
-	trap_stopCamera( CAM_PRIMARY );           // camera off in client
-	trap_Cvar_Set( "cg_letterbox", "0" );
-
-	// fade back into world
-	CG_Fade( 0, 0, 0, 255, 0, 0 );
-	CG_Fade( 0, 0, 0, 0, cg.time + 500, 2000 );
-
-}
-
 static void CG_Camera_f( void ) {
 	char name[MAX_QPATH];
 
-	trap_Argv( 1, name, sizeof( name ) );
+	if ( cgs.gametype != GT_SINGLE_PLAYER )
+		return;
 
-	CG_StartCamera( name, qfalse );
+	trap_Argv( 1, name, sizeof(name));
+
+	CG_StartCamera(name, qfalse );
 }
+*/
 
 static void CG_Fade_f( void ) {
 	int r, g, b, a;
@@ -333,46 +330,189 @@ static void CG_Fade_f( void ) {
 
 	duration = atof( CG_Argv( 5 ) ) * 1000;
 
-	CG_Fade( r, g, b, a, cg.time, duration );
+	CG_Fade( r, g, b, a, duration );
 }
 
 // NERVE - SMF
 static void CG_QuickMessage_f( void ) {
-	if ( cgs.gametype != GT_WOLF ) {
-		return;
+	if ( cg_quickMessageAlt.integer ) {
+		trap_UI_Popup( "UIMENU_WM_QUICKMESSAGEALT" );
+	} else {
+		trap_UI_Popup( "UIMENU_WM_QUICKMESSAGE" );
 	}
-	trap_UI_Popup( "UIMENU_WM_QUICKMESSAGE" );
 }
 
 static void CG_OpenLimbo_f( void ) {
-	if ( cgs.gametype != GT_WOLF ) {
-		return;
+	int currentTeam;
+	char buf[32];
+
+	// set correct team, also set current team to detect if its changed
+	if ( cg.snap ) {
+		currentTeam = cg.snap->ps.persistant[PERS_TEAM] - 1;
+	} else {
+		currentTeam = 0;
 	}
+
+	if ( currentTeam > 2 ) {
+		currentTeam = 2;
+	}
+
+	// Arnout - don't set currentteam when following as it won't be the actual currentteam
+	if ( currentTeam != mp_team.integer && cg.snap && !( cg.snap->ps.pm_flags & PMF_FOLLOW ) ) {
+		trap_Cvar_Set( "mp_team", va( "%d", currentTeam ) );
+	}
+
+	if ( currentTeam != mp_currentTeam.integer && cg.snap && !( cg.snap->ps.pm_flags & PMF_FOLLOW ) ) {
+		trap_Cvar_Set( "mp_currentTeam", va( "%d", currentTeam ) );
+	}
+
+	// set current player type
+	if ( mp_currentPlayerType.integer != cg.snap->ps.stats[ STAT_PLAYER_CLASS ] ) {
+		trap_Cvar_Set( "mp_currentPlayerType", va( "%i", cg.snap->ps.stats[ STAT_PLAYER_CLASS ] ) );
+	}
+
+	// set isSpectator
+	trap_Cvar_VariableStringBuffer( "ui_isSpectator", buf, 32 );
+
+	if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR && cg.snap->ps.pm_type != PM_INTERMISSION ) {
+		trap_SendConsoleCommand( "+scores\n" );           // NERVE - SMF - blah
+
+		if ( !atoi( buf ) ) {
+			trap_Cvar_Set( "ui_isSpectator", "1" );
+		}
+	} else {
+		if ( atoi( buf ) ) {
+			trap_Cvar_Set( "ui_isSpectator", "0" );
+		}
+	}
+
 	trap_UI_Popup( "UIMENU_WM_LIMBO" );
 }
 
 static void CG_CloseLimbo_f( void ) {
-	if ( cgs.gametype != GT_WOLF ) {
-		return;
-	}
 	trap_UI_ClosePopup( "UIMENU_WM_LIMBO" );
 }
 
 static void CG_LimboMessage_f( void ) {
 	char teamStr[80], classStr[80], weapStr[80];
 
-	if ( cgs.gametype != GT_WOLF ) {
+	Q_strncpyz( teamStr, CG_TranslateString( CG_Argv( 1 ) ), 80 );
+	Q_strncpyz( classStr, CG_TranslateString( CG_Argv( 2 ) ), 80 );
+	Q_strncpyz( weapStr, CG_TranslateString( CG_Argv( 3 ) ), 80 );
+
+	CG_PriorityCenterPrint( va( "%s %s %s %s %s.", CG_TranslateString( "You will spawn as an" ),
+								teamStr, classStr, CG_TranslateString( "with a" ), weapStr ), SCREEN_HEIGHT - ( SCREEN_HEIGHT * 0.25 ), SMALLCHAR_WIDTH, -1 );
+}
+
+static void CG_VoiceChat_f( void ) {
+	char chatCmd[64];
+
+	if ( cgs.gametype < GT_WOLF || trap_Argc() != 2 ) {
 		return;
 	}
 
-	Q_strncpyz( teamStr, CG_Argv( 1 ), 80 );
-	Q_strncpyz( classStr, CG_Argv( 2 ), 80 );
-	Q_strncpyz( weapStr, CG_Argv( 3 ), 80 );
+	// NERVE - SMF - don't let spectators voice chat
+	// NOTE - This cg.snap will be the person you are following, but its just for intermission test
+	if ( cg.snap && ( cg.snap->ps.pm_type != PM_INTERMISSION ) ) {
+		if ( cgs.clientinfo[cg.clientNum].team == TEAM_SPECTATOR || cgs.clientinfo[cg.clientNum].team == TEAM_FREE ) {
+			CG_Printf( "%s", CG_TranslateString( "Can't voice chat as a spectator.\n" ) );
+			return;
+		}
+	}
 
-	CG_CenterPrint( va( "You will spawn as a %s \n%s with a %s.", teamStr, classStr, weapStr ),
-					SCREEN_HEIGHT - ( SCREEN_HEIGHT * 0.25 ), SMALLCHAR_WIDTH );
+	trap_Argv( 1, chatCmd, 64 );
+
+	trap_SendConsoleCommand( va( "cmd vsay %s\n", chatCmd ) );
+}
+
+static void CG_TeamVoiceChat_f( void ) {
+	char chatCmd[64];
+
+	if ( cgs.gametype < GT_WOLF || trap_Argc() != 2 ) {
+		return;
+	}
+
+	// NERVE - SMF - don't let spectators voice chat
+	// NOTE - This cg.snap will be the person you are following, but its just for intermission test
+	if ( cg.snap && ( cg.snap->ps.pm_type != PM_INTERMISSION ) ) {
+		if ( cgs.clientinfo[cg.clientNum].team == TEAM_SPECTATOR || cgs.clientinfo[cg.clientNum].team == TEAM_FREE ) {
+			CG_Printf( "%s", CG_TranslateString( "Can't team voice chat as a spectator.\n" ) );
+			return;
+		}
+	}
+
+	trap_Argv( 1, chatCmd, 64 );
+
+	trap_SendConsoleCommand( va( "cmd vsay_team %s\n", chatCmd ) );
+}
+
+static void CG_SetWeaponCrosshair_f( void ) {
+	char crosshair[64];
+
+	trap_Argv( 1, crosshair, 64 );
+	cg.newCrosshairIndex = atoi( crosshair ) + 1;
 }
 // -NERVE - SMF
+
+/*
+===================
+CG_DumpLocation_f
+
+Dump a target_location definition to a file
+===================
+*/
+static void CG_DumpLocation_f( void ) {
+	char locfilename[MAX_QPATH];
+	char locname[MAX_STRING_CHARS];
+	char *extptr, *buffptr;
+	fileHandle_t f;
+
+	// Check for argument
+	if ( trap_Argc() < 2 ) {
+		CG_Printf( "Usage: dumploc <locationname>\n" );
+		return;
+	}
+	trap_Args( locname, sizeof( locname ) );
+
+	// Open locations file
+	Q_strncpyz( locfilename, cgs.mapname, sizeof( locfilename ) );
+	extptr = locfilename + strlen( locfilename ) - 4;
+	if ( extptr < locfilename || Q_stricmp( extptr, ".bsp" ) ) {
+		CG_Printf( "Unable to dump, unknown map name?\n" );
+		return;
+	}
+	Q_strncpyz( extptr, ".loc", 5 );
+	trap_FS_FOpenFile( locfilename, &f, FS_APPEND_SYNC );
+	if ( !f ) {
+		CG_Printf( "Failed to open '%s' for writing.\n", locfilename );
+		return;
+	}
+
+	// Strip bad characters out
+	for ( buffptr = locname; *buffptr; buffptr++ )
+	{
+		if ( *buffptr == '\n' ) {
+			*buffptr = ' ';
+		} else if ( *buffptr == '"' ) {
+			*buffptr = '\'';
+		}
+	}
+	// Kill any trailing space as well
+	if ( *( buffptr - 1 ) == ' ' ) {
+		*( buffptr - 1 ) = 0;
+	}
+
+	// Build the entity definition
+	buffptr = va(   "{\n\"classname\" \"target_location\"\n\"origin\" \"%i %i %i\"\n\"message\" \"%s\"\n}\n\n",
+					(int) cg.snap->ps.origin[0], (int) cg.snap->ps.origin[1], (int) cg.snap->ps.origin[2], locname );
+
+	// And write out/acknowledge
+	trap_FS_Write( buffptr, strlen( buffptr ), f );
+	trap_FS_FCloseFile( f );
+	CG_Printf( "Entity dumped to '%s' (%i %i %i).\n", locfilename,
+			   (int) cg.snap->ps.origin[0], (int) cg.snap->ps.origin[1], (int) cg.snap->ps.origin[2] );
+}
+
 
 typedef struct {
 	char    *cmd;
@@ -408,20 +548,28 @@ static consoleCommand_t commands[] = {
 	{ "itemnext", CG_NextItem_f },
 	{ "itemprev", CG_PrevItem_f },
 	{ "item", CG_Item_f },
+	{ "tcmd", CG_TargetCommand_f },
 	{ "tell_target", CG_TellTarget_f },
 	{ "tell_attacker", CG_TellAttacker_f },
 	{ "tcmd", CG_TargetCommand_f },
 	{ "loadhud", CG_LoadHud_f },
 	{ "loaddeferred", CG_LoadDeferredPlayers },  // spelling fixed (SA)
-	{ "camera", CG_Camera_f },   // duffy
+//	{ "camera", CG_Camera_f },	// duffy
 	{ "fade", CG_Fade_f },   // duffy
+	{ "loadhud", CG_LoadHud_f },
 
 	// NERVE - SMF
 	{ "mp_QuickMessage", CG_QuickMessage_f },
 	{ "OpenLimboMenu", CG_OpenLimbo_f },
 	{ "CloseLimboMenu", CG_CloseLimbo_f },
-	{ "LimboMessage", CG_LimboMessage_f }
+	{ "LimboMessage", CG_LimboMessage_f },
+	{ "VoiceChat", CG_VoiceChat_f },
+	{ "VoiceTeamChat", CG_TeamVoiceChat_f },
+	{ "SetWeaponCrosshair", CG_SetWeaponCrosshair_f },
 	// -NERVE - SMF
+
+	// Arnout
+	{ "dumploc", CG_DumpLocation_f },
 };
 
 
@@ -436,6 +584,11 @@ Cmd_Argc() / Cmd_Argv()
 qboolean CG_ConsoleCommand( void ) {
 	const char  *cmd;
 	int i;
+
+	// Arnout - don't allow console commands until a snapshot is present
+	if ( !cg.snap ) {
+		return qfalse;
+	}
 
 	cmd = CG_Argv( 0 );
 
@@ -501,14 +654,20 @@ void CG_InitConsoleCommands( void ) {
 //	trap_AddCommand( "teamtask" );
 	trap_AddCommand( "loaddeferred" );        // spelling fixed (SA)
 
-	trap_AddCommand( "startCamera" );
-	trap_AddCommand( "stopCamera" );
-	trap_AddCommand( "setCameraOrigin" );
+//	trap_AddCommand( "startCamera" );
+//	trap_AddCommand( "stopCamera" );
+//	trap_AddCommand( "setCameraOrigin" );
 
 	// Rafael
 	trap_AddCommand( "nofatigue" );
 
 	// NERVE - SMF
 	trap_AddCommand( "setspawnpt" );
+	trap_AddCommand( "follownext" );
+	trap_AddCommand( "followprev" );
+
+	trap_AddCommand( "start_match" );
+	trap_AddCommand( "reset_match" );
+	trap_AddCommand( "swap_teams" );
 	// NERVE - SMF
 }

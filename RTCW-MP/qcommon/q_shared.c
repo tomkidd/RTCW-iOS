@@ -1,41 +1,46 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
 ===========================================================================
 */
 
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
 // q_shared.c -- stateless support routines that are included in each code dll
 #include "q_shared.h"
 
-/*
-============
-Com_Clamp
-============
-*/
+// os x game bundles have no standard library links, and the defines are not always defined!
+
+#ifdef __APPLE__
+int qmax( int x, int y ) {
+	return ( ( ( x ) > ( y ) ) ? ( x ) : ( y ) );
+}
+
+int qmin( int x, int y ) {
+	return ( ( ( x ) < ( y ) ) ? ( x ) : ( y ) );
+}
+#endif
+
 float Com_Clamp( float min, float max, float value ) {
 	if ( value < min ) {
 		return min;
@@ -45,6 +50,7 @@ float Com_Clamp( float min, float max, float value ) {
 	}
 	return value;
 }
+
 
 /*
 ============
@@ -99,6 +105,28 @@ void COM_StripExtension( const char *in, char *out, int destsize )
 
 /*
 ============
+COM_StripExtension2
+a safer version
+============
+*/
+void COM_StripExtension2( const char *in, char *out, int destsize ) {
+	int len = 0;
+	while ( len < destsize - 1 && *in && *in != '.' ) {
+		*out++ = *in++;
+		len++;
+	}
+	*out = 0;
+}
+
+void COM_StripFilename( char *in, char *out ) {
+	char *end;
+	Q_strncpyz( out, in, strlen( in ) );
+	end = COM_SkipPath( out );
+	*end = 0;
+}
+
+/*
+============
 COM_CompareExtension
 
 string compare the end of the strings and return qtrue if strings match
@@ -137,18 +165,6 @@ void COM_DefaultExtension( char *path, int maxSize, const char *extension )
 		return;
 	else
 		Q_strcat(path, maxSize, extension);
-}
-
-/*
-============
-COM_StripFilename
-============
-*/
-void COM_StripFilename( char *in, char *out ) {
-	char *end;
-	Q_strncpyz( out, in, strlen( in ) );
-	end = COM_SkipPath( out );
-	*end = 0;
 }
 
 //============================================================================
@@ -216,27 +232,6 @@ void COM_BitClear( int array[], int bitNum ) {
 					BYTE ORDER FUNCTIONS
 
 ============================================================================
-*/
-/*
-// can't just use function pointers, or dll linkage can
-// mess up when qcommon is included in multiple places
-static short ( *_BigShort )( short l );
-static short ( *_LittleShort )( short l );
-static int ( *_BigLong )( int l );
-static int ( *_LittleLong )( int l );
-static qint64 ( *_BigLong64 )( qint64 l );
-static qint64 ( *_LittleLong64 )( qint64 l );
-static float ( *_BigFloat )( float l );
-static float ( *_LittleFloat )( float l );
-
-short   BigShort( short l ) {return _BigShort( l );}
-short   LittleShort( short l ) {return _LittleShort( l );}
-int     BigLong( int l ) {return _BigLong( l );}
-int     LittleLong( int l ) {return _LittleLong( l );}
-qint64  BigLong64( qint64 l ) {return _BigLong64( l );}
-qint64  LittleLong64( qint64 l ) {return _LittleLong64( l );}
-float   BigFloat( float l ) {return _BigFloat( l );}
-float   LittleFloat( float l ) {return _LittleFloat( l );}
 */
 
 void CopyShortSwap(void *dest, void *src)
@@ -313,11 +308,9 @@ float FloatSwap (const float *f) {
 	return out.f;
 }
 
-float FloatNoSwap (const float *f)
-{
-	return *f;
+float FloatNoSwap( float f ) {
+	return f;
 }
-
 
 /*
 ============================================================================
@@ -335,41 +328,26 @@ static int com_tokenline;
 static int backup_lines;
 static char    *backup_text;
 
-/*
-================
-COM_BeginParseSession
-================
-*/
 void COM_BeginParseSession( const char *name ) {
 	com_lines = 1;
 	com_tokenline = 0;
 	Com_sprintf( com_parsename, sizeof( com_parsename ), "%s", name );
 }
 
-/*
-================
-COM_RestoreParseSession
-================
-*/
+void COM_BackupParseSession( char **data_p ) {
+	backup_lines = com_lines;
+	backup_text = *data_p;
+}
+
 void COM_RestoreParseSession( char **data_p ) {
 	com_lines = backup_lines;
 	*data_p = backup_text;
 }
 
-/*
-================
-COM_SetCurrentParseLine
-================
-*/
 void COM_SetCurrentParseLine( int line ) {
 	com_lines = line;
 }
 
-/*
-================
-COM_GetCurrentParseLine
-================
-*/
 int COM_GetCurrentParseLine( void ) {
 	if ( com_tokenline )
 	{
@@ -379,42 +357,27 @@ int COM_GetCurrentParseLine( void ) {
 	return com_lines;
 }
 
-/*
-================
-COM_Parse
-================
-*/
 char *COM_Parse( char **data_p ) {
 	return COM_ParseExt( data_p, qtrue );
 }
 
-/*
-================
-COM_ParseError
-================
-*/
 void COM_ParseError( char *format, ... ) {
 	va_list argptr;
 	static char string[4096];
 
 	va_start( argptr, format );
-	Q_vsnprintf (string, sizeof(string), format, argptr);
+	Q_vsnprintf( string, sizeof( string ), format, argptr );
 	va_end( argptr );
 
 	Com_Printf("ERROR: %s, line %d: %s\n", com_parsename, COM_GetCurrentParseLine(), string);
 }
 
-/*
-================
-COM_ParseWarning
-================
-*/
 void COM_ParseWarning( char *format, ... ) {
 	va_list argptr;
 	static char string[4096];
 
 	va_start( argptr, format );
-	Q_vsnprintf( string, sizeof ( string ), format, argptr );
+	Q_vsnprintf( string, sizeof( string ), format, argptr );
 	va_end( argptr );
 
 	Com_Printf("WARNING: %s, line %d: %s\n", com_parsename, COM_GetCurrentParseLine(), string);
@@ -422,7 +385,7 @@ void COM_ParseWarning( char *format, ... ) {
 
 /*
 ==============
-SkipWhitespace
+COM_Parse
 
 Parse a token out of a string
 Will never return NULL, just empty strings
@@ -432,15 +395,16 @@ string will be returned if the next token is
 a newline.
 ==============
 */
-char *SkipWhitespace( char *data, qboolean *hasNewLines ) {
+static char *SkipWhitespace( char *data, qboolean *hasNewLines ) {
 	int c;
 
 	while ( ( c = *data ) <= ' ' ) {
+		if ( !c ) {
+			return NULL;
+		}
 		if ( c == '\n' ) {
 			com_lines++;
 			*hasNewLines = qtrue;
-		} else if ( !c )   {
-			return NULL;
 		}
 		data++;
 	}
@@ -517,11 +481,6 @@ int COM_Compress( char *data_p ) {
 	return out - data_p;
 }
 
-/*
-================
-COM_ParseExt
-================
-*/
 char *COM_ParseExt( char **data_p, qboolean allowLineBreaks ) {
 	int c = 0, len;
 	qboolean hasNewLines = qfalse;
@@ -539,8 +498,7 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks ) {
 	}
 
 	// RF, backup the session data so we can unget easily
-	backup_lines = com_lines;
-	backup_text = *data_p;
+	COM_BackupParseSession( data_p );
 
 	while ( 1 )
 	{
@@ -602,7 +560,7 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks ) {
 			{
 				com_lines++;
 			}
-			if ( len < MAX_TOKEN_CHARS - 1 ) {
+			if ( len < MAX_TOKEN_CHARS - 1) {
 				com_token[len] = c;
 				len++;
 			}
@@ -612,19 +570,22 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks ) {
 	// parse a regular word
 	do
 	{
-		if ( len < MAX_TOKEN_CHARS - 1 ) {
+		if ( len < MAX_TOKEN_CHARS - 1) {
 			com_token[len] = c;
 			len++;
 		}
 		data++;
 		c = *data;
-	} while (c>32);
+	} while ( c > 32 );
 
 	com_token[len] = 0;
 
 	*data_p = ( char * ) data;
 	return com_token;
 }
+
+
+
 
 /*
 ==================
@@ -691,11 +652,7 @@ void SkipRestOfLine( char **data ) {
 	*data = p;
 }
 
-/*
-================
-Parse1DMatrix
-================
-*/
+
 void Parse1DMatrix( char **buf_p, int x, float *m ) {
 	char    *token;
 	int i;
@@ -710,11 +667,6 @@ void Parse1DMatrix( char **buf_p, int x, float *m ) {
 	COM_MatchToken( buf_p, ")" );
 }
 
-/*
-================
-Parse2DMatrix
-================
-*/
 void Parse2DMatrix( char **buf_p, int y, int x, float *m ) {
 	int i;
 
@@ -727,11 +679,6 @@ void Parse2DMatrix( char **buf_p, int y, int x, float *m ) {
 	COM_MatchToken( buf_p, ")" );
 }
 
-/*
-================
-Parse3DMatrix
-================
-*/
 void Parse3DMatrix( char **buf_p, int z, int y, int x, float *m ) {
 	int i;
 
@@ -819,30 +766,6 @@ int Q_isalpha( int c ) {
 	return ( 0 );
 }
 
-//----(SA)	added
-int Q_isnumeric( int c ) {
-	if ( c >= '0' && c <= '9' ) {
-		return ( 1 );
-	}
-	return ( 0 );
-}
-
-int Q_isalphanumeric( int c ) {
-	if ( Q_isalpha( c ) ||
-		 Q_isnumeric( c ) ) {
-		return( 1 );
-	}
-	return ( 0 );
-}
-
-int Q_isforfilename( int c ) {
-	if ( ( Q_isalphanumeric( c ) || c == '_' ) && c != ' ' ) { // space not allowed in filename
-		return( 1 );
-	}
-	return ( 0 );
-}
-//----(SA)	end
-
 qboolean Q_isanumber( const char *s )
 {
 	char *p;
@@ -898,7 +821,7 @@ int Q_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 /*
 =============
 Q_strncpyz
-
+ 
 Safe strncpy that ensures a trailing zero
 =============
 */
@@ -1046,6 +969,7 @@ const char *Q_stristr( const char *s, const char *find)
   return s;
 }
 
+
 int Q_PrintStrlen( const char *string ) {
 	int len;
 	const char  *p;
@@ -1107,13 +1031,19 @@ int QDECL Com_sprintf(char *dest, int size, const char *fmt, ...)
 	int len;
 	va_list argptr;
 
+	/*
+	C99 for vsnprintf:
+	return the number of characters  (excluding  the  trailing  '\0')
+	which would have been written to the final string if enough space had been available.
+	*/
 	va_start( argptr,fmt );
-	len = Q_vsnprintf(dest, size, fmt, argptr);
+	len = Q_vsnprintf( dest, size, fmt, argptr );
 	va_end( argptr );
 
-	if(len >= size)
+	if ( len >= size ) {
 		Com_Printf("Com_sprintf: Output length %d too short, requires %d bytes.\n", size, len + 1);
-	
+	}
+
 	return len;
 }
 
@@ -1131,10 +1061,10 @@ int Q_strncasecmp( char *s1, char *s2, int n ) {
 
 		}
 		if ( c1 != c2 ) {
-			if ( Q_islower( c1 ) ) {
+			if ( c1 >= 'a' && c1 <= 'z' ) {
 				c1 -= ( 'a' - 'A' );
 			}
-			if ( Q_islower( c2 ) ) {
+			if ( c2 >= 'a' && c2 <= 'z' ) {
 				c2 -= ( 'a' - 'A' );
 			}
 			if ( c1 != c2 ) {
@@ -1191,32 +1121,6 @@ char    * QDECL va( char *format, ... ) {
 
 	return buf;
 }
-
-
-/*
-============
-va
-
-does a varargs printf into a temp buffer, so I don't need to have
-varargs versions of all text functions.
-============
-
-char	* QDECL va( char *format, ... ) {
-	va_list		argptr;
-	static char string[2][32000]; // in case va is called by nested functions
-	static int	index = 0;
-	char		*buf;
-
-	buf = string[index & 1];
-	index++;
-
-	va_start (argptr, format);
-	Q_vsnprintf (buf, sizeof(*string), format, argptr);
-	va_end (argptr);
-
-	return buf;
-}
-*/
 
 /*
 ============
@@ -1551,7 +1455,8 @@ void Info_SetValueForKey( char *s, const char *key, const char *value ) {
 		return;
 	}
 
-	strcat( s, newi );
+	strcat (newi, s);
+	strcpy (s, newi);
 }
 
 /*
@@ -1571,7 +1476,7 @@ void Info_SetValueForKey_Big( char *s, const char *key, const char *value ) {
 	}
 
 	for(; *blacklist; ++blacklist)
- 	{
+	{
 		if (strchr (key, *blacklist) || strchr (value, *blacklist))
 		{
 			Com_Printf (S_COLOR_YELLOW "Can't use keys or values with a '%c': %s = %s\n", *blacklist, key, value);
@@ -1580,8 +1485,9 @@ void Info_SetValueForKey_Big( char *s, const char *key, const char *value ) {
 	}
 
 	Info_RemoveKey_Big( s, key );
-	if (!value)
+	if ( !value ) {
 		return;
+	}
 
 	Com_sprintf( newi, sizeof( newi ), "\\%s\\%s", key, value );
 
@@ -1663,4 +1569,3 @@ char *Com_SkipTokens( char *s, int numTokens, char *sep )
 	else
 		return s;
 }
-

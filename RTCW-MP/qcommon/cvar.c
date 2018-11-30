@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -197,8 +197,7 @@ int Cvar_Flags(const char *var_name)
 Cvar_CommandCompletion
 ============
 */
-void Cvar_CommandCompletion(void (*callback)(const char *s))
-{
+void Cvar_CommandCompletion( void ( *callback )(const char *s) ) {
 	cvar_t      *cvar;
 
 	for(cvar = cvar_vars; cvar; cvar = cvar->next)
@@ -313,6 +312,29 @@ static const char *Cvar_Validate( cvar_t *var,
 
 /*
 ============
+Cvar_ClearForeignCharacters
+some cvar values need to be safe from foreign characters
+============
+*/
+char *Cvar_ClearForeignCharacters( const char *value ) {
+	static char clean[MAX_CVAR_VALUE_STRING];
+	int i,j;
+
+	j = 0;
+	for ( i = 0; value[i] != '\0'; i++ )
+	{
+		if ( !( value[i] & 128 ) ) {
+			clean[j] = value[i];
+			j++;
+		}
+	}
+	clean[j] = '\0';
+
+	return clean;
+}
+
+/*
+============
 Cvar_Get
 
 If the variable already exists, the value will not be set unless CVAR_ROM
@@ -341,9 +363,8 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 #endif
 
 	var = Cvar_FindVar( var_name );
+	if ( var ) {
 
-	if(var)
-	{
 		var_value = Cvar_Validate(var, var_value, qfalse);
 
 		// Make sure the game code cannot mark engine-added variables as gamecode vars
@@ -352,7 +373,7 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 			if(!(flags & CVAR_VM_CREATED))
 				var->flags &= ~CVAR_VM_CREATED;
 		}
-		else
+		else if (!(var->flags & CVAR_USER_CREATED))
 		{
 			if(flags & CVAR_VM_CREATED)
 				flags &= ~CVAR_VM_CREATED;
@@ -377,7 +398,7 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 				var->latchedString = CopyString(var_value);
 			}
 		}
-		
+
 		// Make sure servers cannot mark engine-added variables as SERVER_CREATED
 		if(var->flags & CVAR_SERVER_CREATED)
 		{
@@ -410,6 +431,16 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 			Z_Free( s );
 		}
 
+		// TTimo
+		// if CVAR_USERINFO was toggled on for an existing cvar, check wether the value needs to be cleaned from foreigh characters
+		// (for instance, seta name "name-with-foreign-chars" in the config file, and toggle to CVAR_USERINFO happens later in CL_Init)
+		if ( flags & CVAR_USERINFO ) {
+			char *cleaned = Cvar_ClearForeignCharacters( var->string ); // NOTE: it is probably harmless to call Cvar_Set2 in all cases, but I don't want to risk it
+			if ( strcmp( var->string, cleaned ) ) {
+				Cvar_Set2( var->name, var->string, qfalse ); // call Cvar_Set2 with the value to be cleaned up for verbosity
+			}
+		}
+
 		// ZOID--needs to be set so that cvars the game sets as 
 		// SERVERINFO get sent to clients
 		cvar_modifiedFlags |= flags;
@@ -426,7 +457,7 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 	{
 		if(!cvar_indexes[index].name)
 			break;
- 	}
+	}
 
 	if(index >= MAX_CVARS)
 	{
@@ -507,6 +538,10 @@ void Cvar_Print( cvar_t *v ) {
 Cvar_Set2
 ============
 */
+#define FOREIGN_MSG "Foreign characters are not allowed in userinfo variables.\n"
+#ifndef DEDICATED
+const char* CL_TranslateStringBuf( const char *string );
+#endif
 cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
 	cvar_t  *var;
 
@@ -516,13 +551,6 @@ cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
 		Com_Printf( "invalid cvar name string: %s\n", var_name );
 		var_name = "BADNAME";
 	}
-
-#if 0   // FIXME
-	if ( value && !Cvar_ValidateString( value ) ) {
-		Com_Printf( "invalid cvar value string: %s\n", value );
-		var_value = "BADVALUE";
-	}
-#endif
 
 	var = Cvar_FindVar( var_name );
 	if ( !var ) {
@@ -539,6 +567,19 @@ cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
 
 	if ( !value ) {
 		value = var->resetString;
+	}
+
+	if ( var->flags & CVAR_USERINFO ) {
+		char *cleaned = Cvar_ClearForeignCharacters( value );
+		if ( strcmp( value, cleaned ) ) {
+			#ifdef DEDICATED
+			Com_Printf( FOREIGN_MSG );
+			#else
+			Com_Printf( "%s", CL_TranslateStringBuf( FOREIGN_MSG ) );
+			#endif
+			Com_Printf( "Using %s instead of %s\n", cleaned, value );
+			return Cvar_Set2( var_name, cleaned, force );
+		}
 	}
 
 	value = Cvar_Validate(var, value, qtrue);
@@ -719,8 +760,7 @@ Cvar_SetCheatState
 Any testing variables will be reset to the safe values
 ============
 */
-void Cvar_SetCheatState( void )
-{
+void Cvar_SetCheatState( void ) {
 	cvar_t  *var;
 
 	// set all default vars to the safe value
@@ -749,7 +789,7 @@ Handles variable inspection and changing from the console
 ============
 */
 qboolean Cvar_Command( void ) {
-	cvar_t	*v;
+	cvar_t          *v;
 
 	// check variables
 	v = Cvar_FindVar( Cmd_Argv( 0 ) );
@@ -771,7 +811,7 @@ qboolean Cvar_Command( void ) {
 /*
 ============
 Cvar_Print_f
- 
+
 Prints the contents of a cvar 
 (preferred over Cvar_Command where cvar names and commands conflict)
 ============
@@ -784,11 +824,11 @@ void Cvar_Print_f(void)
 	if(Cmd_Argc() != 2)
 	{
 		Com_Printf ("usage: print <variable>\n");
- 		return;
- 	}
- 
+		return;
+	}
+
 	name = Cmd_Argv(1);
- 
+
 	cv = Cvar_FindVar(name);
 	
 	if(cv)
@@ -913,8 +953,7 @@ Appends lines containing "set variable value" for all variables
 with the archive flag set to qtrue.
 ============
 */
-void Cvar_WriteVariables( fileHandle_t f )
-{
+void Cvar_WriteVariables( fileHandle_t f ) {
 	cvar_t  *var;
 	char buffer[1024];
 
@@ -931,14 +970,14 @@ void Cvar_WriteVariables( fileHandle_t f )
 							"\"%s\" too long to write to file\n", var->name );
 					continue;
 				}
-				Com_sprintf( buffer, sizeof( buffer ), "seta %s \"%s\"\n", var->name, var->latchedString );
+				Com_sprintf (buffer, sizeof(buffer), "seta %s \"%s\"\n", var->name, var->latchedString);
 			} else {
 				if( strlen( var->name ) + strlen( var->string ) + 10 > sizeof( buffer ) ) {
 					Com_Printf( S_COLOR_YELLOW "WARNING: value of variable "
 							"\"%s\" too long to write to file\n", var->name );
 					continue;
 				}
-				Com_sprintf( buffer, sizeof( buffer ), "seta %s \"%s\"\n", var->name, var->string );
+				Com_sprintf (buffer, sizeof(buffer), "seta %s \"%s\"\n", var->name, var->string);
 			}
 			FS_Write( buffer, strlen( buffer ), f );
 		}
@@ -1176,8 +1215,6 @@ void Cvar_Unset_f(void)
 		Com_Printf("Error: %s: Variable %s is not user created.\n", Cmd_Argv(0), cv->name);
 }
 
-
-
 /*
 ============
 Cvar_Restart
@@ -1226,12 +1263,13 @@ void Cvar_Restart_f(void)
 	Cvar_Restart(qfalse);
 }
 
+
 /*
 =====================
 Cvar_InfoString
 =====================
 */
-char    *Cvar_InfoString( int bit ) {
+char *Cvar_InfoString( int bit ) {
 	static char info[MAX_INFO_STRING];
 	cvar_t  *var;
 
@@ -1242,7 +1280,6 @@ char    *Cvar_InfoString( int bit ) {
 		if(var->name && (var->flags & bit))
 			Info_SetValueForKey( info, var->name, var->string );
 	}
-
 	return info;
 }
 
@@ -1253,7 +1290,7 @@ Cvar_InfoString_Big
   handles large info strings ( CS_SYSTEMINFO )
 =====================
 */
-char    *Cvar_InfoString_Big( int bit ) {
+char *Cvar_InfoString_Big( int bit ) {
 	static char info[BIG_INFO_STRING];
 	cvar_t  *var;
 
@@ -1264,9 +1301,9 @@ char    *Cvar_InfoString_Big( int bit ) {
 		if(var->name && (var->flags & bit))
 			Info_SetValueForKey_Big( info, var->name, var->string );
 	}
-
 	return info;
 }
+
 
 /*
 =====================
@@ -1300,8 +1337,7 @@ Cvar_Register
 basically a slightly modified Cvar_Get for the interpreted modules
 =====================
 */
-void Cvar_Register(vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags)
-{
+void Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags ) {
 	cvar_t  *cv;
 
 	// There is code in Cvar_Get to prevent CVAR_ROM cvars being changed by the
@@ -1381,8 +1417,8 @@ void    Cvar_Update( vmCvar_t *vmCvar ) {
 	vmCvar->modificationCount = cv->modificationCount;
 	if ( strlen( cv->string ) + 1 > MAX_CVAR_VALUE_STRING )
 		Com_Error( ERR_DROP, "Cvar_Update: src %s length %u exceeds MAX_CVAR_VALUE_STRING",
-				cv->string,
-				(unsigned int) strlen(cv->string));
+			cv->string,
+			(unsigned int) strlen(cv->string));
 	Q_strncpyz( vmCvar->string, cv->string,  MAX_CVAR_VALUE_STRING );
 
 	vmCvar->value = cv->value;
@@ -1413,8 +1449,8 @@ Cvar_Init
 Reads in all archived cvars
 ============
 */
-void Cvar_Init( void )
-{
+void Cvar_Init( void ) {
+
 	Com_Memset(cvar_indexes, '\0', sizeof(cvar_indexes));
 	Com_Memset(hashTable, '\0', sizeof(hashTable));
 
@@ -1439,5 +1475,7 @@ void Cvar_Init( void )
 	Cmd_AddCommand( "cvarlist", Cvar_List_f );
 	Cmd_AddCommand( "cvar_modified", Cvar_ListModified_f );
 	Cmd_AddCommand( "cvar_restart", Cvar_Restart_f );
-}
 
+	// NERVE - SMF - can't rely on autoexec to do this
+	Cvar_Get( "devdll", "1", CVAR_ROM );
+}

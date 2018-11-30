@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -230,7 +230,7 @@ BotPointAreaNum
 ==================
 */
 int BotPointAreaNum( vec3_t origin ) {
-	int areanum, numareas, areas[1];
+	int areanum, numareas, areas[10];
 	vec3_t end, ofs;
 	#define BOTAREA_JIGGLE_DIST     32
 
@@ -240,22 +240,21 @@ int BotPointAreaNum( vec3_t origin ) {
 	}
 	VectorCopy( origin, end );
 	end[2] += 10;
-	numareas = trap_AAS_TraceAreas( origin, end, areas, NULL, 1 );
+	numareas = trap_AAS_TraceAreas( origin, end, areas, NULL, 10 );
 	if ( numareas > 0 ) {
 		return areas[0];
 	}
 
 	// Ridah, jiggle them around to look for a fuzzy area, helps LARGE characters reach destinations that are against walls
 	ofs[2] = 10;
-	for ( ofs[0] = -BOTAREA_JIGGLE_DIST; ofs[0] <= BOTAREA_JIGGLE_DIST; ofs[0] += BOTAREA_JIGGLE_DIST * 2 ) {
+	for ( ofs[0] = -BOTAREA_JIGGLE_DIST; ofs[0] <= BOTAREA_JIGGLE_DIST; ofs[0] += BOTAREA_JIGGLE_DIST * 2 )
 		for ( ofs[1] = -BOTAREA_JIGGLE_DIST; ofs[1] <= BOTAREA_JIGGLE_DIST; ofs[1] += BOTAREA_JIGGLE_DIST * 2 ) {
 			VectorAdd( origin, ofs, end );
-			numareas = trap_AAS_TraceAreas( origin, end, areas, NULL, 1 );
+			numareas = trap_AAS_TraceAreas( origin, end, areas, NULL, 10 );
 			if ( numareas > 0 ) {
 				return areas[0];
 			}
 		}
-	}
 
 	return 0;
 }
@@ -350,6 +349,7 @@ char *EasyClientName( int client, char *buf, int size ) {
 
 	ClientName(client, name, sizeof(name));
 	for ( i = 0; name[i]; i++ ) name[i] &= 127;
+
 	//remove all spaces
 	for ( ptr = strstr( name, " " ); ptr; ptr = strstr( name, " " ) ) {
 		memmove( ptr, ptr + 1, strlen( ptr + 1 ) + 1 );
@@ -394,10 +394,8 @@ BotChooseWeapon
 void BotChooseWeapon( bot_state_t *bs ) {
 	int newweaponnum;
 
-	if (    bs->cur_ps.weaponstate == WEAPON_RAISING ||
-			bs->cur_ps.weaponstate == WEAPON_RAISING_TORELOAD ||    //----(SA)	added
-			bs->cur_ps.weaponstate == WEAPON_DROPPING ||
-			bs->cur_ps.weaponstate == WEAPON_DROPPING_TORELOAD ) {   //----(SA)	added
+	if ( bs->cur_ps.weaponstate == WEAPON_RAISING ||
+		 bs->cur_ps.weaponstate == WEAPON_DROPPING ) {
 		trap_EA_SelectWeapon( bs->client, bs->weaponnum );
 	} else {
 		newweaponnum = trap_BotChooseBestFightWeapon( bs->ws, bs->inventory );
@@ -464,17 +462,21 @@ void BotUpdateInventory( bot_state_t *bs ) {
 	bs->inventory[INVENTORY_LUGER]              =   COM_BitCheck( bs->cur_ps.weapons, ( WP_LUGER ) );
 	bs->inventory[INVENTORY_MAUSER]             =   COM_BitCheck( bs->cur_ps.weapons, ( WP_MAUSER ) );
 	bs->inventory[INVENTORY_MP40]               =   COM_BitCheck( bs->cur_ps.weapons, ( WP_MP40 ) );
+	bs->inventory[INVENTORY_ROCKETLAUNCHER]     =   COM_BitCheck( bs->cur_ps.weapons, ( WP_ROCKET_LAUNCHER ) );
 	bs->inventory[INVENTORY_GRENADELAUNCHER]    =   COM_BitCheck( bs->cur_ps.weapons, ( WP_GRENADE_LAUNCHER ) );
 	bs->inventory[INVENTORY_VENOM]              =   COM_BitCheck( bs->cur_ps.weapons, ( WP_VENOM ) );
 	bs->inventory[INVENTORY_FLAMETHROWER]       =   COM_BitCheck( bs->cur_ps.weapons, ( WP_FLAMETHROWER ) );
+	bs->inventory[INVENTORY_CROSS]              =   COM_BitCheck( bs->cur_ps.weapons, ( WP_CROSS ) );
 	bs->inventory[INVENTORY_GAUNTLET]           =   COM_BitCheck( bs->cur_ps.weapons, ( WP_GAUNTLET ) );
 
 	// ammo
 	bs->inventory[INVENTORY_9MM]            = bs->cur_ps.ammo[BG_FindAmmoForWeapon( WP_MP40 )];
 	bs->inventory[INVENTORY_792MM]          = bs->cur_ps.ammo[BG_FindAmmoForWeapon( WP_MAUSER )];
+	bs->inventory[INVENTORY_ROCKETS]        = bs->cur_ps.ammo[BG_FindAmmoForWeapon( WP_ROCKET_LAUNCHER )];
 	bs->inventory[INVENTORY_GRENADES]       = bs->cur_ps.ammo[BG_FindAmmoForWeapon( WP_GRENADE_LAUNCHER )];
 	bs->inventory[INVENTORY_127MM]          = bs->cur_ps.ammo[BG_FindAmmoForWeapon( WP_VENOM )];
 	bs->inventory[INVENTORY_FUEL]           = bs->cur_ps.ammo[BG_FindAmmoForWeapon( WP_FLAMETHROWER )];
+	bs->inventory[INVENTORY_CHARGES]        = bs->cur_ps.ammo[BG_FindAmmoForWeapon( WP_CROSS )];
 
 	//powerups
 	bs->inventory[INVENTORY_HEALTH] = bs->cur_ps.stats[STAT_HEALTH];
@@ -979,7 +981,7 @@ int BotWantsToCamp( bot_state_t *bs ) {
 		return qfalse;
 	}
 	//the bot should have at least have the rocket launcher, the railgun or the bfg10k with some ammo
-	if ( ( bs->inventory[INVENTORY_ROCKETLAUNCHER] <= 0 || bs->inventory[INVENTORY_ROCKETS] < 10 )
+	if ( ( bs->inventory[INVENTORY_ROCKETLAUNCHER] <= 0 || bs->inventory[INVENTORY_ROCKETS < 10] )
 //		&& (bs->inventory[INVENTORY_RAILGUN] <= 0 || bs->inventory[INVENTORY_SLUGS] < 10)
 //		&& (bs->inventory[INVENTORY_BFG10K] <= 0 || bs->inventory[INVENTORY_BFGAMMO] < 10)
 		 ) {
@@ -1258,10 +1260,10 @@ int BotSameTeam( bot_state_t *bs, int entnum ) {
 	if ( entnum < 0 || entnum >= MAX_CLIENTS ) {
 		return qfalse;
 	}
-	if (gametype >= GT_TEAM) {
-		if (level.clients[bs->client].sess.sessionTeam == level.clients[entnum].sess.sessionTeam)
-			 return qtrue;
-	}
+	if ( gametype == GT_TEAM || gametype == GT_CTF ) {
+		if (level.clients[bs->client].sess.sessionTeam == level.clients[entnum].sess.sessionTeam) return qtrue;
+			return qtrue;
+		}
 
 	return qfalse;
 }
@@ -1585,6 +1587,10 @@ void BotAimAtEnemy( bot_state_t *bs ) {
 		aim_accuracy = trap_Characteristic_BFloat( bs->character, CHARACTERISTIC_AIM_ACCURACY_GRENADELAUNCHER, 0, 1 );
 		aim_skill = trap_Characteristic_BFloat( bs->character, CHARACTERISTIC_AIM_SKILL_GRENADELAUNCHER, 0, 1 );
 	}
+	if ( wi.number == WP_ROCKET_LAUNCHER ) {
+		aim_accuracy = trap_Characteristic_BFloat( bs->character, CHARACTERISTIC_AIM_ACCURACY_ROCKETLAUNCHER, 0, 1 );
+		aim_skill = trap_Characteristic_BFloat( bs->character, CHARACTERISTIC_AIM_SKILL_ROCKETLAUNCHER, 0, 1 );
+	}
 	if ( wi.number == WP_FLAMETHROWER ) {
 		aim_accuracy = trap_Characteristic_BFloat( bs->character, CHARACTERISTIC_AIM_ACCURACY_LIGHTNING, 0, 1 );
 	}
@@ -1748,7 +1754,8 @@ void BotAimAtEnemy( bot_state_t *bs ) {
 		if ( aim_skill > 0.5 ) {
 			//do prediction shots around corners
 //			if (wi.number == WP_BFG ||	//----(SA)	removing old weapon references
-			if ( wi.number == WP_GRENADE_LAUNCHER ) {
+			if ( wi.number == WP_ROCKET_LAUNCHER ||
+				 wi.number == WP_GRENADE_LAUNCHER ) {
 				//create the chase goal
 				goal.entitynum = bs->client;
 				goal.areanum = bs->areanum;
@@ -2869,10 +2876,10 @@ void BotSetupDeathmatchAI( void ) {
 	//
 	if ( gametype == GT_CTF ) {
 		if ( trap_BotGetLevelItemGoal( -1, "Red Flag", &ctf_redflag ) < 0 ) {
-			BotAI_Print( PRT_WARNING, "One Flag CTF without Red Flag\n" );
+			BotAI_Print( PRT_WARNING, "CTF without Red Flag\n" );
 		}
 		if ( trap_BotGetLevelItemGoal( -1, "Blue Flag", &ctf_blueflag ) < 0 ) {
-			BotAI_Print( PRT_WARNING, "One Flag CTF without Blue Flag\n" );
+			BotAI_Print( PRT_WARNING, "CTF without Blue Flag\n" );
 		}
 	}
 

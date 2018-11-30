@@ -2,52 +2,51 @@ code
 
 equ	trap_Print				-1
 equ	trap_Error				-2
-equ trap_Endgame			-3
-equ	trap_Milliseconds		-4
-equ	trap_Cvar_Register		-5
-equ	trap_Cvar_Update		-6
-equ	trap_Cvar_Set			-7
-equ	trap_Cvar_VariableIntegerValue	-8
-equ	trap_Cvar_VariableStringBuffer	-9
-equ	trap_Argc				-10
-equ	trap_Argv				-11
-equ	trap_FS_FOpenFile		-12
-equ	trap_FS_Read			-13
-equ	trap_FS_Write			-14
-equ trap_FS_Rename			-15
-equ	trap_FS_FCloseFile		-16
-equ	trap_SendConsoleCommand	-17
-equ	trap_LocateGameData		-18
-equ	trap_DropClient			-19
-equ	trap_SendServerCommand	-20
-equ	trap_SetConfigstring	-21
-equ	trap_GetConfigstring	-22
-equ	trap_GetUserinfo		-23
-equ	trap_SetUserinfo		-24
-equ	trap_GetServerinfo		-25
-equ	trap_SetBrushModel		-26
-equ	trap_Trace				-27
-equ	trap_PointContents		-28
-equ trap_InPVS				-29
-equ	trap_InPVSIgnorePortals	-30
-equ	trap_AdjustAreaPortalState	-31
-equ	trap_AreasConnected		-32
-equ	trap_LinkEntity			-33
-equ	trap_UnlinkEntity		-34
-equ	trap_EntitiesInBox		-35
-equ	trap_EntityContact		-36
-equ	trap_BotAllocateClient	-37
-equ	trap_BotFreeClient		-38
-equ	trap_GetUsercmd			-39
-equ	trap_GetEntityToken		-40
-equ	trap_FS_GetFileList		-41
-equ trap_DebugPolygonCreate	-42
-equ trap_DebugPolygonDelete	-43
-equ trap_RealTime			-44
-equ trap_SnapVector			-45
-equ trap_TraceCapsule		-46
-equ trap_EntityContactCapsule	-47
-equ trap_GetTag				-48
+equ	trap_Milliseconds		-3
+equ	trap_Cvar_Register		-4
+equ	trap_Cvar_Update		-5
+equ	trap_Cvar_Set			-6
+equ	trap_Cvar_VariableIntegerValue	-7
+equ	trap_Cvar_VariableStringBuffer	-8
+equ	trap_Argc				-9
+equ	trap_Argv				-10
+equ	trap_FS_FOpenFile		-11
+equ	trap_FS_Read			-12
+equ	trap_FS_Write			-13
+equ trap_FS_Rename			-14
+equ	trap_FS_FCloseFile		-15
+equ	trap_SendConsoleCommand	-16
+equ	trap_LocateGameData		-17
+equ	trap_DropClient			-18
+equ	trap_SendServerCommand	-19
+equ	trap_SetConfigstring	-20
+equ	trap_GetConfigstring	-21
+equ	trap_GetUserinfo		-22
+equ	trap_SetUserinfo		-23
+equ	trap_GetServerinfo		-24
+equ	trap_SetBrushModel		-25
+equ	trap_Trace				-26
+equ	trap_PointContents		-27
+equ trap_InPVS				-28
+equ	trap_InPVSIgnorePortals	-29
+equ	trap_AdjustAreaPortalState	-30
+equ	trap_AreasConnected		-31
+equ	trap_LinkEntity			-32
+equ	trap_UnlinkEntity		-33
+equ	trap_EntitiesInBox		-34
+equ	trap_EntityContact		-35
+equ	trap_BotAllocateClient	-36
+equ	trap_BotFreeClient		-37
+equ	trap_GetUsercmd			-38
+equ	trap_GetEntityToken		-39
+equ	trap_FS_GetFileList		-40
+equ trap_DebugPolygonCreate	-41
+equ trap_DebugPolygonDelete	-42
+equ trap_RealTime			-43
+equ trap_SnapVector			-44
+equ trap_TraceCapsule		-45
+equ trap_EntityContactCapsule	-46
+equ trap_GetTag				-47
 
 equ	memset					-101
 equ	memcpy					-102
@@ -60,7 +59,6 @@ equ floor					-111
 equ	ceil					-112
 equ	testPrintInt			-113
 equ	testPrintFloat			-114
-equ	acos				-115
 
 
 
@@ -111,8 +109,7 @@ equ trap_AAS_PredictClientMovement		-320
 equ trap_AAS_RT_ShowRoute				-321
 equ trap_AAS_RT_GetHidePos				-322
 equ trap_AAS_FindAttackSpotWithinRange	-323
-equ trap_AAS_GetRouteFirstVisPos		-324
-equ trap_AAS_SetAASBlockingEntity		-325
+equ trap_AAS_SetAASBlockingEntity		-324
 
 
 equ trap_EA_Say							-401
@@ -237,8 +234,3 @@ equ trap_BotLibFreeSource				-581
 equ trap_BotLibReadToken				-582
 equ trap_BotLibSourceFileAndLine		-583
  
-equ trap_FS_CopyFile					-584
-
-; New in iortcw
-equ trap_Alloc							-901
-

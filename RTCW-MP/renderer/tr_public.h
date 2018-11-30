@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -56,6 +56,8 @@ typedef struct {
 	qhandle_t ( *RegisterSkin )( const char *name );
 	qhandle_t ( *RegisterShader )( const char *name );
 	qhandle_t ( *RegisterShaderNoMip )( const char *name );
+	void ( *RegisterFont )( const char *fontName, int pointSize, fontInfo_t *font );
+
 	void ( *LoadWorld )( const char *name );
 	qboolean ( *GetSkinModel )( qhandle_t skinid, const char *type, char *name );    //----(SA)	added
 	qhandle_t ( *GetShaderFromModel )( qhandle_t modelid, int surfnum, int withlightmap );                //----(SA)	added
@@ -79,7 +81,7 @@ typedef struct {
 	// done.
 	void ( *AddLightToScene )( const vec3_t org, float intensity, float r, float g, float b, int overdraw );
 //----(SA)
-	void ( *AddCoronaToScene )( const vec3_t org, float r, float g, float b, float scale, int id, int flags );
+	void ( *AddCoronaToScene )( const vec3_t org, float r, float g, float b, float scale, int id, qboolean visible );
 	void ( *SetFog )( int fogvar, int var1, int var2, float r, float g, float b, float density );
 //----(SA)
 	void ( *RenderScene )( const refdef_t *fd );
@@ -87,6 +89,8 @@ typedef struct {
 	void ( *SetColor )( const float *rgba );    // NULL = 1,1,1,1
 	void ( *DrawStretchPic )( float x, float y, float w, float h,
 							  float s1, float t1, float s2, float t2, qhandle_t hShader ); // 0 = white
+	void ( *DrawRotatedPic )( float x, float y, float w, float h,
+							  float s1, float t1, float s2, float t2, qhandle_t hShader, float angle ); // NERVE - SMF
 	void ( *DrawStretchPicGradient )( float x, float y, float w, float h,
 									  float s1, float t1, float s2, float t2, qhandle_t hShader, const float *gradientColor, int gradientType );
 
@@ -106,11 +110,7 @@ typedef struct {
 	int ( *LerpTag )( orientation_t *tag,  const refEntity_t *refent, const char *tagName, int startIndex );
 	void ( *ModelBounds )( qhandle_t model, vec3_t mins, vec3_t maxs );
 
-	void ( *RegisterFont )( const char *fontName, int pointSize, fontInfo_t *font );
 	void ( *RemapShader )( const char *oldShader, const char *newShader, const char *offsetTime );
-
-	// RF
-	void ( *ZombieFXAddNewHit )( int entityNum, const vec3_t hitPos, const vec3_t hitDir );
 
 	qboolean ( *GetEntityToken )( char *buffer, int size );
 
@@ -142,8 +142,14 @@ typedef struct {
 	void    *( *Hunk_AllocateTempMemory )( int size );
 	void ( *Hunk_FreeTempMemory )( void *block );
 
+	// dynamic memory allocator for things that need to be freed
+#ifdef ZONE_DEBUG
+	void    *( *Z_MallocDebug )( int bytes, char *label, char *file, int line );
+#else
 	void    *( *Z_Malloc )( int bytes );
+#endif
 	void ( *Free )( void *buf );
+	void ( *Tag_Free )( void );
 
 	cvar_t  *( *Cvar_Get )( const char *name, const char *value, int flags );
 	void ( *Cvar_Set )( const char *name, const char *value );

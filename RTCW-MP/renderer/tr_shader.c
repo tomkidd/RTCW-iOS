@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -39,20 +39,7 @@ static shader_t shader;
 static texModInfo_t texMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS];
 
 #define FILE_HASH_SIZE      4096
-
 static shader_t*       hashTable[FILE_HASH_SIZE];
-
-// Ridah
-// Table containing string indexes for each shader found in the scripts, referenced by their checksum
-// values.
-typedef struct shaderStringPointer_s
-{
-	char *pStr;
-	struct shaderStringPointer_s *next;
-} shaderStringPointer_t;
-//
-shaderStringPointer_t shaderChecksumLookup[FILE_HASH_SIZE];
-// done.
 
 /*
 ================
@@ -634,9 +621,10 @@ static qboolean ParseStage( shaderStage_t *stage, char **text ) {
 				if (!shader.noPicMip)
 					flags |= IMGFLAG_PICMIP;
 
-				stage->bundle[0].image[0] = R_FindImageFileExt( token, type, flags, shader.characterMip );
+				stage->bundle[0].image[0] = R_FindImageFile( token, type, flags );
+
 				if ( !stage->bundle[0].image[0] ) {
-					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFileExt could not find '%s' in shader '%s'\n", token, shader.name );
+					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
 					return qfalse;
 				}
 			}
@@ -660,9 +648,10 @@ static qboolean ParseStage( shaderStage_t *stage, char **text ) {
 			if (!shader.noPicMip)
 				flags |= IMGFLAG_PICMIP;
 
-			stage->bundle[0].image[0] = R_FindImageFileExt( token, type, flags, shader.characterMip );
+			stage->bundle[0].image[0] = R_FindImageFile( token, type, flags );
+
 			if ( !stage->bundle[0].image[0] ) {
-				ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFileExt could not find '%s' in shader '%s'\n", token, shader.name );
+				ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
 				return qfalse;
 			}
 		}
@@ -697,9 +686,10 @@ static qboolean ParseStage( shaderStage_t *stage, char **text ) {
 					if (!shader.noPicMip)
 						flags |= IMGFLAG_PICMIP;
 
-					stage->bundle[0].image[num] = R_FindImageFileExt( token, IMGTYPE_COLORALPHA, flags, shader.characterMip );
+					stage->bundle[0].image[num] = R_FindImageFile( token, IMGTYPE_COLORALPHA, flags );
+
 					if ( !stage->bundle[0].image[num] ) {
-						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFileExt could not find '%s' in shader '%s'\n", token, shader.name );
+						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
 						return qfalse;
 					}
 					stage->bundle[0].numImageAnimations++;
@@ -1009,6 +999,12 @@ static qboolean ParseStage( shaderStage_t *stage, char **text ) {
 		}
 	}
 
+	// allow crosshairs to be colorized for cg_crosshairHealth
+	if ( strstr( shader.name, "crosshair" ) && shader.lightmapIndex == LIGHTMAP_2D ) {
+		if ( stage->rgbGen == CGEN_IDENTITY || stage->rgbGen == CGEN_IDENTITY_LIGHTING ) {
+			stage->rgbGen = CGEN_VERTEX;
+		}
+	}
 
 	//
 	// implicitly assume that a GL_ONE GL_ZERO blend mask disables blending
@@ -1207,6 +1203,7 @@ static void ParseSkyParms( char **text ) {
 			Com_sprintf( pathname, sizeof( pathname ), "%s_%s.tga"
 						 , token, suf[i] );
 			shader.sky.outerbox[i] = R_FindImageFile( ( char * ) pathname, IMGTYPE_COLORALPHA, imgFlags | IMGFLAG_CLAMPTOEDGE );
+
 			if ( !shader.sky.outerbox[i] ) {
 				shader.sky.outerbox[i] = tr.defaultImage;
 			}
@@ -1237,6 +1234,7 @@ static void ParseSkyParms( char **text ) {
 			Com_sprintf( pathname, sizeof( pathname ), "%s_%s.tga"
 						 , token, suf[i] );
 			shader.sky.innerbox[i] = R_FindImageFile( ( char * ) pathname, IMGTYPE_COLORALPHA, imgFlags );
+
 			if ( !shader.sky.innerbox[i] ) {
 				shader.sky.innerbox[i] = tr.defaultImage;
 			}
@@ -1299,11 +1297,6 @@ infoParm_t infoParms[] = {
 //----(SA)	modified
 	{"clipmissile",  1,  0, CONTENTS_MISSILECLIP},       // impact only specific weapons (rl, gl)
 //----(SA)	end
-
-// RF, AI sight
-	{"ai_nosight",   1,  0,  CONTENTS_AI_NOSIGHT},
-	{"clipshot", 1,  0,  CONTENTS_CLIPSHOT},         // stops bullets
-// RF, end
 
 	{"water",        1,  0,  CONTENTS_WATER },
 	{"slag",     1,  0,  CONTENTS_SLIME },       // uses the CONTENTS_SLIME flag, but the shader reference is changed to 'slag'
@@ -1383,7 +1376,7 @@ surfaceparm <name>
 */
 static void ParseSurfaceParm( char **text ) {
 	char    *token;
-	int numInfoParms = ARRAY_LEN( infoParms );
+	int		numInfoParms = ARRAY_LEN( infoParms );
 	int i;
 
 	token = COM_ParseExt( text, qfalse );
@@ -1507,7 +1500,7 @@ static qboolean ParseShader( char **text ) {
 			continue;
 		}
 		// no mip maps
-		else if ( !Q_stricmp( token, "nomipmaps" ) ) {
+		else if ( ( !Q_stricmp( token, "nomipmaps" ) ) || ( !Q_stricmp( token,"nomipmap" ) ) ) {
 			shader.noMipMaps = qtrue;
 			shader.noPicMip = qtrue;
 			continue;
@@ -1515,11 +1508,6 @@ static qboolean ParseShader( char **text ) {
 		// no picmip adjustment
 		else if ( !Q_stricmp( token, "nopicmip" ) ) {
 			shader.noPicMip = qtrue;
-			continue;
-		}
-		// character picmip adjustment
-		else if ( !Q_stricmp( token, "picmip2" ) ) {
-			shader.characterMip = qtrue;
 			continue;
 		}
 		// polygonOffset
@@ -1636,7 +1624,6 @@ static qboolean ParseShader( char **text ) {
 		else if ( !Q_stricmp( token, "waterfogvars" ) ) {
 			vec3_t watercolor;
 			float fogvar;
-			char fogString[64];
 
 			if ( !ParseVector( text, 3, watercolor ) ) {
 				return qfalse;
@@ -1657,19 +1644,10 @@ static qboolean ParseShader( char **text ) {
 			if ( fogvar == 0 ) {       // '0' specifies "use the map values for everything except the fog color
 				// TODO
 			} else if ( fogvar > 1 )      { // distance "linear" fog
-				Com_sprintf( fogString, sizeof( fogString ), "0 %d 1.1 %f %f %f 200", (int)fogvar, watercolor[0], watercolor[1], watercolor[2] );
-//				R_SetFog(FOG_WATER, 0, fogvar, watercolor[0], watercolor[1], watercolor[2], 1.1);
+				R_SetFog( FOG_WATER, 0, fogvar, watercolor[0], watercolor[1], watercolor[2], 1.1 );
 			} else {                      // density "exp" fog
-				Com_sprintf( fogString, sizeof( fogString ), "0 5 %f %f %f %f 200", fogvar, watercolor[0], watercolor[1], watercolor[2] );
-//				R_SetFog(FOG_WATER, 0, 5, watercolor[0], watercolor[1], watercolor[2], fogvar);
+				R_SetFog( FOG_WATER, 0, 5, watercolor[0], watercolor[1], watercolor[2], fogvar );
 			}
-
-//		near
-//		far
-//		density
-//		r,g,b
-//		time to complete
-			ri.Cvar_Set( "r_waterFogColor", fogString );
 
 			continue;
 		}
@@ -1694,15 +1672,14 @@ static qboolean ParseShader( char **text ) {
 			//					density (so old maps or maps that just need softening fog don't have to care about farclip)
 
 			fogDensity = atof( token );
-			if ( fogDensity >= 1 ) { // linear
+			if ( fogDensity > 1 ) {  // linear
 				fogFar      = fogDensity;
 			} else {
 				fogFar      = 5;
 			}
 
-//			R_SetFog(FOG_MAP, 0, fogFar, fogColor[0], fogColor[1], fogColor[2], fogDensity);
-			ri.Cvar_Set( "r_mapFogColor", va( "0 %d %f %f %f %f 0", fogFar, fogDensity, fogColor[0], fogColor[1], fogColor[2] ) );
-//			R_SetFog(FOG_CMD_SWITCHFOG, FOG_MAP, 50, 0, 0, 0, 0);
+			R_SetFog( FOG_MAP, 0, fogFar, fogColor[0], fogColor[1], fogColor[2], fogDensity );
+			R_SetFog( FOG_CMD_SWITCHFOG, FOG_MAP, 50, 0, 0, 0, 0 );
 
 			continue;
 		}
@@ -2015,6 +1992,7 @@ static void FixRenderCommandList( int newShader ) {
 				break;
 			}
 			case RC_STRETCH_PIC:
+			case RC_ROTATED_PIC:
 			case RC_STRETCH_PIC_GRADIENT:
 			{
 				const stretchPicCommand_t *sp_cmd = (const stretchPicCommand_t *)curCmd;
@@ -2029,12 +2007,11 @@ static void FixRenderCommandList( int newShader ) {
 				int fogNum;
 				int entityNum;
 				int dlightMap;
-				int atiTess;
 				int sortedIndex;
 				const drawSurfsCommand_t *ds_cmd =  (const drawSurfsCommand_t *)curCmd;
 
 				for ( i = 0, drawSurf = ds_cmd->drawSurfs; i < ds_cmd->numDrawSurfs; i++, drawSurf++ ) {
-					R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlightMap, &atiTess );
+					R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlightMap );
 					sortedIndex = ( ( drawSurf->sort >> QSORT_SHADERNUM_SHIFT ) & ( MAX_SHADERS - 1 ) );
 					if ( sortedIndex >= newShader ) {
 						sortedIndex++;
@@ -2147,9 +2124,8 @@ static shader_t *GeneratePermanentShader( void ) {
 				continue;
 			}
 			size = newShader->stages[i]->bundle[b].numTexMods * sizeof( texModInfo_t );
-			// Ridah, caching system
 			newShader->stages[i]->bundle[b].texMods = ri.Hunk_Alloc( size, h_low );
-			memcpy( newShader->stages[i]->bundle[b].texMods, stages[i].bundle[b].texMods, size );
+			Com_Memcpy( newShader->stages[i]->bundle[b].texMods, stages[i].bundle[b].texMods, size );
 		}
 	}
 
@@ -2341,6 +2317,7 @@ static shader_t *FinishShader( void ) {
 				
 				Com_Memset(&stages[index - 1], 0, sizeof(*stages));
 			}
+			
 			continue;
 		}
 
@@ -2420,6 +2397,7 @@ static shader_t *FinishShader( void ) {
 	//
 	// if we are in r_vertexLight mode, never use a lightmap texture
 	//
+	// NERVE - SMF - temp fix, terrain is having problems with lighting collapse
 	if ( 0 && ( stage > 1 && ( ( r_vertexLight->integer && !r_uiFullScreen->integer ) || glConfig.hardwareType == GLHW_PERMEDIA2 ) ) ) {
 		VertexLightingCollapse();
 		stage = 1;
@@ -2485,30 +2463,6 @@ static char *FindShaderInShaderText( const char *shadername ) {
 		return NULL;
 	}
 
-	// Ridah, optimized shader loading
-	{
-		shaderStringPointer_t *pShaderString;
-		unsigned short int checksum;
-
-		checksum = generateHashValue( shadername );
-
-		// if it's known, skip straight to it's position
-		pShaderString = &shaderChecksumLookup[checksum];
-		while ( pShaderString && pShaderString->pStr ) {
-			p = pShaderString->pStr;
-
-			token = COM_ParseExt( &p, qtrue );
-
-			if ( ( token[0] != 0 ) && !Q_stricmp( token, shadername ) ) {
-				return p;
-			}
-
-			pShaderString = pShaderString->next;
-		}
-	}
-	// done.
-
-	/*
 	// look for label
 	// note that this could get confused if a shader name is used inside
 	// another shader definition
@@ -2528,7 +2482,6 @@ static char *FindShaderInShaderText( const char *shadername ) {
 			SkipRestOfLine( &p );
 		}
 	}
-	*/
 
 	return NULL;
 }
@@ -2629,17 +2582,11 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 	// see if the shader is already loaded
 	//
 	for ( sh = hashTable[hash]; sh; sh = sh->next ) {
-		// index by name
-
-		// Ridah, modified this so we don't keep trying to load an invalid lightmap shader
-/*
-		if ( sh->lightmapIndex == lightmapIndex &&
-			!Q_stricmp(sh->name, strippedName)) {
-			// match found
-			return sh;
-		}
-*/
-		if ( ( ( sh->lightmapIndex == lightmapIndex ) || ( sh->lightmapIndex < 0 && lightmapIndex >= 0 ) ) &&
+		// NOTE: if there was no shader or image available with the name strippedName
+		// then a default shader is created with lightmapIndex == LIGHTMAP_NONE, so we
+		// have to check all default shaders otherwise for every call to R_FindShader
+		// with that same strippedName a new default shader is created.
+		if ( ( sh->lightmapIndex == lightmapIndex || sh->defaultShader ) &&
 			 !Q_stricmp( sh->name, strippedName ) ) {
 			// match found
 			return sh;
@@ -3034,68 +2981,6 @@ void    R_ShaderList_f( void ) {
 	ri.Printf( PRINT_ALL, "------------------\n" );
 }
 
-// Ridah, optimized shader loading
-
-#define MAX_SHADER_STRING_POINTERS  100000
-shaderStringPointer_t shaderStringPointerList[MAX_SHADER_STRING_POINTERS];
-
-/*
-====================
-BuildShaderChecksumLookup
-====================
-*/
-static void BuildShaderChecksumLookup( void ) {
-	char *p = s_shaderText, *pOld;
-	char *token;
-	unsigned short int checksum;
-	int numShaderStringPointers = 0;
-
-	// initialize the checksums
-	memset( shaderChecksumLookup, 0, sizeof( shaderChecksumLookup ) );
-
-	if ( !p ) {
-		return;
-	}
-
-	// loop for all labels
-	while ( 1 ) {
-
-		pOld = p;
-
-		token = COM_ParseExt( &p, qtrue );
-		if ( token[0] == 0 ) {
-			break;
-		}
-
-		if ( !Q_stricmp( token, "{" ) ) {
-			// skip braced section
-			SkipBracedSection( &p, 0 );
-			continue;
-		}
-
-		// get it's checksum
-		checksum = generateHashValue( token );
-
-		// if it's not currently used
-		if ( !shaderChecksumLookup[checksum].pStr ) {
-			shaderChecksumLookup[checksum].pStr = pOld;
-		} else {
-			// create a new list item
-			shaderStringPointer_t *newStrPtr;
-
-			if ( numShaderStringPointers >= MAX_SHADER_STRING_POINTERS ) {
-				ri.Error( ERR_DROP, "MAX_SHADER_STRING_POINTERS exceeded, too many shaders" );
-			}
-
-			newStrPtr = &shaderStringPointerList[numShaderStringPointers++]; //ri.Hunk_Alloc( sizeof( shaderStringPointer_t ), h_low );
-			newStrPtr->pStr = pOld;
-			newStrPtr->next = shaderChecksumLookup[checksum].next;
-			shaderChecksumLookup[checksum].next = newStrPtr;
-		}
-	}
-}
-// done.
-
 
 /*
 ====================
@@ -3140,7 +3025,7 @@ static void ScanAndLoadShaderFiles( void ) {
 		
 		if ( !buffers[i] )
 			ri.Error( ERR_DROP, "Couldn't load %s", filename );
-		
+
 		// Do a simple check on the shader structure in that file to make sure one bad shader file cannot fuck up all other shaders.
 		p = buffers[i];
 		COM_BeginParseSession(filename);
@@ -3189,12 +3074,13 @@ static void ScanAndLoadShaderFiles( void ) {
 				}
 			}
 		}
-		
+
 		if (buffers[i])
-			sum += summand;		
+			sum += summand;
 	}
 
 	// build single large buffer
+
 	s_shaderText = ri.Hunk_Alloc( sum + numShaderFiles*2, h_low );
 	s_shaderText[ 0 ] = '\0';
 	textEnd = s_shaderText;
@@ -3215,10 +3101,6 @@ static void ScanAndLoadShaderFiles( void ) {
 
 	// free up memory
 	ri.FS_FreeFileList( shaderFiles );
-
-	// Ridah, optimized shader loading (18ms on a P3-500 for sfm1.bsp)
-	BuildShaderChecksumLookup();
-	// done.
 }
 
 
@@ -3244,7 +3126,7 @@ static void CreateInternalShaders( void ) {
 }
 
 static void CreateExternalShaders( void ) {
-//	tr.projectionShadowShader = R_FindShader( "projectionShadow", LIGHTMAP_NONE, qtrue );
+	tr.projectionShadowShader = R_FindShader( "projectionShadow", LIGHTMAP_NONE, qtrue );
 	tr.flareShader = R_FindShader( "flareShader", LIGHTMAP_NONE, qtrue );
 
 	// Hack to make fogging work correctly on flares. Fog colors are calculated
@@ -3260,11 +3142,11 @@ static void CreateExternalShaders( void ) {
 		}
 	}
 
-	tr.spotFlareShader = R_FindShader( "spotLight", LIGHTMAP_NONE, qtrue );
 //	tr.sunShader = R_FindShader( "sun", LIGHTMAP_NONE, qtrue );	//----(SA)	let sky shader set this
 	tr.sunflareShader[0] = R_FindShader( "sunflare1", LIGHTMAP_NONE, qtrue );
 	tr.dlightShader = R_FindShader( "dlightshader", LIGHTMAP_NONE, qtrue );
 }
+
 
 /*
 ==================
@@ -3274,9 +3156,6 @@ R_InitShaders
 void R_InitShaders( void ) {
 
 	glfogNum = FOG_NONE;
-	ri.Cvar_Set( "r_waterFogColor", "0" );  // clear fog
-	ri.Cvar_Set( "r_mapFogColor", "0" );        //
-	ri.Cvar_Set( "r_savegameFogColor", "0" );
 
 	ri.Printf( PRINT_ALL, "Initializing Shaders\n" );
 
@@ -3288,3 +3167,4 @@ void R_InitShaders( void ) {
 
 	CreateExternalShaders();
 }
+

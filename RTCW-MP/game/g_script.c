@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -64,7 +64,6 @@ qboolean G_ScriptAction_TagConnect( gentity_t *ent, char *params );
 qboolean G_ScriptAction_Halt( gentity_t *ent, char *params );
 qboolean G_ScriptAction_StopSound( gentity_t *ent, char *params );
 qboolean G_ScriptAction_StartCam( gentity_t *ent, char *params );
-qboolean G_ScriptAction_StartCamBlack( gentity_t *ent, char *params );
 qboolean G_ScriptAction_EntityScriptName( gentity_t *ent, char *params );
 qboolean G_ScriptAction_AIScriptName( gentity_t *ent, char *params );
 // DHM - Nerve :: Multiplayer scripting commands
@@ -73,71 +72,62 @@ qboolean G_ScriptAction_AxisRespawntime( gentity_t *ent, char *params );
 qboolean G_ScriptAction_AlliedRespawntime( gentity_t *ent, char *params );
 qboolean G_ScriptAction_NumberofObjectives( gentity_t *ent, char *params );
 qboolean G_ScriptAction_ObjectiveAxisDesc( gentity_t *ent, char *params );
+qboolean G_ScriptAction_ObjectiveShortAxisDesc( gentity_t *ent, char *params );     // NERVE - SMF
 qboolean G_ScriptAction_ObjectiveAlliedDesc( gentity_t *ent, char *params );
+qboolean G_ScriptAction_ObjectiveShortAlliedDesc( gentity_t *ent, char *params );   // NERVE - SMF
+qboolean G_ScriptAction_ObjectiveImage( gentity_t *ent, char *params );
 qboolean G_ScriptAction_SetWinner( gentity_t *ent, char *params );
 qboolean G_ScriptAction_SetObjectiveStatus( gentity_t *ent, char *params );
+qboolean G_ScriptAction_SetDefendingTeam( gentity_t *ent, char *params );           // NERVE - SMF
 qboolean G_ScriptAction_Announce( gentity_t *ent, char *params );
 qboolean G_ScriptAction_EndRound( gentity_t *ent, char *params );
 qboolean G_ScriptAction_SetRoundTimelimit( gentity_t *ent, char *params );
+qboolean G_ScriptAction_OverviewImage( gentity_t *ent, char *params );              // NERVE - SMF
+qboolean G_ScriptAction_RemoveEntity( gentity_t *ent, char *params );
 // dhm
-qboolean G_ScriptAction_BackupScript( gentity_t *ent, char *params );
-qboolean G_ScriptAction_RestoreScript( gentity_t *ent, char *params );
-qboolean G_ScriptAction_SetHealth( gentity_t *ent, char *params );
-
-//----(SA)	added
-qboolean G_ScriptAction_MusicStart( gentity_t *ent, char *params );
-qboolean G_ScriptAction_MusicPlay( gentity_t *ent, char *params );
-qboolean G_ScriptAction_MusicStop( gentity_t *ent, char *params );
-qboolean G_ScriptAction_MusicFade( gentity_t *ent, char *params );
-qboolean G_ScriptAction_MusicQueue( gentity_t *ent, char *params );
-//----(SA)	end
 
 // these are the actions that each event can call
 g_script_stack_action_t gScriptActions[] =
 {
-	{"gotomarker",               G_ScriptAction_GotoMarker},
-	{"playsound",                G_ScriptAction_PlaySound},
-	{"playanim",             G_ScriptAction_PlayAnim},
-	{"wait",                 G_ScriptAction_Wait},
-	{"trigger",                  G_ScriptAction_Trigger},
-	{"alertentity",              G_ScriptAction_AlertEntity},
-	{"accum",                    G_ScriptAction_Accum},
-	{"missionfailed",            G_ScriptAction_MissionFailed},
-	{"missionsuccess",           G_ScriptAction_MissionSuccess},
-	{"print",                    G_ScriptAction_Print},
-	{"faceangles",               G_ScriptAction_FaceAngles},
-	{"resetscript",              G_ScriptAction_ResetScript},
-	{"attachtotag",              G_ScriptAction_TagConnect},
-	{"halt",                 G_ScriptAction_Halt},
-	{"stopsound",                G_ScriptAction_StopSound},
-	{"startcam",             G_ScriptAction_StartCam},
-	{"startcamblack",             G_ScriptAction_StartCamBlack},
-	{"entityscriptname",     G_ScriptAction_EntityScriptName},
-	{"aiscriptname",         G_ScriptAction_AIScriptName},
+	{"gotomarker",       G_ScriptAction_GotoMarker},
+	{"playsound",        G_ScriptAction_PlaySound},
+	{"playanim",     G_ScriptAction_PlayAnim},
+	{"wait",         G_ScriptAction_Wait},
+	{"trigger",          G_ScriptAction_Trigger},
+	{"alertentity",      G_ScriptAction_AlertEntity},
+	{"accum",            G_ScriptAction_Accum},
+	{"missionfailed",    G_ScriptAction_MissionFailed},
+	{"missionsuccess",   G_ScriptAction_MissionSuccess},
+	{"print",            G_ScriptAction_Print},
+	{"faceangles",       G_ScriptAction_FaceAngles},
+	{"resetscript",      G_ScriptAction_ResetScript},
+	{"attachtotag",      G_ScriptAction_TagConnect},
+	{"halt",         G_ScriptAction_Halt},
+	{"stopsound",        G_ScriptAction_StopSound},
+//	{"startcam",		G_ScriptAction_StartCam},
+	{"entityscriptname",G_ScriptAction_EntityScriptName},
+	{"aiscriptname", G_ScriptAction_AIScriptName},
 	// DHM - Nerve :: multiplayer scripting commands start with "wm_" (Wolf Multiplayer)
-	{"wm_mapdescription",        G_ScriptAction_MapDescription},
-	{"wm_axis_respawntime",      G_ScriptAction_AxisRespawntime},
-	{"wm_allied_respawntime",    G_ScriptAction_AlliedRespawntime},
-	{"wm_number_of_objectives",  G_ScriptAction_NumberofObjectives},
-	{"wm_objective_axis_desc",   G_ScriptAction_ObjectiveAxisDesc},
-	{"wm_objective_allied_desc",G_ScriptAction_ObjectiveAlliedDesc},
-	{"wm_setwinner",         G_ScriptAction_SetWinner},
-	{"wm_set_objective_status",  G_ScriptAction_SetObjectiveStatus},
-	{"wm_announce",              G_ScriptAction_Announce},
-	{"wm_endround",              G_ScriptAction_EndRound},
-	{"wm_set_round_timelimit",   G_ScriptAction_SetRoundTimelimit},
+	{"wm_mapdescription",            G_ScriptAction_MapDescription},
+	{"wm_axis_respawntime",          G_ScriptAction_AxisRespawntime},
+	{"wm_allied_respawntime",        G_ScriptAction_AlliedRespawntime},
+	{"wm_number_of_objectives",      G_ScriptAction_NumberofObjectives},
+	{"wm_objective_axis_desc",       G_ScriptAction_ObjectiveAxisDesc},
+	{"wm_objective_short_axis_desc", G_ScriptAction_ObjectiveShortAxisDesc},     // NERVE - SMF
+	{"wm_objective_allied_desc", G_ScriptAction_ObjectiveAlliedDesc},
+	{"wm_objective_short_allied_desc", G_ScriptAction_ObjectiveShortAlliedDesc}, // NERVE - SMF
+	{"wm_objective_image",           G_ScriptAction_ObjectiveImage},
+	{"wm_setwinner",             G_ScriptAction_SetWinner},
+	{"wm_set_objective_status",      G_ScriptAction_SetObjectiveStatus},
+	{"wm_set_defending_team",        G_ScriptAction_SetDefendingTeam},
+	{"wm_announce",                  G_ScriptAction_Announce},
+	{"wm_endround",                  G_ScriptAction_EndRound},
+	{"wm_set_round_timelimit",       G_ScriptAction_SetRoundTimelimit},
+	{"wm_overview_image",            G_ScriptAction_OverviewImage},                  // NERVE - SMF
+	{"remove",                       G_ScriptAction_RemoveEntity},
 	// dhm
-	{"backupscript",         G_ScriptAction_BackupScript},
-	{"restorescript",            G_ScriptAction_RestoreScript},
-	{"sethealth",                G_ScriptAction_SetHealth},
 
-	{"mu_start",             G_ScriptAction_MusicStart}, // (char *new_music, int time)		// time to fadeup
-	{"mu_play",                  G_ScriptAction_MusicPlay},  // (char *music)
-	{"mu_stop",                  G_ScriptAction_MusicStop},  // (int time)						// time to fadeout
-	{"mu_fade",                  G_ScriptAction_MusicFade},  // (float target_volume, int time)	// time to fade to target
-	{"mu_queue",             G_ScriptAction_MusicQueue}, // (char *new_music)				// music that will start when previous fades to 0
-
-	{NULL,                      0}
+	{NULL,              0}
 };
 
 qboolean G_Script_EventMatch_StringEqual( g_script_event_t *event, char *eventParm );
@@ -156,6 +146,7 @@ g_script_event_define_t gScriptEvents[] =
 	{NULL,              0}
 };
 
+extern int numSecrets;
 
 /*
 ===============
@@ -225,8 +216,7 @@ g_script_stack_action_t *G_Script_ActionForString( char *string ) {
 	{
 		if ( !Q_strcasecmp( string, gScriptActions[i].actionString ) ) {
 			if ( !Q_strcasecmp( string, "foundsecret" ) ) {
-				level.numSecrets++;
-				G_SendMissionStats();
+				numSecrets++;
 			}
 			return &gScriptActions[i];
 		}
@@ -260,6 +250,11 @@ void G_Script_ScriptLoad( void ) {
 	}
 	Q_strncpyz( filename, "maps/", sizeof( filename ) );
 	Q_strcat( filename, sizeof( filename ), mapname.string );
+	// DHM - Nerve :: Support capture mode by loading appropriate script
+	if ( ( g_gametype.integer == GT_WOLF_CP ) || ( g_gametype.integer == GT_WOLF_CPH ) ) { // JPW NERVE added capture & hold
+		Q_strcat( filename, sizeof( filename ), "_cp" );
+	}
+	// dhm - Nerve
 	Q_strcat( filename, sizeof( filename ), ".script" );
 
 	len = trap_FS_FOpenFile( filename, &f, FS_READ );
@@ -301,7 +296,6 @@ void G_Script_ScriptParse( gentity_t *ent ) {
 	g_script_stack_action_t *action;
 	int i;
 	int bracketLevel;
-	qboolean buildScript;       //----(SA)	added
 
 	if ( !ent->scriptName ) {
 		return;
@@ -309,8 +303,6 @@ void G_Script_ScriptParse( gentity_t *ent ) {
 	if ( !level.scriptEntity ) {
 		return;
 	}
-
-	buildScript = qtrue;
 
 	pScript = level.scriptEntity;
 	wantName = qtrue;
@@ -409,26 +401,10 @@ void G_Script_ScriptParse( gentity_t *ent ) {
 						Q_strcat( params, sizeof( params ), " " );
 					}
 
-					if ( i == 0 ) {
-						// Special case: playsound's need to be cached on startup to prevent in-game pauses
-						if ( !Q_stricmp( action->actionString, "playsound" ) ) {
-							G_SoundIndex( token );
-						}
-
-//----(SA)	added a bit more
-						if (    buildScript && (
-									!Q_stricmp( action->actionString, "mu_start" ) ||
-									!Q_stricmp( action->actionString, "mu_play" ) ||
-									!Q_stricmp( action->actionString, "mu_queue" ) ||
-									!Q_stricmp( action->actionString, "startcam" ) ||
-									!Q_stricmp( action->actionString, "startcamblack" ) )
-								) {
-							if ( strlen( token ) ) { // we know there's a [0], but don't know if it's '0'
-								trap_SendServerCommand( ent->s.number, va( "addToBuild %s\n", token ) );
-							}
-						}
+					// Special case: playsound's need to be cached on startup to prevent in-game pauses
+					if ( ( i == 0 ) && !Q_stricmp( action->actionString, "playsound" ) ) {
+						G_SoundIndex( token );
 					}
-//----(SA)	end
 
 					if ( strrchr( token,' ' ) ) { // need to wrap this param in quotes since it has more than one word
 						Q_strcat( params, sizeof( params ), "\"" );
@@ -458,7 +434,7 @@ void G_Script_ScriptParse( gentity_t *ent ) {
 			numEventItems++;
 		} else    // skip this character completely
 		{
-			// TTimo: gcc: suggest parentheses around assignment used as truth value
+			// TTimo gcc: suggest parentheses around assignment used as truth value
 			while ( ( token = COM_Parse( &pScript ) ) )
 			{
 				if ( !token[0] ) {
@@ -662,10 +638,6 @@ void script_mover_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacke
 	G_FreeEntity( self );
 }
 
-void script_mover_pain( gentity_t *self, gentity_t *attacker, int damage, vec3_t point ) {
-	G_Script_ScriptEvent( self, "pain", va( "%d %d", self->health, self->health + damage ) );
-}
-
 void script_mover_spawn( gentity_t *ent ) {
 	if ( ent->spawnflags & 2 ) {
 		ent->clipmask = CONTENTS_SOLID;
@@ -692,7 +664,13 @@ void script_mover_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) 
 
 void script_mover_blocked( gentity_t *ent, gentity_t *other ) {
 	// remove it, we must not stop for anything or it will screw up script timing
-	if ( !other->client ) {
+	if ( !other->client && other->s.eType != ET_CORPSE ) {
+		// /me slaps nerve
+		// except CTF flags!!!!
+		if ( other->s.eType == ET_ITEM && other->item->giType == IT_TEAM ) {
+			Team_DroppedFlagThink( other );
+			return;
+		}
 		G_TempEntity( other->s.origin, EV_ITEM_POP );
 		G_FreeEntity( other );
 		return;
@@ -755,7 +733,6 @@ void SP_script_mover( gentity_t *ent ) {
 	}
 
 	ent->die = script_mover_die;
-	ent->pain = script_mover_pain;
 
 	// look for general scaling
 	if ( G_SpawnFloat( "modelscale", "1", &scale[0] ) ) {
@@ -869,10 +846,12 @@ void SP_script_multiplayer( gentity_t *ent ) {
 	if ( !ent->scriptName ) {
 		G_Error( "%s must have a \"scriptname\"\n", ent->classname );
 	}
+	if ( Q_stricmp( ent->scriptName, "game_manager" ) ) {
+		G_Error( "%s must have a \"scriptname\" of 'game_manager'\n", ent->classname );
+	}
 
 	ent->s.eType = ET_INVISIBLE;
-
-	ent->r.svFlags |= SVF_NOCLIENT;     // only broadcast when in use
+	ent->r.svFlags |= SVF_NOCLIENT;
 }
 
 // dhm

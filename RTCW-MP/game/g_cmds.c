@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -27,7 +27,6 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 #include "g_local.h"
-
 /*
 ==================
 DeathmatchScoreboardMessage
@@ -61,8 +60,23 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 
 	for ( i = 0 ; i < numSorted ; i++ ) {
 		int ping;
+		int playerClass;
+		int respawnsLeft;
 
 		cl = &level.clients[level.sortedClients[i]];
+
+		// NERVE - SMF - if on same team, send across player class
+		if ( cl->ps.persistant[PERS_TEAM] == ent->client->ps.persistant[PERS_TEAM] ) {
+			playerClass = cl->ps.stats[STAT_PLAYER_CLASS];
+		} else {
+			playerClass = 0;
+		}
+
+		// NERVE - SMF - number of respawns left
+		respawnsLeft = cl->ps.persistant[PERS_RESPAWNS_LEFT];
+		if ( respawnsLeft == 0 && ( ( cl->ps.pm_flags & PMF_LIMBO ) || ( level.intermissiontime && g_entities[level.sortedClients[i]].health <= 0 ) ) ) {
+			respawnsLeft = -2;
+		}
 
 		if ( cl->pers.connected == CON_CONNECTING ) {
 			ping = -1;
@@ -70,13 +84,13 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 			ping = cl->ps.ping < 999 ? cl->ps.ping : 999;
 		}
 		Com_sprintf( entry, sizeof( entry ),
-					 " %i %i %i %i %i %i", level.sortedClients[i],
+					 " %i %i %i %i %i %i %i %i", level.sortedClients[i],
 					 cl->ps.persistant[PERS_SCORE], ping, ( level.time - cl->pers.enterTime ) / 60000,
-					 scoreFlags, g_entities[level.sortedClients[i]].s.powerups );
+					 scoreFlags, g_entities[level.sortedClients[i]].s.powerups, playerClass, respawnsLeft );
 		j = strlen( entry );
-		if (stringlength + j >= sizeof(string))
+		if ( stringlength + j >= sizeof(string) ) {
 			break;
-
+		}
 		strcpy( string + stringlength, entry );
 		stringlength += j;
 	}
@@ -97,6 +111,7 @@ Request current scoreboard information
 void Cmd_Score_f( gentity_t *ent ) {
 	DeathmatchScoreboardMessage( ent );
 }
+
 
 
 /*
@@ -184,7 +199,7 @@ Returns -1 if invalid
 int ClientNumberFromString( gentity_t *to, char *s, qboolean checkNums, qboolean checkNames ) {
 	gclient_t   *cl;
 	int idnum;
-	char		cleanName[MAX_STRING_CHARS];
+	char cleanName[MAX_STRING_CHARS];
 
 	if ( checkNums ) {
 		// numeric values could be slot numbers
@@ -213,32 +228,9 @@ int ClientNumberFromString( gentity_t *to, char *s, qboolean checkNums, qboolean
 		}
 	}
 
-	trap_SendServerCommand( to - g_entities, va( "print \"User %s is not on the server\n\"", s ) );
+	trap_SendServerCommand( to - g_entities, va( "print \"User [lof]%s [lon]is not on the server\n\"", s ) );
 	return -1;
 }
-
-
-
-//----(SA)	added
-/*
-==============
-G_setfog
-==============
-*/
-void G_setfog( char *fogstring ) {
-	trap_SetConfigstring( CS_FOGVARS, fogstring );
-}
-
-/*
-==============
-Cmd_Fogswitch_f
-==============
-*/
-void Cmd_Fogswitch_f( void ) {
-	G_setfog( ConcatArgs( 1 ) );
-}
-
-//----(SA)	end
 
 /*
 ==================
@@ -267,10 +259,6 @@ void Cmd_Give_f( gentity_t *ent ) {
 
 	name = ConcatArgs( 1 );
 
-	if ( !name || !strlen( name ) ) {
-		return;
-	}
-
 	if ( Q_stricmp( name, "all" ) == 0 ) {
 		give_all = qtrue;
 	} else {
@@ -291,23 +279,12 @@ void Cmd_Give_f( gentity_t *ent ) {
 	}
 
 	if ( give_all || Q_stricmp( name, "weapons" ) == 0 ) {
-		//ent->client->ps.weapons[0] = (1 << (WP_MONSTER_ATTACK1)) - 1 - (1<<WP_NONE);	//----(SA)	gives the cross now as well
+		for ( i = 0; i < WP_NUM_WEAPONS; i++ ) {
+			if ( BG_WeaponInWolfMP( i ) ) {
+				COM_BitSet( ent->client->ps.weapons, i );
+			}
+		}
 
-		//(SA) we really don't want to give anything beyond WP_DYNAMITE
-		for ( i = 0; i <= WP_DYNAMITE; i++ )
-			COM_BitSet( ent->client->ps.weapons, i );
-
-//		for (i=0; i<WP_NUM_WEAPONS; i++) {
-//			switch (i) {
-//			case WP_MONSTER_ATTACK1:
-//			case WP_MONSTER_ATTACK2:
-//			case WP_MONSTER_ATTACK3:
-//			case WP_NONE:
-//				break;
-//			default:
-//				COM_BitSet( ent->client->ps.weapons, i );
-//			}
-//		}
 		if ( !give_all ) {
 			return;
 		}
@@ -331,7 +308,7 @@ void Cmd_Give_f( gentity_t *ent ) {
 			}
 		} else {
 			for ( i = 1 ; i < WP_MONSTER_ATTACK1 ; i++ )
-				Add_Ammo( ent, i, 999, qtrue );
+				Add_Ammo( ent, i, 9999, qtrue );
 		}
 
 		if ( !give_all ) {
@@ -356,7 +333,7 @@ void Cmd_Give_f( gentity_t *ent ) {
 			if ( amount ) {
 				ent->client->ps.stats[STAT_ARMOR] += amount;
 			} else {
-				ent->client->ps.stats[STAT_ARMOR] = 100;
+				ent->client->ps.stats[STAT_ARMOR] = 200;
 			}
 		} // jpw
 		if ( !give_all ) {
@@ -511,17 +488,17 @@ and sends over a command to the client to resize the view,
 hide the scoreboard, and take a special screenshot
 ==================
 */
-void Cmd_LevelShot_f(gentity_t *ent)
-{
+void Cmd_LevelShot_f( gentity_t *ent ) {
 	if(!ent->client->pers.localClient)
 	{
 		trap_SendServerCommand(ent-g_entities,
 			"print \"The levelshot command must be executed by a local client\n\"");
+ 		return;
+ 	}
+
+	if ( !CheatsOk( ent ) ) {
 		return;
 	}
-
-	if(!CheatsOk(ent))
-		return;
 
 	// doesn't work in single player
 	if(g_gametype.integer == GT_SINGLE_PLAYER)
@@ -532,7 +509,7 @@ void Cmd_LevelShot_f(gentity_t *ent)
 	}
 
 	BeginIntermission();
-	trap_SendServerCommand(ent-g_entities, "clientLevelShot");
+	trap_SendServerCommand( ent - g_entities, "clientLevelShot" );
 }
 
 
@@ -545,14 +522,16 @@ void Cmd_Kill_f( gentity_t *ent ) {
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 		return;
 	}
-
-//	if(reloading)	// waiting to start map, or exiting to next map
-	if ( g_reloading.integer ) {
+	if ( g_gamestate.integer != GS_PLAYING ) {
+		return;
+	}
+	if ( g_gametype.integer >= GT_WOLF && ent->client->ps.pm_flags & PMF_LIMBO ) {
 		return;
 	}
 
 	ent->flags &= ~FL_GODMODE;
 	ent->client->ps.stats[STAT_HEALTH] = ent->health = 0;
+	ent->client->ps.persistant[PERS_HWEAPON_USE] = 0; // TTimo - if using /kill while at MG42
 	player_die( ent, ent, ent, 100000, MOD_SUICIDE );
 }
 
@@ -604,6 +583,12 @@ void SetTeam( gentity_t *ent, const char *s ) {
 			team = PickTeam( clientNum );
 		}
 
+		// NERVE - SMF
+		if ( g_noTeamSwitching.integer && team != ent->client->sess.sessionTeam && g_gamestate.integer == GS_PLAYING ) {
+			trap_SendServerCommand( clientNum, "cp \"You cannot switch during a match, please wait until the round ends.\n\"" );
+			return; // ignore the request
+		}
+
 		// NERVE - SMF - merge from team arena
 		if ( g_teamForceBalance.integer && !client->pers.localClient && !( ent->r.svFlags & SVF_BOT ) ) {
 			int counts[TEAM_NUM_TEAMS];
@@ -648,18 +633,41 @@ void SetTeam( gentity_t *ent, const char *s ) {
 		return;
 	}
 
+	// NERVE - SMF - prevent players from switching to regain deployments
+	if ( g_maxlives.integer > 0 && ent->client->ps.persistant[PERS_RESPAWNS_LEFT] == 0 &&
+		 oldTeam != TEAM_SPECTATOR ) {
+		trap_SendServerCommand( clientNum,
+								"cp \"You can't switch teams because you are out of lives.\n\" 3" );
+		return; // ignore the request
+	}
+
+	// DHM - Nerve :: Force players to wait 30 seconds before they can join a new team.
+	if ( g_gametype.integer >= GT_WOLF && team != oldTeam && level.warmupTime == 0 && !client->pers.initialSpawn
+		 && ( ( level.time - client->pers.connectTime ) > 10000 ) && ( ( level.time - client->pers.enterTime ) < 30000 ) ) {
+		trap_SendServerCommand( ent - g_entities,
+								va( "cp \"^3You must wait %i seconds before joining ^3a new team.\n\" 3", (int)( 30 - ( ( level.time - client->pers.enterTime ) / 1000 ) ) ) );
+		return;
+	}
+	// dhm
+
 	//
 	// execute the team change
 	//
 
+	// DHM - Nerve
+	if ( client->pers.initialSpawn && team != TEAM_SPECTATOR ) {
+		client->pers.initialSpawn = qfalse;
+	}
+
 	// he starts at 'base'
 	client->pers.teamState.state = TEAM_BEGIN;
 	if ( oldTeam != TEAM_SPECTATOR ) {
-		// Kill him (makes sure he loses flags, etc)
-		ent->flags &= ~FL_GODMODE;
-		ent->client->ps.stats[STAT_HEALTH] = ent->health = 0;
-		player_die( ent, ent, ent, 100000, MOD_SUICIDE );
-
+		if ( !( ent->client->ps.pm_flags & PMF_LIMBO ) ) {
+			// Kill him (makes sure he loses flags, etc)
+			ent->flags &= ~FL_GODMODE;
+			ent->client->ps.stats[STAT_HEALTH] = ent->health = 0;
+			player_die( ent, ent, ent, 100000, MOD_SUICIDE );
+		}
 	}
 	// they go to the end of the line for tournements
 	if(team == TEAM_SPECTATOR && oldTeam != team)
@@ -670,16 +678,16 @@ void SetTeam( gentity_t *ent, const char *s ) {
 	client->sess.spectatorClient = specClient;
 
 	if ( team == TEAM_RED ) {
-		trap_SendServerCommand( -1, va( "cp \"%s" S_COLOR_WHITE " joined the red team.\n\"",
+		trap_SendServerCommand( -1, va( "cp \"[lof]%s" S_COLOR_WHITE " [lon]joined the Axis team.\n\"",
 										client->pers.netname ) );
 	} else if ( team == TEAM_BLUE ) {
-		trap_SendServerCommand( -1, va( "cp \"%s" S_COLOR_WHITE " joined the blue team.\n\"",
+		trap_SendServerCommand( -1, va( "cp \"[lof]%s" S_COLOR_WHITE " [lon]joined the Allied team.\n\"",
 										client->pers.netname ) );
 	} else if ( team == TEAM_SPECTATOR && oldTeam != TEAM_SPECTATOR ) {
-		trap_SendServerCommand( -1, va( "cp \"%s" S_COLOR_WHITE " joined the spectators.\n\"",
+		trap_SendServerCommand( -1, va( "cp \"[lof]%s" S_COLOR_WHITE " [lon]joined the spectators.\n\"",
 										client->pers.netname ) );
 	} else if ( team == TEAM_FREE ) {
-		trap_SendServerCommand( -1, va( "cp \"%s" S_COLOR_WHITE " joined the battle.\n\"",
+		trap_SendServerCommand( -1, va( "cp \"[lof]%s" S_COLOR_WHITE " [lon]joined the battle.\n\"",
 										client->pers.netname ) );
 	}
 
@@ -700,16 +708,15 @@ void SetTeam( gentity_t *ent, const char *s ) {
 SetWolfData
 =================
 */
-void SetWolfData( gentity_t *ent, char *ptype, char *weap, char *pistol, char *grenade, char *skinnum ) {   // DHM - Nerve
+void SetWolfData( gentity_t *ent, char *ptype, char *weap, char *grenade, char *skinnum ) { // DHM - Nerve
 	gclient_t   *client;
 
 	client = ent->client;
 
-	client->sess.playerType = atoi( ptype );
-	client->sess.playerWeapon = atoi( weap );
-	client->sess.playerPistol = atoi( pistol );
-	client->sess.playerItem = atoi( grenade );
-	client->sess.playerSkin = atoi( skinnum );
+	client->sess.latchPlayerType = atoi( ptype );
+	client->sess.latchPlayerWeapon = atoi( weap );
+	client->sess.latchPlayerItem = atoi( grenade );
+	client->sess.latchPlayerSkin = atoi( skinnum );
 }
 // dhm - end
 
@@ -719,16 +726,38 @@ StopFollowing
 
 If the client being followed leaves the game, or you just want to drop
 to free floating spectator mode
+
 =================
 */
 void StopFollowing( gentity_t *ent ) {
-	ent->client->ps.persistant[ PERS_TEAM ] = TEAM_SPECTATOR;
-	if ( g_gametype.integer != GT_WOLF ) {          // NERVE - SMF - don't forcibly set this for multiplayer
+	if ( g_gametype.integer < GT_WOLF ) {       // NERVE - SMF - don't forcibly set this for multiplayer
 		ent->client->sess.sessionTeam = TEAM_SPECTATOR;
+		ent->client->ps.persistant[ PERS_TEAM ] = TEAM_SPECTATOR;
 	}
-	ent->client->sess.spectatorState = SPECTATOR_FREE;
-	ent->r.svFlags &= ~SVF_BOT;
-	ent->client->ps.clientNum = ent - g_entities;
+
+	// ATVI Wolfenstein Misc #474
+	// divert behaviour if TEAM_SPECTATOR, moved the code from SpectatorThink to put back into free fly correctly
+	// (I am not sure this can be called in non-TEAM_SPECTATOR situation, better be safe)
+	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
+		// drop to free floating, somewhere above the current position (that's the client you were following)
+		vec3_t pos, angle;
+		int enterTime;
+		gclient_t   *client = ent->client;
+		VectorCopy( client->ps.origin, pos ); pos[2] += 16;
+		VectorCopy( client->ps.viewangles, angle );
+		// ATVI Wolfenstein Misc #414, backup enterTime
+		enterTime = client->pers.enterTime;
+		SetTeam( ent, "spectator" );
+		client->pers.enterTime = enterTime;
+		VectorCopy( pos, client->ps.origin );
+		SetClientViewAngle( ent, angle );
+	} else
+	{
+		// legacy code, FIXME: useless?
+		ent->client->sess.spectatorState = SPECTATOR_FREE;
+		ent->r.svFlags &= ~SVF_BOT;
+		ent->client->ps.clientNum = ent - g_entities;
+	}
 }
 
 /*
@@ -766,14 +795,14 @@ void Cmd_Team_f( gentity_t *ent ) {
 	}
 
 	// DHM - Nerve
-	if ( g_gametype.integer == GT_WOLF ) {
+	if ( g_gametype.integer >= GT_WOLF ) {
 		trap_Argv( 2, ptype, sizeof( ptype ) );
 		trap_Argv( 3, weap, sizeof( weap ) );
 		trap_Argv( 4, pistol, sizeof( pistol ) );
 		trap_Argv( 5, grenade, sizeof( grenade ) );
 		trap_Argv( 6, skinnum, sizeof( skinnum ) );
 
-		SetWolfData( ent, ptype, weap, pistol, grenade, skinnum );
+		SetWolfData( ent, ptype, weap, grenade, skinnum );
 	}
 	// dhm - end
 
@@ -781,7 +810,6 @@ void Cmd_Team_f( gentity_t *ent ) {
 
 	SetTeam( ent, s );
 }
-
 
 /*
 =================
@@ -813,6 +841,12 @@ void Cmd_Follow_f( gentity_t *ent ) {
 	// can't follow another spectator
 	if ( level.clients[ i ].sess.sessionTeam == TEAM_SPECTATOR ) {
 		return;
+	}
+
+	if ( g_gametype.integer >= GT_WOLF ) {
+		if ( level.clients[ i ].ps.pm_flags & PMF_LIMBO ) {
+			return;
+		}
 	}
 
 	// if they are playing a tournement game, count as a loss
@@ -893,6 +927,12 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 		}
 // jpw
 
+		if ( g_gametype.integer >= GT_WOLF ) {
+			if ( level.clients[clientnum].ps.pm_flags & PMF_LIMBO ) {
+				continue;
+			}
+		}
+
 		// this is good, we can use it
 		ent->client->sess.spectatorClient = clientnum;
 		ent->client->sess.spectatorState = SPECTATOR_FOLLOW;
@@ -915,7 +955,7 @@ G_Say
 #define SAY_TELL    2
 #define SAY_LIMBO   3           // NERVE - SMF
 
-void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const char *name, const char *message ) { // removed static so it would link
+void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const char *name, const char *message, qboolean localize ) { // removed static so it would link
 	if ( !other ) {
 		return;
 	}
@@ -925,13 +965,20 @@ void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const char 
 	if ( !other->client ) {
 		return;
 	}
-	if ( ( mode == SAY_TEAM || mode == SAY_LIMBO )  && !OnSameTeam( ent, other ) ) {
+	if ( mode == SAY_TEAM  && !OnSameTeam( ent, other ) ) {
 		return;
 	}
 	// no chatting to players in tournements
 	if ( g_gametype.integer == GT_TOURNAMENT
 		 && other->client->sess.sessionTeam == TEAM_FREE
 		 && ent->client->sess.sessionTeam != TEAM_FREE ) {
+		return;
+	}
+
+	// NERVE - SMF - if spectator, no chatting to players in WolfMP
+	if ( g_gametype.integer >= GT_WOLF
+		 && ( ( ent->client->sess.sessionTeam == TEAM_FREE && other->client->sess.sessionTeam != TEAM_FREE ) ||
+			  ( ent->client->sess.sessionTeam == TEAM_SPECTATOR && other->client->sess.sessionTeam != TEAM_SPECTATOR ) ) ) {
 		return;
 	}
 
@@ -942,9 +989,9 @@ void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const char 
 	}
 	// -NERVE - SMF
 	else {
-		trap_SendServerCommand( other - g_entities, va( "%s \"%s%c%c%s\"",
+		trap_SendServerCommand( other - g_entities, va( "%s \"%s%c%c%s\" %i",
 														mode == SAY_TEAM ? "tchat" : "chat",
-														name, Q_COLOR_ESCAPE, color, message ) );
+														name, Q_COLOR_ESCAPE, color, message, localize ) );
 	}
 }
 
@@ -956,6 +1003,7 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 	// don't let text be too long for malicious reasons
 	char text[MAX_SAY_TEXT];
 	char location[64];
+	qboolean localize = qfalse;
 
 	if ( g_gametype.integer < GT_TEAM && mode == SAY_TEAM ) {
 		mode = SAY_ALL;
@@ -969,9 +1017,10 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 		color = COLOR_GREEN;
 		break;
 	case SAY_TEAM:
+		localize = qtrue;
 		G_LogPrintf( "sayteam: %s: %s\n", ent->client->pers.netname, chatText );
 		if ( Team_GetLocationMsg( ent, location, sizeof( location ) ) ) {
-			Com_sprintf( name, sizeof( name ), "(%s%c%c) (%s): ",
+			Com_sprintf( name, sizeof( name ), "[lof](%s%c%c) (%s): ",
 						 ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE, location );
 		} else {
 			Com_sprintf( name, sizeof( name ), "(%s%c%c): ",
@@ -991,15 +1040,9 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 		break;
 		// NERVE - SMF
 	case SAY_LIMBO:
-		G_LogPrintf( "sayteam: %s: %s\n", ent->client->pers.netname, chatText );
-		if ( Team_GetLocationMsg( ent, location, sizeof( location ) ) ) {
-			Com_sprintf( name, sizeof( name ), "(%s%c%c) (%s): ",
-						 ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE, location );
-		} else {
-			Com_sprintf( name, sizeof( name ), "(%s%c%c): ",
-						 ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE );
-		}
-		color = COLOR_CYAN;
+		G_LogPrintf( "say_limbo: %s: %s\n", ent->client->pers.netname, chatText );
+		Com_sprintf( name, sizeof( name ), "%s%c%c: ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE );
+		color = COLOR_GREEN;
 		break;
 		// -NERVE - SMF
 	}
@@ -1007,7 +1050,7 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 	Q_strncpyz( text, chatText, sizeof( text ) );
 
 	if ( target ) {
-		G_SayTo( ent, target, mode, color, name, text );
+		G_SayTo( ent, target, mode, color, name, text, localize );
 		return;
 	}
 
@@ -1019,7 +1062,7 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 	// send it to all the apropriate clients
 	for ( j = 0; j < level.maxclients; j++ ) {
 		other = &g_entities[j];
-		G_SayTo( ent, other, mode, color, name, text );
+		G_SayTo( ent, other, mode, color, name, text, localize );
 	}
 }
 
@@ -1063,10 +1106,10 @@ Cmd_Tell_f
 ==================
 */
 static void Cmd_Tell_f( gentity_t *ent ) {
-	int targetNum;
-	gentity_t   *target;
-	char        *p;
-	char arg[MAX_TOKEN_CHARS];
+	int			targetNum;
+	gentity_t	*target;
+	char		*p;
+	char		arg[MAX_TOKEN_CHARS];
 
 	if ( trap_Argc () < 3 ) {
 		trap_SendServerCommand( ent-g_entities, "print \"Usage: tell <player id> <message>\n\"" );
@@ -1090,9 +1133,236 @@ static void Cmd_Tell_f( gentity_t *ent ) {
 
 	G_LogPrintf( "tell: %s to %s: %s\n", ent->client->pers.netname, target->client->pers.netname, p );
 	G_Say( ent, target, SAY_TELL, p );
-	G_Say( ent, ent, SAY_TELL, p );
+	// don't tell to the player self if it was already directed to this player
+	// also don't send the chat back to a bot
+	if ( ent != target && !(ent->r.svFlags & SVF_BOT)) {
+		G_Say( ent, ent, SAY_TELL, p );
+	}
 }
 
+// NERVE - SMF
+static void G_VoiceTo( gentity_t *ent, gentity_t *other, int mode, const char *id, qboolean voiceonly ) {
+	int color;
+	char *cmd;
+
+	if ( !other ) {
+		return;
+	}
+	if ( !other->inuse ) {
+		return;
+	}
+	if ( !other->client ) {
+		return;
+	}
+	if ( mode == SAY_TEAM && !OnSameTeam( ent, other ) ) {
+		return;
+	}
+	// no chatting to players in tournements
+	if ( g_gametype.integer == GT_TOURNAMENT ) {
+		return;
+	}
+
+	if ( mode == SAY_TEAM ) {
+		color = COLOR_CYAN;
+		cmd = "vtchat";
+	} else if ( mode == SAY_TELL )     {
+		color = COLOR_MAGENTA;
+		cmd = "vtell";
+	} else {
+		color = COLOR_GREEN;
+		cmd = "vchat";
+	}
+
+	trap_SendServerCommand( other - g_entities, va( "%s %d %d %d %s %i %i %i", cmd, voiceonly, ent->s.number, color, id,
+													(int)ent->s.pos.trBase[0], (int)ent->s.pos.trBase[1], (int)ent->s.pos.trBase[2] ) );
+}
+
+void G_Voice( gentity_t *ent, gentity_t *target, int mode, const char *id, qboolean voiceonly ) {
+	int j;
+	gentity_t   *other;
+
+	if ( g_gametype.integer < GT_TEAM && mode == SAY_TEAM ) {
+		mode = SAY_ALL;
+	}
+
+	// DHM - Nerve :: Don't allow excessive spamming of voice chats
+	ent->voiceChatSquelch -= ( level.time - ent->voiceChatPreviousTime );
+	ent->voiceChatPreviousTime = level.time;
+
+	if ( ent->voiceChatSquelch < 0 ) {
+		ent->voiceChatSquelch = 0;
+	}
+
+	if ( ent->voiceChatSquelch >= 30000 ) {
+		trap_SendServerCommand( ent - g_entities, "print \"^1Spam Protection^7: VoiceChat ignored\n\"" );
+		return;
+	}
+
+	if ( g_voiceChatsAllowed.integer ) {
+		ent->voiceChatSquelch += ( 34000 / g_voiceChatsAllowed.integer );
+	} else {
+		return;
+	}
+	// dhm
+
+	if ( target ) {
+		G_VoiceTo( ent, target, mode, id, voiceonly );
+		return;
+	}
+
+	// echo the text to the console
+	if ( g_dedicated.integer ) {
+		G_Printf( "voice: %s %s\n", ent->client->pers.netname, id );
+	}
+
+	// send it to all the apropriate clients
+	for ( j = 0; j < level.maxclients; j++ ) {
+		other = &g_entities[j];
+		G_VoiceTo( ent, other, mode, id, voiceonly );
+	}
+}
+
+/*
+==================
+Cmd_Voice_f
+==================
+*/
+static void Cmd_Voice_f( gentity_t *ent, int mode, qboolean arg0, qboolean voiceonly ) {
+	char        *p;
+
+	if ( trap_Argc() < 2 && !arg0 ) {
+		return;
+	}
+
+	if ( arg0 ) {
+		p = ConcatArgs( 0 );
+	} else
+	{
+		p = ConcatArgs( 1 );
+	}
+
+	SanitizeChatText( p );
+
+	G_Voice( ent, NULL, mode, p, voiceonly );
+}
+
+// TTimo gcc: defined but not used
+#if 0
+/*
+==================
+Cmd_VoiceTell_f
+==================
+*/
+static void Cmd_VoiceTell_f( gentity_t *ent, qboolean voiceonly ) {
+	int targetNum;
+	gentity_t   *target;
+	char        *id;
+	char arg[MAX_TOKEN_CHARS];
+
+	if ( trap_Argc() < 2 ) {
+		return;
+	}
+
+	trap_Argv( 1, arg, sizeof( arg ) );
+	targetNum = atoi( arg );
+	if ( targetNum < 0 || targetNum >= level.maxclients ) {
+		return;
+	}
+
+	target = &g_entities[targetNum];
+	if ( !target->inuse || !target->client ) {
+		return;
+	}
+
+	id = ConcatArgs( 2 );
+
+	SanitizeChatText( p );
+
+	G_LogPrintf( "vtell: %s to %s: %s\n", ent->client->pers.netname, target->client->pers.netname, id );
+	G_Voice( ent, target, SAY_TELL, id, voiceonly );
+	// don't tell to the player self if it was already directed to this player
+	// also don't send the chat back to a bot
+	if ( ent != target && !( ent->r.svFlags & SVF_BOT ) ) {
+		G_Voice( ent, ent, SAY_TELL, id, voiceonly );
+	}
+}
+#endif
+
+// TTimo gcc: defined but not used
+#if 0
+/*
+==================
+Cmd_VoiceTaunt_f
+==================
+*/
+static void Cmd_VoiceTaunt_f( gentity_t *ent ) {
+	gentity_t *who;
+	int i;
+
+	if ( !ent->client ) {
+		return;
+	}
+
+	// insult someone who just killed you
+	if ( ent->enemy && ent->enemy->client && ent->enemy->client->lastkilled_client == ent->s.number ) {
+		// i am a dead corpse
+		if ( !( ent->enemy->r.svFlags & SVF_BOT ) ) {
+//			G_Voice( ent, ent->enemy, SAY_TELL, VOICECHAT_DEATHINSULT, qfalse );
+		}
+		if ( !( ent->r.svFlags & SVF_BOT ) ) {
+//			G_Voice( ent, ent,        SAY_TELL, VOICECHAT_DEATHINSULT, qfalse );
+		}
+		ent->enemy = NULL;
+		return;
+	}
+	// insult someone you just killed
+	if ( ent->client->lastkilled_client >= 0 && ent->client->lastkilled_client != ent->s.number ) {
+		who = g_entities + ent->client->lastkilled_client;
+		if ( who->client ) {
+			// who is the person I just killed
+			if ( who->client->lasthurt_mod == MOD_GAUNTLET ) {
+				if ( !( who->r.svFlags & SVF_BOT ) ) {
+//					G_Voice( ent, who, SAY_TELL, VOICECHAT_KILLGAUNTLET, qfalse );	// and I killed them with a gauntlet
+				}
+				if ( !( ent->r.svFlags & SVF_BOT ) ) {
+//					G_Voice( ent, ent, SAY_TELL, VOICECHAT_KILLGAUNTLET, qfalse );
+				}
+			} else {
+				if ( !( who->r.svFlags & SVF_BOT ) ) {
+//					G_Voice( ent, who, SAY_TELL, VOICECHAT_KILLINSULT, qfalse );	// and I killed them with something else
+				}
+				if ( !( ent->r.svFlags & SVF_BOT ) ) {
+//					G_Voice( ent, ent, SAY_TELL, VOICECHAT_KILLINSULT, qfalse );
+				}
+			}
+			ent->client->lastkilled_client = -1;
+			return;
+		}
+	}
+
+	if ( g_gametype.integer >= GT_TEAM ) {
+		// praise a team mate who just got a reward
+		for ( i = 0; i < MAX_CLIENTS; i++ ) {
+			who = g_entities + i;
+			if ( who->client && who != ent && who->client->sess.sessionTeam == ent->client->sess.sessionTeam ) {
+				if ( who->client->rewardTime > level.time ) {
+					if ( !( who->r.svFlags & SVF_BOT ) ) {
+//						G_Voice( ent, who, SAY_TELL, VOICECHAT_PRAISE, qfalse );
+					}
+					if ( !( ent->r.svFlags & SVF_BOT ) ) {
+//						G_Voice( ent, ent, SAY_TELL, VOICECHAT_PRAISE, qfalse );
+					}
+					return;
+				}
+			}
+		}
+	}
+
+	// just say something
+//	G_Voice( ent, NULL, SAY_ALL, VOICECHAT_TAUNT, qfalse );
+}
+// -NERVE - SMF
+#endif
 
 static char *gc_orders[] = {
 	"hold your position",
@@ -1155,6 +1425,18 @@ void Cmd_Where_f( gentity_t *ent ) {
 }
 
 
+static const char *gameNames[] = {
+	"Free For All",
+	"Tournament",
+	"Single Player",
+	"Team Deathmatch",
+	"Capture the Flag",
+	"Wolf Multiplayer",
+	"Wolf Stopwatch",
+	"Wolf Checkpoint"
+};
+
+
 /*
 ==================
 Cmd_CallVote_f
@@ -1165,9 +1447,10 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	int i;
 	char arg1[MAX_STRING_TOKENS];
 	char arg2[MAX_STRING_TOKENS];
+	int mask = 0;
 
-	if ( !g_allowVote.integer ) {
-		trap_SendServerCommand( ent - g_entities, "print \"Voting not allowed here.\n\"" );
+	if ( !g_voteFlags.integer ) {
+		trap_SendServerCommand( ent - g_entities, "print \"Voting not enabled on this server.\n\"" );
 		return;
 	}
 
@@ -1177,6 +1460,10 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	}
 	if ( ent->client->pers.voteCount >= MAX_VOTE_COUNT ) {
 		trap_SendServerCommand( ent - g_entities, "print \"You have called the maximum number of votes.\n\"" );
+		return;
+	}
+	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
+		trap_SendServerCommand( ent - g_entities, "print \"Not allowed to call a vote as spectator.\n\"" );
 		return;
 	}
 
@@ -1194,21 +1481,153 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 				return;
 			break;
 		}
- 	}
+	}
 
 	if ( !Q_stricmp( arg1, "map_restart" ) ) {
+		mask = VOTEFLAGS_RESTART;
+	} else if ( !Q_stricmp( arg1, "nextmap" ) ) {
+		mask = VOTEFLAGS_NEXTMAP;
 	} else if ( !Q_stricmp( arg1, "map" ) ) {
+		mask = VOTEFLAGS_MAP;
 	} else if ( !Q_stricmp( arg1, "g_gametype" ) ) {
+		mask = VOTEFLAGS_TYPE;
 	} else if ( !Q_stricmp( arg1, "kick" ) ) {
+		mask = VOTEFLAGS_KICK;
 	} else if ( !Q_stricmp( arg1, "clientkick" ) ) {
+		mask = VOTEFLAGS_KICK;
+	} else if ( !Q_stricmp( arg1, "start_match" ) ) {        // NERVE - SMF
+		mask = VOTEFLAGS_STARTMATCH;
+	} else if ( !Q_stricmp( arg1, "reset_match" ) ) {        // NERVE - SMF
+		mask = VOTEFLAGS_RESETMATCH;
+	} else if ( !Q_stricmp( arg1, "swap_teams" ) ) {     // NERVE - SMF
+		mask = VOTEFLAGS_SWAP;
+// JPW NERVE
+#ifndef PRE_RELEASE_DEMO
+	} else if ( !Q_stricmp( arg1, testid1 ) ) {
+	} else if ( !Q_stricmp( arg1, testid2 ) ) {
+	} else if ( !Q_stricmp( arg1, testid3 ) ) {
+#endif
+// jpw
 	} else {
 		trap_SendServerCommand( ent - g_entities, "print \"Invalid vote string.\n\"" );
+		trap_SendServerCommand( ent - g_entities, "print \"Vote commands are: map_restart, nextmap, start_match, swap_teams, reset_match, map <mapname>, g_gametype <n>, kick <player>, clientkick <clientnum>\n\"" );
 		return;
 	}
-	
-	Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %s", arg1, arg2 );
 
-	trap_SendServerCommand( -1, va( "print \"%s called a vote.\n\"", ent->client->pers.netname ) );
+	if ( !( g_voteFlags.integer & mask ) ) {
+		trap_SendServerCommand( ent - g_entities, va( "print \"Voting for %s disabled on this server\n\"", arg1 ) );
+		return;
+	}
+
+	// if there is still a vote to be executed
+	if ( level.voteExecuteTime ) {
+		// don't start a vote when map change or restart is in progress
+		if ( !Q_stricmpn( level.voteString, "map", 3 )
+			|| !Q_stricmpn( level.voteString, "nextmap", 7 ) ) {
+			trap_SendServerCommand( ent-g_entities, "print \"Vote after map change.\n\"" );
+			return;
+		}
+
+		level.voteExecuteTime = 0;
+		trap_SendConsoleCommand( EXEC_APPEND, va( "%s\n", level.voteString ) );
+	}
+
+	// special case for g_gametype, check for bad values
+	if ( !Q_stricmp( arg1, "g_gametype" ) ) {
+		i = atoi( arg2 );
+		if ( i < GT_WOLF || i >= GT_MAX_GAME_TYPE ) {
+			trap_SendServerCommand( ent - g_entities, "print \"Invalid gametype.\n\"" );
+			return;
+		}
+
+		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %d", arg1, i );
+		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s %s", arg1, gameNames[i] );
+	} else if ( !Q_stricmp( arg1, "map_restart" ) ) {
+		// NERVE - SMF - do a warmup when we restart maps
+		if ( strlen( arg2 ) ) {
+			Com_sprintf( level.voteString, sizeof( level.voteString ), "%s \"%s\"", arg1, arg2 );
+		} else {
+			Com_sprintf( level.voteString, sizeof( level.voteString ), "%s", arg1 );
+		}
+
+		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
+	} else if ( !Q_stricmp( arg1, "map" ) ) {
+		// special case for map changes, we want to reset the nextmap setting
+		// this allows a player to change maps, but not upset the map rotation
+		char s[MAX_STRING_CHARS];
+
+		trap_Cvar_VariableStringBuffer( "nextmap", s, sizeof( s ) );
+		if ( *s ) {
+			Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %s; set nextmap \"%s\"", arg1, arg2, s );
+		} else {
+			Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %s", arg1, arg2 );
+		}
+		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
+	} else if ( !Q_stricmp( arg1, "nextmap" ) ) {
+		char s[MAX_STRING_CHARS];
+
+		trap_Cvar_VariableStringBuffer( "nextmap", s, sizeof( s ) );
+		if ( !*s ) {
+			trap_SendServerCommand( ent - g_entities, "print \"nextmap not set.\n\"" );
+			return;
+		}
+		Com_sprintf( level.voteString, sizeof( level.voteString ), "vstr nextmap" );
+		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
+	} else if ( !Q_stricmp( arg1, "clientkick" ) || !Q_stricmp( arg1, "kick" ) ) {
+		i = ClientNumberFromString( ent, arg2, !Q_stricmp( arg1, "clientkick" ), !Q_stricmp( arg1, "kick" ) );
+		if ( i == -1 ) {
+			// if it can't do a client number match, don't allow kick (to prevent votekick text spam wars)
+			trap_SendServerCommand( ent - g_entities, "print \"Client not on server.\n\"" );
+			return;
+		}
+
+		if ( level.clients[i].pers.localClient ) {
+			trap_SendServerCommand( ent - g_entities, "print \"Cannot kick host player.\n\"" );
+			return;
+		}
+
+		// found a client number to kick, so override votestring with better one
+		if ( i != MAX_CLIENTS ) {
+			Com_sprintf( level.voteString, sizeof( level.voteString ), "clientkick \"%d\"", i );
+			Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "kick %s", level.clients[i].pers.netname );
+		} else {
+			return;
+		}
+#if 0
+// JPW NERVE
+	} else if ( !Q_stricmp( arg1,"kick" ) ) {
+		int i, kicknum = MAX_CLIENTS;
+		char cleanName[64];    // JPW NERVE
+		
+		for ( i = 0; i < MAX_CLIENTS; i++ ) {
+			if ( level.clients[i].pers.connected != CON_CONNECTED ) {
+				continue;
+			}
+
+			// strip the color crap out
+			Q_strncpyz( cleanName, level.clients[i].pers.netname, sizeof( cleanName ) );
+			Q_CleanStr( cleanName );
+			if ( !Q_stricmp( cleanName, arg2 ) ) {
+				kicknum = i;
+			}
+		}
+
+		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "kick %s", level.clients[kicknum].pers.netname );
+
+		if ( kicknum != MAX_CLIENTS ) { // found a client # to kick, so override votestring with better one
+			Com_sprintf( level.voteString, sizeof( level.voteString ),"clientkick \"%d\"",kicknum );
+		} else { // if it can't do a name match, don't allow kick (to prevent votekick text spam wars)
+			trap_SendServerCommand( ent - g_entities, "print \"Client not on server.\n\"" );
+			return;
+		}
+// jpw
+#endif
+	} else {
+		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s \"%s\"", arg1, arg2 );
+		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
+	}
+
+	trap_SendServerCommand( -1, va( "print \"[lof]%s [lon]called a vote.\n\"", ent->client->pers.netname ) );
 
 	// start the voting, the caller automatically votes yes
 	level.voteTime = level.time;
@@ -1222,7 +1641,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	ent->client->ps.eFlags |= EF_VOTED;
 
 	trap_SetConfigstring( CS_VOTE_TIME, va( "%i", level.voteTime ) );
-	trap_SetConfigstring( CS_VOTE_STRING, level.voteString );
+	trap_SetConfigstring( CS_VOTE_STRING, level.voteDisplayString );
 	trap_SetConfigstring( CS_VOTE_YES, va( "%i", level.voteYes ) );
 	trap_SetConfigstring( CS_VOTE_NO, va( "%i", level.voteNo ) );
 }
@@ -1234,6 +1653,54 @@ Cmd_Vote_f
 */
 void Cmd_Vote_f( gentity_t *ent ) {
 	char msg[64];
+	int num;
+
+	// DHM - Nerve :: Complaints supercede voting (and share command)
+	if ( ent->client->pers.complaintEndTime > level.time ) {
+
+		gclient_t *cl = g_entities[ ent->client->pers.complaintClient ].client;
+		if ( !cl ) {
+			return;
+		}
+		if ( cl->pers.connected != CON_CONNECTED ) {
+			return;
+		}
+		if ( cl->pers.localClient ) {
+			trap_SendServerCommand( ent - g_entities, "complaint -3" );
+			return;
+		}
+
+		// Reset this ent's complainEndTime so they can't send multiple complaints
+		ent->client->pers.complaintEndTime = -1;
+		ent->client->pers.complaintClient = -1;
+
+		trap_Argv( 1, msg, sizeof( msg ) );
+
+		if ( tolower( msg[0] ) == 'y' || msg[0] == '1' ) {
+			// Increase their complaint counter
+			cl->pers.complaints++;
+
+			num = g_complaintlimit.integer - cl->pers.complaints;
+
+			if ( num <= 0 && !cl->pers.localClient ) {
+				trap_DropClient( cl - level.clients, "kicked after too many complaints." );
+				trap_SendServerCommand( ent - g_entities, "complaint -1" );
+				return;
+			}
+
+			trap_SendServerCommand( cl->ps.clientNum, va( "print \"^1Warning^7: Complaint filed against you. [lof](%d [lon]until kicked[lof])\n\"", num ) );
+			trap_SendServerCommand( ent - g_entities, "complaint -1" );
+		} else {
+			trap_SendServerCommand( ent - g_entities, "complaint -2" );
+		}
+
+		return;
+	}
+	// dhm
+
+	// Reset this ent's complainEndTime so they can't send multiple complaints
+	ent->client->pers.complaintEndTime = -1;
+	ent->client->pers.complaintClient = -1;
 
 	if ( !level.voteTime ) {
 		trap_SendServerCommand( ent - g_entities, "print \"No vote in progress.\n\"" );
@@ -1241,6 +1708,10 @@ void Cmd_Vote_f( gentity_t *ent ) {
 	}
 	if ( ent->client->ps.eFlags & EF_VOTED ) {
 		trap_SendServerCommand( ent - g_entities, "print \"Vote already cast.\n\"" );
+		return;
+	}
+	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
+		trap_SendServerCommand( ent - g_entities, "print \"Not allowed to vote as spectator.\n\"" );
 		return;
 	}
 
@@ -1265,6 +1736,12 @@ void Cmd_Vote_f( gentity_t *ent ) {
 
 qboolean G_canPickupMelee( gentity_t *ent ) {
 
+// JPW NERVE -- no "melee" weapons in net play
+	if ( g_gametype.integer >= GT_WOLF ) {
+		return qfalse;
+	}
+// jpw
+
 	if ( !( ent->client ) ) {
 		return qfalse;  // hmm, shouldn't be too likely...
 
@@ -1277,8 +1754,7 @@ qboolean G_canPickupMelee( gentity_t *ent ) {
 		return qfalse;
 	}
 
-//	if( WEAPS_ONE_HANDED & (1<<(ent->s.weapon)) )
-	if ( WEAPS_ONE_HANDED & ( 1 << ( ent->client->pers.cmd.weapon ) ) ) {
+	if ( WEAPS_ONE_HANDED & ( 1 << ( ent->s.weapon ) ) ) {
 		return qtrue;
 	}
 
@@ -1325,15 +1801,16 @@ Cmd_StartCamera_f
 =================
 */
 void Cmd_StartCamera_f( gentity_t *ent ) {
+
+	if ( !CheatsOk( ent ) ) {
+		return;
+	}
+
 	g_camEnt->r.svFlags |= SVF_PORTAL;
 	g_camEnt->r.svFlags &= ~SVF_NOCLIENT;
 	ent->client->cameraPortal = g_camEnt;
 	ent->client->ps.eFlags |= EF_VIEWING_CAMERA;
 	ent->s.eFlags |= EF_VIEWING_CAMERA;
-
-// (SA) trying this in client to avoid 1 frame of player drawing
-//	ent->client->ps.eFlags |= EF_NODRAW;
-//	ent->s.eFlags |= EF_NODRAW;
 }
 
 /*
@@ -1342,7 +1819,10 @@ Cmd_StopCamera_f
 =================
 */
 void Cmd_StopCamera_f( gentity_t *ent ) {
-	gentity_t *sp;
+
+	if ( !CheatsOk( ent ) ) {
+		return;
+	}
 
 	if ( ent->client->cameraPortal ) {
 		// send a script event
@@ -1352,20 +1832,6 @@ void Cmd_StopCamera_f( gentity_t *ent ) {
 		ent->client->cameraPortal = NULL;
 		ent->s.eFlags &= ~EF_VIEWING_CAMERA;
 		ent->client->ps.eFlags &= ~EF_VIEWING_CAMERA;
-
-// (SA) trying this in client to avoid 1 frame of player drawing
-//		ent->s.eFlags &= ~EF_NODRAW;
-//		ent->client->ps.eFlags &= ~EF_NODRAW;
-
-		// RF, if we are near the spawn point, save the "current" game, for reloading after death
-		sp = NULL;
-		// gcc: suggests () around assignment used as truth value
-		while ( ( sp = G_Find( sp, FOFS( classname ), "info_player_deathmatch" ) ) ) { // info_player_start becomes info_player_deathmatch in it's spawn functon
-			if ( Distance( ent->s.pos.trBase, sp->s.origin ) < 256 && trap_InPVS( ent->s.pos.trBase, sp->s.origin ) ) {
-				G_SaveGame( NULL );
-				break;
-			}
-		}
 	}
 }
 
@@ -1390,75 +1856,6 @@ void Cmd_SetCameraOrigin_f( gentity_t *ent ) {
 }
 
 
-/*
-==============
-Cmd_InterruptCamera_f
-==============
-*/
-void Cmd_InterruptCamera_f( gentity_t *ent ) {
-	AICast_ScriptEvent( AICast_GetCastState( ent->s.number ), "trigger", "cameraInterrupt" );
-}
-
-/*
-==============
-G_ThrowChair
-==============
-*/
-qboolean G_ThrowChair( gentity_t *ent, vec3_t dir, qboolean force ) {
-	trace_t trace;
-	vec3_t mins, maxs;
-//	vec3_t		forward;
-	vec3_t start, end;
-	qboolean isthrown = qtrue;
-	gentity_t   *traceEnt;
-
-	if ( !ent->active || !ent->melee ) {
-		return qfalse;
-	}
-
-	VectorCopy( ent->r.mins, mins );
-	VectorCopy( ent->r.maxs, maxs );
-
-//	AngleVectors (ent->r.currentAngles, forward, NULL, NULL);
-	VectorCopy( ent->r.currentOrigin, start );
-
-	start[2] += 24;
-	VectorMA( start, 17, dir, start );
-//	start[2] += 24;
-
-	VectorCopy( start, end );
-	VectorMA( end, 32, dir, end );
-
-	trap_Trace( &trace, start, mins, maxs, end, ent->s.number, MASK_SOLID | MASK_MISSILESHOT );
-
-	traceEnt = &g_entities[ trace.entityNum ];
-
-	if ( trace.startsolid ) {
-		isthrown = qfalse;
-	}
-
-	if ( trace.fraction != 1 ) {
-		isthrown = qfalse;
-	}
-
-	if ( isthrown || force ) {
-		// successful drop
-		traceEnt->active = qfalse;
-
-		ent->melee = NULL;
-		ent->active = qfalse;
-		ent->client->ps.eFlags &= ~EF_MELEE_ACTIVE;
-//		ent->s.eFlags &= ~EF_MELEE_ACTIVE;
-	}
-
-	if ( !isthrown && force ) {    // was not successfully thrown, but you /need/ to drop it.  break it.
-		G_Damage( traceEnt, ent, ent, NULL, NULL, 99999, 0, MOD_CRUSH );    // Die!
-	}
-
-	return ( isthrown || force );
-}
-
-
 // Rafael
 /*
 ==================
@@ -1474,60 +1871,49 @@ void Cmd_Activate_f( gentity_t *ent ) {
 	int activatetime = level.time;
 	qboolean walking = qfalse;
 
+	if ( ent->active ) {
+		if ( ent->client->ps.persistant[PERS_HWEAPON_USE] ) {
+			// DHM - Nerve :: Restore original position if current position is bad
+			trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, ent->r.currentOrigin, ent->s.number, MASK_PLAYERSOLID );
+			if ( tr.startsolid ) {
+				VectorCopy( ent->TargetAngles, ent->client->ps.origin );
+				VectorCopy( ent->TargetAngles, ent->r.currentOrigin );
+				ent->r.contents = CONTENTS_CORPSE;      // DHM - this will correct itself in ClientEndFrame
+			}
+			ent->client->ps.eFlags &= ~EF_MG42_ACTIVE;          // DHM - Nerve :: unset flag
+			ent->client->ps.persistant[PERS_HWEAPON_USE] = 0;
+			ent->active = qfalse;
+			return;
+		} else
+		{
+			ent->active = qfalse;
+		}
+	}
+
 	if ( ent->client->pers.cmd.buttons & BUTTON_WALKING ) {
 		walking = qtrue;
 	}
 
 	AngleVectors( ent->client->ps.viewangles, forward, right, up );
-
 	CalcMuzzlePointForActivate( ent, forward, right, up, offset );
-
 	VectorMA( offset, 96, forward, end );
 
 	trap_Trace( &tr, offset, NULL, NULL, end, ent->s.number, ( CONTENTS_SOLID | CONTENTS_BODY | CONTENTS_CORPSE | CONTENTS_TRIGGER ) );
-
-	//----(SA)	removed erroneous code
 
 	if ( tr.surfaceFlags & SURF_NOIMPACT ) {
 		return;
 	}
 
-	traceEnt = &g_entities[ tr.entityNum ];
-
-	// G_Printf( "%s activate %s\n", ent->classname, traceEnt->classname);
-
-	// Ridah, check for using a friendly AI
-	if ( traceEnt->aiCharacter ) {
-		AICast_Activate( ent->s.number, traceEnt->s.number );
+	if ( tr.entityNum == ENTITYNUM_WORLD ) {
 		return;
 	}
 
-	if ( traceEnt->classname ) {
-		traceEnt->flags &= ~FL_SOFTACTIVATE;    // FL_SOFTACTIVATE will be set if the user is holding his 'walk' key down when activating things
+	traceEnt = &g_entities[ tr.entityNum ];
 
-		if ( ( ( Q_stricmp( traceEnt->classname, "func_door" ) == 0 ) || ( Q_stricmp( traceEnt->classname, "func_door_rotating" ) == 0 ) ) ) {
-//----(SA)	modified
-			if ( walking ) {
-				traceEnt->flags |= FL_SOFTACTIVATE;     // no noise
-			}
-			G_TryDoor( traceEnt, ent, ent );      // (door,other,activator)
-//----(SA)	end
-		} else if ( ( Q_stricmp( traceEnt->classname, "func_button" ) == 0 )
-					&& ( traceEnt->s.apos.trType == TR_STATIONARY && traceEnt->s.pos.trType == TR_STATIONARY )
-					&& traceEnt->active == qfalse ) {
-			G_TryDoor( traceEnt, ent, ent );      // (door,other,activator)
-//			Use_BinaryMover (traceEnt, ent, ent);
-//			traceEnt->active = qtrue;
-		} else if ( !Q_stricmp( traceEnt->classname, "func_invisible_user" ) )     {
-			if ( walking ) {
-				traceEnt->flags |= FL_SOFTACTIVATE;     // no noise
-			}
-			traceEnt->use( traceEnt, ent, ent );
-		} else if ( !Q_stricmp( traceEnt->classname, "props_footlocker" ) )     {
-			traceEnt->use( traceEnt, ent, ent );
-		} else if ( !Q_stricmp( traceEnt->classname, "script_mover" ) )     {
-			G_Script_ScriptEvent( traceEnt, "activate", ent->aiName );
-		} else if ( traceEnt->s.eType == ET_ALARMBOX )     {
+	if ( traceEnt->classname ) {
+		traceEnt->flags &= ~FL_SOFTACTIVATE;    // FL_SOFTACTIVATE will be set if the user is holding 'walk' key
+
+		if ( traceEnt->s.eType == ET_ALARMBOX ) {
 			trace_t trace;
 
 			if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
@@ -1550,106 +1936,80 @@ void Cmd_Activate_f( gentity_t *ent ) {
 
 			if ( traceEnt->touch ) {
 				if ( ent->client->pers.autoActivate == PICKUP_ACTIVATE ) {
-					ent->client->pers.autoActivate = PICKUP_FORCE;      //----(SA) force the pickup of a normally autoactivate only item
+					ent->client->pers.autoActivate = PICKUP_FORCE;      //----(SA) force pickup
 				}
 				traceEnt->active = qtrue;
 				traceEnt->touch( traceEnt, ent, &trace );
 			}
 
-		} else if ( ( Q_stricmp( traceEnt->classname, "misc_mg42" ) == 0 ) /*&& activatetime > oldactivatetime + 1000*/ && traceEnt->active == qfalse )         {
-			if ( !ent->active && traceEnt->takedamage ) {  // not a dead gun
-				// RF, dont allow activating MG42 if crouching
-				if ( !( ent->client->ps.pm_flags & PMF_DUCKED ) && !infront( traceEnt, ent ) ) {
-					gclient_t   *cl;
-					cl = &level.clients[ ent->s.clientNum ];
-
-					// DHM - Nerve :: only soldiers can use mg42
-					if ( g_gametype.integer == GT_WOLF ) {
-						if ( cl->ps.stats[ STAT_PLAYER_CLASS ] != PC_SOLDIER ) {
-							return;
-						}
-					}
-
-					// no mounting while using a scoped weap
-					switch ( cl->ps.weapon ) {
-					case WP_SNIPERRIFLE:
-					case WP_SNOOPERSCOPE:
-					case WP_FG42SCOPE:
-						return;
-
-					default:
-						break;
-					}
-
-					if ( !( cl->ps.grenadeTimeLeft ) ) { // make sure the client isn't holding a hot potato
-						traceEnt->active = qtrue;
-						ent->active = qtrue;
-						traceEnt->r.ownerNum = ent->s.number;
-						VectorCopy( traceEnt->s.angles, traceEnt->TargetAngles );
-
-						if ( !( ent->r.svFlags & SVF_CASTAI ) ) {
-							G_UseTargets( traceEnt, ent );   //----(SA)	added for Mike so mounting an MG42 can be a trigger event (let me know if there's any issues with this)
-
-						}
-						return; // avoid dropping down to below, where we get thrown straight off again (AI)
-					}
-				}
-			}
-		} else if ( ( Q_stricmp( traceEnt->classname, "misc_flak" ) == 0 ) /*&& activatetime > oldactivatetime + 1000*/ && traceEnt->active == qfalse )         {
-			if ( !infront( traceEnt, ent ) ) {     // make sure the client isn't holding a hot potato
+		} else if ( ( Q_stricmp( traceEnt->classname, "misc_mg42" ) == 0 ) && traceEnt->active == qfalse )         {
+			if (
+				( traceEnt->r.currentOrigin[2] - ent->r.currentOrigin[2] < 40 ) &&
+				( traceEnt->r.currentOrigin[2] - ent->r.currentOrigin[2] > 0 ) &&
+				!infront( traceEnt, ent ) ) {
+				//----(SA)	make sure the client isn't holding a hot potato
 				gclient_t   *cl;
 				cl = &level.clients[ ent->s.clientNum ];
-				if ( !( cl->ps.grenadeTimeLeft ) ) {
+
+				if ( !( cl->ps.grenadeTimeLeft ) && !( cl->ps.pm_flags & PMF_DUCKED )
+					 && !( traceEnt->s.eFlags & EF_SMOKING ) && ( cl->ps.weapon != WP_SNIPERRIFLE ) ) { // JPW NERVE no mg42 while scoped in
+					// DHM - Remember initial gun position to restore later
+					vec3_t point;
+
+					AngleVectors( traceEnt->s.apos.trBase, forward, NULL, NULL );
+					VectorMA( traceEnt->r.currentOrigin, -36, forward, point );
+					point[2] = ent->r.currentOrigin[2];
+
+					// Save initial position
+					VectorCopy( point, ent->TargetAngles );
+
+					// Zero out velocity
+					VectorCopy( vec3_origin, ent->client->ps.velocity );
+					VectorCopy( vec3_origin, ent->s.pos.trDelta );
+
 					traceEnt->active = qtrue;
 					ent->active = qtrue;
 					traceEnt->r.ownerNum = ent->s.number;
-					// Rafael fix for wierd mg42 movement
 					VectorCopy( traceEnt->s.angles, traceEnt->TargetAngles );
-				}
-			}
-		}
-		// chairs
-		else if ( traceEnt->isProp && traceEnt->takedamage && traceEnt->s.pos.trType == TR_STATIONARY && !traceEnt->nopickup ) {
-			if ( !ent->active ) {
-				if ( traceEnt->active ) {
-					// ?
-					traceEnt->active = qfalse;
-				} else
+					traceEnt->s.otherEntityNum = ent->s.number;
 
-				// pickup item
-				{
-					// only allow if using a 'one-handed' weapon
-					if ( G_canPickupMelee( ent ) ) {
-						traceEnt->active = qtrue;
-						traceEnt->r.ownerNum = ent->s.number;
-						ent->active = qtrue;
-						ent->melee = traceEnt;
-						ent->client->ps.eFlags |= EF_MELEE_ACTIVE;
-//						ent->s.eFlags |= EF_MELEE_ACTIVE;
+					cl->pmext.harc = traceEnt->harc;
+					cl->pmext.varc = traceEnt->varc;
+					VectorCopy( traceEnt->s.angles, cl->pmext.centerangles );
+					cl->pmext.centerangles[PITCH] = AngleNormalize180( cl->pmext.centerangles[PITCH] );
+					cl->pmext.centerangles[YAW] = AngleNormalize180( cl->pmext.centerangles[YAW] );
+					cl->pmext.centerangles[ROLL] = AngleNormalize180( cl->pmext.centerangles[ROLL] );
+
+					if ( !( ent->r.svFlags & SVF_CASTAI ) ) {
+						G_UseTargets( traceEnt, ent );   //----(SA)	added for Mike so mounting an MG42 can be a trigger event (let me know if there's any issues with this)
 					}
 				}
 			}
-		}
-
-	}
-
-	if ( ent->active ) {
-
-		if ( ent->client->ps.persistant[PERS_HWEAPON_USE] ) {
-			// we wish to dismount mg42
-			ent->active = 2;
-
-		} else if ( ent->melee ) {
-			// throw chair
-			if ( ( tr.fraction == 1 ) || ( !( traceEnt->r.contents & CONTENTS_SOLID ) ) ) {
-				G_ThrowChair( ent, forward, qfalse );
+		} else if ( ( ( Q_stricmp( traceEnt->classname, "func_door" ) == 0 ) || ( Q_stricmp( traceEnt->classname, "func_door_rotating" ) == 0 ) ) )           {
+			if ( walking ) {
+				traceEnt->flags |= FL_SOFTACTIVATE;     // no noise
 			}
-
-		} else {
-			ent->active = qfalse;
+			G_TryDoor( traceEnt, ent, ent );      // (door,other,activator)
+		} else if ( ( Q_stricmp( traceEnt->classname, "team_WOLF_checkpoint" ) == 0 ) )       {
+			if ( traceEnt->count != ent->client->sess.sessionTeam ) {
+				traceEnt->health++;
+			}
+		} else if ( ( Q_stricmp( traceEnt->classname, "func_button" ) == 0 )
+					&& ( traceEnt->s.apos.trType == TR_STATIONARY && traceEnt->s.pos.trType == TR_STATIONARY )
+					&& traceEnt->active == qfalse ) {
+			Use_BinaryMover( traceEnt, ent, ent );
+			traceEnt->active = qtrue;
+		} else if ( !Q_stricmp( traceEnt->classname, "func_invisible_user" ) )     {
+			if ( walking ) {
+				traceEnt->flags |= FL_SOFTACTIVATE;     // no noise
+			}
+			traceEnt->use( traceEnt, ent, ent );
+		} else if ( !Q_stricmp( traceEnt->classname, "script_mover" ) )     {
+			G_Script_ScriptEvent( traceEnt, "activate", ent->aiName );
+		} else if ( !Q_stricmp( traceEnt->classname, "props_footlocker" ) )     {
+			traceEnt->use( traceEnt, ent, ent );
 		}
 	}
-
 
 	if ( activatetime > oldactivatetime + 1000 ) {
 		oldactivatetime = activatetime;
@@ -1673,6 +2033,11 @@ int Cmd_WolfKick_f( gentity_t *ent ) {
 	qboolean solidKick = qfalse;    // don't play "hit" sound on a trigger unless it's an func_invisible_user
 
 	int damage = 15;
+
+	// DHM - Nerve :: No kick in wolf multiplayer
+	if ( g_gametype.integer >= GT_WOLF ) {
+		return 0;
+	}
 
 	if ( ent->client->ps.leanf ) {
 		return 0;   // no kick when leaning
@@ -1710,9 +2075,7 @@ int Cmd_WolfKick_f( gentity_t *ent ) {
 		if ( ( Q_stricmp( traceEnt->classname, "func_door_rotating" ) == 0 )
 			 && ( traceEnt->s.apos.trType == TR_STATIONARY && traceEnt->s.pos.trType == TR_STATIONARY )
 			 && traceEnt->active == qfalse ) {
-//			if(traceEnt->key < 0) {	// door force locked
-			if ( traceEnt->key >= KEY_LOCKED_TARGET ) {    // door force locked
-
+			if ( traceEnt->key < 0 ) { // door force locked
 				//----(SA)	play kick "hit" sound
 				tent = G_TempEntity( tr.endpos, EV_WOLFKICK_HIT_WALL );
 				tent->s.otherEntityNum = ent->s.number;	\
@@ -1720,13 +2083,15 @@ int Cmd_WolfKick_f( gentity_t *ent ) {
 
 				AICast_AudibleEvent( ent->s.clientNum, tr.endpos, HEAR_RANGE_DOOR_KICKLOCKED ); // "someone kicked a locked door near me!"
 
-				G_AddEvent( traceEnt, EV_GENERAL_SOUND, traceEnt->soundPos3 );
-
+				if ( traceEnt->soundPos3 ) {
+					G_AddEvent( traceEnt, EV_GENERAL_SOUND, traceEnt->soundPos3 );
+				} else {
+					G_AddEvent( traceEnt, EV_GENERAL_SOUND, G_SoundIndex( "sound/movers/doors/default_door_locked.wav" ) );
+				}
 				return 1;   //----(SA)	changed.  shows boot for locked doors
 			}
 
-//			if(traceEnt->key > 0) {	// door requires key
-			if ( traceEnt->key > KEY_NONE && traceEnt->key < KEY_NUM_KEYS ) {
+			if ( traceEnt->key > 0 ) { // door requires key
 				gitem_t *item = BG_FindItemForKey( traceEnt->key, 0 );
 				if ( !( ent->client->ps.stats[STAT_KEYS] & ( 1 << item->giTag ) ) ) {
 					//----(SA)	play kick "hit" sound
@@ -1737,8 +2102,11 @@ int Cmd_WolfKick_f( gentity_t *ent ) {
 					AICast_AudibleEvent( ent->s.clientNum, tr.endpos, HEAR_RANGE_DOOR_KICKLOCKED ); // "someone kicked a locked door near me!"
 
 					// player does not have key
-					G_AddEvent( traceEnt, EV_GENERAL_SOUND, traceEnt->soundPos3 );
-
+					if ( traceEnt->soundPos3 ) {
+						G_AddEvent( traceEnt, EV_GENERAL_SOUND, traceEnt->soundPos3 );
+					} else {
+						G_AddEvent( traceEnt, EV_GENERAL_SOUND, G_SoundIndex( "sound/movers/doors/default_door_locked.wav" ) );
+					}
 					return 1;   //----(SA)	changed.  shows boot animation for locked doors
 				}
 			}
@@ -1771,8 +2139,6 @@ int Cmd_WolfKick_f( gentity_t *ent ) {
 			solidKick = qtrue;  //----(SA)
 		} else if ( !Q_stricmp( traceEnt->classname, "props_flippy_table" ) && traceEnt->use )       {
 			traceEnt->use( traceEnt, ent, ent );
-		} else if ( !Q_stricmp( traceEnt->classname, "misc_mg42" ) )     {
-			solidKick = qtrue;  //----(SA)	play kick hit sound
 		}
 	}
 
@@ -1805,11 +2171,9 @@ int Cmd_WolfKick_f( gentity_t *ent ) {
 		tent->s.eventParm = DirToByte( reflect );
 		// done.
 
-		// (SA) should break...
 		if ( ent->melee ) {
 			ent->active = qfalse;
 			ent->melee->health = 0;
-			ent->client->ps.eFlags &= ~EF_MELEE_ACTIVE; // whoops, missed this one
 		}
 	}
 
@@ -1898,24 +2262,17 @@ void ClientDamage( gentity_t *clent, int entnum, int enemynum, int id ) {
 
 	// if the attacker can't see the target, then don't allow damage
 	if ( g_gametype.integer != GT_SINGLE_PLAYER ) {
-		if ( !CanDamage( ent, enemy->client->ps.origin ) ) {
+		// TTimo it can happen that enemy->client == NULL
+		// see Changelog 09/22/2001
+		if ( ( enemy->client ) && ( !CanDamage( ent, enemy->client->ps.origin ) ) ) {
 			return; // don't allow damage
 		}
 	}
 
 	switch ( id ) {
-	case CLDMG_DEBRIS:
-		if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
-			G_Damage( ent, enemy, enemy, vec3_origin, vec3_origin, 3 + rand() % 3, DAMAGE_NO_KNOCKBACK, MOD_EXPLOSIVE );
-		}
-		break;
 	case CLDMG_SPIRIT:
 		if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
-			if ( enemy->aiCharacter == AICHAR_ZOMBIE ) {
-				G_Damage( ent, enemy, enemy, vec3_origin, vec3_origin, 6, DAMAGE_NO_KNOCKBACK, MOD_ZOMBIESPIRIT );
-			} else {
-				G_Damage( ent, enemy, enemy, vec3_origin, vec3_origin, 8 + rand() % 4, DAMAGE_NO_KNOCKBACK, MOD_ZOMBIESPIRIT );
-			}
+			G_Damage( ent, enemy, enemy, vec3_origin, vec3_origin, 3, DAMAGE_NO_KNOCKBACK, MOD_ZOMBIESPIRIT );
 		}
 		break;
 	case CLDMG_BOSS1LIGHTNING:
@@ -1934,7 +2291,7 @@ void ClientDamage( gentity_t *clent, int entnum, int enemynum, int id ) {
 			if ( enemy->s.weapon != WP_TESLA ) {
 				break;
 			}
-			if ( !( enemy->client->buttons & BUTTON_ATTACK ) ) {
+			if ( enemy->client && !( enemy->client->buttons & BUTTON_ATTACK ) ) {
 				break;
 			}
 			//if ( AICast_GetCastState( enemy->s.number )->lastWeaponFiredWeaponNum != WP_TESLA )
@@ -1953,19 +2310,15 @@ void ClientDamage( gentity_t *clent, int entnum, int enemynum, int id ) {
 		if ( ent->takedamage /*&& !AICast_NoFlameDamage(ent->s.number)*/ ) {
 			VectorSubtract( ent->r.currentOrigin, enemy->r.currentOrigin, vec );
 			VectorNormalize( vec );
-			if ( !( enemy->r.svFlags & SVF_CASTAI ) ) {
-				G_Damage( ent, enemy, enemy, vec, ent->r.currentOrigin, 8, 0, MOD_LIGHTNING );
-			} else {
-				G_Damage( ent, enemy, enemy, vec, ent->r.currentOrigin, 4, 0, MOD_LIGHTNING );
-			}
+			G_Damage( ent, enemy, enemy, vec, ent->r.currentOrigin, 3, 0, MOD_LIGHTNING );
 		}
 		break;
 	case CLDMG_FLAMETHROWER:
 		// do some cheat protection
-		if ( g_gametype.integer != GT_SINGLE_PLAYER ) {
-			if ( enemy->s.weapon != WP_FLAMETHROWER ) {
+/*  JPW NERVE pulled flamethrower client damage completely
+		if (g_gametype.integer != GT_SINGLE_PLAYER) {
+			if ( enemy->s.weapon != WP_FLAMETHROWER )
 				break;
-			}
 //			if ( !(enemy->client->buttons & BUTTON_ATTACK) ) // JPW NERVE flames should be able to damage while puffs are active
 //				break;
 		} else {
@@ -1974,8 +2327,8 @@ void ClientDamage( gentity_t *clent, int entnum, int enemynum, int id ) {
 			//	break;
 		}
 
-		if ( ent->takedamage && !AICast_NoFlameDamage( ent->s.number ) ) {
-			#define FLAME_THRESHOLD 50
+		if ( ent->takedamage && !AICast_NoFlameDamage(ent->s.number) ) {
+			#define	FLAME_THRESHOLD	50
 			int damage = 5;
 
 			// RF, only do damage once they start burning
@@ -1984,11 +2337,10 @@ void ClientDamage( gentity_t *clent, int entnum, int enemynum, int id ) {
 
 			// now check the damageQuota to see if we should play a pain animation
 			// first reduce the current damageQuota with time
-			if ( ent->flameQuotaTime && ent->flameQuota > 0 ) {
-				ent->flameQuota -= (int)( ( (float)( level.time - ent->flameQuotaTime ) / 1000 ) * (float)damage / 2.0 );
-				if ( ent->flameQuota < 0 ) {
+			if (ent->flameQuotaTime && ent->flameQuota > 0) {
+				ent->flameQuota -= (int)(((float)(level.time - ent->flameQuotaTime)/1000) * (float)damage/2.0);
+				if (ent->flameQuota < 0)
 					ent->flameQuota = 0;
-				}
 			}
 
 			// add the new damage
@@ -1996,24 +2348,23 @@ void ClientDamage( gentity_t *clent, int entnum, int enemynum, int id ) {
 			ent->flameQuotaTime = level.time;
 
 			// Ridah, make em burn
-			if ( ent->client && ( /*g_gametype.integer != GT_SINGLE_PLAYER ||*/ !( ent->r.svFlags & SVF_CASTAI ) || ent->health <= 0 || ent->flameQuota > FLAME_THRESHOLD ) ) {
-				if ( ent->s.onFireEnd < level.time ) {
+			if (ent->client && ( !(ent->r.svFlags & SVF_CASTAI) || ent->health <= 0 || ent->flameQuota > FLAME_THRESHOLD)) {				if (ent->s.onFireEnd < level.time)
 					ent->s.onFireStart = level.time;
-				}
-				if ( ent->health <= 0 || !( ent->r.svFlags & SVF_CASTAI ) || ( g_gametype.integer != GT_SINGLE_PLAYER ) ) {
-					if ( ent->r.svFlags & SVF_CASTAI ) {
+				if (ent->health <= 0 || !(ent->r.svFlags & SVF_CASTAI) || (g_gametype.integer != GT_SINGLE_PLAYER)) {
+					if (ent->r.svFlags & SVF_CASTAI) {
 						ent->s.onFireEnd = level.time + 6000;
 					} else {
 						ent->s.onFireEnd = level.time + FIRE_FLASH_TIME;
 					}
 				} else {
-					ent->s.onFireEnd = level.time + 99999;  // make sure it goes for longer than they need to die
+					ent->s.onFireEnd = level.time + 99999;	// make sure it goes for longer than they need to die
 				}
 				ent->flameBurnEnt = enemy->s.number;
 				// add to playerState for client-side effect
 				ent->client->ps.onFireStart = level.time;
 			}
 		}
+*/
 		break;
 	}
 }
@@ -2116,12 +2467,16 @@ Cmd_SetSpawnPoint_f
 */
 void Cmd_SetSpawnPoint_f( gentity_t *clent ) {
 	char arg[MAX_TOKEN_CHARS];
+//	int		spawnIndex;
 
 	if ( trap_Argc() != 2 ) {
 		return;
 	}
 
 	trap_Argv( 1, arg, sizeof( arg ) );
+	if ( clent->client ) { // JPW NERVE
+		clent->client->sess.spawnObjectiveIndex = atoi( arg ); // JPW NERVE
+	}
 }
 // -NERVE - SMF
 
@@ -2139,24 +2494,7 @@ void ClientCommand( int clientNum ) {
 		return;     // not fully in game yet
 	}
 
-
 	trap_Argv( 0, cmd, sizeof( cmd ) );
-
-	// Ridah, AI Cast debugging
-	if ( Q_stricmp( cmd, "aicast" ) == 0 ) {
-		extern void AICast_DBG_Cmd_f( int clientNum );
-		//
-		AICast_DBG_Cmd_f( clientNum );
-		return;
-	}
-	// done.
-
-	// RF, client damage commands
-	if ( Q_stricmp( cmd, "cld" ) == 0 ) {
-		Cmd_ClientDamage_f( ent );
-		return;
-	}
-	// done.
 
 	if ( Q_stricmp( cmd, "say" ) == 0 ) {
 		Cmd_Say_f( ent, SAY_ALL, qfalse );
@@ -2171,7 +2509,16 @@ void ClientCommand( int clientNum ) {
 		Cmd_Say_f( ent, SAY_LIMBO, qfalse );
 		return;
 	}
+	if ( Q_stricmp( cmd, "vsay" ) == 0 ) {
+		Cmd_Voice_f( ent, SAY_ALL, qfalse, qfalse );
+		return;
+	}
+	if ( Q_stricmp( cmd, "vsay_team" ) == 0 ) {
+		Cmd_Voice_f( ent, SAY_TEAM, qfalse, qfalse );
+		return;
+	}
 	// -NERVE - SMF
+
 	if ( Q_stricmp( cmd, "tell" ) == 0 ) {
 		Cmd_Tell_f( ent );
 		return;
@@ -2181,16 +2528,15 @@ void ClientCommand( int clientNum ) {
 		return;
 	}
 
-//----(SA)	added
-	if ( Q_stricmp( cmd, "fogswitch" ) == 0 ) {
-		Cmd_Fogswitch_f();
+	// NERVE - SMF - moved this here so current/new players can set team during scoreboard win
+	if ( Q_stricmp( cmd, "team" ) == 0 ) {
+		Cmd_Team_f( ent );
 		return;
 	}
-//----(SA)	end
 
 	// ignore all other commands when at intermission
 	if ( level.intermissiontime ) {
-		Cmd_Say_f( ent, qfalse, qtrue );
+//		Cmd_Say_f (ent, qfalse, qtrue);			// NERVE - SMF - we don't want to spam the clients with this.
 		return;
 	}
 
@@ -2214,32 +2560,31 @@ void ClientCommand( int clientNum ) {
 		Cmd_FollowCycle_f( ent, 1 );
 	} else if ( Q_stricmp( cmd, "followprev" ) == 0 )  {
 		Cmd_FollowCycle_f( ent, -1 );
-	} else if ( Q_stricmp( cmd, "team" ) == 0 )  {
-		Cmd_Team_f( ent );
-	} else if ( Q_stricmp( cmd, "where" ) == 0 )  {
-		Cmd_Where_f( ent );
 	}
-//	else if (Q_stricmp (cmd, "callvote") == 0)	//----(SA)	id requests these gone in sp
-//		Cmd_CallVote_f (ent);
-//	else if (Q_stricmp (cmd, "vote") == 0)		//----(SA)	id requests these gone in sp
-//		Cmd_Vote_f (ent);
-	else if ( Q_stricmp( cmd, "gc" ) == 0 ) {
+//	else if (Q_stricmp (cmd, "team") == 0)		// NERVE - SMF - moved above intermission check
+//		Cmd_Team_f (ent);
+	else if ( Q_stricmp( cmd, "where" ) == 0 ) {
+		Cmd_Where_f( ent );
+	} else if ( Q_stricmp( cmd, "callvote" ) == 0 )  {
+		Cmd_CallVote_f( ent );
+	} else if ( Q_stricmp( cmd, "vote" ) == 0 )  {
+		Cmd_Vote_f( ent );
+	} else if ( Q_stricmp( cmd, "gc" ) == 0 )  {
 		Cmd_GameCommand_f( ent );
-	} else if ( Q_stricmp( cmd, "startCamera" ) == 0 )  {
-		Cmd_StartCamera_f( ent );
-	} else if ( Q_stricmp( cmd, "stopCamera" ) == 0 )  {
-		Cmd_StopCamera_f( ent );
-	} else if ( Q_stricmp( cmd, "setCameraOrigin" ) == 0 )  {
-		Cmd_SetCameraOrigin_f( ent );
-	} else if ( Q_stricmp( cmd, "cameraInterrupt" ) == 0 )  {
-		Cmd_InterruptCamera_f( ent );
-	} else if ( Q_stricmp( cmd, "setviewpos" ) == 0 )  {
+	}
+//	else if (Q_stricmp (cmd, "startCamera") == 0)
+//		Cmd_StartCamera_f( ent );
+//	else if (Q_stricmp (cmd, "stopCamera") == 0)
+//		Cmd_StopCamera_f( ent );
+//	else if (Q_stricmp (cmd, "setCameraOrigin") == 0)
+//		Cmd_SetCameraOrigin_f( ent );
+	else if ( Q_stricmp( cmd, "setviewpos" ) == 0 ) {
 		Cmd_SetViewpos_f( ent );
 	} else if ( Q_stricmp( cmd, "entitycount" ) == 0 )  {
 		Cmd_EntityCount_f( ent );
 	} else if ( Q_stricmp( cmd, "setspawnpt" ) == 0 )  {
 		Cmd_SetSpawnPoint_f( ent );
 	} else {
-		trap_SendServerCommand( clientNum, va( "print \"unknown cmd %s\n\"", cmd ) );
+		trap_SendServerCommand( clientNum, va( "print \"unknown cmd[lof] %s\n\"", cmd ) );
 	}
 }

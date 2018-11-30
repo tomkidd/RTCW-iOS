@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -29,6 +29,8 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "cm_local.h"
 #include "cm_patch.h"
+
+//#define	CULL_BBOX
 
 /*
 
@@ -40,6 +42,27 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc );
 void CM_DrawDebugSurface( void (*drawPoly)(int color, int numPoints, flaot *points) );
 
+
+Issues for collision against curved surfaces:
+
+Surface edges need to be handled differently than surface planes
+
+Plane expansion causes raw surfaces to expand past expanded bounding box
+
+Position test of a volume against a surface is tricky.
+
+Position test of a point against a surface is not well defined, because the surface has no volume.
+
+
+Tracing leading edge points instead of volumes?
+Position test by tracing corner to corner? (8*7 traces -- ouch)
+
+coplanar edges
+triangulated patches
+degenerate patches
+
+  endcaps
+  degenerate
 
 WARNING: this may misbehave with meshes that have rows or columns that only
 degenerate a few triangles.  Completely degenerate rows and columns are handled
@@ -86,6 +109,8 @@ typedef struct {
 #define	PLANE_TRI_EPSILON	0.1
 #define	WRAP_POINT_EPSILON	0.1
 */
+
+#define ADDBEVELS
 
 int c_totalPatchBlocks;
 int c_totalPatchSurfaces;
@@ -284,6 +309,7 @@ static void CM_SetGridWrapWidth( cGrid_t *grid ) {
 	}
 }
 
+
 /*
 =================
 CM_SubdivideGridColumns
@@ -355,12 +381,13 @@ static void CM_SubdivideGridColumns( cGrid_t *grid ) {
 	}
 }
 
+
+#define POINT_EPSILON   0.1
 /*
 ======================
 CM_ComparePoints
 ======================
 */
-#define POINT_EPSILON   0.1
 static qboolean CM_ComparePoints( float *a, float *b ) {
 	float d;
 
@@ -430,11 +457,6 @@ static facet_t facets[MAX_FACETS];
 #define NORMAL_EPSILON  0.0001
 #define DIST_EPSILON    0.02
 
-/*
-==================
-CM_PlaneEqual
-==================
-*/
 int CM_PlaneEqual( patchPlane_t *p, float plane[4], int *flipped ) {
 	float invplane[4];
 
@@ -462,11 +484,6 @@ int CM_PlaneEqual( patchPlane_t *p, float plane[4], int *flipped ) {
 	return qfalse;
 }
 
-/*
-==================
-CM_SnapVector
-==================
-*/
 void CM_SnapVector( vec3_t normal ) {
 	int i;
 
@@ -485,11 +502,6 @@ void CM_SnapVector( vec3_t normal ) {
 	}
 }
 
-/*
-==================
-CM_FindPlane2
-==================
-*/
 int CM_FindPlane2( float plane[4], int *flipped ) {
 	int i;
 
@@ -567,6 +579,7 @@ static int CM_FindPlane( float *p1, float *p2, float *p3 ) {
 	return numPlanes - 1;
 }
 
+
 /*
 ==================
 CM_PointOnPlaneSide
@@ -594,11 +607,6 @@ static int CM_PointOnPlaneSide( float *p, int planeNum ) {
 	return SIDE_ON;
 }
 
-/*
-==================
-CM_GridPlane
-==================
-*/
 static int  CM_GridPlane( int gridPlanes[MAX_GRID_SIZE][MAX_GRID_SIZE][2], int i, int j, int tri ) {
 	int p;
 
@@ -811,14 +819,8 @@ static qboolean CM_ValidateFacet( facet_t *facet ) {
 	FreeWinding( w );
 
 	for ( j = 0 ; j < 3 ; j++ ) {
-		if ( bounds[1][j] - bounds[0][j] > MAX_MAP_BOUNDS ) {
+		if ( bounds[1][j] - bounds[0][j] > 4096 ) {
 			return qfalse;      // we must be missing a plane
-		}
-		if ( bounds[0][j] >= MAX_MAP_BOUNDS ) {
-			return qfalse;
-		}
-		if ( bounds[1][j] <= -MAX_MAP_BOUNDS ) {
-			return qfalse;
 		}
 	}
 	return qtrue;       // winding is fine
@@ -829,6 +831,7 @@ static qboolean CM_ValidateFacet( facet_t *facet ) {
 CM_AddFacetBevels
 ==================
 */
+
 void CM_AddFacetBevels( facet_t *facet ) {
 
 	int i, j, k, l;
@@ -836,6 +839,10 @@ void CM_AddFacetBevels( facet_t *facet ) {
 	float plane[4], d, newplane[4];
 	winding_t *w, *w2;
 	vec3_t mins, maxs, vec, vec2;
+
+#ifndef ADDBEVELS
+	return;
+#endif
 
 	Vector4Copy( planes[ facet->surfacePlane ].plane, plane );
 
@@ -978,7 +985,8 @@ void CM_AddFacetBevels( facet_t *facet ) {
 					} //end if
 					ChopWindingInPlace( &w2, newplane, newplane[3], 0.1f );
 					if ( !w2 ) {
-						Com_DPrintf( "WARNING: CM_AddFacetBevels... invalid bevel\n" );
+						// TTimo - can't stand this, useless and noisy
+						//Com_DPrintf("WARNING: CM_AddFacetBevels... invalid bevel\n");
 						continue;
 					} else {
 						FreeWinding( w2 );
@@ -1097,7 +1105,7 @@ static void CM_PatchCollideFromGrid( cGrid_t *grid, patchCollide_t *pf ) {
 				Com_Error( ERR_DROP, "MAX_FACETS" );
 			}
 			facet = &facets[numFacets];
-			Com_Memset( facet, 0, sizeof( *facet ) );
+			memset( facet, 0, sizeof( *facet ) );
 
 			if ( gridPlanes[i][j][0] == gridPlanes[i][j][1] ) {
 				if ( gridPlanes[i][j][0] == -1 ) {
@@ -1143,7 +1151,7 @@ static void CM_PatchCollideFromGrid( cGrid_t *grid, patchCollide_t *pf ) {
 					Com_Error( ERR_DROP, "MAX_FACETS" );
 				}
 				facet = &facets[numFacets];
-				Com_Memset( facet, 0, sizeof( *facet ) );
+				memset( facet, 0, sizeof( *facet ) );
 
 				facet->surfacePlane = gridPlanes[i][j][1];
 				facet->numBorders = 3;
@@ -1171,9 +1179,9 @@ static void CM_PatchCollideFromGrid( cGrid_t *grid, patchCollide_t *pf ) {
 	pf->numPlanes = numPlanes;
 	pf->numFacets = numFacets;
 	pf->facets = Hunk_Alloc( numFacets * sizeof( *pf->facets ), h_high );
-	Com_Memcpy( pf->facets, facets, numFacets * sizeof( *pf->facets ) );
+	memcpy( pf->facets, facets, numFacets * sizeof( *pf->facets ) );
 	pf->planes = Hunk_Alloc( numPlanes * sizeof( *pf->planes ), h_high );
-	Com_Memcpy( pf->planes, planes, numPlanes * sizeof( *pf->planes ) );
+	memcpy( pf->planes, planes, numPlanes * sizeof( *pf->planes ) );
 }
 
 
@@ -1194,7 +1202,7 @@ struct patchCollide_s   *CM_GeneratePatchCollide( int width, int height, vec3_t 
 
 	if ( width <= 2 || height <= 2 || !points ) {
 		Com_Error( ERR_DROP, "CM_GeneratePatchFacets: bad parameters: (%i, %i, %p)",
-			width, height, (void *)points );
+				   width, height, (void *)points );
 	}
 
 	if ( !( width & 1 ) || !( height & 1 ) ) {
@@ -1265,6 +1273,105 @@ TRACE TESTING
 
 /*
 ====================
+CM_TraceThroughPatchCollide
+
+Modifies tr->tr if any of the facets effect the trace
+====================
+*/
+
+/*
+void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc )
+{
+	int i, j, n;
+	float d1, d2, offset, planedist, fraction;
+	vec3_t v1, v2, normal, point;
+	patchPlane_t *planes;
+	facet_t	*facet;
+	//
+	facet = pc->facets;
+	for ( i = 0 ; i < pc->numFacets ; i++, facet++ )
+	{
+		planes = &pc->planes[ facet->surfacePlane ];
+		VectorCopy(planes->plane, normal);
+		for (n = 0; n < 3; n++)
+		{
+			if (normal[n] > 0) v1[n] = tw->size[0][n];
+			else v1[n] = tw->size[1][n];
+		} //end for
+		VectorNegate(normal, v2);
+		offset = DotProduct(v1, v2);
+		//offset = 0;
+		//
+		planedist = planes->plane[3] + offset;
+		//
+		d1 = DotProduct( tw->start, normal ) - planedist;
+		d2 = DotProduct( tw->end, normal ) - planedist;
+
+		// if completely in front of face, no intersection with the entire patch
+		if (d1 > 0 && ( d2 >= SURFACE_CLIP_EPSILON || d2 >= d1 )  ) {
+			continue;
+		}
+
+		// if it doesn't cross the plane, the plane isn't relevent
+		if (d1 <= 0 && d2 <= 0 ) {
+			continue;
+		}
+
+		// crosses face
+		if (d1 > d2) {	// enter
+			fraction = (d1-SURFACE_CLIP_EPSILON) / (d1-d2);
+			if ( fraction < 0 ) {
+				fraction = 0;
+			}
+			for (j = 0; j < 3; j++)
+				point[j] = tw->start[j] + (tw->end[j] - tw->start[j]) * fraction;
+		}
+		else {
+			continue;
+		}
+		//
+		for (j = 0; j < facet->numBorders; j++)
+		{
+			planes = &pc->planes[ facet->borderPlanes[j] ];
+			if (!facet->borderInward[j])
+			{
+				VectorNegate(planes->plane, normal);
+				planedist = -planes->plane[3];
+			} //end if
+			else
+			{
+				VectorCopy(planes->plane, normal);
+				planedist = planes->plane[3];
+			} //end else
+			for (n = 0; n < 3; n++)
+			{
+				if (normal[n] > 0) v1[n] = tw->size[0][n];
+				else v1[n] = tw->size[1][n];
+			} //end for
+			VectorNegate(normal, v2);
+			offset = DotProduct(v1, v2);
+			//offset = 0;
+			planedist -= offset;
+			//the hit point should be in front of the (inward facing) border plane
+			if (DotProduct(point, normal) - planedist < -ON_EPSILON) break;
+		} //end for
+		if (j < facet->numBorders) continue;
+		//
+		if (fraction < tw->trace.fraction)
+		{
+			debugPatchCollide = pc;
+			debugFacet = facet;
+
+			tw->trace.fraction = fraction;
+			planes = &pc->planes[ facet->surfacePlane ];
+			VectorCopy( planes->plane, tw->trace.plane.normal );
+			tw->trace.plane.dist = planes->plane[3];
+		} //end if
+	} //end for
+} //end of the function CM_TraceThroughPatchCollide*/
+
+/*
+====================
 CM_TracePointThroughPatchCollide
 
   special case for point traces because the patch collide "brushes" have no volume
@@ -1284,8 +1391,8 @@ void CM_TracePointThroughPatchCollide( traceWork_t *tw, const struct patchCollid
 #endif //BSPC
 
 #ifndef BSPC
-	if ( !cm_playerCurveClip->integer || !tw->isPoint ) {
-		return;
+	if ( !cm_playerCurveClip->integer && !tw->isPoint ) {
+		return;     // FIXME: until I get player sized clipping working right
 	}
 #endif
 
@@ -1380,6 +1487,7 @@ int CM_CheckFacetPlane( float *plane, vec3_t start, vec3_t end, float *enterFrac
 
 	// if completely in front of face, no intersection with the entire facet
 	if ( d1 > 0 && ( d2 >= SURFACE_CLIP_EPSILON || d2 >= d1 )  ) {
+//	if (d1 > 0 && d2 > 0) {
 		return qfalse;
 	}
 
@@ -1425,7 +1533,7 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 	vec3_t startp, endp;
 #ifndef BSPC
 	static cvar_t *cv;
-#endif //BSPC
+#endif
 
 	if ( !CM_BoundsIntersect( tw->bounds[0], tw->bounds[1],
 				pc->bounds[0], pc->bounds[1] ) ) {
@@ -1436,7 +1544,11 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 		CM_TracePointThroughPatchCollide( tw, pc );
 		return;
 	}
-
+#ifndef ADDBEVELS
+	CM_TracePointThroughPatchCollide( tw, pc );
+	return;
+#endif
+	//
 	facet = pc->facets;
 	for ( i = 0 ; i < pc->numFacets ; i++, facet++ ) {
 		enterFrac = -1.0;
@@ -1452,10 +1564,11 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 
 			// find the closest point on the capsule to the plane
 			t = DotProduct( plane, tw->sphere.offset );
-			if ( t > 0.0f ) {
+			if ( t > 0 ) {
 				VectorSubtract( tw->start, tw->sphere.offset, startp );
 				VectorSubtract( tw->end, tw->sphere.offset, endp );
-			} else {
+			} else
+			{
 				VectorAdd( tw->start, tw->sphere.offset, startp );
 				VectorAdd( tw->end, tw->sphere.offset, endp );
 			}
@@ -1465,15 +1578,15 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 			VectorCopy( tw->start, startp );
 			VectorCopy( tw->end, endp );
 		}
-
+		//
 		if ( !CM_CheckFacetPlane( plane, startp, endp, &enterFrac, &leaveFrac, &hit ) ) {
 			continue;
 		}
 		if ( hit ) {
 			Vector4Copy( plane, bestplane );
 		}
-
-		for ( j = 0; j < facet->numBorders; j++ ) {
+		//
+		for ( j = 0 ; j < facet->numBorders ; j++ ) {
 			planes = &pc->planes[ facet->borderPlanes[j] ];
 			if ( facet->borderInward[j] ) {
 				VectorNegate( planes->plane, plane );
@@ -1488,10 +1601,11 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 
 				// find the closest point on the capsule to the plane
 				t = DotProduct( plane, tw->sphere.offset );
-				if ( t > 0.0f ) {
+				if ( t > 0 ) {
 					VectorSubtract( tw->start, tw->sphere.offset, startp );
 					VectorSubtract( tw->end, tw->sphere.offset, endp );
-				} else {
+				} else
+				{
 					VectorAdd( tw->start, tw->sphere.offset, startp );
 					VectorAdd( tw->end, tw->sphere.offset, endp );
 				}
@@ -1502,7 +1616,7 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 				VectorCopy( tw->start, startp );
 				VectorCopy( tw->end, endp );
 			}
-
+			//
 			if ( !CM_CheckFacetPlane( plane, startp, endp, &enterFrac, &leaveFrac, &hit ) ) {
 				break;
 			}
@@ -1518,7 +1632,7 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 		if ( hitnum == facet->numBorders - 1 ) {
 			continue;
 		}
-
+		//
 		if ( enterFrac < leaveFrac && enterFrac >= 0 ) {
 			if ( enterFrac < tw->trace.fraction ) {
 				if ( enterFrac < 0 ) {
@@ -1532,7 +1646,7 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 					debugPatchCollide = pc;
 					debugFacet = facet;
 				}
-#endif //BSPC
+#endif
 
 				tw->trace.fraction = enterFrac;
 				VectorCopy( bestplane, tw->trace.plane.normal );
@@ -1546,93 +1660,82 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 /*
 =======================================================================
 
-POSITION TEST
+POSITION DETECTION
 
 =======================================================================
 */
 
+#define BOX_FRONT   0
+#define BOX_BACK    1
+#define BOX_CROSS   2
+
 /*
 ====================
 CM_PositionTestInPatchCollide
+
+Modifies tr->tr if any of the facets effect the trace
 ====================
 */
 qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc ) {
-	int i, j;
-	float offset, t;
-	patchPlane_t *planes;
-	facet_t *facet;
-	float plane[4];
-	vec3_t startp;
+	int cross[MAX_PATCH_PLANES];
+	const patchPlane_t  *planes;
+	const facet_t   *facet;
+	int i, j, k;
+	float offset;
+	float d;
 
-	if ( tw->isPoint ) {
-		return qfalse;
+//return qfalse;
+
+#ifndef CULL_BBOX
+	for ( i = 0 ; i < 3 ; i++ ) {
+		if ( tw->bounds[0][i] > pc->bounds[1][i]
+			 || tw->bounds[1][i] < pc->bounds[0][i] ) {
+			return qfalse;
+		}
 	}
-	//
+#endif
+
+	// determine if the box is in front, behind, or crossing each plane
+	planes = pc->planes;
+	for ( i = 0 ; i < pc->numPlanes ; i++, planes++ ) {
+		d = DotProduct( tw->start, planes->plane ) - planes->plane[3];
+		offset = fabs( DotProduct( tw->offsets[ planes->signbits ], planes->plane ) );
+		if ( d < -offset ) {
+			cross[i] = BOX_FRONT;
+		} else if ( d > offset ) {
+			cross[i] = BOX_BACK;
+		} else {
+			cross[i] = BOX_CROSS;
+		}
+	}
+
+
+	// see if any of the surface planes are intersected
 	facet = pc->facets;
 	for ( i = 0 ; i < pc->numFacets ; i++, facet++ ) {
-		planes = &pc->planes[ facet->surfacePlane ];
-		VectorCopy( planes->plane, plane );
-		plane[3] = planes->plane[3];
-		if ( tw->sphere.use ) {
-			// adjust the plane distance apropriately for radius
-			plane[3] += tw->sphere.radius;
-
-			// find the closest point on the capsule to the plane
-			t = DotProduct( plane, tw->sphere.offset );
-			if ( t > 0 ) {
-				VectorSubtract( tw->start, tw->sphere.offset, startp );
-			} else {
-				VectorAdd( tw->start, tw->sphere.offset, startp );
-			}
-		} else {
-			offset = DotProduct( tw->offsets[ planes->signbits ], plane );
-			plane[3] -= offset;
-			VectorCopy( tw->start, startp );
-		}
-
-		if ( DotProduct( plane, startp ) - plane[3] > 0.0f ) {
+		// the facet plane must be in a cross state
+		if ( cross[facet->surfacePlane] != BOX_CROSS ) {
 			continue;
 		}
-
-		for ( j = 0; j < facet->numBorders; j++ ) {
-			planes = &pc->planes[ facet->borderPlanes[j] ];
-			if ( facet->borderInward[j] ) {
-				VectorNegate( planes->plane, plane );
-				plane[3] = -planes->plane[3];
-			} else {
-				VectorCopy( planes->plane, plane );
-				plane[3] = planes->plane[3];
+		// all of the boundaries must be either cross or back
+		for ( j = 0 ; j < facet->numBorders ; j++ ) {
+			k = facet->borderPlanes[j];
+			if ( cross[ k ] == BOX_CROSS ) {
+				continue;
 			}
-			if ( tw->sphere.use ) {
-				// adjust the plane distance apropriately for radius
-				plane[3] += tw->sphere.radius;
-
-				// find the closest point on the capsule to the plane
-				t = DotProduct( plane, tw->sphere.offset );
-				if ( t > 0.0f ) {
-					VectorSubtract( tw->start, tw->sphere.offset, startp );
-				} else {
-					VectorAdd( tw->start, tw->sphere.offset, startp );
-				}
-			} else {
-				// NOTE: this works even though the plane might be flipped because the bbox is centered
-				offset = DotProduct( tw->offsets[ planes->signbits ], plane );
-				plane[3] += fabs( offset );
-				VectorCopy( tw->start, startp );
-			}
-
-			if ( DotProduct( plane, startp ) - plane[3] > 0.0f ) {
+			if ( cross[k] ^ facet->borderInward[j] ) {
 				break;
 			}
 		}
-		if ( j < facet->numBorders ) {
-			continue;
+		// if we passed all borders, we are definately in this facet
+		if ( j == facet->numBorders ) {
+			return qtrue;
 		}
-		// inside this patch facet
-		return qtrue;
 	}
+
 	return qfalse;
 }
+
 
 /*
 =======================================================================

@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -134,7 +134,9 @@ typedef struct {
 	int cgameUserCmdValue;              // current weapon to add to usercmd_t
 	int cgameUserHoldableValue;         // current holdable item to add to usercmd_t	//----(SA)	added
 	float cgameSensitivity;
-	int cgameCld;                       // NERVE - SMF
+	int cgameMpSetup;                   // NERVE - SMF
+	int cgameMpIdentClient;             // NERVE - SMF
+	vec3_t cgameClientLerpOrigin;       // DHM - Nerve
 
 	// cmds[cmdNumber] is the predicted command, [cmdNumber-1] is the last
 	// properly generated command
@@ -163,10 +165,10 @@ typedef struct {
 	// NERVE - SMF
 	char limboChatMsgs[LIMBOCHAT_HEIGHT][LIMBOCHAT_WIDTH * 3 + 1];
 	int limboChatPos;
+
+	qboolean corruptedTranslationFile;
+	char translationVersion[MAX_STRING_TOKENS];
 	// -NERVE - SMF
-
-	qboolean cameraMode;    //----(SA)	added for control of input while watching cinematics
-
 } clientActive_t;
 
 extern clientActive_t cl;
@@ -201,6 +203,8 @@ typedef struct {
 
 	int challenge;                          // from the server to use for connecting
 	int checksumFeed;                       // from the server for checksum calculations
+
+	int onlyVisibleClients;                 // DHM - Nerve
 
 	// these are our reliable messages that go to the server
 	int reliableSequence;
@@ -248,6 +252,10 @@ typedef struct {
 	qboolean demowaiting;       // don't record until a non-delta message is received
 	qboolean firstDemoFrameSkipped;
 	fileHandle_t demofile;
+
+	qboolean waverecording;
+	fileHandle_t wavefile;
+	int wavetime;
 
 	int timeDemoFrames;             // counter of rendered frames
 	int timeDemoStart;              // cls.realtime before first frame
@@ -327,14 +335,20 @@ typedef struct {
 	int ping;
 	qboolean visible;
 	int allowAnonymous;
+	int friendlyFire;               // NERVE - SMF
+	int maxlives;                   // NERVE - SMF
+	int tourney;                    // NERVE - SMF
+	int punkbuster;                 // DHM - Nerve
+	int antilag;         // TTimo
+	char gameName[MAX_NAME_LENGTH];         // Arnout
 	int			g_humanplayers;
 	int			g_needpass;
 } serverInfo_t;
 
+#define MAX_AUTOUPDATE_SERVERS  5
 typedef struct {
 
 	qboolean cddialog;              // bring up the cd needed dialog next frame
-	qboolean endgamemenu;           // bring up the end game credits menu next frame
 
 	// when the server clears the hunk, all of these must be restarted
 	qboolean rendererStarted;
@@ -372,6 +386,10 @@ typedef struct {
 
 	netadr_t rconAddress;
 
+	// DHM - Nerve :: Auto-update Info
+	char autoupdateServerNames[MAX_AUTOUPDATE_SERVERS][MAX_QPATH];
+	netadr_t autoupdateServer;
+
 	// rendering info
 	glconfig_t glconfig;
 	qhandle_t charSetShader;
@@ -385,10 +403,6 @@ extern clientStatic_t cls;
 extern	char		cl_oldGame[MAX_QPATH];
 extern	qboolean	cl_oldGameSet;
 
-#ifdef IOS
-int cl_joyscale_x[2];
-int cl_joyscale_y[2];
-#endif
 //=============================================================================
 
 extern vm_t            *cgvm;   // interface to cgame dll or vm
@@ -406,10 +420,15 @@ extern cvar_t  *cl_timegraph;
 extern cvar_t  *cl_maxpackets;
 extern cvar_t  *cl_packetdup;
 extern cvar_t  *cl_shownet;
+extern cvar_t  *cl_shownuments;             // DHM - Nerve
+extern cvar_t  *cl_visibleClients;          // DHM - Nerve
 extern cvar_t  *cl_showSend;
+extern cvar_t  *cl_showServerCommands;      // NERVE - SMF
 extern cvar_t  *cl_timeNudge;
 extern cvar_t  *cl_showTimeDelta;
 extern cvar_t  *cl_freezeDemo;
+
+extern cvar_t  *cl_showPing;
 
 extern cvar_t  *cl_yawspeed;
 extern cvar_t  *cl_pitchspeed;
@@ -417,6 +436,8 @@ extern cvar_t  *cl_run;
 extern cvar_t  *cl_anglespeedkey;
 
 extern cvar_t  *cl_recoilPitch;     // RF
+
+extern cvar_t  *cl_bypassMouseInput;    // NERVE - SMF
 
 extern cvar_t  *cl_sensitivity;
 extern cvar_t  *cl_freelook;
@@ -503,6 +524,11 @@ void CL_AddReliableCommand(const char *cmd, qboolean isDisconnectCmd);
 
 void CL_StartHunkUsers( qboolean rendererOnly );
 
+#ifndef UPDATE_SERVER
+void CL_CheckAutoUpdate( void );
+void CL_GetAutoUpdate( void );
+#endif
+
 void CL_Disconnect_f( void );
 void CL_GetChallengePacket( void );
 void CL_Vid_Restart_f( void );
@@ -529,6 +555,16 @@ qboolean CL_CheckPaused(void);
 
 void CL_AddToLimboChat( const char *str );                  // NERVE - SMF
 qboolean CL_GetLimboString( int index, char *buf );         // NERVE - SMF
+
+// NERVE - SMF - localization
+void CL_InitTranslation(void);
+void CL_SaveTransTable(const char *fileName, qboolean newOnly);
+void CL_ReloadTranslation(void);
+void CL_TranslateString( const char *string, char *dest_buffer );
+const char* CL_TranslateStringBuf( const char *string ); // TTimo
+// -NERVE - SMF
+
+void CL_OpenURL( const char *url ); // TTimo
 
 //
 // cl_input
@@ -613,6 +649,8 @@ void CL_SystemInfoChanged( void );
 void CL_ParseServerMessage( msg_t *msg );
 
 //====================================================================
+
+void    CL_UpdateInfoPacket( netadr_t from );       // DHM - Nerve
 
 void    CL_ServerInfoPacket( netadr_t from, msg_t *msg );
 void    CL_LocalServers_f( void );

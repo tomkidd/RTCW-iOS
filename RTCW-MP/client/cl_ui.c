@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -31,16 +31,9 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "../botlib/botlib.h"
 
-#ifdef IOS
-#include "../renderer/tr_local.h"
-#endif
-
 extern botlib_export_t *botlib_export;
 
 vm_t *uivm;
-
-extern char cl_cdkey[34];
-
 
 /*
 ====================
@@ -62,9 +55,6 @@ LAN_LoadCachedServers
 ====================
 */
 void LAN_LoadCachedServers( void ) {
-// TTimo: stub, this is only relevant to MP, SP kills the servercache.dat (and favorites)
-// show_bug.cgi?id=445
-/*
 	int size;
 	fileHandle_t fileIn;
 
@@ -85,7 +75,6 @@ void LAN_LoadCachedServers( void ) {
 
 		FS_FCloseFile( fileIn );
 	}
-*/
 }
 
 /*
@@ -94,9 +83,6 @@ LAN_SaveServersToCache
 ====================
 */
 void LAN_SaveServersToCache( void ) {
-// TTimo: stub, this is only relevant to MP, SP kills the servercache.dat (and favorites)
-// show_bug.cgi?id=445
-/*
 	int size;
 	fileHandle_t fileOut;
 	fileOut = FS_SV_FOpenFileWrite( "servercache.dat" );
@@ -107,7 +93,6 @@ void LAN_SaveServersToCache( void ) {
 	FS_Write( &cls.globalServers, sizeof( cls.globalServers ), fileOut );
 	FS_Write( &cls.favoriteServers, sizeof( cls.favoriteServers ), fileOut );
 	FS_FCloseFile( fileOut );
-*/
 }
 
 
@@ -323,9 +308,15 @@ static void LAN_GetServerInfo( int source, int n, char *buf, int buflen ) {
 		Info_SetValueForKey( info, "gametype", va( "%i",server->gameType ) );
 		Info_SetValueForKey( info, "nettype", va( "%i",server->netType ) );
 		Info_SetValueForKey( info, "addr", NET_AdrToStringwPort(server->adr));
+		Info_SetValueForKey( info, "sv_allowAnonymous", va( "%i", server->allowAnonymous ) );
+		Info_SetValueForKey( info, "friendlyFire", va( "%i", server->friendlyFire ) );               // NERVE - SMF
+		Info_SetValueForKey( info, "maxlives", va( "%i", server->maxlives ) );                       // NERVE - SMF
+		Info_SetValueForKey( info, "tourney", va( "%i", server->tourney ) );                     // NERVE - SMF
+		Info_SetValueForKey( info, "punkbuster", va( "%i", server->punkbuster ) );                   // DHM - Nerve
+		Info_SetValueForKey( info, "gamename", server->gameName );                                // Arnout
+		Info_SetValueForKey( info, "g_antilag", va( "%i", server->antilag ) ); // TTimo
 		Info_SetValueForKey( info, "g_needpass", va("%i", server->g_needpass));
 		Info_SetValueForKey( info, "g_humanplayers", va("%i", server->g_humanplayers));
-		Info_SetValueForKey( info, "sv_allowAnonymous", va( "%i", server->allowAnonymous ) );
 		Q_strncpyz( buf, info, buflen );
 	} else {
 		if ( buf ) {
@@ -452,6 +443,14 @@ static int LAN_CompareServers( int source, int sortKey, int sortDir, int s1, int
 			res = 0;
 		}
 		break;
+	case SORT_PUNKBUSTER:
+		if ( server1->punkbuster < server2->punkbuster ) {
+			res = -1;
+		} else if ( server1->punkbuster > server2->punkbuster )     {
+			res = 1;
+		} else {
+			res = 0;
+		}
 	}
 
 	if ( sortDir ) {
@@ -632,7 +631,7 @@ static void CL_GetClipboardData( char *buf, int buflen ) {
 Key_KeynumToStringBuf
 ====================
 */
-static void Key_KeynumToStringBuf( int keynum, char *buf, int buflen ) {
+void Key_KeynumToStringBuf( int keynum, char *buf, int buflen ) {
 	Q_strncpyz( buf, Key_KeynumToString( keynum, qtrue ), buflen );
 }
 
@@ -641,7 +640,7 @@ static void Key_KeynumToStringBuf( int keynum, char *buf, int buflen ) {
 Key_GetBindingBuf
 ====================
 */
-static void Key_GetBindingBuf( int keynum, char *buf, int buflen ) {
+void Key_GetBindingBuf( int keynum, char *buf, int buflen ) {
 	char    *value;
 
 	value = Key_GetBinding( keynum );
@@ -662,7 +661,7 @@ static void CLUI_GetCDKey( char *buf, int buflen ) {
 	const char *gamedir;
 	gamedir = Cvar_VariableString( "fs_game" );
 	if ( UI_usesUniqueCDKey() && gamedir[0] != 0 ) {
- 		Com_Memcpy( buf, &cl_cdkey[16], 16 );
+		Com_Memcpy( buf, &cl_cdkey[16], 16 );
 		buf[16] = 0;
 	} else {
 		Com_Memcpy( buf, cl_cdkey, 16 );
@@ -684,7 +683,7 @@ static void CLUI_SetCDKey( char *buf ) {
 	const char *gamedir;
 	gamedir = Cvar_VariableString( "fs_game" );
 	if ( UI_usesUniqueCDKey() && gamedir[0] != 0 ) {
- 		Com_Memcpy( &cl_cdkey[16], buf, 16 );
+		Com_Memcpy( &cl_cdkey[16], buf, 16 );
 		cl_cdkey[32] = 0;
 		// set the flag so the file will be written at the next opportunity
 		cvar_modifiedFlags |= CVAR_ARCHIVE;
@@ -813,12 +812,6 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		FS_Read( VMA( 1 ), args[2], args[3] );
 		return 0;
 
-//----(SA)	added
-	case UI_FS_SEEK:
-		FS_Seek( args[1], args[2], args[3] );
-		return 0;
-//----(SA)	end
-
 	case UI_FS_WRITE:
 		FS_Write( VMA( 1 ), args[2], args[3] );
 		return 0;
@@ -826,9 +819,6 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_FS_FCLOSEFILE:
 		FS_FCloseFile( args[1] );
 		return 0;
-
-	case UI_FS_DELETEFILE:
-		return FS_Delete( VMA( 1 ) );
 
 	case UI_FS_GETFILELIST:
 		return FS_GetFileList( VMA( 1 ), VMA( 2 ), VMA( 3 ), args[4] );
@@ -901,16 +891,6 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_S_STARTLOCALSOUND:
 		S_StartLocalSound( args[1], args[2] );
 		return 0;
-
-//----(SA)	added
-	case UI_S_FADESTREAMINGSOUND:
-		S_FadeStreamingSound( VMF( 1 ), args[2], args[3] );
-		return 0;
-
-	case UI_S_FADEALLSOUNDS:
-		S_FadeAllSounds( VMF( 1 ), args[2] );
-		return 0;
-//----(SA)	end
 
 	case UI_KEY_KEYNUMTOSTRINGBUF:
 		Key_KeynumToStringBuf( args[1], VMA( 2 ), args[3] );
@@ -1022,6 +1002,12 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_LAN_SERVERSTATUS:
 		return LAN_GetServerStatus( VMA( 1 ), VMA( 2 ), args[3] );
 
+	case UI_SET_PBCLSTATUS:
+		return 0;
+
+	case UI_SET_PBSVSTATUS:
+		return 0;
+
 	case UI_LAN_COMPARESERVERS:
 		return LAN_CompareServers( args[1], args[2], args[3], args[4], args[5] );
 
@@ -1121,11 +1107,25 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		// NERVE - SMF
 	case UI_CL_GETLIMBOSTRING:
 		return CL_GetLimboString( args[1], VMA( 2 ) );
+
+	case UI_CL_TRANSLATE_STRING:
+		CL_TranslateString( VMA( 1 ), VMA( 2 ) );
+		return 0;
 		// -NERVE - SMF
 
-	// New in IORTCW
-	case UI_ALLOC:
-		return VM_Alloc( args[1] );
+		// DHM - Nerve
+	case UI_CHECKAUTOUPDATE:
+		CL_CheckAutoUpdate();
+		return 0;
+
+	case UI_GET_AUTOUPDATE:
+		CL_GetAutoUpdate();
+		return 0;
+		// DHM - Nerve
+
+	case UI_OPENURL:
+		CL_OpenURL( (const char *)VMA( 1 ) );
+		return 0;
 
 	default:
 		Com_Error( ERR_DROP, "Bad UI system trap: %ld", (long int) args[0] );
@@ -1159,16 +1159,9 @@ CL_InitUI
 
 void CL_InitUI( void ) {
 	int v;
-    vmInterpret_t        interpret;
-    
-    // load the dll or bytecode
-#ifdef IOS
-    interpret = VMI_BYTECODE;
-#else
-    interpret = Cvar_VariableValue("vm_ui");
-#endif
 
-    uivm = VM_Create( "ui", CL_UISystemCalls, interpret );
+	// load the dll or bytecode
+	uivm = VM_Create( "ui", CL_UISystemCalls, Cvar_VariableValue("vm_ui") );
 	if ( !uivm ) {
 		Com_Error( ERR_FATAL, "VM_Create on UI failed" );
 	}
@@ -1194,6 +1187,14 @@ qboolean UI_usesUniqueCDKey( void ) {
 	}
 }
 #endif
+
+qboolean UI_checkKeyExec( int key ) {
+	if ( uivm ) {
+		return VM_Call( uivm, UI_CHECKEXECKEY, key );
+	} else {
+		return qfalse;
+	}
+}
 
 /*
 ====================

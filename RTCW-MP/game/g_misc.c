@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -71,15 +71,6 @@ void SP_info_notnull( gentity_t *self ) {
 }
 
 
-/*QUAKED info_notnull_big (1 0 0) (-16 -16 -24) (16 16 32)
-info_notnull with a bigger box for ease of positioning
-*/
-void SP_info_notnull_big( gentity_t *self ) {
-	G_SetOrigin( self, self->s.origin );
-}
-
-
-
 /*QUAKED light (0 1 0) (-8 -8 -8) (8 8 8) nonlinear angle negative_spot negative_point q3map_non-dynamic
 Non-displayed light.
 "light" overrides the default 300 intensity.
@@ -119,7 +110,7 @@ TELEPORTERS
 void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 	gentity_t   *tent;
 	qboolean noAngles;
- 
+
 	noAngles = (angles[0] > 999999.0);
 	// use temp events at source and destination to prevent the effect
 	// from getting dropped by a second player event
@@ -139,10 +130,10 @@ void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 
 	if (!noAngles) {
 	// spit the player out
-//	AngleVectors( angles, player->client->ps.velocity, NULL, NULL );
-//	VectorScale( player->client->ps.velocity, 400, player->client->ps.velocity );
-//	player->client->ps.pm_time = 160;		// hold time
-//	player->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
+	AngleVectors( angles, player->client->ps.velocity, NULL, NULL );
+	VectorScale( player->client->ps.velocity, 400, player->client->ps.velocity );
+	player->client->ps.pm_time = 160;       // hold time
+	player->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
 
 	// set angles
 	SetClientViewAngle(player, angles);
@@ -474,62 +465,38 @@ void use_spotlight( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 }
 
 
-void spotlight_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod ) {
-
-	AICast_AudibleEvent( attacker->s.number, self->r.currentOrigin, 1024 ); // loud audible event
-
-	self->s.time2 = level.time;
-	self->s.frame   = 1;    // 1 == dead
-	self->takedamage = 0;
-
-//	G_AddEvent( self, EV_ENTDEATH, 0 );
-}
-
 void spotlight_finish_spawning( gentity_t *ent ) {
 	if ( ent->spawnflags & 1 ) {   // START_ON
-//		ent->active = 0;
+		ent->active = 0;
 		trap_LinkEntity( ent );
 	}
 
 	ent->use        = use_spotlight;
-	ent->die        = spotlight_die;
-	if ( !ent->health ) {
-		ent->health = 1;
-	}
-	ent->takedamage = 1;
 	ent->think      = 0;
 	ent->nextthink  = 0;
-	ent->s.frame    = 0;
-
-	ent->clipmask       = CONTENTS_SOLID;
-	ent->r.contents     = CONTENTS_SOLID;
-
-	VectorSet( ent->r.mins, -10, -10, -10 );
-	VectorSet( ent->r.maxs, 10, 10, 10 );
 }
 
 
 //----(SA)	added
 /*QUAKED misc_spotlight (1 0 0) (-16 -16 -16) (16 16 16) START_ON BACK_AND_FORTH
+"model" - 'base' model that moves with the light.  Default: "models/mapobjects/light/searchlight_pivot.md3"
 "target" - .camera (spline) file for light to track.  do not specify file extension.
 
 BACK_AND_FORTH - when end of target spline is hit, reverse direction rather than looping (looping is default)
 ( /\ not active yet /\ )
 */
-//"model" - 'base' model that moves with the light.  Default: "models/mapobjects/light/searchlight_pivot.md3"
 void SP_misc_spotlight( gentity_t *ent ) {
 
-	ent->s.eType        = ET_SPOTLIGHT_EF;
+	ent->s.eType        = ET_EF_SPOTLIGHT;
 
 	ent->think = spotlight_finish_spawning;
 	ent->nextthink = level.time + 100;
 
-//----(SA)	model now tracked by client
-
-//	if ( ent->model )
-//		ent->s.modelindex	= G_ModelIndex( ent->model );
-//	else
-//		ent->s.modelindex	= G_ModelIndex("models/mapobjects/light/searchlight_pivot.md3");
+	if ( ent->model ) {
+		ent->s.modelindex   = G_ModelIndex( ent->model );
+	} else {
+		ent->s.modelindex   = G_ModelIndex( "models/mapobjects/light/searchlight_pivot.md3" );
+	}
 
 	if ( ent->target ) {
 		ent->s.density = G_FindConfigstringIndex( ent->target, CS_SPLINES, MAX_SPLINE_CONFIGSTRINGS, qtrue );
@@ -627,6 +594,9 @@ void locateMaster( gentity_t *ent ) {
 	ent->target_ent = G_Find( NULL, FOFS( targetname ), ent->target );
 	if ( ent->target_ent ) {
 		ent->s.otherEntityNum = ent->target_ent->s.number;
+	} else {
+		G_Printf( "Couldn't find target(%s) for misc_vis_dummy at %s\n", ent->target, vtos( ent->r.currentOrigin ) );
+		G_FreeEntity( ent );
 	}
 }
 
@@ -638,7 +608,7 @@ For safety, you should have each dummy only point at one entity (however, it's o
 void SP_misc_vis_dummy( gentity_t *ent ) {
 
 	if ( !ent->target ) { //----(SA)	added safety check
-		G_Printf( "Couldn't find target for misc_vis_dummy at %s\n", vtos( ent->r.currentOrigin ) );
+		G_Printf( "No target specified for misc_vis_dummy at %s\n", vtos( ent->r.currentOrigin ) );
 		G_FreeEntity( ent );
 		return;
 	}
@@ -809,11 +779,13 @@ void Use_Shooter( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 		fire_grenade( ent, ent->s.origin, dir, WP_GRENADE_LAUNCHER );
 		break;
 	case WP_PANZERFAUST:
+	case WP_ROCKET_LAUNCHER:
 		fire_rocket( ent, ent->s.origin, dir );
 		break;
 
-	case WP_MONSTER_ATTACK1:
-		fire_zombiespit( ent, ent->s.origin, dir );
+	case WP_SPEARGUN:
+	case WP_SPEARGUN_CO2:
+		fire_speargun( ent, ent->s.origin, dir );
 		break;
 
 		// Rafael sniper
@@ -888,7 +860,7 @@ Fires at either the target or the current direction.
 "random" the number of degrees of deviance from the taget. (1.0 default)
 */
 void SP_shooter_rocket( gentity_t *ent ) {
-	InitShooter( ent, WP_PANZERFAUST );
+	InitShooter( ent, WP_ROCKET_LAUNCHER );
 }
 
 /*QUAKED shooter_zombiespit (1 0 0) (-16 -16 -16) (16 16 16)
@@ -923,13 +895,12 @@ void use_shooter_tesla( gentity_t *ent, gentity_t *other, gentity_t *activator )
 //----(SA)	added
 /*QUAKED shooter_tesla (1 0 0) (-16 -16 -16) (16 16 16) START_ON DLIGHT
 START_ON means it starts out active, the default is to start off and fire when triggered
-DLIGHT will have a built-in dlight flashing too (use color picker to set color of dlight. (def: blue) )
+DLIGHT will have a built-in dlight flashing too (use color picker to set color of dlight)
 
 "sticktime" - how long each bolt should 'stick' to an impact point (def: .5)
 "random" - how far away to drift from the target. (def: 0.0)
 "width" - width of the bolts (def: 20)
 "count" - number of bolts to fire per impact point.  (def: 2)
-"dlightsize" - how big to make the attached light.  (def: 500)
 */
 
 void shooter_tesla_finish_spawning( gentity_t *ent ) {
@@ -963,7 +934,7 @@ void SP_shooter_tesla( gentity_t *ent ) {
 	//	and, if necessary, passes back damage info like the weapon.  this will
 	//	keep the server->client messages to a minimum (start firing/stop firing)
 	//	rather than sending an event for each bolt.
-	ent->s.eType        = ET_TESLA_EF;
+	ent->s.eType        = ET_EF_TESLA;
 	ent->use            = use_shooter_tesla;
 
 	// set number of bolts
@@ -1096,7 +1067,7 @@ void brush_activate_sniper( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 	sniper = G_Find( NULL, FOFS( targetname ), ent->target );
 
 	if ( !sniper ) {
-		G_Printf( "sniper not found\n" );
+		G_Printf( "sniper not found:\n" );
 	} else
 	{
 		if ( visible( sniper, other ) ) {
@@ -1221,6 +1192,9 @@ void SP_corona( gentity_t *ent ) {
 
 
 // (SA) dlights and dlightstyles
+// TTimo gcc: lots of braces around scalar initializer
+// char* predef_lightstyles[] = {
+//	{"mmnmmommommnonmmonqnmmo"},
 
 char* predef_lightstyles[] = {
 	"mmnmmommommnonmmonqnmmo",
@@ -1581,46 +1555,6 @@ void flakPuff( vec3_t origin, qboolean sky, vec3_t forward ) {
 	tent->s.angles2[2] = 10;
 }
 
-int muzzleflashmodel;
-
-void mg42_muzzleflash( gentity_t *ent, vec3_t muzzlepos ) {  // cheezy, but lets me use this routine for finding the muzzle point for firing the actual bullet
-
-	vec3_t forward;
-	vec3_t point;
-	gentity_t   *flash;
-
-	flash = G_Spawn();
-
-	if ( flash ) {
-		VectorCopy( ent->s.pos.trBase, flash->s.origin );
-		VectorCopy( ent->s.apos.trBase, flash->s.angles );
-		G_SetAngle( flash, ent->s.apos.trBase );
-		G_SetOrigin( flash, ent->s.pos.trBase );
-
-		VectorCopy( flash->s.origin, point );
-		AngleVectors( flash->s.angles, forward, NULL, NULL );
-		VectorMA( point, 40, forward, point );
-
-		if ( muzzlepos ) {
-			VectorCopy( point, muzzlepos );
-		}
-
-		G_SetOrigin( flash, point );
-
-		flash->s.modelindex = muzzleflashmodel;
-
-		flash->r.contents = CONTENTS_TRIGGER;
-		flash->r.svFlags = SVF_USE_CURRENT_ORIGIN;
-		flash->s.eType = ET_GENERAL;
-
-		flash->think = G_FreeEntity;
-		flash->nextthink = level.time + 50;
-
-		trap_LinkEntity( flash );
-	}
-
-}
-
 /*
 ==============
 Fire_Lead
@@ -1629,67 +1563,59 @@ Fire_Lead
 //----(SA)	added 'activator' so the bits that used to expect 'ent' to be the gun still work
 void Fire_Lead( gentity_t *ent, gentity_t *activator, float spread, int damage, vec3_t muzzle, vec3_t angles ) {
 	trace_t tr;
-	vec3_t end, lead_muzzle, mg42_muzzle = {0};
+	vec3_t end;
 	float r;
 	float u;
 	gentity_t       *tent;
 	gentity_t       *traceEnt;
+	//qboolean	isflak = qfalse;
+	int seed = rand() & 255;
 	vec3_t forward, right, up;
 
-	//qboolean	isflak = qfalse;
+	r = Q_crandom( &seed ) * spread;
+	u = Q_crandom( &seed ) * spread;
+
+	ent->s.eFlags |= EF_MG42_ACTIVE;
+	activator->s.eFlags |= EF_MG42_ACTIVE;
 
 	AngleVectors( angles, forward, right, up );
 
-	// 'muzzle' is bogus for mg42.  adjust for it
-	if ( !Q_stricmp( ent->classname, "misc_mg42" ) ) {
-		mg42_muzzleflash( ent, mg42_muzzle );    // get current position for mg42 muzzle flash/bullet origin
-		VectorCopy( mg42_muzzle, lead_muzzle );
-	} else {
-		VectorCopy( muzzle, lead_muzzle );
-	}
-
-	r = crandom() * spread;
-	u = crandom() * spread;
-	VectorMA( lead_muzzle, 8192, forward, end );
+	VectorMA( muzzle, 8192, forward, end );
 	VectorMA( end, r, right, end );
 	VectorMA( end, u, up, end );
 
-	trap_Trace( &tr, lead_muzzle, NULL, NULL, end, ent->s.number, MASK_SHOT );
+	G_HistoricalTrace( ent, &tr, muzzle, NULL, NULL, end, ent->s.number, MASK_SHOT );
 
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
-		AICast_ProcessBullet( activator, lead_muzzle, tr.endpos );
+		AICast_ProcessBullet( activator, muzzle, tr.endpos );
 	}
 
 	if ( tr.surfaceFlags & SURF_NOIMPACT ) {
-		if ( !Q_stricmp( ent->classname, "misc_flak" ) ) {
-			if ( ent->count == 1 ) {
-				G_AddEvent( ent, EV_FLAKGUN1, 0 );
-			} else if ( ent->count == 2 ) {
-				G_AddEvent( ent, EV_FLAKGUN2, 0 );
-			} else if ( ent->count == 3 ) {
-				G_AddEvent( ent, EV_FLAKGUN3, 0 );
-			} else if ( ent->count == 4 ) {
-				G_AddEvent( ent, EV_FLAKGUN4, 0 );
-			}
+//		mg42_muzzleflash (ent);
+//		G_AddEvent( ent, EV_FIRE_WEAPON_MG42, 0 );
 
-			flakPuff( tr.endpos, qtrue, forward );
-		} else {
-//			mg42_muzzleflash (ent, 0);
-			G_AddEvent( ent, EV_FIRE_WEAPON_MG42, 0 );
-		}
+// JPW NERVE added this event so tracers work if you're shooting mg42 into skybox, otherwise shouldn't ever see the event double-up
+		tent = G_TempEntity( tr.endpos, EV_MG42BULLET_HIT_WALL );
+		tent->s.otherEntityNum = ent->s.number;
+		tent->s.otherEntityNum2 = activator->s.number;
+		tent->s.effect1Time = seed;
+// jpw
+
 		return;
 	}
 
 	traceEnt = &g_entities[ tr.entityNum ];
 
 	// snap the endpos to integers, but nudged towards the line
-	SnapVectorTowards( tr.endpos, lead_muzzle );
+	SnapVectorTowards( tr.endpos, muzzle );
 
 	// send bullet impact
 	if ( traceEnt->takedamage && traceEnt->client ) {
-		tent = G_TempEntity( tr.endpos, EV_BULLET_HIT_FLESH );
+		tent = G_TempEntity( tr.endpos, EV_MG42BULLET_HIT_FLESH );
 		tent->s.eventParm = traceEnt->s.number;
 		tent->s.otherEntityNum = ent->s.number;
+		tent->s.otherEntityNum2 = activator->s.number;
+		tent->s.effect1Time = seed;
 
 		if ( LogAccuracyHit( traceEnt, ent ) ) {
 			ent->client->ps.persistant[PERS_ACCURACY_HITS]++;
@@ -1700,166 +1626,55 @@ void Fire_Lead( gentity_t *ent, gentity_t *activator, float spread, int damage, 
 		vec3_t reflect;
 		float dot;
 
-		if ( !Q_stricmp( ent->classname, "misc_mg42" ) ) {
-			tent = G_TempEntity( tr.endpos, EV_BULLET_HIT_WALL );
+		tent = G_TempEntity( tr.endpos, EV_MG42BULLET_HIT_WALL );
 
-			dot = DotProduct( forward, tr.plane.normal );
-			VectorMA( forward, -2 * dot, tr.plane.normal, reflect );
-			VectorNormalize( reflect );
+		dot = DotProduct( forward, tr.plane.normal );
+		VectorMA( forward, -2 * dot, tr.plane.normal, reflect );
+		VectorNormalize( reflect );
 
-			tent->s.eventParm = DirToByte( reflect );
-			tent->s.otherEntityNum = ent->s.number;
-			tent->s.otherEntityNum2 = activator->s.number;  // (SA) store the user id, so the client can position the tracer
-		}
-		// done.
+		tent->s.eventParm = DirToByte( reflect );
+		tent->s.otherEntityNum = ent->s.number;
+		tent->s.otherEntityNum2 = activator->s.number;  // (SA) store the user id, so the client can position the tracer
+		tent->s.effect1Time = seed;
 	}
 
 	if ( traceEnt->takedamage ) {
-		G_Damage( traceEnt, ent, ent, forward, tr.endpos,
+		G_Damage( traceEnt, ent, activator, forward, tr.endpos,
 				  damage, 0, MOD_MACHINEGUN );
 	}
 
-	if ( !Q_stricmp( ent->classname, "misc_mg42" ) ) {
-		G_AddEvent( ent, EV_FIRE_WEAPON_MG42, 0 );
-	} else if ( !Q_stricmp( ent->classname, "misc_flak" ) ) {
-		if ( ent->count == 1 ) {
-			G_AddEvent( ent, EV_FLAKGUN1, 0 );
-		} else if ( ent->count == 2 ) {
-			G_AddEvent( ent, EV_FLAKGUN2, 0 );
-		} else if ( ent->count == 3 ) {
-			G_AddEvent( ent, EV_FLAKGUN3, 0 );
-		} else if ( ent->count == 4 ) {
-			G_AddEvent( ent, EV_FLAKGUN4, 0 );
-		}
-
-		flakPuff( tr.endpos, qfalse, forward );
-	}
-
+//	mg42_muzzleflash (ent);
+//	G_AddEvent( ent, EV_FIRE_WEAPON_MG42, 0 );
 }
 
+
 float AngleDifference( float ang1, float ang2 );
-
-void clamp_hweapontofirearc( gentity_t *self, gentity_t *other, vec3_t dang ) {
-
 // NOTE: use this value, and THEN the cl_input.c scales to tweak the feel
-#define MG42_YAWSPEED       300.0   // degrees per second
 #define MG42_IDLEYAWSPEED   80.0    // degrees per second (while returning to base)
 
-	int i;
-	float diff, yawspeed;
-	qboolean clamped;
+void clamp_hweapontofirearc( gentity_t *self, vec3_t dang ) {
+	float diff;
 
-	clamped = qfalse;
-
-	if ( other ) {
-		VectorCopy( self->TargetAngles, dang );
-		yawspeed = MG42_YAWSPEED;
-	} else {    // go back to start position
-		VectorCopy( self->s.angles, dang );
-		yawspeed = MG42_IDLEYAWSPEED;
-	}
+	// go back to start position
+	VectorCopy( self->s.angles, dang );
 
 	if ( dang[0] < 0 && dang[0] < -( self->varc ) ) {
-		clamped = qtrue;
 		dang[0] = -( self->varc );
 	}
 
-// NOTE to self this change has damaged visualy all mg42 behind sandbags
-	if ( other && other->r.svFlags & SVF_CASTAI ) {
-		if ( self->spawnflags & 1 ) {
-			if ( dang[0] > 0 && dang[0] > 20.0 ) {
-				clamped = qtrue;
-				dang[0] = 20.0;
-			}
-		} else if ( dang[0] > 0 && dang[0] > 10.0 )     {
-			clamped = qtrue;
-			dang[0] = 10.0;
-		}
-	} else
-	{
-		if ( self->spawnflags & 1 ) {
-			if ( dang[0] > 0 && dang[0] > ( self->varc / 2 ) ) {
-				clamped = qtrue;
-				dang[0] = self->varc / 2;
-			}
-		} else if ( dang[0] > 0 && dang[0] > ( self->varc / 2 ) )    {
-			clamped = qtrue;
-			dang[0] = self->varc / 2;
-		}
+	if ( dang[0] > 0 && dang[0] > ( self->varc / 2 ) ) {
+		dang[0] = self->varc / 2;
 	}
 
-//	G_Printf ("dang[0] = %5.2f\n", dang[0]);
-
-	if ( !Q_stricmp( self->classname, "misc_mg42" ) || !( self->active ) ) {
-		diff = AngleDifference( dang[YAW], self->s.angles[YAW] );
-		if ( fabs( diff ) > self->harc ) {
-			clamped = qtrue;
-			if ( diff > 0 ) {
-				dang[YAW] = AngleMod( self->s.angles[YAW] + self->harc );
-			} else {
-				dang[YAW] = AngleMod( self->s.angles[YAW] - self->harc );
-			}
-		}
-
-		// dang is now the ideal angles
-		for ( i = 0; i < 3; i++ ) {
-			BG_EvaluateTrajectory( &self->s.apos, level.time, self->r.currentAngles );
-			diff = AngleDifference( dang[i], self->r.currentAngles[i] );
-			if ( fabs( diff ) > ( yawspeed * ( (float)FRAMETIME / 1000.0 ) ) ) {
-				clamped = qtrue;
-				if ( diff > 0 ) {
-					dang[i] = AngleMod( self->r.currentAngles[i] + ( yawspeed * ( (float)FRAMETIME / 1000.0 ) ) );
-				} else {
-					dang[i] = AngleMod( self->r.currentAngles[i] - ( yawspeed * ( (float)FRAMETIME / 1000.0 ) ) );
-				}
-			}
-		}
-	}
-
-	if ( other && other->r.svFlags & SVF_CASTAI ) {
-		clamped = qfalse;
-	}
-
-	// sanity check the angles again to make sure we don't go passed the harc whilst trying to get to the other side
-	// diff = AngleDifference( dang[YAW], self->s.angles[YAW] );
+	// sanity check the angles again to make sure we don't go passed the harc
 	diff = AngleDifference( self->s.angles[YAW], dang[YAW] );
-	// if (fabs(diff) > self->harc) {
-	if ( fabs( diff ) > self->harc && other && other->r.svFlags & SVF_CASTAI ) {
-		clamped = qtrue;
+	if ( fabs( diff ) > self->harc ) {
 
 		if ( diff > 0 ) {
-			dang[YAW] = AngleMod( self->s.angles[YAW] + self->harc );
-		} else {
 			dang[YAW] = AngleMod( self->s.angles[YAW] - self->harc );
+		} else {
+			dang[YAW] = AngleMod( self->s.angles[YAW] + self->harc );
 		}
-
-//		G_Printf ("dang %5.2f ang %5.2f diff %5.2f\n", dang[YAW], self->s.angles[YAW], diff);
-
-	}
-//	else
-//		G_Printf ("not clamped cang %5.2f\n", self->TargetAngles[YAW]);
-
-
-	if ( other && clamped ) {
-		// we only do this to keep the input angles close to the weapon, this doesn't actually
-		// effect the view
-		SetClientViewAngle( other, dang );
-
-		//if they are an AI, they should dismount now
-		if ( other->r.svFlags & SVF_CASTAI ) {
-			if ( !other->mg42ClampTime ) {
-				other->mg42ClampTime = level.time;
-			} else if ( other->mg42ClampTime < level.time - 750 ) {
-				other->active = qfalse;
-			}
-		}
-	} else if ( other ) {
-		other->mg42ClampTime = 0;
-	}
-
-
-	if ( g_mg42arc.integer ) {
-		G_Printf( "varc = %5.2f\n", dang[0] );
 	}
 }
 
@@ -1876,24 +1691,23 @@ void clamp_playerbehindgun( gentity_t *self, gentity_t *other, vec3_t dang ) {
 
 	point[2] = other->r.currentOrigin[2];
 	trap_UnlinkEntity( other );
+	SnapVector( point );
 	VectorCopy( point, other->client->ps.origin );
 
 	// save results of pmove
-	BG_PlayerStateToEntityState( &other->client->ps, &other->s, qtrue );
+	BG_PlayerStateToEntityState( &other->client->ps, &other->s, qfalse );
 
 	// use the precise origin for linking
 	VectorCopy( other->client->ps.origin, other->r.currentOrigin );
 
+	// DHM - Nerve :: Zero out velocity
+	other->client->ps.velocity[0] = other->client->ps.velocity[1] = 0.f;
+	other->s.pos.trDelta[0] = other->s.pos.trDelta[1] = 0.f;
+
 	trap_LinkEntity( other );
 }
 
-#define MG42_SPREAD 200
-#define MG42_DAMAGE 18
-#define MG42_DAMAGE_AI  9
-#define FIREARC         120
-
-#define FLAK_SPREAD 100
-#define FLAK_DAMAGE 36
+#define MG42_DAMAGE_MP      20          // DHM - Nerve :: testing with slowed firing rate // JPW NERVE was 30
 
 void mg42_touch( gentity_t *self, gentity_t *other, trace_t *trace ) {
 	vec3_t dang;
@@ -1907,15 +1721,9 @@ void mg42_touch( gentity_t *self, gentity_t *other, trace_t *trace ) {
 		for ( i = 0; i < 3; i++ )
 			dang[i] = SHORT2ANGLE( other->client->pers.cmd.angles[i] );
 
-		// the gun should go to our current angles next time it thinks
-		VectorCopy( dang, self->TargetAngles );
-		//VectorCopy( other->client->ps.viewangles, self->TargetAngles );
-
 		// now tell the client to lock the view in the direction of the gun
-		//if (other->r.svFlags & SVF_CASTAI) {
-		other->client->ps.viewlocked = 1;
+		other->client->ps.viewlocked = 3;
 		other->client->ps.viewlocked_entNum = self->s.number;
-		//}
 
 		if ( self->s.frame ) {
 			other->client->ps.gunfx = 1;
@@ -1923,116 +1731,117 @@ void mg42_touch( gentity_t *self, gentity_t *other, trace_t *trace ) {
 			other->client->ps.gunfx = 0;
 		}
 
-		// clamp the mg42 to fire arc
-		VectorCopy( other->client->ps.viewangles, self->TargetAngles );
-
-		clamp_hweapontofirearc( self, other, dang );
-
 		// clamp player behind the gun
 		clamp_playerbehindgun( self, other, dang );
-
-		VectorCopy( dang, self->TargetAngles );
 	}
 }
 
-void mg42_track( gentity_t *self, gentity_t *other ) {
-	vec3_t dang;
-	int i;
-	qboolean validshot = qfalse;
-	qboolean is_flak = qfalse;
-	vec3_t forward, right, up;
-	vec3_t muzzle;
+void mg42_fire( gentity_t *other ) {
+	gentity_t *self;
+	vec3_t muzzle, angles;
+	vec3_t forward, up;
 
-	if ( !Q_stricmp( self->classname, "misc_flak" ) ) {
-		is_flak = qtrue;
-	}
+	self = &g_entities[other->client->ps.viewlocked_entNum];
+
+	//VectorCopy( self->s.apos.trBase, angles );
+	VectorCopy( other->client->ps.viewangles, angles );
+	AngleVectors( angles, forward, NULL, up );
+	VectorCopy( self->s.pos.trBase, muzzle );
+
+	// VectorMA (muzzle, 16, forward, muzzle); // JPW NERVE unnecessary and makes it so close-range enemies get missed
+	VectorMA( muzzle, 16, up, muzzle );
+
+	self->s.eFlags |= EF_MG42_ACTIVE;
+	other->s.eFlags |= EF_MG42_ACTIVE;
+
+	// snap to integer coordinates for more efficient network bandwidth usage
+	SnapVector( muzzle );
+
+	Fire_Lead( self, other, MG42_SPREAD_MP, MG42_DAMAGE_MP, muzzle, angles );
+}
+
+void mg42_track( gentity_t *self, gentity_t *other ) {
+	int i;
 
 	if ( !self->active ) {
 		return;
 	}
 
 	if ( other->active ) {
-		if ( ( !( level.time % 100 ) ) && ( other->client ) && ( other->client->buttons & BUTTON_ATTACK ) ) {
-			other->client->ps.viewlocked = 1;
-
-			if ( self->s.frame && !is_flak ) {
-				// G_Printf ("gun: destroyed = %d\n", self->s.frame);
-				G_AddEvent( self, EV_GENERAL_SOUND, snd_noammo );
-				other->client->ps.gunfx = 1;
-			} else
-			{
-				AngleVectors( self->s.apos.trBase, forward, right, up );
-				VectorCopy( self->s.pos.trBase, muzzle );
-
-				if ( !Q_stricmp( self->classname, "misc_mg42" ) ) {
-					VectorMA( muzzle, 16, forward, muzzle );
-					VectorMA( muzzle, 16, up, muzzle );
-					validshot = qtrue;
-				} else if ( !Q_stricmp( self->classname, "misc_flak" ) )       {
-					if ( self->delay < level.time ) {
-						self->delay = level.time + 250;
-
-						self->count++;
-
-						if ( self->count > 4 ) {
-							self->count = 1;
-						}
-
-						// guns 1 and 2 were switched
-						if ( self->count == 2 ) {
-							VectorMA( muzzle, 72, forward, muzzle );
-							VectorMA( muzzle, 31, up, muzzle );
-							VectorMA( muzzle, 22, right, muzzle );
-						} else if ( self->count == 1 )     {
-							VectorMA( muzzle, 72, forward, muzzle );
-							VectorMA( muzzle, 31, up, muzzle );
-							VectorMA( muzzle, -22, right, muzzle );
-						} else if ( self->count == 3 )     {
-							VectorMA( muzzle, 72, forward, muzzle );
-							VectorMA( muzzle, 10, up, muzzle );
-							VectorMA( muzzle, 22, right, muzzle );
-						} else if ( self->count == 4 )     {
-							VectorMA( muzzle, 72, forward, muzzle );
-							VectorMA( muzzle, 10, up, muzzle );
-							VectorMA( muzzle, -22, right, muzzle );
-						}
-
-						validshot = qtrue;
-						self->s.frame++;
-					}
-				}
-				// snap to integer coordinates for more efficient network bandwidth usage
-				SnapVector( muzzle );
-
-				if ( validshot ) {
-					if ( !( other->r.svFlags & SVF_CASTAI ) ) {
-						if ( is_flak ) {
-							Fire_Lead( self, other, FLAK_SPREAD, FLAK_DAMAGE, muzzle, self->s.apos.trBase );
-						} else
-						{
-							Fire_Lead( self, other, MG42_SPREAD, MG42_DAMAGE, muzzle, self->s.apos.trBase );
-						}
-					} else
-					{
-						if ( self->damage ) {
-							Fire_Lead( self, other, MG42_SPREAD / self->accuracy, self->damage, muzzle, self->s.apos.trBase );
-						} else {
-							Fire_Lead( self, other, MG42_SPREAD / self->accuracy, MG42_DAMAGE_AI, muzzle, self->s.apos.trBase );
-						}
-
-					}
-
-					// play character anim
-					BG_AnimScriptEvent( &other->client->ps, ANIM_ET_FIREWEAPON, qfalse, qtrue );
-
-					other->client->ps.viewlocked = 2; // this enable screen jitter when firing
-				}
-			}
-		}
-
 		// move to the position over the next frame
-		VectorCopy( self->TargetAngles, dang );
-		VectorSubtract( dang, self->s.apos.trBase, self->s.apos.trDelta );
+		VectorSubtract( other->client->ps.viewangles, self->s.apos.trBase, self->s.apos.trDelta );
+		for ( i = 0; i < 3; i++ ) {
+			self->s.apos.trDelta[i] = AngleNormalize180( self->s.apos.trDelta[i] );
+		}
+		VectorScale( self->s.apos.trDelta, 1000 / 50, self->s.apos.trDelta );
+		self->s.apos.trTime = level.time;
+		self->s.apos.trDuration = 50;
+
+		SnapVector( self->s.apos.trDelta );
+	}
+}
+
+#define USEMG42_DISTANCE 46
+void mg42_think( gentity_t *self ) {
+	vec3_t vec;
+	gentity_t   *owner;
+	int i;
+	float len;
+	float usedist;
+
+	if ( level.intermissiontime ) {
+		return;
+	}
+
+	VectorClear( vec );
+
+	owner = &g_entities[self->r.ownerNum];
+
+	// move to the current angles
+	if ( self->timestamp > level.time ) {
+		BG_EvaluateTrajectory( &self->s.apos, level.time, self->s.apos.trBase );
+	}
+
+	if ( owner->client ) {
+		VectorSubtract( self->r.currentOrigin, owner->r.currentOrigin, vec );
+		len = VectorLength( vec );
+
+		usedist = 96;
+
+		if ( len < usedist && owner->active && owner->health > 0 ) {
+			// ATVI Wolfenstein Misc #433
+			owner->client->ps.pm_flags &= ~PMF_DUCKED;
+
+			self->active = qtrue;
+			owner->client->ps.persistant[PERS_HWEAPON_USE] = 1;
+			mg42_track( self, owner );
+			self->nextthink = level.time + 50;
+			self->timestamp = level.time + 1000;
+
+			if ( !( owner->r.svFlags & SVF_CASTAI ) ) {
+				clamp_playerbehindgun( self, owner, vec3_origin );
+			}
+			return;
+		}
+	}
+
+	self->active = qfalse;
+
+	if ( owner->client ) {
+		owner->client->ps.persistant[PERS_HWEAPON_USE] = 0;
+		owner->client->ps.viewlocked = 0;   // let them look around
+		owner->active = qfalse;
+		owner->client->ps.gunfx = 0;
+	}
+
+	self->r.ownerNum = self->s.number;
+	self->s.otherEntityNum = self->s.number;
+
+	if ( self->timestamp > level.time ) {
+		// slowly rotate back to position
+		clamp_hweapontofirearc( self, vec );
+		// move to the position over the next frame
+		VectorSubtract( vec, self->s.apos.trBase, self->s.apos.trDelta );
 		for ( i = 0; i < 3; i++ ) {
 			self->s.apos.trDelta[i] = AngleNormalize180( self->s.apos.trDelta[i] );
 		}
@@ -2040,7 +1849,250 @@ void mg42_track( gentity_t *self, gentity_t *other ) {
 		self->s.apos.trTime = level.time;
 		self->s.apos.trDuration = 50;
 	}
+	self->nextthink = level.time + 50;
+
+	SnapVector( self->s.apos.trDelta );
 }
+
+void mg42_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod ) {
+	gentity_t   *gun;
+	gentity_t   *owner;
+	trace_t tr;
+
+	// DHM - Nerve :: self->chain not set if no tripod
+	if ( self->chain ) {
+		gun = self->chain;
+	} else {
+		gun = self;
+	}
+	// dhm - end
+
+	owner = &g_entities[gun->r.ownerNum];
+
+	if ( gun && self->health <= 0 ) {
+		gun->s.frame = 2;
+		gun->takedamage = qfalse;
+
+		// DHM - Nerve :: health is used in repairing later
+		if ( g_gametype.integer >= GT_WOLF ) {
+			gun->health = 0;
+			gun->s.eFlags = EF_SMOKING;         // Make it smoke on client side
+			self->health = 0;
+		}
+		// dhm - end
+	}
+
+	self->takedamage = qfalse;
+
+	if ( owner && owner->client ) {
+		// Restore original position if current position is bad
+		trap_Trace( &tr, owner->r.currentOrigin, owner->r.mins, owner->r.maxs, owner->r.currentOrigin, owner->s.number, MASK_PLAYERSOLID );
+		if ( tr.startsolid ) {
+			VectorCopy( owner->TargetAngles, owner->client->ps.origin );
+			VectorCopy( owner->TargetAngles, owner->r.currentOrigin );
+			owner->r.contents = CONTENTS_CORPSE;        // this will correct itself in ClientEndFrame
+		}
+		owner->client->ps.eFlags &= ~EF_MG42_ACTIVE;            // DHM - Nerve :: unset flag
+		owner->client->ps.persistant[PERS_HWEAPON_USE] = 0;
+		self->r.ownerNum = self->s.number;
+		self->s.otherEntityNum = self->s.number;
+		owner->client->ps.viewlocked = 0;   // let them look around
+		owner->active = qfalse;
+		owner->client->ps.gunfx = 0;
+
+		self->active = qfalse;
+		gun->active = qfalse;
+	}
+
+
+	trap_LinkEntity( self );
+}
+
+void mg42_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
+	gentity_t *owner;
+
+	owner = &g_entities[ent->r.ownerNum];
+
+	if ( owner && owner->client ) {
+		owner->client->ps.persistant[PERS_HWEAPON_USE] = 0;
+		ent->r.ownerNum = ent->s.number;
+		ent->s.otherEntityNum = ent->s.number;
+		owner->client->ps.viewlocked = 0;   // let them look around
+		owner->active = qfalse;
+		owner->client->ps.gunfx = 0;
+//		other-> // JPW NERVE FIXME insert other->someUnusedVariable = ent, so we can get proper kill/score info later
+	}
+
+	// G_Printf ("mg42 called use function\n");
+
+	trap_LinkEntity( ent );
+}
+
+void mg42_spawn( gentity_t *ent ) {
+	gentity_t *base, *gun;
+	vec3_t offset;
+
+	// Xian -- If in knifeonly mode, prevent MG42's from spawning
+	if ( g_knifeonly.integer != 1 ) {
+		// Need to spawn the base even when no tripod cause the gun itself isn't solid
+		base = G_Spawn();
+
+		if ( !( ent->spawnflags & 2 ) ) { // no tripod
+			base->clipmask = CONTENTS_SOLID;
+			base->r.contents = CONTENTS_SOLID;
+			base->r.svFlags = SVF_USE_CURRENT_ORIGIN;
+			base->s.eType = ET_GENERAL;
+			base->takedamage = qtrue;
+			base->die = mg42_die;
+
+			base->s.modelindex = G_ModelIndex( "models/mapobjects/weapons/mg42b.md3" );
+		} else {
+			base->takedamage = qfalse;
+		}
+
+		VectorSet( base->r.mins, -8, -8, -8 );
+		VectorSet( base->r.maxs, 8, 8, 48 );
+		VectorCopy( ent->s.origin, offset );
+		offset[2] -= 24;
+		G_SetOrigin( base, offset );
+		base->s.apos.trType = TR_STATIONARY;
+		base->s.apos.trTime = 0;
+		base->s.apos.trDuration = 0;
+		base->s.dmgFlags = HINT_MG42;   // identify this for cursorhints
+		VectorCopy( ent->s.angles, base->s.angles );
+		VectorCopy( base->s.angles, base->s.apos.trBase );
+		VectorCopy( base->s.angles, base->s.apos.trDelta );
+		base->health = ent->health;
+		base->target = ent->target; //----(SA)	added so mounting mg42 can trigger targets
+		trap_LinkEntity( base );
+
+		// Spawn the barrel
+		gun = G_Spawn();
+		gun->classname = "misc_mg42";
+		gun->clipmask = CONTENTS_SOLID;
+		gun->r.contents = CONTENTS_TRIGGER;
+		gun->r.svFlags = SVF_USE_CURRENT_ORIGIN;
+		gun->s.eType = ET_MG42_BARREL;
+		gun->health = base->health; // JPW NERVE
+
+		// DHM - Don't need to specify here, handled in G_CheckForCursorHints
+		//gun->s.dmgFlags = HINT_MG42;	// identify this for cursorhints
+
+		gun->touch = mg42_touch;
+
+		gun->last_move_time = 0;
+		// DHM - Nerve :: Use a different model in multiplayer
+		gun->s.modelindex = G_ModelIndex( "models/multiplayer/mg42/mg42.md3" );
+		VectorCopy( ent->s.origin, offset );
+		offset[2] += 24;
+		G_SetOrigin( gun, offset );
+		VectorSet( gun->r.mins, -24, -24, -8 );
+		VectorSet( gun->r.maxs, 24, 24, 48 );
+		gun->s.apos.trTime = 0;
+		gun->s.apos.trDuration = 0;
+		VectorCopy( ent->s.angles, gun->s.angles );
+		VectorCopy( gun->s.angles, gun->s.apos.trBase );
+		VectorCopy( gun->s.angles, gun->s.apos.trDelta );
+
+		VectorCopy( ent->s.angles, gun->s.angles2 );
+
+		gun->think = mg42_think;
+		gun->nextthink = level.time + FRAMETIME;
+		gun->timestamp = level.time + 1000;
+		gun->s.number = gun - g_entities;
+		gun->harc = ent->harc;
+		gun->varc = ent->varc;
+		gun->s.origin2[0] = ent->harc;
+		gun->s.origin2[1] = ent->varc;  // need these clientsided
+		gun->s.apos.trType = TR_LINEAR_STOP;    // interpolate the angles
+		gun->takedamage = qtrue;
+		gun->targetname = ent->targetname;      // need this for scripting
+		gun->damage = ent->damage;
+		gun->accuracy = ent->accuracy;
+		gun->target = ent->target;  //----(SA)	added so mounting mg42 can trigger targets
+		gun->use = mg42_use;
+		gun->die = mg42_die; // JPW NERVE we want it to be called for non-tripod machineguns too (for mp_beach etc)
+
+		if ( !( ent->spawnflags & 2 ) ) { // no tripod
+			gun->mg42BaseEnt = base->s.number;
+		} else {
+			gun->mg42BaseEnt = -1;
+		}
+
+		gun->spawnflags = ent->spawnflags;
+
+		trap_LinkEntity( gun );
+
+		if ( !( ent->spawnflags & 2 ) ) { // no tripod
+			base->chain = gun;
+		}
+
+		G_FreeEntity( ent );
+	}
+}
+
+/*QUAKED misc_mg42 (1 0 0) (-16 -16 -24) (16 16 24) HIGH NOTRIPOD
+harc = horizonal fire arc Default is 57.5 (left and right)
+varc = vertical fire arc Default is 45 (upwards and 22.5 down)
+health = how much damage can it take default is 50
+damage = determines how much the weapon will inflict if a non player uses it
+"accuracy" all guns are 100% accurate an entry of 0.5 would make it 50%
+*/
+void SP_mg42( gentity_t *self ) {
+	char        *damage;
+	char        *accuracy;
+
+	if ( !self->harc ) {
+		self->harc = 57.5;
+	} else
+	{
+		if ( self->harc < 45 ) {
+			self->harc = 45;
+		}
+	}
+
+	if ( !self->varc ) {
+		self->varc = 45.0;
+	}
+
+	if ( !self->health ) {
+		if ( g_gametype.integer == GT_SINGLE_PLAYER ) { // JPW NERVE
+			self->health = 100;
+		}
+// JPW NERVE
+		else {
+			self->health = MG42_MULTIPLAYER_HEALTH;
+		}
+	}
+// jpw
+
+	self->think = mg42_spawn;
+	self->nextthink = level.time + FRAMETIME;
+
+	snd_noammo = G_SoundIndex( "sound/weapons/noammo.wav" );
+
+	if ( G_SpawnString( "damage", "0", &damage ) ) {
+		self->damage = atoi( damage );
+	}
+
+	G_SpawnString( "accuracy", "1.0", &accuracy );
+
+	self->accuracy = atof( accuracy );
+
+	if ( !self->accuracy ) {
+		self->accuracy = 1;
+	}
+// JPW NERVE
+	if ( g_gametype.integer != GT_SINGLE_PLAYER ) {
+		if ( !self->damage ) {
+			self->damage = 25;
+		}
+	}
+// jpw
+}
+
+#define FLAK_SPREAD 100
+#define FLAK_DAMAGE 36
 
 #define GUN1_IDLE   0
 #define GUN2_IDLE   4
@@ -2087,362 +2139,6 @@ void Flak_Animate( gentity_t *ent ) {
 			ent->s.frame++;
 		}
 	}
-}
-
-#define USEMG42_DISTANCE 46
-void mg42_think( gentity_t *self ) {
-	vec3_t vec;
-	gentity_t   *owner;
-	int i;
-	float len;
-	float usedist;
-	qboolean is_flak = qfalse;
-
-	if ( !Q_stricmp( self->classname, "misc_flak" ) ) {
-		is_flak = qtrue;
-		Flak_Animate( self );
-	}
-
-	VectorClear( vec );
-
-	owner = &g_entities[self->r.ownerNum];
-
-	// move to the current angles
-	BG_EvaluateTrajectory( &self->s.apos, level.time, self->s.apos.trBase );
-
-	if ( owner->client ) {
-		VectorSubtract( self->r.currentOrigin, owner->r.currentOrigin, vec );
-		len = VectorLength( vec );
-
-		if ( owner->r.svFlags & SVF_CASTAI ) {
-			usedist = USEMG42_DISTANCE;
-		} else {
-			// kinda dumb since the player had to be close enough to activate it to get this
-			// far and the start point for the difference is calculated differently each place anyway
-//			usedist = 96;
-			usedist = 999;  // always allow the touch by player
-
-		}
-		if ( len < usedist && ( owner->active == 1 ) && owner->health > 0 ) {
-			self->active = qtrue;
-			if ( is_flak ) {
-				owner->client->ps.persistant[PERS_HWEAPON_USE] = 2;
-			} else {
-				owner->client->ps.persistant[PERS_HWEAPON_USE] = 1;
-			}
-			mg42_track( self, owner );
-			self->nextthink = level.time + 50;
-
-			if ( !( owner->r.svFlags & SVF_CASTAI ) ) {
-				clamp_playerbehindgun( self, owner, vec3_origin );
-			}
-
-//G_Printf ("len %5.2f\n", len);
-/*
-			if (owner->r.svFlags & SVF_CASTAI)
-			{
-				gentity_t *player;
-				vec3_t	temp;
-
-				player = AICast_FindEntityForName ("player");
-
-				if (player)
-				{
-					VectorCopy (self->s.angles, temp);
-					VectorCopy (self->s.angles2, self->s.angles);
-					if (!(infront (self, player)))
-					{
-
-						if (visible (player, self))
-						{
-							self->use (self, NULL, NULL);
-							// G_Printf ("force use dismount cause not infront\n");
-						}
-
-					}
-
-					VectorCopy (temp, self->s.angles);
-
-				}
-
-			}
-*/
-			return;
-		}
-
-		// G_Printf ("FAILED len %5.2f\n", len);
-
-
-	}
-
-	// slowly rotate back to position
-	//clamp_hweapontofirearc( self, NULL, vec );
-	// move to the position over the next frame
-	VectorSubtract( self->s.angles, self->s.apos.trBase, self->s.apos.trDelta );
-	for ( i = 0; i < 3; i++ ) {
-		self->s.apos.trDelta[i] = AngleNormalize180( self->s.apos.trDelta[i] );
-	}
-	VectorScale( self->s.apos.trDelta, 400 / 50, self->s.apos.trDelta );
-	self->s.apos.trTime = level.time;
-	self->s.apos.trDuration = 50;
-
-	self->nextthink = level.time + 50;
-
-	// only let them go when it's pointing forward
-	if ( owner->client ) {
-		if ( fabs( AngleNormalize180( self->s.angles[YAW] - self->s.apos.trBase[YAW] ) ) > 10 ) {
-			BG_EvaluateTrajectory( &self->s.apos, self->nextthink, owner->client->ps.viewangles );
-			return; // still waiting
-		}
-	}
-
-	self->active = qfalse;
-
-	if ( owner->client ) {
-		owner->client->ps.eFlags &= ~EF_MG42_ACTIVE;        // whoops, missed this
-		owner->client->ps.persistant[PERS_HWEAPON_USE] = 0;
-		owner->client->ps.viewlocked = 0;   // let them look around
-		owner->active = qfalse;
-		owner->client->ps.gunfx = 0;
-	}
-
-	self->r.ownerNum = self->s.number;
-
-
-}
-
-void mg42_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod ) {
-	gentity_t   *gun;
-	gentity_t   *owner;
-
-	// owner = &g_entities[self->r.ownerNum];
-
-	G_Sound( self, self->soundPos3 ); // death sound
-
-	// DHM - Nerve :: self->chain not set if no tripod
-	if ( self->chain ) {
-		gun = self->chain;
-	} else {
-		gun = self;
-	}
-	// dhm - end
-
-	owner = &g_entities[gun->r.ownerNum];
-
-	if ( gun && self->health <= 0 ) {
-		gun->s.frame = 2;
-		gun->takedamage = qfalse;
-
-
-		// DHM - Nerve :: health is used in repairing later
-		if ( g_gametype.integer == GT_WOLF ) {
-			gun->health = 0;
-			self->health = 0;
-		}
-		// dhm - end
-	}
-
-	self->takedamage = qfalse;
-
-	if ( owner && owner->client ) {
-		owner->client->ps.persistant[PERS_HWEAPON_USE] = 0;
-		self->r.ownerNum = self->s.number;
-		owner->client->ps.viewlocked = 0;   // let them look around
-		owner->active = qfalse;
-		owner->client->ps.gunfx = 0;
-
-		self->active = qfalse;
-		gun->active = qfalse;
-	}
-
-
-	trap_LinkEntity( self );
-}
-
-void mg42_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
-	gentity_t *owner;
-
-	owner = &g_entities[ent->r.ownerNum];
-
-	if ( owner && owner->client ) {
-		owner->client->ps.persistant[PERS_HWEAPON_USE] = 0;
-		ent->r.ownerNum = ent->s.number;
-		owner->client->ps.viewlocked = 0;   // let them look around
-		owner->active = qfalse;
-		owner->client->ps.gunfx = 0;
-	}
-
-	// G_Printf ("mg42 called use function\n");
-
-	trap_LinkEntity( ent );
-}
-
-/*
-==============
-mg42_spawn
-==============
-*/
-void mg42_spawn( gentity_t *ent ) {
-	gentity_t *base, *gun;
-	vec3_t offset;
-
-	ent->soundPos3 = G_SoundIndex( "sound/weapons/mg42/mg42_death.wav" );   // die sound
-
-	//if (!(ent->spawnflags & 2)) // no tripod
-	{
-		base = G_Spawn();
-
-		if ( !( ent->spawnflags & 2 ) ) { // no tripod
-			base->clipmask = CONTENTS_SOLID;
-			base->r.contents = CONTENTS_SOLID;
-			base->r.svFlags = SVF_USE_CURRENT_ORIGIN;
-			base->s.eType = ET_GENERAL;
-
-
-			base->s.modelindex = G_ModelIndex( "models/mapobjects/weapons/mg42b.md3" );
-		}
-
-		VectorSet( base->r.mins, -8, -8, -8 );
-		VectorSet( base->r.maxs, 8, 8, 48 );
-		VectorCopy( ent->s.origin, offset );
-		offset[2] -= 24;
-		G_SetOrigin( base, offset );
-		base->s.apos.trType = TR_STATIONARY;
-		base->s.apos.trTime = 0;
-		base->s.apos.trDuration = 0;
-		base->s.dmgFlags = HINT_MG42;   // identify this for cursorhints
-		VectorCopy( ent->s.angles, base->s.angles );
-		VectorCopy( base->s.angles, base->s.apos.trBase );
-		VectorCopy( base->s.angles, base->s.apos.trDelta );
-		base->health = ent->health;
-		base->target = ent->target; //----(SA)	added so mounting mg42 can trigger targets
-		base->takedamage = qtrue;
-		base->die = mg42_die;
-		base->soundPos3 = ent->soundPos3;   //----(SA)
-		base->activateArc = ent->activateArc;           //----(SA)	added
-		trap_LinkEntity( base );
-	}
-
-	gun = G_Spawn();
-	gun->classname = "misc_mg42";
-	gun->clipmask = CONTENTS_SOLID;
-	gun->r.contents = CONTENTS_TRIGGER;
-	gun->r.svFlags = SVF_USE_CURRENT_ORIGIN;
-	gun->s.eType = ET_MG42;
-
-	// DHM - Don't need to specify here, handled in G_CheckForCursorHints
-	//gun->s.dmgFlags = HINT_MG42;	// identify this for cursorhints
-
-	gun->touch = mg42_touch;
-	gun->s.modelindex = G_ModelIndex( "models/mapobjects/weapons/mg42a.md3" );
-	VectorCopy( ent->s.origin, offset );
-	offset[2] += 24;
-	G_SetOrigin( gun, offset );
-	VectorSet( gun->r.mins, -24, -24, -8 );
-	VectorSet( gun->r.maxs, 24, 24, 48 );
-	gun->s.apos.trTime = 0;
-	gun->s.apos.trDuration = 0;
-	VectorCopy( ent->s.angles, gun->s.angles );
-	VectorCopy( gun->s.angles, gun->s.apos.trBase );
-	VectorCopy( gun->s.angles, gun->s.apos.trDelta );
-
-	VectorCopy( ent->s.angles, gun->s.angles2 );
-
-	gun->think = mg42_think;
-	gun->nextthink = level.time + FRAMETIME;
-	gun->s.number = gun - g_entities;
-	gun->harc = ent->harc;
-	gun->varc = ent->varc;
-	gun->s.apos.trType = TR_LINEAR_STOP;    // interpolate the angles
-	gun->takedamage = qtrue;
-	gun->targetname = ent->targetname;      // need this for scripting
-	gun->damage = ent->damage;
-	gun->health = ent->health;  //----(SA)	added
-	gun->accuracy = ent->accuracy;
-	gun->target = ent->target;  //----(SA)	added so mounting mg42 can trigger targets
-	gun->use = mg42_use;
-	gun->die = mg42_die; // JPW NERVE we want it to be called for non-tripod machineguns too (for mp_beach etc)
-	gun->soundPos3 = ent->soundPos3;    //----(SA)
-	gun->activateArc = ent->activateArc;            //----(SA)	added
-
-	if ( !( ent->spawnflags & 2 ) ) { // no tripod
-		gun->mg42BaseEnt = base->s.number;
-	} else {
-		gun->mg42BaseEnt = -1;
-	}
-
-	gun->spawnflags = ent->spawnflags;
-
-	trap_LinkEntity( gun );
-
-	if ( !( ent->spawnflags & 2 ) ) { // no tripod
-		base->chain = gun;
-	}
-
-	G_FreeEntity( ent );
-
-
-	muzzleflashmodel = G_ModelIndex( "models/weapons2/machinegun/mg42_flash.md3" );
-
-}
-
-/*QUAKED misc_mg42 (1 0 0) (-16 -16 -24) (16 16 24) HIGH NOTRIPOD
-harc - horizonal fire arc. Default is 115
-varc - vertical fire arc. Default is 45
-grabarc - activatable arc behind the gun.  if not specified, it uses the old default grabbing dynamics
-health - how much damage can it take. Default is 50
-damage - determines how much the weapon will inflict if a non player uses it
-accuracy - all guns are 100% accurate a value of 0.5 would make it 50%
-*/
-void SP_mg42( gentity_t *self ) {
-	char        *damage;
-	char        *accuracy;
-	float grabarc;
-
-	if ( !self->harc ) {
-		self->harc = 115;
-	} else
-	{
-		if ( self->harc < 45 ) {
-			self->harc = 45;
-		}
-	}
-
-	if ( !self->varc ) {
-		self->varc = 90.0;
-	}
-
-	if ( !self->health ) {
-		self->health = 100;
-	}
-
-	self->think = mg42_spawn;
-	self->nextthink = level.time + FRAMETIME;
-
-	snd_noammo = G_SoundIndex( "sound/weapons/noammo.wav" );
-
-	G_SpawnFloat( "grabarc", "0", &grabarc );   // half arc, so actually activatable over 120 deg
-	self->activateArc = grabarc;
-
-
-	if ( G_SpawnString( "damage", "0", &damage ) ) {
-		self->damage = atoi( damage );
-	}
-
-	G_SpawnString( "accuracy", "1.0", &accuracy );
-
-	self->accuracy = atof( accuracy );
-
-	if ( !self->accuracy ) {
-		self->accuracy = 1;
-	}
-// JPW NERVE
-	if ( g_gametype.integer != GT_SINGLE_PLAYER ) {
-		if ( !self->damage ) {
-			self->damage = 25;
-		}
-	}
-// jpw
 }
 
 
@@ -2559,7 +2255,319 @@ void SP_misc_spawner( gentity_t *ent ) {
 
 }
 
-// (SA) removed dead code 9/7/01
+//===========================================================================
+//
+// Mounted Gunner, attached to a moving vehicle of some-sort
+//
+
+/*QUAKED misc_mounted_gunner (.4 .9 .7) (-16 -16 -24) (16 16 64) TriggerSpawn
+Gunner controlling an MG42 to be mounted onto a vehicle.
+
+Gun must be able to rotate full 360 degrees, with slight pitching.
+
+The following entity script triggers will be called at appropriate times by the engine:
+
+  trigger gunner_start_attack
+  trigger gunner_end_attack
+  trigger gunner_death
+
+Fields:
+
+*IMPORTANT* color = vector offest of gun mount tag on truck, from truck's origin
+*IMPORTANT* delay = offset distance of gunnner mount tag on gun model, from gun's origin
+target = targetname of vehicle we are attached to
+aiTeam = 0 for Nazi, 1 for Allies, 2 for Monster
+harc = visible arc, for initially sighting enemies Default  is 220
+radius = visible distance, for sighting enemies Default is 4096
+
+varc = vertical fire arc Default is 90 (45 above and below)
+health = how much damage can it take default is 50
+accuracy = all guns are 100% accurate an entry of 0.5 would make it 50%
+damage = damage caused by each bullet
+*/
+
+#define MG42_SPREAD         200
+#define MG42_DAMAGE_AI      9
+
+void miscGunnerEnemyScan( gentity_t *ent, vec3_t angles ) {
+	gentity_t *t;
+	vec3_t v, tang;
+
+	for ( t = g_entities; t < g_entities + level.maxclients; t++ ) {
+		if ( !t->inuse ) {
+			continue;
+		}
+		if ( t->health < 0 ) {
+			continue;
+		}
+		if ( ent->aiTeam == t->aiTeam ) {
+			continue;
+		}
+		if ( VectorDistance( ent->r.currentOrigin, t->r.currentOrigin ) > ent->radius ) {
+			continue;
+		}
+		VectorSubtract( t->r.currentOrigin, ent->r.currentOrigin, v );
+		vectoangles( v, tang );
+		if ( !AICast_InFieldOfVision( angles, ent->harc, tang ) ) {
+			continue;
+		}
+		if ( !AICast_VisibleFromPos( ent->r.currentOrigin, ent->s.number, t->r.currentOrigin, t->s.number, qfalse ) ) {
+			continue;
+		}
+		// found an enemy
+		ent->enemy = t;
+		break;
+	}
+}
+
+
+void miscGunnerThink( gentity_t *ent ) {
+	gentity_t   *truck, *gun, *enemy;
+	vec3_t vec, trang, gspot, gang;
+	vec3_t fwd, r, u;
+	qboolean fire = qfalse;
+	float yawspeed, diff;
+	vec3_t dang;
+	int i;
+	vec3_t muzzle;
+	vec3_t forward, up;
+
+	// find the entities
+	gun = &g_entities[ent->mg42BaseEnt];
+	truck = &g_entities[gun->mg42BaseEnt];
+
+	// calculate our position based on that of the truck and gun angles
+	BG_EvaluateTrajectory( &truck->s.apos, level.time, trang );
+	AngleVectors( trang, fwd, r, u );
+	BG_EvaluateTrajectory( &truck->s.pos, level.time, gspot );
+	VectorMA( gspot, ent->dl_color[0], fwd, gspot );
+	VectorMA( gspot, -ent->dl_color[1], r, gspot );
+	VectorMA( gspot, ent->dl_color[2], u, gspot );
+	G_SetOrigin( ent, gspot );
+	G_SetOrigin( gun, gspot );
+
+	// calculate our facing angles
+	//VectorAdd( trang, gun->r.currentAngles, gang );
+	if ( !gun->s.density ) {
+		VectorCopy( trang, gang );
+	} else {
+		BG_EvaluateTrajectory( &gun->s.apos, level.time, gang );
+	}
+
+	// look for an enemy
+	if ( ent->enemy ) {
+		if ( ent->enemy->health <= 0 ) {
+			ent->enemy = NULL;
+		} else if ( AICast_VisibleFromPos( ent->r.currentOrigin, ent->s.number, ent->enemy->r.currentOrigin, ent->enemy->s.number, qfalse ) ) {
+			fire = qtrue;
+		}
+	}
+
+	if ( !fire ) {
+		miscGunnerEnemyScan( ent, trang );
+		if ( ent->enemy ) {
+			fire = qtrue;
+
+			// if we have just found our first enemy, release us from the "fixed tag" angles
+			// so we can track them
+			if ( !gun->s.density ) {
+				gun->s.density = 1;
+				// start facing the same direct, so we don't snap to a different angle immediately
+				BG_EvaluateTrajectory( &truck->s.apos, level.time, ent->s.angles );
+				VectorCopy( gun->s.angles, gun->s.apos.trBase );
+				gun->s.apos.trTime = level.time;
+				gun->s.apos.trDuration = 0;
+				gun->s.apos.trType = TR_STATIONARY;
+				VectorClear( gun->s.apos.trDelta );
+			}
+		}
+	}
+
+	// third, attack that enemy if possible
+	if ( fire ) {
+
+		// get the enemy
+		enemy = ent->enemy;
+
+		// rotate to them
+		VectorSubtract( enemy->r.currentOrigin, gun->r.currentOrigin, vec );
+		vectoangles( vec, gun->TargetAngles );
+		VectorCopy( gun->TargetAngles, dang );
+		for ( i = 0; i < 3; i++ ) {
+			dang[i] = AngleNormalize180( dang[i] );
+		}
+
+		// restrict vertical range
+		if ( dang[0] < 0 && fabs( dang[0] ) > ( gun->varc / 2 ) ) {
+			if ( dang[0] < 0 ) {
+				dang[0] = -( gun->varc / 2 );
+			} else {
+				dang[0] =  ( gun->varc / 2 );
+			}
+		}
+
+		// dang is now the ideal angles, restrict movement by speed
+		yawspeed = 60;
+		for ( i = 0; i < 3; i++ ) {
+			BG_EvaluateTrajectory( &gun->s.apos, level.time, gun->r.currentAngles );
+			diff = AngleDifference( dang[i], gun->r.currentAngles[i] );
+			if ( fabs( diff ) > ( yawspeed * ( (float)FRAMETIME / 1000.0 ) ) ) {
+				if ( diff > 0 ) {
+					dang[i] = AngleMod( gun->r.currentAngles[i] + ( yawspeed * ( (float)FRAMETIME / 1000.0 ) ) );
+				} else {
+					dang[i] = AngleMod( gun->r.currentAngles[i] - ( yawspeed * ( (float)FRAMETIME / 1000.0 ) ) );
+				}
+			}
+		}
+
+		// move to the position over the next frame
+		VectorSubtract( dang, gun->r.currentAngles, gun->s.apos.trDelta );
+		for ( i = 0; i < 3; i++ ) {
+			gun->s.apos.trDelta[i] = AngleNormalize180( gun->s.apos.trDelta[i] );
+		}
+		VectorCopy( gun->r.currentAngles, gun->s.apos.trBase );
+		VectorScale( gun->s.apos.trDelta, 1000 / 50, gun->s.apos.trDelta );
+		gun->s.apos.trTime = level.time;
+		gun->s.apos.trType = TR_LINEAR_STOP;
+		gun->s.apos.trDuration = 50;
+
+		// if we are facing them, fire
+		if ( fabs( AngleNormalize180( gun->r.currentAngles[YAW] - gun->TargetAngles[YAW] ) ) < 10 ) {
+			AngleVectors( gun->r.currentAngles, forward, NULL, up );
+			VectorCopy( gspot, muzzle );
+
+			VectorMA( muzzle, 16, forward, muzzle );
+			VectorMA( muzzle, 16, up, muzzle );
+
+			// snap to integer coordinates for more efficient network bandwidth usage
+			SnapVector( muzzle );
+
+			if ( gun->damage ) {
+				Fire_Lead( gun, gun, MG42_SPREAD / gun->accuracy, gun->damage, muzzle, gun->r.currentAngles );
+			} else {
+				Fire_Lead( gun, gun, MG42_SPREAD / gun->accuracy, MG42_DAMAGE_AI, muzzle, gun->r.currentAngles );
+			}
+		}
+	}
+
+	ent->think = miscGunnerThink;
+	ent->nextthink = level.time + 50;
+}
+
+void miscGunnerSpawn( gentity_t *ent ) {
+	gentity_t *sp, *veh;
+
+	veh = G_Find( NULL, FOFS( targetname ), ent->target );
+	if ( !veh ) {
+		G_Error( "can't find vehicle with targetname \"%s\" for mounted gunner", ent->target );
+	}
+
+	// create the ring (base)
+	sp = G_Spawn();
+	sp->classname = "misc_gunner_ring";
+	sp->r.contents = 0;
+	sp->s.eType = ET_GENERAL;
+	sp->s.modelindex = G_ModelIndex( "models/mapobjects/weapons/turret_c.md3" );
+	sp->tagParent = veh;
+	sp->tagName = "tag_ring";    // tag to connect to
+	G_ProcessTagConnect( sp );
+	trap_LinkEntity( sp );
+
+	// create the gun
+	sp = G_Spawn();
+	sp->classname = "misc_gunner_gun";
+	sp->r.contents = 0;
+	sp->s.eType = ET_GENERAL;
+	sp->s.modelindex = G_ModelIndex( "models/mapobjects/weapons/turret_a.md3" );
+	sp->tagParent = veh;
+	sp->tagName = "tag_rider";   // tag to connect to
+	G_ProcessTagConnect( sp );
+	trap_LinkEntity( sp );
+
+	sp->mg42BaseEnt = veh->s.number;
+	sp->varc = ent->varc;
+	sp->health = ent->health;
+	sp->accuracy = ent->accuracy;
+	sp->damage = ent->damage;
+
+	// setup the gunner ready for action
+	sp->r.contents = 0; // fixme, make damagable so we can shoot them
+	sp->s.eType = ET_GENERAL;
+	ent->s.modelindex = G_ModelIndex( "models/mapobjects/weapons/turret_b.md3" );
+	ent->tagParent = sp;
+	ent->tagName = "tag_hand";   // tag to connect to
+	G_ProcessTagConnect( ent );
+	trap_LinkEntity( ent );
+
+	ent->mg42BaseEnt = sp->s.number;
+
+	// start us thinking
+	ent->think = miscGunnerThink;
+	ent->nextthink = level.time + 50;
+}
+
+void miscGunnerTriggerSpawn( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
+	miscGunnerSpawn( ent );
+}
+
+void SP_misc_mounted_gunner( gentity_t *self ) {
+	char        *damage;
+	char        *accuracy;
+
+//	if (VectorCompare(vec3_origin, self->dl_color)) {
+	if ( VectorCompare( vec3_origin, self->rotate ) ) {
+		G_Error( "misc_mounted_gunner requires an offset position (color field)\n" );
+	}
+	if ( !self->delay ) {
+		G_Error( "misc_mounted_gunner requires an offset distance from gun mount (delay field)\n" );
+	}
+
+	if ( !self->harc ) {
+		self->harc = 115;
+	} else
+	{
+		if ( self->harc < 45 ) {
+			self->harc = 45;
+		}
+	}
+
+	if ( !self->varc ) {
+		self->varc = 90.0;
+	}
+
+	if ( !self->health ) {
+		self->health = 100;
+	}
+
+	if ( !self->radius ) {
+		self->radius = 4096;
+	}
+
+	snd_noammo = G_SoundIndex( "sound/weapons/noammo.wav" );
+
+	if ( G_SpawnString( "damage", "0", &damage ) ) {
+		self->damage = atoi( damage );
+	}
+
+	G_SpawnString( "accuracy", "1.0", &accuracy );
+
+	self->accuracy = atof( accuracy );
+
+	if ( !self->accuracy ) {
+		self->accuracy = 1;
+	}
+
+	// we are idle at this point
+	self->enemy = NULL;
+
+	if ( self->spawnflags & 1 ) {     // TRIGGER_SPAWN
+		self->use = miscGunnerTriggerSpawn;
+	} else {
+		// delay the actual spawning, so we are sure everything else exists
+		self->think = miscGunnerSpawn;
+		self->nextthink = level.time + FRAMETIME;
+	}
+}
 
 void firetrail_die( gentity_t *ent ) {
 	G_FreeEntity( ent );
@@ -2576,72 +2584,6 @@ void firetrail_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 
 }
 
-/*QUAKED misc_tagemitter (.4 .9 .7) (-16 -16 -16) (16 16 16)
-This entity must target the script mover it will attach to
-'use' to turn on/off
-alert entity call to kill it
-*/
-
-void tagemitter_die( gentity_t *ent ) {
-	G_FreeEntity( ent );
-}
-
-void tagemitter_use( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
-	if ( ent->s.eType == ET_EFFECT3 ) {
-		ent->s.eType = ET_GENERAL;
-	} else {
-		ent->s.eType = ET_EFFECT3;
-	}
-
-	trap_LinkEntity( ent );
-
-}
-
-void misc_tagemitter_finishspawning( gentity_t *ent ) {
-	gentity_t *emitter, *parent;
-
-	parent = G_Find( NULL, FOFS( targetname ), ent->target );
-	if ( !parent ) {
-		G_Error( "misc_tagemitter: can't find parent script mover with targetname \"%s\"\n", ent->target );
-	}
-
-	emitter = ent->target_ent;
-
-	emitter->classname = "misc_tagemitter";
-	emitter->r.contents = 0;
-	emitter->s.eType = ET_GENERAL;
-	emitter->tagParent = parent;
-
-	emitter->use = tagemitter_use;
-	emitter->AIScript_AlertEntity = tagemitter_die;
-	emitter->targetname = ent->targetname;
-	G_ProcessTagConnect( emitter, qtrue );
-//	trap_LinkEntity( emitter );
-
-	ent->target_ent = NULL;
-}
-
-
-void SP_misc_tagemitter( gentity_t *ent ) {
-	char *tagName;
-
-	ent->think = misc_tagemitter_finishspawning;    // so it can find it's target
-	ent->nextthink = level.time + 100;
-
-	if ( !G_SpawnString( "tag", NULL, &tagName ) ) {
-		G_Error( "misc_tagemitter: no 'tag' specified\n" );
-	}
-
-	ent->target_ent = G_Spawn();    // spawn the emitter
-	ent->target_ent->tagName = G_Alloc( strlen( tagName ) + 1 );
-	Q_strncpyz( ent->target_ent->tagName, tagName, strlen( tagName ) + 1 );
-
-	ent->tagName = G_Alloc( strlen( tagName ) + 1 );
-	Q_strncpyz( ent->tagName, tagName, strlen( tagName ) + 1 );
-
-}
-
-
 /*QUAKED misc_firetrails (.4 .9 .7) (-16 -16 -16) (16 16 16)
 This entity must target the plane its going to be attached to
 
@@ -2650,7 +2592,7 @@ This entity must target the plane its going to be attached to
   an alert entity call will kill it
 */
 
-void misc_firetrails_finishspawning( gentity_t *ent ) {
+void misc_firetrails_think( gentity_t *ent ) {
 	gentity_t *left, *right, *airplane;
 
 	airplane = G_Find( NULL, FOFS( targetname ), ent->target );
@@ -2669,7 +2611,7 @@ void misc_firetrails_finishspawning( gentity_t *ent ) {
 	left->use = firetrail_use;
 	left->AIScript_AlertEntity = firetrail_die;
 	left->targetname = ent->targetname;
-	G_ProcessTagConnect( left, qtrue );
+	G_ProcessTagConnect( left );
 	trap_LinkEntity( left );
 
 	// right fire trail
@@ -2683,13 +2625,13 @@ void misc_firetrails_finishspawning( gentity_t *ent ) {
 	right->use = firetrail_use;
 	right->AIScript_AlertEntity = firetrail_die;
 	right->targetname = ent->targetname;
-	G_ProcessTagConnect( right, qtrue );
+	G_ProcessTagConnect( right );
 	trap_LinkEntity( right );
 
 }
 
 void SP_misc_firetrails( gentity_t *ent ) {
-	ent->think = misc_firetrails_finishspawning;
+	ent->think = misc_firetrails_think;
 	ent->nextthink = level.time + 100;
 
 }

@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -46,11 +46,11 @@ int r_firstScenePoly;
 int r_numpolyverts;
 
 int skyboxportal;
-int drawskyboxportal;
 
 /*
 ====================
 R_InitNextFrame
+
 ====================
 */
 void R_InitNextFrame( void ) {
@@ -112,8 +112,7 @@ void R_AddPolygonSurfaces( void ) {
 
 	for ( i = 0, poly = tr.refdef.polys; i < tr.refdef.numPolys ; i++, poly++ ) {
 		sh = R_GetShaderByHandle( poly->hShader );
-// GR - not tessellated
-		R_AddDrawSurf( ( void * )poly, sh, poly->fogIndex, qfalse, ATI_TESS_NONE );
+		R_AddDrawSurf( ( void * )poly, sh, poly->fogIndex, qfalse );
 	}
 }
 
@@ -285,7 +284,6 @@ void RE_AddRefEntityToScene( const refEntity_t *ent ) {
 	if ( !tr.registered ) {
 		return;
 	}
-	// show_bug.cgi?id=402
 	if ( r_numentities >= MAX_REFENTITIES ) {
 		ri.Printf(PRINT_DEVELOPER, "RE_AddRefEntityToScene: Dropping refEntity, reached MAX_REFENTITIES\n");
 		return;
@@ -341,17 +339,12 @@ void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, fl
 		}
 	}
 
-	if ( r_dlightScale->value <= 0 ) { //----(SA)	added
-		return;
-	}
-
 	overdraw &= ~REF_FORCE_DLIGHT;
-	overdraw &= ~REF_JUNIOR_DLIGHT;
+	overdraw &= ~REF_JUNIOR_DLIGHT; //----(SA)	added
 
 	dl = &backEndData->dlights[r_numdlights++];
 	VectorCopy( org, dl->origin );
-
-	dl->radius = intensity * r_dlightScale->value;  //----(SA)	modified
+	dl->radius = intensity;
 	dl->color[0] = r;
 	dl->color[1] = g;
 	dl->color[2] = b;
@@ -374,7 +367,7 @@ void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, fl
 RE_AddCoronaToScene
 ==============
 */
-void RE_AddCoronaToScene( const vec3_t org, float r, float g, float b, float scale, int id, int flags ) {
+void RE_AddCoronaToScene( const vec3_t org, float r, float g, float b, float scale, int id, qboolean visible ) {
 	corona_t    *cor;
 
 	if ( !tr.registered ) {
@@ -391,7 +384,7 @@ void RE_AddCoronaToScene( const vec3_t org, float r, float g, float b, float sca
 	cor->color[2] = b;
 	cor->scale = scale;
 	cor->id = id;
-	cor->flags = flags;
+	cor->visible = visible;
 }
 
 /*
@@ -445,12 +438,6 @@ void RE_RenderScene( const refdef_t *fd ) {
 		skyboxportal = 1;
 	}
 
-	if ( fd->rdflags & RDF_DRAWSKYBOX ) {
-		drawskyboxportal = 1;
-	} else {
-		drawskyboxportal = 0;
-	}
-
 	// copy the areamask data over and note if it has changed, which
 	// will force a reset of the visible leafs even if the view hasn't moved
 	tr.refdef.areamaskModified = qfalse;
@@ -493,8 +480,8 @@ void RE_RenderScene( const refdef_t *fd ) {
 
 	// turn off dynamic lighting globally by clearing all the
 	// dlights if it needs to be disabled or if vertex lighting is enabled
-	if ( /*r_dynamiclight->integer == 0 ||*/    // RF, disabled so we can force things like lightning dlights
-		r_vertexLight->integer == 1 ||
+	if ( /*r_dynamiclight->integer == 0 ||	// RF, disabled so we can force things like lightning dlights
+		 r_vertexLight->integer == 1 ||*/
 		glConfig.hardwareType == GLHW_PERMEDIA2 ) {
 		tr.refdef.num_dlights = 0;
 	}

@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -34,11 +34,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../qcommon/qfiles.h"
 #include "../qcommon/qcommon.h"
 #include "tr_public.h"
-#ifdef IOS
-#include "../ios/qgl.h"
-#else
 #include "qgl.h"
-#endif
 #include "iqm.h"
 
 #define GLE(ret, name, ...) extern name##proc * qgl##name;
@@ -59,19 +55,16 @@ QGL_3_0_PROCS;
 #define GL_RGB5					0x8050
 #define GL_INDEX_TYPE		GL_UNSIGNED_SHORT
 typedef unsigned short glIndex_t;
-#elif IOS
-#define GL_INDEX_TYPE           GL_UNSIGNED_SHORT
-typedef unsigned short glIndex_t;
 #else
 #define GL_INDEX_TYPE       GL_UNSIGNED_INT
 typedef unsigned int glIndex_t;
 #endif
 
-// 11 bits
+// 13 bits
 // can't be increased without changing bit packing for drawsurfs
 // see QSORT_SHADERNUM_SHIFT
 
-#define SHADERNUM_BITS	11
+#define SHADERNUM_BITS	13
 #define MAX_SHADERS		(1<<SHADERNUM_BITS)
 
 // a trRefEntity_t has all the information passed in by
@@ -129,8 +122,6 @@ typedef struct image_s {
 
 	imgType_t   type;
 	imgFlags_t  flags;
-
-	qboolean characterMIP;      // independant 'character' mip scale ----(SA)	added
 
 	int hash;           // for fast building of the backupHash
 
@@ -423,7 +414,6 @@ typedef struct shader_s {
 	qboolean polygonOffset;             // set for decals and other items that must be offset
 	qboolean noMipMaps;                 // for console fonts, 2D elements, etc.
 	qboolean noPicMip;                  // for images that must always be full resolution
-	qboolean characterMip;              // use r_picmip2 rather than r_picmip
 
 	fogPass_t fogPass;                  // draw a blended pass, possibly with depth test equals
 
@@ -457,8 +447,7 @@ typedef struct corona_s {
 	vec3_t transformed;         // origin in local coordinate system
 	float scale;                // uses r_flaresize as the baseline (1.0)
 	int id;
-	int flags;                  // '1' is 'visible'
-								// still send the corona request, even if not visible, for proper fading
+	qboolean visible;           // still send the corona request, even if not visible, for proper fading
 } corona_t;
 
 typedef struct dlight_s {
@@ -579,8 +568,6 @@ typedef struct {
 	vec3_t visBounds[2];
 	float zFar;
 	stereoFrame_t	stereoFrame;
-
-	int dirty;
 
 	glfog_t glFog;                  // fog parameters	//----(SA)	added
 
@@ -881,9 +868,6 @@ typedef struct model_s {
 	void	*modelData;		// only if type == (MOD_MDR | MOD_IQM)
 
 	int numLods;
-
-// GR - model tessellation capability flag
-	int ATI_tess;
 } model_t;
 
 
@@ -935,24 +919,21 @@ new:
 removed	: used to be clipped flag
 0 - 1	: dlightmap index
 
-#define QSORT_SHADERNUM_SHIFT   22
-#define QSORT_ENTITYNUM_SHIFT   11
-#define QSORT_FOGNUM_SHIFT      2
+newest: (fixes shader index not having enough bytes)
+
+18 - 31	: sorted shader index
+7 - 17	: entity index
+2 - 6	: fog index
+0 - 1	: dlightmap index
 
 */
 
 #define	QSORT_FOGNUM_SHIFT	2
-#define	QSORT_REFENTITYNUM_SHIFT	11
+#define	QSORT_REFENTITYNUM_SHIFT	7
 #define	QSORT_SHADERNUM_SHIFT	(QSORT_REFENTITYNUM_SHIFT+REFENTITYNUM_BITS)
 #if (QSORT_SHADERNUM_SHIFT+SHADERNUM_BITS) > 32
 	#error "Need to update sorting, too many bits."
 #endif
-
-// GR - tessellation flag in bit 8
-#define QSORT_ATI_TESS_SHIFT    8
-// GR - TruForm flags
-#define ATI_TESS_TRUFORM    1
-#define ATI_TESS_NONE       0
 
 extern int gl_filter_min, gl_filter_max;
 
@@ -1056,11 +1037,10 @@ typedef struct {
 
 	shader_t                *defaultShader;
 	shader_t                *shadowShader;
-	shader_t		*projectionShadowShader;
+	shader_t                *projectionShadowShader;
 	shader_t                *dlightShader;      //----(SA) added
 
 	shader_t                *flareShader;
-	shader_t                *spotFlareShader;
 	char                    *sunShaderName;
 	shader_t                *sunShader;
 	shader_t                *sunflareShader[6];  //----(SA) for the camera lens flare effect for sun
@@ -1169,11 +1149,11 @@ extern cvar_t   *r_stencilbits;         // number of desired stencil bits
 extern cvar_t   *r_depthbits;           // number of desired depth bits
 extern cvar_t   *r_colorbits;           // number of desired color bits, only relevant for fullscreen
 extern cvar_t   *r_texturebits;         // number of desired texture bits
+extern cvar_t	*r_ext_multisample;
 										// 0 = use framebuffer depth
 										// 16 = use 16-bit textures
 										// 32 = use 32-bit textures
 										// all else = error
-extern cvar_t	*r_ext_multisample;
 
 extern cvar_t   *r_measureOverdraw;     // enables stencil buffer overdraw measurement
 
@@ -1192,7 +1172,6 @@ extern cvar_t   *r_drawSun;             // controls drawing of sun quad
 										// "1" draw sun
 										// "2" also draw lens flare effect centered on sun
 extern cvar_t   *r_dynamiclight;        // dynamic lights enabled/disabled
-extern cvar_t   *r_dlightScale;         // global user attenuation of dlights
 extern cvar_t   *r_dlightBacks;         // dlight non-facing surfaces for continuity
 
 extern cvar_t  *r_norefresh;            // bypasses the ref rendering
@@ -1218,32 +1197,27 @@ extern cvar_t   *r_ext_compressed_textures;     // these control use of specific
 extern cvar_t   *r_ext_multitexture;
 extern cvar_t   *r_ext_compiled_vertex_array;
 extern cvar_t   *r_ext_texture_env_add;
-extern cvar_t   *r_ext_texture_filter_anisotropic;
+extern cvar_t   *r_ext_texture_filter_anisotropic;  //DAJ from EF
 extern cvar_t	*r_ext_max_anisotropy;
 
 //----(SA)	added
-extern cvar_t   *r_ext_ATI_pntriangles;
-extern cvar_t   *r_ati_truform_tess;
-extern cvar_t   *r_ati_truform_pointmode;   //----(SA)
-extern cvar_t   *r_ati_truform_normalmode;  //----(SA)
-extern cvar_t   *r_ati_fsaa_samples;        //DAJ
 extern cvar_t   *r_ext_NV_fog_dist;
 extern cvar_t   *r_nv_fogdist_mode;
+
+extern cvar_t   *r_ext_ATI_pntriangles;
+extern cvar_t   *r_ati_truform_tess;        //
+extern cvar_t   *r_ati_truform_normalmode;  // linear/quadratic
+extern cvar_t   *r_ati_truform_pointmode;   // linear/cubic
 //----(SA)	end
 
-extern cvar_t  *r_waterFogColor;        //----(SA)	added
-extern cvar_t  *r_mapFogColor;          //----(SA)	added
-extern cvar_t  *r_savegameFogColor;     //----(SA)	added
+extern cvar_t   *r_ati_fsaa_samples;                //DAJ
 
 extern cvar_t  *r_nobind;                       // turns off binding to appropriate textures
 extern cvar_t  *r_singleShader;                 // make most world faces use default shader
 extern cvar_t  *r_roundImagesDown;
-extern cvar_t  *r_lowMemTextureSize;
-extern cvar_t  *r_lowMemTextureThreshold;
 extern cvar_t  *r_rmse;                         // reduces textures to this root mean square error
 extern cvar_t  *r_colorMipLevels;               // development aid to see texture mip usage
 extern cvar_t  *r_picmip;                       // controls picmip values
-extern cvar_t  *r_picmip2;                      // controls picmip values for designated (character skin) textures
 extern cvar_t  *r_finish;
 extern cvar_t  *r_drawBuffer;
 extern cvar_t  *r_glIgnoreWicked3D;
@@ -1252,7 +1226,7 @@ extern cvar_t  *r_textureMode;
 extern cvar_t  *r_offsetFactor;
 extern cvar_t  *r_offsetUnits;
 
-extern cvar_t  *r_fullbright;                   // avoid lightmap pass
+extern cvar_t  *r_fullbright;			// avoid lightmap pass // JPW NERVE removed per atvi request
 extern cvar_t  *r_lightmap;                     // render lightmaps only
 extern cvar_t  *r_vertexLight;                  // vertex lighting mode for better performance
 extern cvar_t  *r_uiFullScreen;                 // ui is running fullscreen
@@ -1298,7 +1272,6 @@ extern cvar_t  *r_saveFontData;
 
 extern cvar_t	*r_marksOnTriangleMeshes;
 
-// Ridah
 extern cvar_t  *r_bonesDebug;
 // done.
 
@@ -1326,12 +1299,10 @@ void R_TagInfo_f( void );
 
 void R_AddPolygonSurfaces( void );
 
-// GR - add tessellation flag
 void R_DecomposeSort( unsigned sort, int *entityNum, shader_t **shader,
-					  int *fogNum, int *dlightMap, int *atiTess );
+					  int *fogNum, int *dlightMap );
 
-// GR - add tessellation flag
-void R_AddDrawSurf( surfaceType_t *surface, shader_t *shader, int fogIndex, int dlightMap, int atiTess );
+void R_AddDrawSurf( surfaceType_t *surface, shader_t *shader, int fogIndex, int dlightMap );
 
 
 #define CULL_IN     0       // completely unclipped
@@ -1414,13 +1385,10 @@ qhandle_t   RE_GetShaderFromModel( qhandle_t modelid, int surfnum, int withlight
 model_t     *R_AllocModel( void );
 
 void        R_Init( void );
-image_t     *R_FindImageFile( const char *name, imgType_t type, imgFlags_t flags );
-image_t     *R_FindImageFileExt( const char *name, imgType_t type, imgFlags_t flags, qboolean characterMip ); //----(SA)	added
+image_t  *R_FindImageFile( const char *name, imgType_t type, imgFlags_t flags );
+image_t *R_CreateImage( const char *name, byte *pic, int width, int height,
+		imgType_t type, imgFlags_t flags, int internalFormat );
 
-image_t     *R_CreateImage( const char *name, byte *pic, int width, int height, imgType_t type, imgFlags_t flags, int internalFormat );
-//----(SA)	added (didn't want to modify all instances of R_CreateImage()
-image_t     *R_CreateImageExt( const char *name, byte *pic, int width, int height, imgType_t type, imgFlags_t flags, int internalFormat, qboolean characterMip );
-//----(SA)	end
 qboolean    R_GetModeInfo( int *width, int *height, float *windowAspect, int mode );
 
 void        R_SetColorMappings( void );
@@ -1442,7 +1410,6 @@ void    R_InitSkins( void );
 skin_t  *R_GetSkinByHandle( qhandle_t hSkin );
 
 const void *RB_TakeVideoFrameCmd( const void *data );
-
 
 //
 // tr_shader.c
@@ -1469,23 +1436,11 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 */
 
 void	GLimp_Init( qboolean fixedFunction );
-#ifdef IOS
-void            GLimp_SetMode(float rotation);
-#endif // IOS
 void	GLimp_Shutdown( void );
-void            GLimp_AcquireGL( void );
-#ifdef IOS
-void            GLimp_ReleaseGL( void );
-#endif // IOS
 void	GLimp_EndFrame( void );
 
-qboolean        GLimp_SpawnRenderThread( void (*function)( void ) );
-void            *GLimp_RendererSleep( void );
-void            GLimp_FrontEndSleep( void );
-void            GLimp_WakeRenderer( void *data );
-
 void	GLimp_LogComment( char *comment );
-//void    GLimp_Minimize(void);
+void	GLimp_Minimize(void);
 
 void	GLimp_SetGamma( unsigned char red[256],
 					 unsigned char green[256],
@@ -1528,8 +1483,6 @@ typedef struct shaderCommands_s
 
 	int numIndexes;
 	int numVertexes;
-
-	qboolean ATI_tess;
 
 	// info extracted from current shader
 	int numPasses;
@@ -1580,7 +1533,7 @@ FLARES
 
 void R_ClearFlares( void );
 
-void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, float scale, vec3_t normal, int id, int flags ); // TTimo updated prototype
+void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, float scale, vec3_t normal, int id, qboolean visible );    //----(SA)	added scale.  added id.  added visible
 void RB_AddDlightFlares( void );
 void RB_RenderFlares( void );
 
@@ -1672,7 +1625,7 @@ void RE_AddPolysToScene( qhandle_t hShader, int numVerts, const polyVert_t *vert
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b, int overdraw );
 // done.
 //----(SA)
-void RE_AddCoronaToScene( const vec3_t org, float r, float g, float b, float scale, int id, int flags );
+void RE_AddCoronaToScene( const vec3_t org, float r, float g, float b, float scale, int id, qboolean visible );
 //----(SA)
 void RE_RenderScene( const refdef_t *fd );
 
@@ -1729,6 +1682,7 @@ void R_LoadPCX( const char *name, byte **pic, int *width, int *height );
 void R_LoadPNG( const char *name, byte **pic, int *width, int *height );
 void R_LoadTGA( const char *name, byte **pic, int *width, int *height );
 
+
 /*
 =============================================================
 =============================================================
@@ -1760,10 +1714,6 @@ void    RB_CalcColorFromEntity( unsigned char *dstColors );
 void    RB_CalcColorFromOneMinusEntity( unsigned char *dstColors );
 void    RB_CalcSpecularAlpha( unsigned char *alphas );
 void    RB_CalcDiffuseColor( unsigned char *colors );
-
-void    RB_ZombieFXInit( void );
-void    RB_ZombieFXAddNewHit( int entityNum, const vec3_t hitPos, const vec3_t hitDir );
-
 
 /*
 =============================================================
@@ -1873,6 +1823,7 @@ typedef enum {
 	RC_END_OF_LIST,
 	RC_SET_COLOR,
 	RC_STRETCH_PIC,
+	RC_ROTATED_PIC,
 	RC_STRETCH_PIC_GRADIENT,    // (SA) added
 	RC_DRAW_SURFS,
 	RC_DRAW_BUFFER,
@@ -1922,6 +1873,8 @@ void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs );
 void RE_SetColor( const float *rgba );
 void RE_StretchPic( float x, float y, float w, float h,
 					float s1, float t1, float s2, float t2, qhandle_t hShader );
+void RE_RotatedPic( float x, float y, float w, float h,
+					float s1, float t1, float s2, float t2, qhandle_t hShader, float angle );       // NERVE - SMF
 void RE_StretchPicGradient( float x, float y, float w, float h,
 							float s1, float t1, float s2, float t2, qhandle_t hShader, const float *gradientColor, int gradientType );
 void RE_BeginFrame( stereoFrame_t stereoFrame );
@@ -2009,7 +1962,7 @@ extern void         R_FogOn( void );
 extern void R_SetFog( int fogvar, int var1, int var2, float r, float g, float b, float density );
 
 extern int skyboxportal;
-extern int drawskyboxportal;
+
 
 // Ridah, virtual memory
 void *R_Hunk_Begin( void );

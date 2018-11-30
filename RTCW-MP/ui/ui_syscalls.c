@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -119,12 +119,6 @@ void trap_FS_Read( void *buffer, int len, fileHandle_t f ) {
 	syscall( UI_FS_READ, buffer, len, f );
 }
 
-//----(SA)	added
-void trap_FS_Seek( fileHandle_t f, long offset, int origin  ) {
-	syscall( UI_FS_SEEK, f, offset, origin );
-}
-//----(SA)	end
-
 void trap_FS_Write( const void *buffer, int len, fileHandle_t f ) {
 	syscall( UI_FS_WRITE, buffer, len, f );
 }
@@ -177,8 +171,8 @@ void trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g
 	syscall( UI_R_ADDLIGHTTOSCENE, org, PASSFLOAT( intensity ), PASSFLOAT( r ), PASSFLOAT( g ), PASSFLOAT( b ), overdraw );
 }
 
-void trap_R_AddCoronaToScene( const vec3_t org, float r, float g, float b, float scale, int id, int flags ) {
-	syscall( UI_R_ADDCORONATOSCENE, org, PASSFLOAT( r ), PASSFLOAT( g ), PASSFLOAT( b ), PASSFLOAT( scale ), id, flags );
+void trap_R_AddCoronaToScene( const vec3_t org, float r, float g, float b, float scale, int id, qboolean visible ) {
+	syscall( UI_R_ADDCORONATOSCENE, org, PASSFLOAT( r ), PASSFLOAT( g ), PASSFLOAT( b ), PASSFLOAT( scale ), id, visible  );
 }
 
 void trap_R_RenderScene( const refdef_t *fd ) {
@@ -212,17 +206,6 @@ void trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum ) {
 sfxHandle_t trap_S_RegisterSound( const char *sample ) {
 	return syscall( UI_S_REGISTERSOUND, sample );
 }
-
-//----(SA)	added (already in cg)
-void    trap_S_FadeBackgroundTrack( float targetvol, int time, int num ) {   // yes, i know.  fadebackground coming in, fadestreaming going out.  will have to see where functionality leads...
-	syscall( UI_S_FADESTREAMINGSOUND, PASSFLOAT( targetvol ), time, num ); // 'num' is '0' if it's music, '1' if it's "all streaming sounds"
-}
-
-void    trap_S_FadeAllSound( float targetvol, int time ) {
-	syscall( UI_S_FADEALLSOUNDS, PASSFLOAT( targetvol ), time );
-}
-//----(SA)	end
-
 
 void trap_Key_KeynumToStringBuf( int keynum, char *buf, int buflen ) {
 	syscall( UI_KEY_KEYNUMTOSTRINGBUF, keynum, buf, buflen );
@@ -361,6 +344,17 @@ void trap_LAN_MarkServerVisible( int source, int n, qboolean visible ) {
 	syscall( UI_LAN_MARKSERVERVISIBLE, source, n, visible );
 }
 
+// DHM - Nerve :: PunkBuster
+void trap_SetPbClStatus( int status ) {
+	syscall( UI_SET_PBCLSTATUS, status );
+}
+// DHM - Nerve
+
+// TTimo: also for Sv
+void trap_SetPbSvStatus( int status ) {
+	syscall( UI_SET_PBSVSTATUS, status );
+}
+
 void trap_LAN_ResetPings( int n ) {
 	syscall( UI_LAN_RESETPINGS, n );
 }
@@ -369,7 +363,6 @@ void trap_LAN_ResetPings( int n ) {
 int trap_MemoryRemaining( void ) {
 	return syscall( UI_MEMORY_REMAINING );
 }
-
 
 void trap_GetCDKey( char *buf, int buflen ) {
 	syscall( UI_GET_CDKEY, buf, buflen );
@@ -403,8 +396,8 @@ void trap_S_StopBackgroundTrack( void ) {
 	syscall( UI_S_STOPBACKGROUNDTRACK );
 }
 
-void trap_S_StartBackgroundTrack( const char *intro, const char *loop, int fadeupTime ) {
-	syscall( UI_S_STARTBACKGROUNDTRACK, intro, loop, fadeupTime );
+void trap_S_StartBackgroundTrack( const char *intro, const char *loop ) {
+	syscall( UI_S_STARTBACKGROUNDTRACK, intro, loop );
 }
 
 int trap_RealTime( qtime_t *qtime ) {
@@ -453,10 +446,22 @@ qboolean trap_VerifyCDKey( const char *key, const char *chksum ) {
 qboolean trap_GetLimboString( int index, char *buf ) {
 	return syscall( UI_CL_GETLIMBOSTRING, index, buf );
 }
+
+void trap_TranslateString( const char *string, char *buf ) {
+	syscall( UI_CL_TRANSLATE_STRING, string, buf );
+}
 // -NERVE - SMF
 
-// New in IORTCW
-void *trap_Alloc( int size ) {
-	return (void*)syscall( UI_ALLOC, size );
+// DHM - Nerve
+void trap_CheckAutoUpdate( void ) {
+	syscall( UI_CHECKAUTOUPDATE );
 }
 
+void trap_GetAutoUpdate( void ) {
+	syscall( UI_GET_AUTOUPDATE );
+}
+// DHM - Nerve
+
+void trap_openURL( const char *s ) {
+	syscall( UI_OPENURL, s );
+}

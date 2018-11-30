@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -67,6 +67,7 @@ void CG_CheckAmmo( void ) {
 		}
 		switch ( i )
 		{
+		case WP_ROCKET_LAUNCHER:
 		case WP_PANZERFAUST:
 		case WP_GRENADE_LAUNCHER:
 		case WP_GRENADE_PINEAPPLE:
@@ -76,10 +77,13 @@ void CG_CheckAmmo( void ) {
 		case WP_SILENCER:
 		case WP_FG42:
 		case WP_FG42SCOPE:
+		case WP_BAR:        //----(SA)	added
+		case WP_BAR2:       //----(SA)	added
 		case WP_MP40:
 		case WP_THOMPSON:
 		case WP_STEN:
 		case WP_VENOM:
+		case WP_CROSS:
 		case WP_TESLA:
 		case WP_MAUSER:
 		case WP_GARAND:
@@ -250,23 +254,36 @@ void CG_Respawn( void ) {
 
 	cg.holdableSelectTime = 0;  //----(SA) reset holdable timer
 
-	cg.centerPrintTime = 0;     //----(SA)	reset centerprint counter so previous messages don't re-appear
+	if ( cgs.gametype == GT_SINGLE_PLAYER ) {
+		cg.centerPrintTime = 0;     //----(SA)	reset centerprint counter so previous messages don't re-appear
+	}
 	cg.cursorHintIcon = 0;
 	cg.cursorHintTime = 0;
-	cg.yougotmailTime = 0;
 
-//	cg.cameraMode = 0;	//----(SA)	get out of camera for sure
+	cg.cameraMode = 0;  //----(SA)	get out of camera for sure
 
 	// select the weapon the server says we are using
-//	cg.weaponSelect = cg.snap->ps.weapon;
+	cg.weaponSelect = cg.snap->ps.weapon;
 	// DHM - Nerve :: Clear even more things on respawn
 	cg.zoomedBinoc = qfalse;
 	cg.zoomedBinoc = cg.zoomedScope = qfalse;
 	cg.zoomTime = 0;
 	cg.zoomval = 0;
 
+	// clear pmext
+	memset( &cg.pmext, 0, sizeof( cg.pmext ) );
+
+	if ( cg_autoReload.integer ) {
+		cg.pmext.bAutoReload = qtrue;
+	}
+
+	// set current player type
+	if ( mp_currentPlayerType.integer != cg.snap->ps.stats[ STAT_PLAYER_CLASS ] ) {
+		trap_Cvar_Set( "mp_currentPlayerType", va( "%i", cg.snap->ps.stats[ STAT_PLAYER_CLASS ] ) );
+	}
+
 	// reset fog to world fog (if present)
-//	trap_R_SetFog(FOG_CMD_SWITCHFOG, FOG_MAP,20,0,0,0,0);
+	trap_R_SetFog( FOG_CMD_SWITCHFOG, FOG_MAP,20,0,0,0,0 );
 	// dhm - end
 
 	trap_Cvar_Set( "cg_notebookpages", "3" );		// (SA) TEMP: clear notebook pages on spawn (except for pages 1 and 2)	this is temporary
@@ -382,15 +399,17 @@ CG_CheckLocalSounds
 ==================
 */
 void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
-	const char	*s;
-	int	highScore;
+//	const char	*s;
+//	int	highScore;
 
+/* JPW NERVE pulled from wolf MP
 	// hit changes
 	if ( ps->persistant[PERS_HITS] > ops->persistant[PERS_HITS] ) {
 		trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
 	} else if ( ps->persistant[PERS_HITS] < ops->persistant[PERS_HITS] ) {
 		trap_S_StartLocalSound( cgs.media.hitTeamSound, CHAN_LOCAL_SOUND );
 	}
+*/
 
 	// health changes of more than -1 should make pain sounds
 	if ( ps->stats[STAT_HEALTH] < ops->stats[STAT_HEALTH] - 1 ) {
@@ -399,11 +418,14 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 		}
 	}
 
+/*	// NERVE - SMF - don't do this in wolfMP
 	// if we are going into the intermission, don't start any voices
 	if ( cg.intermissionStarted ) {
 		return;
 	}
+*/
 
+/* JPW NERVE pulled from wolf MP
 	// reward sounds
 	if ( ps->persistant[PERS_REWARD_COUNT] > ops->persistant[PERS_REWARD_COUNT] ) {
 		switch ( ps->persistant[PERS_REWARD] ) {
@@ -460,6 +482,7 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 			}
 		}
 	}
+*/
 
 	// timelimit warnings
 	if ( cgs.timelimit > 0 ) {
@@ -467,20 +490,33 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 
 		msec = cg.time - cgs.levelStartTime;
 
-		if ( cgs.timelimit > 5 && !( cg.timelimitWarnings & 1 ) && msec > ( cgs.timelimit - 5 ) * 60 * 1000 ) {
+		if ( cgs.timelimit > 2 && !( cg.timelimitWarnings & 1 ) && ( msec > ( cgs.timelimit - 2 ) * 60 * 1000 ) &&
+			 ( msec < ( cgs.timelimit - 2 ) * 60 * 1000 + 1000 ) ) {
 			cg.timelimitWarnings |= 1;
-			trap_S_StartLocalSound( cgs.media.fiveMinuteSound, CHAN_ANNOUNCER );
+			if ( ps->persistant[PERS_TEAM] == TEAM_RED && cg.twoMinuteSound_g[0] != '0' ) {
+				trap_S_StartLocalSound( cgs.media.twoMinuteSound_g, CHAN_ANNOUNCER );
+			} else if ( ps->persistant[PERS_TEAM] == TEAM_BLUE && cg.twoMinuteSound_a[0] != '0' ) {
+				trap_S_StartLocalSound( cgs.media.twoMinuteSound_a, CHAN_ANNOUNCER );
+			}
 		}
-		if ( !( cg.timelimitWarnings & 2 ) && msec > ( cgs.timelimit - 1 ) * 60 * 1000 ) {
+		if ( !( cg.timelimitWarnings & 2 ) && ( msec > ( cgs.timelimit ) * 60 * 1000 - 30000 ) &&
+			 ( msec < ( cgs.timelimit ) * 60 * 1000 - 29000 ) ) {
 			cg.timelimitWarnings |= 2;
-			trap_S_StartLocalSound( cgs.media.oneMinuteSound, CHAN_ANNOUNCER );
+			if ( ps->persistant[PERS_TEAM] == TEAM_RED && cg.thirtySecondSound_g[0] != '0' ) {
+				trap_S_StartLocalSound( cgs.media.thirtySecondSound_g, CHAN_ANNOUNCER );
+			} else if ( ps->persistant[PERS_TEAM] == TEAM_BLUE && cg.thirtySecondSound_a[0] != '0' ) {
+				trap_S_StartLocalSound( cgs.media.thirtySecondSound_a, CHAN_ANNOUNCER );
+			}
 		}
+/* // JPW NERVE not used in wolf
 		if ( !( cg.timelimitWarnings & 4 ) && msec > ( cgs.timelimit * 60 + 2 ) * 1000 ) {
 			cg.timelimitWarnings |= 4;
 			trap_S_StartLocalSound( cgs.media.suddenDeathSound, CHAN_ANNOUNCER );
 		}
+*/
 	}
 
+/* JPW NERVE -- not used in wolf MP
 	// fraglimit warnings
 	if ( cgs.fraglimit > 0 && cgs.gametype != GT_CTF ) {
 		highScore = cgs.scores1;
@@ -497,6 +533,7 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 			trap_S_StartLocalSound( cgs.media.oneFragSound, CHAN_ANNOUNCER );
 		}
 	}
+*/
 }
 
 /*

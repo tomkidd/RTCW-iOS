@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -84,7 +84,6 @@ extern botlib_import_t botimport;
 //travel times in hundreth of a second
 
 // Ridah, tweaked these for Wolf AI
-#define REACH_MIN_TIME                      4   // always at least this much time for a reachability
 #define WATERJUMP_TIME                      700 //7 seconds
 #define TELEPORT_TIME                       50  //0.5 seconds
 #define BARRIERJUMP_TIME                    900 //fixed value?
@@ -341,10 +340,6 @@ int AAS_AreaReachability( int areanum ) {
 		AAS_Error( "AAS_AreaReachability: areanum %d out of range\n", areanum );
 		return 0;
 	} //end if
-	// RF, if this area is disabled, then fail
-	if ( ( *aasworld ).areasettings[areanum].areaflags & AREA_DISABLED ) {
-		return 0;
-	}
 	return ( *aasworld ).areasettings[areanum].numreachableareas;
 } //end of the function AAS_AreaReachability
 //===========================================================================
@@ -4241,10 +4236,6 @@ void AAS_StoreReachability( void ) {
 			VectorCopy( lreach->end, reach->end );
 			reach->traveltype = lreach->traveltype;
 			reach->traveltime = lreach->traveltime;
-			// RF, enforce the min reach time
-			if ( reach->traveltime < REACH_MIN_TIME ) {
-				reach->traveltime = REACH_MIN_TIME;
-			}
 			//
 			areasettings->numreachableareas++;
 		} //end for

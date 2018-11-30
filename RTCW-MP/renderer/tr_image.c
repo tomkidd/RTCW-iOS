@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -43,7 +43,6 @@ int gl_filter_max = GL_LINEAR;
 
 #define FILE_HASH_SIZE      4096
 static image_t*        hashTable[FILE_HASH_SIZE];
-
 
 /*
 ** R_GammaCorrect
@@ -146,11 +145,11 @@ R_SumOfUsedImages
 */
 int R_SumOfUsedImages( void ) {
 	int total;
-	int i;
+	int i, fc = ( tr.frameCount - 1 );
 
 	total = 0;
 	for ( i = 0; i < tr.numImages; i++ ) {
-		if ( tr.images[i]->frameUsed == tr.frameCount ) {
+		if ( tr.images[i]->frameUsed == fc ) {
 			total += tr.images[i]->uploadWidth * tr.images[i]->uploadHeight;
 		}
 	}
@@ -181,8 +180,8 @@ void R_ImageList_f( void ) {
 
 		switch(image->internalFormat)
 		{
-#if !defined(USE_OPENGLES) && !defined(IOS)
-            case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT:
+#ifndef USE_OPENGLES
+			case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT:
 				format = "sDXT1";
 				// 64 bits per 16 pixels, so 4 bits per pixel
 				estSize /= 2;
@@ -218,28 +217,24 @@ void R_ImageList_f( void ) {
 				estSize /= 2;
 				break;
 #endif
-#if !defined(IOS)
 			case GL_RGBA4:
-#endif
-#if !defined(USE_OPENGLES) && !defined(IOS)
-            case GL_RGBA8:
+#ifndef USE_OPENGLES
+			case GL_RGBA8:
 #endif
 			case GL_RGBA:
 				format = "RGBA ";
 				// 4 bytes per pixel
 				estSize *= 4;
 				break;
-#if !defined(USE_OPENGLES) && !defined(IOS)
-            case GL_LUMINANCE8:
+#ifndef USE_OPENGLES
+			case GL_LUMINANCE8:
 #endif
 			case GL_LUMINANCE:
 				format = "L    ";
 				// 1 byte per pixel?
 				break;
-#if !defined(IOS)
 			case GL_RGB5:
-#endif
-#if !defined(USE_OPENGLES) && !defined(IOS)
+#ifndef USE_OPENGLES
 			case GL_RGB8:
 #endif
 			case GL_RGB:
@@ -247,7 +242,7 @@ void R_ImageList_f( void ) {
 				// 3 bytes per pixel?
 				estSize *= 3;
 				break;
-#if !defined(USE_OPENGLES) && !defined(IOS)
+#ifndef USE_OPENGLES
 			case GL_LUMINANCE8_ALPHA8:
 #endif
 			case GL_LUMINANCE_ALPHA:
@@ -255,7 +250,7 @@ void R_ImageList_f( void ) {
 				// 2 bytes per pixel?
 				estSize *= 2;
 				break;
-#if !defined(USE_OPENGLES) && !defined(IOS)
+#ifndef USE_OPENGLES
 			case GL_SRGB_EXT:
 			case GL_SRGB8_EXT:
 				format = "sRGB ";
@@ -336,8 +331,12 @@ static void ResampleTexture( unsigned *in, int inwidth, int inheight, unsigned *
 	int i, j;
 	unsigned    *inrow, *inrow2;
 	unsigned frac, fracstep;
-	unsigned p1[1024], p2[1024];
+	unsigned p1[2048], p2[2048];
 	byte        *pix1, *pix2, *pix3, *pix4;
+
+	if ( outwidth > 2048 ) {
+		ri.Error( ERR_DROP, "ResampleTexture: max width" );
+	}
 
 	fracstep = inwidth * 0x10000 / outwidth;
 
@@ -721,6 +720,7 @@ byte * gles_convertLuminanceAlpha(byte * data, int width, int height)
 }
 #endif
 
+
 /*
 ===============
 Upload32
@@ -731,7 +731,6 @@ static void Upload32(   unsigned *data,
 						int width, int height,
 						qboolean mipmap,
 						qboolean picmip,
-						qboolean characterMip,  //----(SA)	added
 						qboolean lightMap,
 						int *format,
 						int *pUploadWidth, int *pUploadHeight,
@@ -745,9 +744,6 @@ static void Upload32(   unsigned *data,
 	GLenum internalFormat = GL_RGB;
 	float rMax = 0, gMax = 0, bMax = 0;
 	static int rmse_saved = 0;
-#ifndef USE_BLOOM
-	float rmse;
-#endif
 
 	// do the root mean square error stuff first
 	if ( r_rmse->value ) {
@@ -761,21 +757,6 @@ static void Upload32(   unsigned *data,
 			ri.Printf( PRINT_ALL, "r_rmse of %f has saved %dkb\n", r_rmse->value, ( rmse_saved / 1024 ) );
 		}
 	}
-#ifndef USE_BLOOM
-	else
-	{
-		// just do the RMSE of 1 (reduce perfect)
-		while ( R_RMSE( (byte *)data, width, height ) < 1.0 ) {
-			rmse_saved += ( height * width * 4 ) - ( ( width >> 1 ) * ( height >> 1 ) * 4 );
-			resampledBuffer = ri.Hunk_AllocateTempMemory( ( width >> 1 ) * ( height >> 1 ) * 4 );
-			ResampleTexture( data, width, height, resampledBuffer, width >> 1, height >> 1 );
-			data = resampledBuffer;
-			width = width >> 1;
-			height = height >> 1;
-			ri.Printf( PRINT_ALL, "r_rmse of %f has saved %dkb\n", r_rmse->value, ( rmse_saved / 1024 ) );
-		}
-	}
-#endif
 	//
 	// convert to exact power of 2 sizes
 	//
@@ -800,13 +781,18 @@ static void Upload32(   unsigned *data,
 	// perform optional picmip operation
 	//
 	if ( picmip ) {
-		if ( characterMip ) {
-			scaled_width >>= r_picmip2->integer;
-			scaled_height >>= r_picmip2->integer;
-		} else {
-			scaled_width >>= r_picmip->integer;
-			scaled_height >>= r_picmip->integer;
-		}
+		scaled_width >>= r_picmip->integer;
+		scaled_height >>= r_picmip->integer;
+	}
+
+	//
+	// clamp to minimum size
+	//
+	if ( scaled_width < 1 ) {
+		scaled_width = 1;
+	}
+	if ( scaled_height < 1 ) {
+		scaled_height = 1;
 	}
 
 	//
@@ -818,42 +804,6 @@ static void Upload32(   unsigned *data,
 		|| scaled_height > glConfig.maxTextureSize ) {
 		scaled_width >>= 1;
 		scaled_height >>= 1;
-	}
-
-#ifndef USE_BLOOM
-	rmse = R_RMSE( (byte *)data, width, height );
-
-	if ( r_lowMemTextureSize->integer && ( scaled_width > r_lowMemTextureSize->integer || scaled_height > r_lowMemTextureSize->integer ) && rmse < r_lowMemTextureThreshold->value ) {
-		int scale;
-
-		for ( scale = 1 ; scale < r_lowMemTextureSize->integer; scale <<= 1 ) {
-			;
-		}
-
-		while ( scaled_width > scale || scaled_height > scale ) {
-			scaled_width >>= 1;
-			scaled_height >>= 1;
-		}
-
-		ri.Printf( PRINT_ALL, "r_lowMemTextureSize forcing reduction from %i x %i to %i x %i\n", width, height, scaled_width, scaled_height );
-
-		resampledBuffer = ri.Hunk_AllocateTempMemory( scaled_width * scaled_height * 4 );
-		ResampleTexture( data, width, height, resampledBuffer, scaled_width, scaled_height );
-		data = resampledBuffer;
-		width = scaled_width;
-		height = scaled_height;
-
-	}
-#endif
-
-	//
-	// clamp to minimum size
-	//
-	if ( scaled_width < 1 ) {
-		scaled_width = 1;
-	}
-	if ( scaled_height < 1 ) {
-		scaled_height = 1;
 	}
 
 	scaledBuffer = ri.Hunk_AllocateTempMemory( sizeof( unsigned ) * scaled_width * scaled_height );
@@ -887,7 +837,6 @@ static void Upload32(   unsigned *data,
 		}
 	}
 
-#ifndef IOS
 	if(lightMap)
 	{
 		if(r_greyscale->integer)
@@ -897,7 +846,6 @@ static void Upload32(   unsigned *data,
 	}
 	else
 	{
-#endif
 		for ( i = 0; i < c; i++ )
 		{
 			if ( scan[i * 4 + 0] > rMax ) {
@@ -915,7 +863,6 @@ static void Upload32(   unsigned *data,
 			}
 		}
 		// select proper internal format
-#ifndef IOS
 		if ( samples == 3 )
 		{
 
@@ -998,13 +945,9 @@ static void Upload32(   unsigned *data,
 		}
 	}
 
-#else
-    internalFormat = GL_RGBA;
-#endif
-
-    // copy or resample data as appropriate for first MIP level
+	// copy or resample data as appropriate for first MIP level
 #ifdef USE_OPENGLES
-		if ( ( scaled_width == width ) && 
+	if ( ( scaled_width == width ) && 
 			( scaled_height == height ) ) {
 			Com_Memcpy (scaledBuffer, data, width*height*4);
 		}
@@ -1134,20 +1077,16 @@ done:
 #endif
 
 	if ( mipmap ) {
-#ifndef IOS
 		if ( textureFilterAnisotropic )
 			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
 					(GLint)Com_Clamp( 1, maxAnisotropy, r_ext_max_anisotropy->integer ) );
-#endif
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max );
 	}
 	else
 	{
-#ifndef IOS
 		if ( textureFilterAnisotropic )
 			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1 );
-#endif
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	}
@@ -1160,10 +1099,6 @@ done:
 		ri.Hunk_FreeTempMemory( resampledBuffer );
 }
 
-
-
-//----(SA)	modified
-
 /*
 ================
 R_CreateImage
@@ -1171,12 +1106,13 @@ R_CreateImage
 This is the only way any image_t are created
 ================
 */
-image_t *R_CreateImageExt( const char *name, byte *pic, int width, int height, imgType_t type, imgFlags_t flags, int internalFormat, qboolean characterMip )
-{
+image_t *R_CreateImage( const char *name, byte *pic, int width, int height,
+		imgType_t type, imgFlags_t flags, int internalFormat ) {
+
 	image_t     *image;
 	qboolean isLightmap = qfalse;
-	int         glWrapClampMode;
 	long hash;
+	int         glWrapClampMode;
 	qboolean noCompress = qfalse;
 
 	if ( strlen( name ) >= MAX_QPATH ) {
@@ -1203,7 +1139,6 @@ image_t *R_CreateImageExt( const char *name, byte *pic, int width, int height, i
 		ri.Error( ERR_DROP, "R_CreateImage: MAX_DRAWIMAGES hit" );
 	}
 
-	// Ridah
 	image = tr.images[tr.numImages] = ri.Hunk_Alloc( sizeof( image_t ), h_low );
 	qglGenTextures( 1, &image->texnum );
 	tr.numImages++;
@@ -1237,7 +1172,6 @@ image_t *R_CreateImageExt( const char *name, byte *pic, int width, int height, i
 			  image->width, image->height,
 			  image->flags & IMGFLAG_MIPMAP,
 			  image->flags & IMGFLAG_PICMIP,
-			  characterMip,                     //----(SA)	added
 			  isLightmap,
 			  &image->internalFormat,
 			  &image->uploadWidth,
@@ -1264,13 +1198,6 @@ image_t *R_CreateImageExt( const char *name, byte *pic, int width, int height, i
 	return image;
 }
 
-image_t *R_CreateImage( const char *name, byte *pic, int width, int height,
-		imgType_t type, imgFlags_t flags, int internalFormat ) {
-	return R_CreateImageExt( name, pic, width, height, type, flags, 0, qfalse );
-}
-
-//----(SA)	end
-
 //===================================================================
 
 typedef struct
@@ -1290,7 +1217,7 @@ static imageExtToLoaderMap_t imageLoaders[ ] =
 	{ "pcx",  R_LoadPCX },
 	{ "bmp",  R_LoadBMP }
 };
- 
+
 static int numImageLoaders = ARRAY_LEN( imageLoaders );
 
 
@@ -1376,8 +1303,6 @@ void R_LoadImage( const char *name, byte **pic, int *width, int *height )
 	}
 }
 
-
-//----(SA)	modified
 /*
 ===============
 R_FindImageFile
@@ -1386,9 +1311,8 @@ Finds or loads the given image.
 Returns NULL if it fails, not a default image.
 ==============
 */
-
-
-image_t *R_FindImageFileExt( const char *name, imgType_t type, imgFlags_t flags, qboolean characterMIP ) {
+image_t  *R_FindImageFile( const char *name, imgType_t type, imgFlags_t flags )
+{
 	image_t *image;
 	int width, height;
 	byte    *pic;
@@ -1404,14 +1328,11 @@ image_t *R_FindImageFileExt( const char *name, imgType_t type, imgFlags_t flags,
 	// see if the image is already loaded
 	//
 	for ( image = hashTable[hash]; image; image = image->next ) {
-		if ( !Q_stricmp( name, image->imgName ) ) {
+		if ( !strcmp( name, image->imgName ) ) {
 			// the white image can be used with any set of parms, but other mismatches are errors
 			if ( strcmp( name, "*white" ) ) {
 				if ( image->flags != flags ) {
 					ri.Printf( PRINT_DEVELOPER, "WARNING: reused image %s with mixed flags (%i vs %i)\n", name, image->flags, flags );
-				}
-				if ( image->characterMIP != characterMIP ) {
-					ri.Printf( PRINT_DEVELOPER, "WARNING: reused image %s with mixed characterMIP parm\n", name );
 				}
 			}
 			return image;
@@ -1426,17 +1347,11 @@ image_t *R_FindImageFileExt( const char *name, imgType_t type, imgFlags_t flags,
 		return NULL;
 	}
 
-	image = R_CreateImageExt( ( char * ) name, pic, width, height, type, flags, 0, characterMIP );
+	image = R_CreateImage( ( char * ) name, pic, width, height, type, flags, 0 );
 	ri.Free( pic );
 	return image;
 }
 
-
-image_t *R_FindImageFile( const char *name, imgType_t type, imgFlags_t flags ) {
-	return R_FindImageFileExt( name, type, flags, qfalse );
-}
-
-//----(SA)	end
 
 /*
 ================
@@ -1468,7 +1383,7 @@ static void R_CreateDlightImage( void ) {
 			data[y][x][3] = 255;
 		}
 	}
-	tr.dlightImage = R_CreateImage( "*dlight", (byte *)data, DLIGHT_SIZE, DLIGHT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
+	tr.dlightImage = R_CreateImage("*dlight", (byte *)data, DLIGHT_SIZE, DLIGHT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
 }
 
 
@@ -1551,7 +1466,7 @@ static void R_CreateFogImage( void ) {
 			data[( y * FOG_S + x ) * 4 + 3] = 255 * d;
 		}
 	}
-	tr.fogImage = R_CreateImage( "*fog", (byte *)data, FOG_S, FOG_T, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
+	tr.fogImage = R_CreateImage("*fog", (byte *)data, FOG_S, FOG_T, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
 	ri.Hunk_FreeTempMemory( data );
 }
 
@@ -1588,7 +1503,7 @@ static void R_CreateDefaultImage( void ) {
 				data[x][DEFAULT_SIZE - 1][2] = 0; //----(SA) to make the default grid noticable but not blinding
 		data[x][DEFAULT_SIZE - 1][3] = 255;
 	}
-	tr.defaultImage = R_CreateImage( "*default", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_MIPMAP, 0 );
+	tr.defaultImage = R_CreateImage("*default", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_MIPMAP, 0);
 }
 
 /*
@@ -1604,7 +1519,7 @@ void R_CreateBuiltinImages( void ) {
 
 	// we use a solid white image instead of disabling texturing
 	memset( data, 255, sizeof( data ) );
-	tr.whiteImage = R_CreateImage( "*white", (byte *)data, 8, 8, IMGTYPE_COLORALPHA, IMGFLAG_NONE, 0 );
+	tr.whiteImage = R_CreateImage("*white", (byte *)data, 8, 8, IMGTYPE_COLORALPHA, IMGFLAG_NONE, 0);
 
 	// with overbright bits active, we need an image which is some fraction of full color,
 	// for default lightmaps, etc
@@ -1617,12 +1532,11 @@ void R_CreateBuiltinImages( void ) {
 		}
 	}
 
-	tr.identityLightImage = R_CreateImage( "*identityLight", (byte *)data, 8, 8, IMGTYPE_COLORALPHA, IMGFLAG_NONE, 0 );
-
+	tr.identityLightImage = R_CreateImage("*identityLight", (byte *)data, 8, 8, IMGTYPE_COLORALPHA, IMGFLAG_NONE, 0);
 
 	for ( x = 0; x < 32; x++ ) {
 		// scratchimage is usually used for cinematic drawing
-		tr.scratchImage[x] = R_CreateImage( "*scratch", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, 0 );
+		tr.scratchImage[x] = R_CreateImage("*scratch", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, 0);
 	}
 
 	R_CreateDlightImage();
@@ -1801,7 +1715,7 @@ static char *CommaParse( char **data_p ) {
 		if ( c == '/' && data[1] == '/' )
 		{
 			data += 2;
-			while ( *data && *data != '\n' ) {
+			while (*data && *data != '\n') {
 				data++;
 			}
 		}

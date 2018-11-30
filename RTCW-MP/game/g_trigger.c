@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -312,24 +312,13 @@ Must point at a target_position, which will be the apex of the leap.
 This will be client side predicted, unlike target_push
 */
 void SP_trigger_push( gentity_t *self ) {
-//	InitTrigger (self);
-
-// init trigger
-	if ( !VectorCompare( self->s.angles, vec3_origin ) ) {
-		G_SetMovedir( self->s.angles, self->movedir );
-	}
-
-	trap_SetBrushModel( self, self->model );
-
-	self->r.contents = CONTENTS_TRIGGER;        // replaces the -1 from trap_SetBrushModel
-	self->r.svFlags = SVF_NOCLIENT;
-//----(SA)	end
+	InitTrigger( self );
 
 	// unlike other triggers, we need to send this one to the client
-//	self->r.svFlags &= ~SVF_NOCLIENT;
+	self->r.svFlags &= ~SVF_NOCLIENT;
 
 	// make sure the client precaches this sound
-	//G_SoundIndex("sound/world/jumppad.wav");
+	G_SoundIndex( "sound/world/jumppad.wav" );
 
 	if ( !( self->spawnflags & 1 ) ) { // toggle
 		self->s.eType = ET_PUSH_TRIGGER;
@@ -385,7 +374,7 @@ void SP_target_push( gentity_t *self ) {
 	VectorScale( self->s.origin2, self->speed, self->s.origin2 );
 
 	if ( self->spawnflags & 1 ) {
-		//self->noise_index = G_SoundIndex("sound/world/jumppad.wav");
+		self->noise_index = G_SoundIndex( "sound/world/jumppad.wav" );
 	} else {
 		self->noise_index = G_SoundIndex( "sound/misc/windfly.wav" );
 	}
@@ -437,7 +426,7 @@ void SP_trigger_teleport( gentity_t *self ) {
 	self->r.svFlags &= ~SVF_NOCLIENT;
 
 	// make sure the client precaches this sound
-	//G_SoundIndex("sound/world/jumppad.wav");
+	G_SoundIndex( "sound/world/jumppad.wav" );
 
 	self->s.eType = ET_TELEPORT_TRIGGER;
 	self->touch = trigger_teleporter_touch;
@@ -455,15 +444,14 @@ trigger_hurt
 ==============================================================================
 */
 
-/*QUAKED trigger_hurt (.5 .5 .5) ? START_OFF PLAYER_ONLY SILENT NO_PROTECTION SLOW ONCE
+/*QUAKED trigger_hurt (.5 .5 .5) ? START_OFF - SILENT NO_PROTECTION SLOW ONCE
 Any entity that touches this will be hurt.
 It does dmg points of damage each server frame
 Targeting the trigger will toggle its on / off state.
 
-PLAYER_ONLY   - only damages the player
-SILENT        - supresses playing the sound
-NO_PROTECTION - *nothing* stops the damage
-SLOW          - changes the damage rate to once per second
+SILENT			supresses playing the sound
+SLOW			changes the damage rate to once per second
+NO_PROTECTION	*nothing* stops the damage
 
 "dmg"			default 5 (whole numbers only)
 
@@ -478,14 +466,6 @@ void hurt_touch( gentity_t *self, gentity_t *other, trace_t *trace ) {
 	if ( !other->takedamage ) {
 		return;
 	}
-
-//----(SA)	player damage only
-	if ( self->spawnflags & 2 ) {
-		if ( other->aiCharacter ) {
-			return;
-		}
-	}
-//----(SA)	end
 
 	if ( self->timestamp > level.time ) {
 		return;
@@ -544,18 +524,25 @@ SP_trigger_hurt
 */
 void SP_trigger_hurt( gentity_t *self ) {
 
-	char    *life;
+	char    *life, *sound; // JPW NERVE
 	float dalife;
 
 	InitTrigger( self );
 
-	self->noise_index = G_SoundIndex( "sound/world/hurt_me.wav" );
+	G_SpawnString( "sound", "sound/world/electro.wav", &sound );
+
+	self->noise_index = G_SoundIndex( sound );
 
 	if ( !self->damage ) {
 		self->damage = 5;
 	}
 
 	self->r.contents = CONTENTS_TRIGGER;
+
+//----(SA)
+//	if ( self->spawnflags & 2 ) {
+//		self->use = hurt_use;
+//	}
 
 	self->use = hurt_use;
 
@@ -689,35 +676,33 @@ the player from getting stuck when the door is deciding which way to open
 void trigger_aidoor_stayopen( gentity_t * ent, gentity_t * other, trace_t * trace ) {
 	gentity_t *door;
 
+	// FIXME: port this code over to moving doors (use MOVER_POSx instead of MOVER_POSxROTATE)
 	if ( other->client && other->health > 0 ) {
 		if ( !ent->target || !( strlen( ent->target ) ) ) {
 			// ent->target of "" will crash game in Q_stricmp()
-			G_Printf( "trigger_aidoor at loc %s does not have a target\n", vtos( ent->s.origin ) );
+
+			// FIXME: commented out so it can be fixed
+
+//			G_Printf( "trigger_aidoor at loc %s does not have a target door\n", vtos (ent->s.origin) );
 			return;
 		}
 
 		door = G_Find( NULL, FOFS( targetname ), ent->target );
 
 		if ( !door ) {
-			G_Printf( "trigger_aidoor at loc %s cannot find target '%s'\n", vtos( ent->s.origin ), ent->target );
+			// FIXME: commented out so it can be fixed
+//			G_Printf( "trigger_aidoor at loc %s does not have a target door\n", vtos (ent->s.origin) );
 			return;
 		}
 
-		if ( door->moverState == MOVER_POS2ROTATE ) {     // door is in open state waiting to close keep it open
+		if ( door->moverState == MOVER_POS2ROTATE ) { // door is in open state waiting to close keep it open
 			door->nextthink = level.time + door->wait + 3000;
 		}
-
-//----(SA)	added
-		if ( door->moverState == MOVER_POS2 ) {   // door is in open state waiting to close keep it open
-			door->nextthink = level.time + door->wait + 3000;
-		}
-//----(SA)	end
 
 		// Ridah, door isn't ready, find a free ai_marker, and wait there until it's open
 		if ( other->r.svFlags & SVF_CASTAI ) {
 
-			// we dont have keys, so assume we are not trying to get through this door
-			if ( door->key > KEY_NONE /*&& door->key < KEY_NUM_KEYS*/ ) {  // door requires key
+			if ( door->key ) {    // we dont have keys, so assume we are not trying to get through this door
 				return;
 			}
 
@@ -725,20 +710,16 @@ void trigger_aidoor_stayopen( gentity_t * ent, gentity_t * other, trace_t * trac
 
 			// if the door isn't currently opening for us, we should move out the way
 			// Ridah, had to change this, since it was causing AI to wait at door when the door is open, and won't close because they are sitting on the aidoor brush
-			// TTimo: gcc: suggest parentheses around && within ||
-			//   woa this test gets a nasty look
+			//if (!(door->activator == other && (door->moverState == MOVER_1TO2ROTATE || door->moverState == MOVER_POS2ROTATE))) {
+			// NOTE TTimo: SP has a slightly different test? (this is prolly outdated)
 			if (
-				( door->grenadeFired > level.time ) ||
-				(
-					!(
-						( door->activator == other ) &&
-						( door->moverState != MOVER_POS1 ) &&
-						( door->moverState != MOVER_POS1ROTATE )
-						)
-					&& ( door->moverState != MOVER_POS2ROTATE )
-					&& ( door->moverState != MOVER_POS2 )
-				)
-				) {
+				!(
+					( door->activator == other )
+					&& ( door->moverState != MOVER_POS1 )
+					&& ( door->moverState != MOVER_POS1ROTATE )
+					)
+				&& ( door->moverState != MOVER_POS2ROTATE )
+				&& ( door->moverState != MOVER_POS2 ) ) {
 				// if we aren't already heading for an ai_marker, look for one we can go to
 				AICast_AIDoor_Touch( other, ent, door );
 			}
@@ -862,6 +843,8 @@ Player must be carrying the proper flag for it to trigger.
 It will call the "death" function in the object's script.
 
 "scriptName"	The object name in the script file
+"score"			score given to player for dropping flag in this field
+				(default 20)
 
 RED_FLAG -- only trigger if player is carrying red flag
 BLUE_FLAG -- only trigger if player is carrying blue flag
@@ -875,6 +858,8 @@ void Touch_flagonly( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 
 	if ( ent->spawnflags & RED_FLAG && other->client->ps.powerups[ PW_REDFLAG ] ) {
 
+		AddScore( other, ent->accuracy ); // JPW NERVE set from map, defaults to 20
+
 		G_Script_ScriptEvent( ent, "death", "" );
 
 		// Removes itself
@@ -882,6 +867,8 @@ void Touch_flagonly( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 		ent->nextthink = level.time + FRAMETIME;
 		ent->think = G_FreeEntity;
 	} else if ( ent->spawnflags & BLUE_FLAG && other->client->ps.powerups[ PW_BLUEFLAG ] )   {
+
+		AddScore( other, ent->accuracy ); // JPW NERVE set from map, defaults to 20
 
 		G_Script_ScriptEvent( ent, "death", "" );
 
@@ -893,58 +880,146 @@ void Touch_flagonly( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 }
 
 void SP_trigger_flagonly( gentity_t *ent ) {
+	char *scorestring; // JPW NERVE
 	ent->touch  = Touch_flagonly;
 
 	InitTrigger( ent );
+
+	// JPW NERVE -- if this trigger has a "score" field set, then completing an objective
+	//  inside of this field will add "score" to the right player team.  storing this
+	//  in ent->accuracy since that's unused.
+	G_SpawnString( "score", "20", &scorestring );
+	ent->accuracy = atof( scorestring );
+	// jpw
+
 	trap_LinkEntity( ent );
 }
 
+// NERVE - SMF - spawn an explosive indicator
+void explosive_indicator_think( gentity_t *ent ) {
+	gentity_t *parent;
 
+	parent = &g_entities[ent->r.ownerNum];
+
+	if ( !parent->inuse || Q_stricmp( "trigger_objective_info", parent->classname ) ) {
+		ent->think = G_FreeEntity;
+		ent->nextthink = level.time + FRAMETIME;
+		return;
+	}
+
+	ent->nextthink = level.time + FRAMETIME;
+}
 
 /*QUAKED trigger_objective_info (.5 .5 .5) ? AXIS_OBJECTIVE ALLIED_OBJECTIVE
 Players in this field will see a message saying that they are near an objective.
-You specify which objective it is with a number in "count"
 
-  "count"		The objective number
-  "track"		If this is specified, it will override the default message
+  "track"		Mandatory, this is the text that is appended to "You are near "
 */
 #define AXIS_OBJECTIVE      1
 #define ALLIED_OBJECTIVE    2
 
-void Touch_objective_info( gentity_t *ent, gentity_t *other, trace_t *trace ) {
-
-	if ( other->timestamp > level.time ) {
-		return;
-	}
-
-	other->timestamp = level.time + 4500;
-
-	if ( ent->track ) {
-		if ( ent->spawnflags & AXIS_OBJECTIVE ) {
-			trap_SendServerCommand( other - g_entities, va( "oid 0 \"" S_COLOR_RED "You are near %s\n\"", ent->track ) );
-		} else if ( ent->spawnflags & ALLIED_OBJECTIVE ) {
-			trap_SendServerCommand( other - g_entities, va( "oid 1 \"" S_COLOR_BLUE "You are near %s\n\"", ent->track ) );
-		} else {
-			trap_SendServerCommand( other - g_entities, va( "oid -1 \"You are near %s\n\"", ent->track ) );
-		}
-	} else {
-		if ( ent->spawnflags & AXIS_OBJECTIVE ) {
-			trap_SendServerCommand( other - g_entities, va( "oid 0 \"" S_COLOR_RED "You are near objective #%i\n\"", ent->count ) );
-		} else if ( ent->spawnflags & ALLIED_OBJECTIVE ) {
-			trap_SendServerCommand( other - g_entities, va( "oid 1 \"" S_COLOR_BLUE "You are near objective #%i\n\"", ent->count ) );
-		} else {
-			trap_SendServerCommand( other - g_entities, va( "oid -1 \"You are near objective #%i\n\"", ent->count ) );
-		}
-	}
-
-}
-
 void SP_trigger_objective_info( gentity_t *ent ) {
-	ent->touch  = Touch_objective_info;
+	char *scorestring;
 
+	if ( !ent->track ) {
+		G_Error( "'trigger_objective_info' does not have a 'track' \n" );
+	}
+
+	if ( level.numOidTriggers >= MAX_OID_TRIGGERS ) {
+		G_Error( "Exceeded maximum number of 'trigger_objective_info' entities\n" );
+	}
+
+	// JPW NERVE -- if this trigger has a "score" field set, then blowing up an objective
+	//  inside of this field will add "score" to the right player team.  storing this
+	//  in ent->accuracy since that's unused.
+	G_SpawnString( "score", "0", &scorestring );
+	ent->accuracy = atof( scorestring );
+	// jpw
+
+	// Arnout: HACK HACK - someone at nerve forgot to add the score field to sub - have to
+	// hardcode it cause we don't want people to download the map again
+	{
+		char mapName[MAX_QPATH];
+		trap_Cvar_VariableStringBuffer( "mapname", mapName, sizeof( mapName ) );
+		if ( !Q_stricmp( mapName, "mp_sub" ) && !Q_stricmp( ent->track, "the Axis Submarine" ) ) {
+			ent->accuracy = 15;
+		}
+	}
+
+	trap_SetConfigstring( CS_OID_TRIGGERS + level.numOidTriggers, ent->track );
+	ent->s.teamNum = level.numOidTriggers;
+
+	level.numOidTriggers++;
 	InitTrigger( ent );
+
+	// unlike other triggers, we need to send this one to the client
+	ent->r.svFlags &= ~SVF_NOCLIENT;
+	ent->s.eType = ET_OID_TRIGGER;
+
 	trap_LinkEntity( ent );
+
+	// NERVE - SMF - spawn an explosive indicator
+	if ( ( ent->spawnflags & AXIS_OBJECTIVE ) || ( ent->spawnflags & ALLIED_OBJECTIVE ) ) {
+		gentity_t *e;
+		e = G_Spawn();
+
+		e->r.svFlags = SVF_BROADCAST;
+		e->classname = "explosive_indicator";
+		e->s.eType = ET_EXPLOSIVE_INDICATOR;
+		e->s.pos.trType = TR_STATIONARY;
+
+		if ( ent->spawnflags & AXIS_OBJECTIVE ) {
+			e->s.teamNum = 1;
+		} else if ( ent->spawnflags & ALLIED_OBJECTIVE ) {
+			e->s.teamNum = 2;
+		}
+
+		e->r.ownerNum = ent->s.number;
+		e->think = explosive_indicator_think;
+		e->nextthink = level.time + FRAMETIME;
+
+		VectorCopy( ent->r.mins, e->s.pos.trBase );
+		VectorAdd( ent->r.maxs, e->s.pos.trBase, e->s.pos.trBase );
+		VectorScale( e->s.pos.trBase, 0.5, e->s.pos.trBase );
+
+		SnapVector( e->s.pos.trBase );
+
+		trap_LinkEntity( e );
+	}
+	// -NERVE - SMF
 }
 
 
 // dhm - end
+
+// JPW NERVE -- field which is acted upon (cgame side) by screenshakes to drop dust particles
+void trigger_concussive_touch( gentity_t *ent, gentity_t *other, trace_t *trace ) {
+#if 0 // FIXME this should be NULLed out in SP_trigger_concussive_dust after everything works
+	G_Printf( "hit concussive ent %p mins=%f,%f,%f maxs=%f,%f,%f\n",ent,
+			  ent->r.mins[0],
+			  ent->r.mins[1],
+			  ent->r.mins[2],
+			  ent->r.maxs[0],
+			  ent->r.maxs[1],
+			  ent->r.maxs[2] );
+#endif
+}
+
+/*QUAKED trigger_concussive_dust (.5 .5 .5) ?
+Allows client side prediction of teleportation events.
+Must point at a target_position, which will be the teleport destination.
+*/
+void SP_trigger_concussive_dust( gentity_t *self ) {
+	InitTrigger( self );
+
+	// unlike other triggers, we need to send this one to the client
+//	self->r.svFlags &= ~SVF_NOCLIENT;
+//	self->r.svFlags |= SVF_BROADCAST;
+
+	self->s.eType = ET_CONCUSSIVE_TRIGGER;
+	self->touch = trigger_concussive_touch;
+
+	trap_LinkEntity( self );
+}
+// jpw
+

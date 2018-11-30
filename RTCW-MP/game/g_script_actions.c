@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -346,132 +346,6 @@ qboolean G_ScriptAction_PlaySound( gentity_t *ent, char *params ) {
 	return qtrue;
 }
 
-//----(SA)	added
-/*
-==================
-AICast_ScriptAction_MusicStart
-
-==================
-*/
-qboolean G_ScriptAction_MusicStart( gentity_t *ent, char *params ) {
-	char    *pString, *token;
-	char cvarName[MAX_QPATH];
-	int fadeupTime = 0;
-
-	pString = params;
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "G_Scripting: syntax: mu_start <musicfile> <fadeuptime>" );
-	}
-	Q_strncpyz( cvarName, token, sizeof( cvarName ) );
-
-	token = COM_ParseExt( &pString, qfalse );
-	if ( token[0] ) {
-		fadeupTime = atoi( token );
-	}
-
-	trap_SendServerCommand( -1, va( "mu_start %s %d", cvarName, fadeupTime ) );
-
-	return qtrue;
-}
-
-/*
-==================
-AICast_ScriptAction_MusicPlay
-
-==================
-*/
-qboolean G_ScriptAction_MusicPlay( gentity_t *ent, char *params ) {
-	char    *pString, *token;
-	char cvarName[MAX_QPATH];
-	int fadeupTime = 0;
-
-	pString = params;
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "G_Scripting: syntax: mu_play <musicfile> [fadeup time]" );
-	}
-	Q_strncpyz( cvarName, token, sizeof( cvarName ) );
-
-	trap_SendServerCommand( -1, va( "mu_play %s %d", cvarName, fadeupTime ) );
-
-	return qtrue;
-}
-
-
-/*
-==================
-AICast_ScriptAction_MusicStop
-==================
-*/
-qboolean G_ScriptAction_MusicStop( gentity_t *ent, char *params ) {
-	char    *pString, *token;
-	int fadeoutTime = 0;
-
-	pString = params;
-	token = COM_ParseExt( &pString, qfalse );
-	if ( token[0] ) {
-		fadeoutTime = atoi( token );
-	}
-
-	trap_SendServerCommand( -1, va( "mu_stop %i\n", fadeoutTime ) );
-
-	return qtrue;
-}
-
-
-/*
-==================
-AICast_ScriptAction_MusicFade
-==================
-*/
-qboolean G_ScriptAction_MusicFade( gentity_t *ent, char *params ) {
-	char    *pString, *token;
-	float targetvol;
-	int fadetime;
-
-	pString = params;
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "G_Scripting: syntax: mu_fade <targetvol> <fadetime>" );
-	}
-	targetvol = atof( token );
-
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "G_Scripting: syntax: mu_fade <targetvol> <fadetime>" );
-	}
-	fadetime = atoi( token );
-
-	trap_SendServerCommand( -1, va( "mu_fade %f %i\n", targetvol, fadetime ) );
-
-	return qtrue;
-}
-
-
-/*
-==================
-AICast_ScriptAction_MusicQueue
-==================
-*/
-qboolean G_ScriptAction_MusicQueue( gentity_t *ent, char *params ) {
-	char    *pString, *token;
-	char cvarName[MAX_QPATH];
-
-	pString = params;
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "G_Scripting: syntax: mu_queue <musicfile>" );
-	}
-	Q_strncpyz( cvarName, token, sizeof( cvarName ) );
-
-	trap_SetConfigstring( CS_MUSIC_QUEUE, cvarName );
-
-	return qtrue;
-}
-
-//----(SA)	end
-
 /*
 =================
 G_ScriptAction_PlayAnim
@@ -483,7 +357,9 @@ G_ScriptAction_PlayAnim
 */
 qboolean G_ScriptAction_PlayAnim( gentity_t *ent, char *params ) {
 	char *pString, *token, tokens[2][MAX_QPATH];
-	int i, endtime = 0; // TTimo: init
+	int i;
+	// TTimo might be used uninitialized
+	int endtime = 0;
 	qboolean looping = qfalse, forever = qfalse;
 	int startframe, endframe, idealframe;
 	int rate = 20;
@@ -553,28 +429,19 @@ qboolean G_ScriptAction_PlayAnim( gentity_t *ent, char *params ) {
 	idealframe = startframe + (int)floor( (float)( level.time - ent->scriptStatus.scriptStackChangeTime ) / ( 1000.0 / (float)rate ) );
 	if ( looping ) {
 		ent->s.frame = startframe + ( idealframe - startframe ) % ( endframe - startframe );
-		ent->s.eFlags |= EF_MOVER_ANIMATE;
 	} else {
 		if ( idealframe > endframe ) {
 			ent->s.frame = endframe;
-			ent->s.eFlags &= ~EF_MOVER_ANIMATE; // stop interpolation, since we have gone passed the endframe
 		} else {
 			ent->s.frame = idealframe;
-			ent->s.eFlags |= EF_MOVER_ANIMATE;
 		}
 	}
 
 	if ( forever ) {
-		ent->s.eFlags |= EF_MOVER_ANIMATE;
 		return qtrue;   // continue to the next command
 	}
 
-	if ( endtime <= level.time ) {
-		ent->s.eFlags &= ~EF_MOVER_ANIMATE; // stop animating
-		return qtrue;
-	} else {
-		return qfalse;
-	}
+	return ( endtime <= level.time );
 }
 
 /*
@@ -582,32 +449,43 @@ qboolean G_ScriptAction_PlayAnim( gentity_t *ent, char *params ) {
 G_ScriptAction_AlertEntity
 
   syntax: alertentity <targetname>
+
+ Arnout: modified to target multiple entities with the same targetname
 =================
 */
 qboolean G_ScriptAction_AlertEntity( gentity_t *ent, char *params ) {
-	gentity_t   *alertent;
+	gentity_t   *alertent = NULL;
+	qboolean foundalertent = qfalse;
 
 	if ( !params || !params[0] ) {
 		G_Error( "G_Scripting: alertentity without targetname\n" );
 	}
 
 	// find this targetname
-	alertent = G_Find( NULL, FOFS( targetname ), params );
-	if ( !alertent ) {
-		G_Error( "G_Scripting: alertentity cannot find targetname \"%s\"\n", params );
-	}
+	while ( 1 ) {
+		alertent = G_Find( alertent, FOFS( targetname ), params );
+		if ( !alertent ) {
+			if ( !foundalertent ) {
+				G_Error( "G_Scripting: alertentity cannot find targetname \"%s\"\n", params );
+			} else {
+				break;
+			}
+		}
 
-	if ( alertent->client ) {
-		// call this entity's AlertEntity function
-		if ( !alertent->AIScript_AlertEntity ) {
-			G_Error( "G_Scripting: alertentity \"%s\" (classname = %s) doesn't have an \"AIScript_AlertEntity\" function\n", params, alertent->classname );
+		foundalertent = qtrue;
+
+		if ( alertent->client ) {
+			// call this entity's AlertEntity function
+			if ( !alertent->AIScript_AlertEntity ) {
+				G_Error( "G_Scripting: alertentity \"%s\" (classname = %s) doesn't have an \"AIScript_AlertEntity\" function\n", params, alertent->classname );
+			}
+			alertent->AIScript_AlertEntity( alertent );
+		} else {
+			if ( !alertent->use ) {
+				G_Error( "G_Scripting: alertentity \"%s\" (classname = %s) doesn't have a \"use\" function\n", params, alertent->classname );
+			}
+			alertent->use( alertent, NULL, NULL );
 		}
-		alertent->AIScript_AlertEntity( alertent );
-	} else {
-		if ( !alertent->use ) {
-			G_Error( "G_Scripting: alertentity \"%s\" (classname = %s) doesn't have a \"use\" function\n", params, alertent->classname );
-		}
-		alertent->use( alertent, NULL, NULL );
 	}
 
 	return qtrue;
@@ -732,7 +610,7 @@ qboolean G_ScriptAction_Accum( gentity_t *ent, char *params ) {
 		}
 		ent->scriptAccumBuffer[bufferIndex] = rand() % atoi( token );
 	} else {
-		G_Error( "Scripting: accum: \"%s\": unknown command\n", params );
+		G_Error( "Scripting: accum %s: unknown command\n", params );
 	}
 
 	return qtrue;
@@ -746,38 +624,14 @@ G_ScriptAction_MissionFailed
 =================
 */
 qboolean G_ScriptAction_MissionFailed( gentity_t *ent, char *params ) {
-	char    *pString, *token;
-	int time = 6, mof = 0;
-
-	pString = params;
-
-	token = COM_ParseExt( &pString, qfalse );   // time
-	if ( token && token[0] ) {
-		time = atoi( token );
+	// todo!! (just kill the player for now)
+	gentity_t *player;
+	player = AICast_FindEntityForName( "player" );
+	if ( player ) {
+		G_Damage( player, player, player, vec3_origin, vec3_origin, 99999, DAMAGE_NO_PROTECTION, MOD_SUICIDE );
 	}
 
-	token = COM_ParseExt( &pString, qfalse );   // mof (means of failure)
-	if ( token && token[0] ) {
-		mof = atoi( token );
-	}
-
-	// play mission fail music
-	trap_SendServerCommand( -1, "mu_play sound/music/l_failed_1.wav 0\n" );
-	trap_SetConfigstring( CS_MUSIC_QUEUE, "" );  // clear queue so it'll be quiet after hit
-
-	trap_SendServerCommand( -1, va( "snd_fade 0 %d", time * 1000 ) );   //----(SA)	added
-
-	if ( mof < 0 ) {
-		mof = 0;
-	}
-	trap_SendServerCommand( -1, va( "cp missionfail%d", mof ) );
-
-	// reload the current savegame, after a delay
-	trap_SetConfigstring( CS_SCREENFADE, va( "1 %i %i", level.time + 250, time * 1000 ) );
-//	reloading = RELOAD_FAILED;
-	trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_FAILED ) );
-
-	level.reloadDelayTime = level.time + 1000 + time * 1000;
+	G_Printf( "Mission Failed...\n" );    // todo
 
 	return qtrue;
 }
@@ -790,16 +644,10 @@ G_ScriptAction_MissionSuccess
 =================
 */
 qboolean G_ScriptAction_MissionSuccess( gentity_t *ent, char *params ) {
-	gentity_t   *player;
-	vmCvar_t cvar;
-	int lvl;
-	char *pString, *token;
+	gentity_t *player;
 
-	pString = params;
-
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "AI Scripting: missionsuccess requires a mission_level identifier\n" );
+	if ( !params || !params[0] ) {
+		G_Error( "G_Scripting: missionsuccess requires a mission_level identifier\n" );
 	}
 
 	player = AICast_FindEntityForName( "player" );
@@ -808,32 +656,14 @@ qboolean G_ScriptAction_MissionSuccess( gentity_t *ent, char *params ) {
 		return qfalse;  // hold the script here
 
 	}
-	lvl = atoi( token );
+	player->missionLevel = atoi( params );
 
-// if you've already got it, just return.  don't need to set 'yougotmail'
-	if ( player->missionObjectives & ( 1 << ( lvl - 1 ) ) ) {
-		return qtrue;
-	}
+	G_Printf( "Mission Success!!!!\n" );  // todo
 
-	player->missionObjectives |= ( 1 << ( lvl - 1 ) );  // make this bitwise
-
-	//set g_objective<n> cvar
-	trap_Cvar_Register( &cvar, va( "g_objective%i", lvl ), "1", CVAR_ROM );
-	// set it to make sure
-	trap_Cvar_Set( va( "g_objective%i", lvl ), "1" );
-
-	token = COM_ParseExt( &pString, qfalse );
-	if ( token[0] ) {
-		if ( Q_strcasecmp( token,"nodisplay" ) ) {   // unknown command
-			G_Error( "AI Scripting: missionsuccess with unknown parameter: %s\n", token );
-		}
-	} else {    // show on-screen information
-		trap_Cvar_Set( "cg_youGotMail", "2" ); // set flag to draw icon
-	}
+//	G_SaveGame( NULL );
 
 	return qtrue;
 }
-
 
 /*
 =================
@@ -859,7 +689,7 @@ G_ScriptAction_FaceAngles
 
   syntax: faceangles <pitch> <yaw> <roll> <duration/GOTOTIME> [ACCEL/DECCEL]
 
-  The entity will face the given angles, taking <duration> to get there. If the
+  The entity will face the given angles, taking <duration> to get their. If the
   GOTOTIME is given instead of a timed duration, the duration calculated from the
   last gotomarker command will be used instead.
 =================
@@ -1003,7 +833,15 @@ qboolean G_ScriptAction_TagConnect( gentity_t *ent, char *params ) {
 	ent->tagName = G_Alloc( strlen( token ) + 1 );
 	Q_strncpyz( ent->tagName, token, strlen( token ) + 1 );
 
-	G_ProcessTagConnect( ent, qtrue );
+	G_ProcessTagConnect( ent );
+
+	// clear out the angles so it always starts out facing the tag direction
+	VectorClear( ent->s.angles );
+	VectorCopy( ent->s.angles, ent->s.apos.trBase );
+	ent->s.apos.trTime = level.time;
+	ent->s.apos.trDuration = 0;
+	ent->s.apos.trType = TR_STATIONARY;
+	VectorClear( ent->s.apos.trDelta );
 
 	return qtrue;
 }
@@ -1065,10 +903,10 @@ qboolean G_ScriptAction_StopSound( gentity_t *ent, char *params ) {
 ===================
 G_ScriptAction_StartCam
 
-  syntax: startcam<black> <camera filename>
+  syntax: startcam <camera filename>
 ===================
 */
-qboolean G_ScriptStartCam( gentity_t *ent, char *params, qboolean black ) {
+qboolean G_ScriptAction_StartCam( gentity_t *ent, char *params ) {
 	char *pString, *token;
 	gentity_t *player;
 
@@ -1086,16 +924,9 @@ qboolean G_ScriptStartCam( gentity_t *ent, char *params, qboolean black ) {
 	if ( !player ) {
 		G_Error( "player not found, perhaps you should give them more time to spawn in" );
 	}
-	trap_SendServerCommand( player->s.number, va( "startCam %s %d", token, (int)black ) );
+	trap_SendServerCommand( player->s.number, va( "startCam %s", token ) );
 
 	return qtrue;
-}
-
-qboolean G_ScriptAction_StartCam( gentity_t *ent, char *params ) {
-	return G_ScriptStartCam( ent, params, qfalse );
-}
-qboolean G_ScriptAction_StartCamBlack( gentity_t *ent, char *params ) {
-	return G_ScriptStartCam( ent, params, qtrue );
 }
 
 /*
@@ -1131,11 +962,46 @@ G_ScriptAction_MapDescription
 */
 qboolean G_ScriptAction_MapDescription( gentity_t *ent, char *params ) {
 	char *pString, *token;
+	char cs[MAX_STRING_CHARS];
 
 	pString = params;
 	token = COM_Parse( &pString );
 
-	trap_SetConfigstring( CS_MULTI_MAPDESC, token );
+	trap_GetConfigstring( CS_MULTI_MAPDESC, cs, sizeof( cs ) );
+
+	// NERVE - SMF - compare before setting, so we don't spam the clients during map_restart
+	if ( Q_stricmp( cs, token ) ) {
+		trap_SetConfigstring( CS_MULTI_MAPDESC, token );
+	}
+
+	return qtrue;
+}
+
+/*
+===================
+G_ScriptAction_OverviewImage
+
+  syntax: wm_mapdescription <shadername>
+===================
+*/
+qboolean G_ScriptAction_OverviewImage( gentity_t *ent, char *params ) {         // NERVE - SMF
+	char *pString, *token;
+	char cs[MAX_STRING_CHARS];
+
+	pString = params;
+	token = COM_Parse( &pString );
+	if ( !token[0] ) {
+		G_Error( "G_ScriptAction_OverviewImage: shader name required\n" );
+	}
+
+	trap_GetConfigstring( CS_MULTI_INFO, cs, sizeof( cs ) );
+
+	// NERVE - SMF - compare before setting, so we don't spam the clients during map_restart
+	if ( Q_stricmp( Info_ValueForKey( cs, "overviewimage" ), token ) ) {
+		Info_SetValueForKey( cs, "overviewimage", token );
+
+		trap_SetConfigstring( CS_MULTI_INFO, cs );
+	}
 
 	return qtrue;
 }
@@ -1156,7 +1022,11 @@ qboolean G_ScriptAction_AxisRespawntime( gentity_t *ent, char *params ) {
 		G_Error( "G_ScriptAction_AxisRespawntime: time parameter required\n" );
 	}
 
-	trap_Cvar_Set( "g_redlimbotime", va( "%s000", token ) );
+	if ( g_userAxisRespawnTime.integer ) {
+		trap_Cvar_Set( "g_redlimbotime", va( "%i", g_userAxisRespawnTime.integer * 1000 ) );
+	} else {
+		trap_Cvar_Set( "g_redlimbotime", va( "%s000", token ) );
+	}
 
 	return qtrue;
 }
@@ -1177,7 +1047,11 @@ qboolean G_ScriptAction_AlliedRespawntime( gentity_t *ent, char *params ) {
 		G_Error( "G_ScriptAction_AlliedRespawntime: time parameter required\n" );
 	}
 
-	trap_Cvar_Set( "g_bluelimbotime", va( "%s000", token ) );
+	if ( g_userAlliedRespawnTime.integer ) {
+		trap_Cvar_Set( "g_bluelimbotime", va( "%i", g_userAlliedRespawnTime.integer * 1000 ) );
+	} else {
+		trap_Cvar_Set( "g_bluelimbotime", va( "%s000", token ) );
+	}
 
 	return qtrue;
 }
@@ -1208,9 +1082,12 @@ qboolean G_ScriptAction_NumberofObjectives( gentity_t *ent, char *params ) {
 
 	trap_GetConfigstring( CS_MULTI_INFO, cs, sizeof( cs ) );
 
-	Info_SetValueForKey( cs, "numobjectives", token );
+	// NERVE - SMF - compare before setting, so we don't spam the clients during map_restart
+	if ( Q_stricmp( Info_ValueForKey( cs, "numobjectives" ), token ) ) {
+		Info_SetValueForKey( cs, "numobjectives", token );
 
-	trap_SetConfigstring( CS_MULTI_INFO, cs );
+		trap_SetConfigstring( CS_MULTI_INFO, cs );
+	}
 
 	return qtrue;
 }
@@ -1249,9 +1126,58 @@ qboolean G_ScriptAction_ObjectiveAxisDesc( gentity_t *ent, char *params ) {
 
 	trap_GetConfigstring( cs_obj, cs, sizeof( cs ) );
 
-	Info_SetValueForKey( cs, "axis_desc", token );
+	// NERVE - SMF - compare before setting, so we don't spam the clients during map_restart
+	if ( Q_stricmp( Info_ValueForKey( cs, "axis_desc" ), token ) ) {
+		Info_SetValueForKey( cs, "axis_desc", token );
 
-	trap_SetConfigstring( cs_obj, cs );
+		trap_SetConfigstring( cs_obj, cs );
+	}
+
+	return qtrue;
+}
+
+/*
+===================
+G_ScriptAction_ObjectiveShortAxisDesc
+
+  syntax: wm_objective_short_axis_desc <objective_number "Description in quotes">
+
+  NERVE - SMF - this is the short, one-line description shown in scoreboard
+===================
+*/
+qboolean G_ScriptAction_ObjectiveShortAxisDesc( gentity_t *ent, char *params ) {
+	char *pString, *token;
+	char cs[MAX_STRING_CHARS];
+
+	int num, cs_obj = CS_MULTI_OBJECTIVE1;
+
+	pString = params;
+	token = COM_Parse( &pString );
+	if ( !token[0] ) {
+		G_Error( "G_ScriptAction_ObjectiveShortAxisDesc: number parameter required\n" );
+	}
+
+	num = atoi( token );
+	if ( num < 1 || num > MAX_OBJECTIVES ) {
+		G_Error( "G_ScriptAction_ObjectiveShortAxisDesc: Invalid objective number\n" );
+	}
+
+	token = COM_Parse( &pString );
+	if ( !token[0] ) {
+		G_Error( "G_ScriptAction_ObjectiveShortAxisDesc: description parameter required\n" );
+	}
+
+	// Move to correct objective config string
+	cs_obj += ( num - 1 );
+
+	trap_GetConfigstring( cs_obj, cs, sizeof( cs ) );
+
+	// NERVE - SMF - compare before setting, so we don't spam the clients during map_restart
+	if ( Q_stricmp( Info_ValueForKey( cs, "short_axis_desc" ), token ) ) {
+		Info_SetValueForKey( cs, "short_axis_desc", token );
+
+		trap_SetConfigstring( cs_obj, cs );
+	}
 
 	return qtrue;
 }
@@ -1290,9 +1216,102 @@ qboolean G_ScriptAction_ObjectiveAlliedDesc( gentity_t *ent, char *params ) {
 
 	trap_GetConfigstring( cs_obj, cs, sizeof( cs ) );
 
-	Info_SetValueForKey( cs, "allied_desc", token );
+	// NERVE - SMF - compare before setting, so we don't spam the clients during map_restart
+	if ( Q_stricmp( Info_ValueForKey( cs, "allied_desc" ), token ) ) {
+		Info_SetValueForKey( cs, "allied_desc", token );
 
-	trap_SetConfigstring( cs_obj, cs );
+		trap_SetConfigstring( cs_obj, cs );
+	}
+
+	return qtrue;
+}
+
+/*
+===================
+G_ScriptAction_ObjectiveShortAlliedDesc
+
+  syntax: wm_objective_short_allied_desc <objective_number "Description in quotes">
+
+  NERVE - SMF - this is the short, one-line description shown in scoreboard
+===================
+*/
+qboolean G_ScriptAction_ObjectiveShortAlliedDesc( gentity_t *ent, char *params ) {
+	char *pString, *token;
+	char cs[MAX_STRING_CHARS];
+
+	int num, cs_obj = CS_MULTI_OBJECTIVE1;
+
+	pString = params;
+	token = COM_Parse( &pString );
+	if ( !token[0] ) {
+		G_Error( "G_ScriptAction_ObjectiveShortAlliedDesc: number parameter required\n" );
+	}
+
+	num = atoi( token );
+	if ( num < 1 || num > MAX_OBJECTIVES ) {
+		G_Error( "G_ScriptAction_ObjectiveShortAlliedDesc: Invalid objective number\n" );
+	}
+
+	token = COM_Parse( &pString );
+	if ( !token[0] ) {
+		G_Error( "G_ScriptAction_ObjectiveShortAlliedDesc: description parameter required\n" );
+	}
+
+	// Move to correct objective config string
+	cs_obj += ( num - 1 );
+
+	trap_GetConfigstring( cs_obj, cs, sizeof( cs ) );
+
+	// NERVE - SMF - compare before setting, so we don't spam the clients during map_restart
+	if ( Q_stricmp( Info_ValueForKey( cs, "short_allied_desc" ), token ) ) {
+		Info_SetValueForKey( cs, "short_allied_desc", token );
+
+		trap_SetConfigstring( cs_obj, cs );
+	}
+
+	return qtrue;
+}
+
+/*
+===================
+G_ScriptAction_ObjectiveImage
+
+  syntax: wm_objective_image <objective_number> <shadername>
+===================
+*/
+qboolean G_ScriptAction_ObjectiveImage( gentity_t *ent, char *params ) {
+	char *pString, *token;
+	char cs[MAX_STRING_CHARS];
+
+	int num, cs_obj = CS_MULTI_OBJECTIVE1;
+
+	pString = params;
+	token = COM_Parse( &pString );
+	if ( !token[0] ) {
+		G_Error( "G_ScriptAction_ObjectiveImage: number parameter required\n" );
+	}
+
+	num = atoi( token );
+	if ( num < 1 || num > MAX_OBJECTIVES ) {
+		G_Error( "G_ScriptAction_ObjectiveImage: Invalid objective number\n" );
+	}
+
+	token = COM_Parse( &pString );
+	if ( !token[0] ) {
+		G_Error( "G_ScriptAction_ObjectiveImage: shadername parameter required\n" );
+	}
+
+	// Move to correct objective config string
+	cs_obj += ( num - 1 );
+
+	trap_GetConfigstring( cs_obj, cs, sizeof( cs ) );
+
+	// NERVE - SMF - compare before setting, so we don't spam the clients during map_restart
+	if ( Q_stricmp( Info_ValueForKey( cs, "image" ), token ) ) {
+		Info_SetValueForKey( cs, "image", token );
+
+		trap_SetConfigstring( cs_obj, cs );
+	}
 
 	return qtrue;
 }
@@ -1309,8 +1328,11 @@ G_ScriptAction_SetWinner
 qboolean G_ScriptAction_SetWinner( gentity_t *ent, char *params ) {
 	char *pString, *token;
 	char cs[MAX_STRING_CHARS];
-
 	int num;
+
+	if ( level.intermissiontime ) {
+		return qtrue;
+	}
 
 	pString = params;
 	token = COM_Parse( &pString );
@@ -1323,11 +1345,14 @@ qboolean G_ScriptAction_SetWinner( gentity_t *ent, char *params ) {
 		G_Error( "G_ScriptAction_SetWinner: Invalid team number\n" );
 	}
 
-	trap_GetConfigstring( CS_MULTI_INFO, cs, sizeof( cs ) );
+	trap_GetConfigstring( CS_MULTI_MAPWINNER, cs, sizeof( cs ) );
 
-	Info_SetValueForKey( cs, "winner", token );
+	// NERVE - SMF - compare before setting, so we don't spam the clients during map_restart
+	if ( Q_stricmp( Info_ValueForKey( cs, "winner" ), token ) ) {
+		Info_SetValueForKey( cs, "winner", token );
 
-	trap_SetConfigstring( CS_MULTI_INFO, cs );
+		trap_SetConfigstring( CS_MULTI_MAPWINNER, cs );
+	}
 
 	return qtrue;
 }
@@ -1345,7 +1370,11 @@ qboolean G_ScriptAction_SetObjectiveStatus( gentity_t *ent, char *params ) {
 	char *pString, *token;
 	char cs[MAX_STRING_CHARS];
 
-	int num, status, cs_obj = CS_MULTI_OBJECTIVE1;
+	int num, status, cs_obj = CS_MULTI_OBJ1_STATUS;
+
+	if ( level.intermissiontime ) {
+		return qtrue;
+	}
 
 	pString = params;
 	token = COM_Parse( &pString );
@@ -1373,9 +1402,52 @@ qboolean G_ScriptAction_SetObjectiveStatus( gentity_t *ent, char *params ) {
 
 	trap_GetConfigstring( cs_obj, cs, sizeof( cs ) );
 
-	Info_SetValueForKey( cs, "status", token );
+	// NERVE - SMF - compare before setting, so we don't spam the clients during map_restart
+	if ( Q_stricmp( Info_ValueForKey( cs, "status" ), token ) ) {
+		Info_SetValueForKey( cs, "status", token );
 
-	trap_SetConfigstring( cs_obj, cs );
+		trap_SetConfigstring( cs_obj, cs );
+	}
+
+	return qtrue;
+}
+
+/*
+===================
+G_ScriptAction_SetDefendingTeam
+
+  syntax: wm_set_objective_status <status>
+
+  status: 0==axis, 1==allies
+
+  NERVE - SMF - sets defending team for stopwatch mode
+===================
+*/
+qboolean G_ScriptAction_SetDefendingTeam( gentity_t *ent, char *params ) {
+	char *pString, *token;
+	char cs[MAX_STRING_CHARS];
+	int num;
+
+	if ( level.intermissiontime ) {
+		return qtrue;
+	}
+
+	pString = params;
+	token = COM_Parse( &pString );
+	if ( !token[0] ) {
+		G_Error( "G_ScriptAction_SetDefendingTeam: number parameter required\n" );
+	}
+
+	num = atoi( token );
+	if ( num < 0 || num > 1 ) {
+		G_Error( "G_ScriptAction_SetDefendingTeam: Invalid team number\n" );
+	}
+
+	trap_GetConfigstring( CS_MULTI_INFO, cs, sizeof( cs ) );
+
+	Info_SetValueForKey( cs, "defender", token );
+
+	trap_SetConfigstring( CS_MULTI_INFO, cs );
 
 	return qtrue;
 }
@@ -1390,13 +1462,17 @@ G_ScriptAction_Announce
 qboolean G_ScriptAction_Announce( gentity_t *ent, char *params ) {
 	char *pString, *token;
 
+	if ( level.intermissiontime ) {
+		return qtrue;
+	}
+
 	pString = params;
 	token = COM_Parse( &pString );
 	if ( !token[0] ) {
 		G_Error( "G_ScriptAction_Announce: statement parameter required\n" );
 	}
 
-	trap_SendServerCommand( -1, va( "cp \"%s\"", token ) );
+	trap_SendServerCommand( -1, va( "cp \"%s\" 2", token ) );
 
 	return qtrue;
 }
@@ -1412,6 +1488,10 @@ G_ScriptAction_EndRound
 extern void LogExit( const char *string );
 
 qboolean G_ScriptAction_EndRound( gentity_t *ent, char *params ) {
+	if ( level.intermissiontime ) {
+		return qtrue;
+	}
+
 	LogExit( "Wolf EndRound." );
 
 	return qtrue;
@@ -1426,6 +1506,7 @@ G_ScriptAction_SetRoundTimelimit
 */
 qboolean G_ScriptAction_SetRoundTimelimit( gentity_t *ent, char *params ) {
 	char *pString, *token;
+	float nextTimeLimit;
 
 	pString = params;
 	token = COM_Parse( &pString );
@@ -1433,85 +1514,32 @@ qboolean G_ScriptAction_SetRoundTimelimit( gentity_t *ent, char *params ) {
 		G_Error( "G_ScriptAction_SetRoundTimelimit: number parameter required\n" );
 	}
 
-	trap_Cvar_Set( "timelimit", token );
+	// NERVE - SMF
+	nextTimeLimit = g_nextTimeLimit.value;
 
-	return qtrue;
-}
-
-
-/*
-=================
-G_ScriptAction_BackupScript
-
-  backs up the current state of the scripting, so we can restore it later and resume
-  were we left off (useful if player gets in our way)
-=================
-*/
-qboolean G_ScriptAction_BackupScript( gentity_t *ent, char *params ) {
-
-	// if we're not at the top of an event, then something is _probably_ wrong with the script
-//	if (ent->scriptStatus.scriptStackHead > 0) {
-//		G_Printf( "ENTITY SCRIPT: WARNING: backupscript not at start of event, possibly harmful.\n");
-//	}
-
-	if ( !( ent->scriptStatus.scriptFlags & SCFL_WAITING_RESTORE ) ) {
-
-		// if we are moving, stop here
-		if ( ent->scriptStatus.scriptFlags & SCFL_GOING_TO_MARKER ) {
-			ent->scriptStatus.scriptFlags &= ~SCFL_GOING_TO_MARKER;
-
-			// set the angles at the destination
-			BG_EvaluateTrajectory( &ent->s.apos, level.time, ent->s.angles );
-			VectorCopy( ent->s.angles, ent->s.apos.trBase );
-			VectorCopy( ent->s.angles, ent->r.currentAngles );
-			ent->s.apos.trTime = level.time;
-			ent->s.apos.trDuration = 0;
-			ent->s.apos.trType = TR_STATIONARY;
-			VectorClear( ent->s.apos.trDelta );
-
-			// stop moving
-			BG_EvaluateTrajectory( &ent->s.pos, level.time, ent->s.origin );
-			VectorCopy( ent->s.origin, ent->s.pos.trBase );
-			VectorCopy( ent->s.origin, ent->r.currentOrigin );
-			ent->s.pos.trTime = level.time;
-			ent->s.pos.trDuration = 0;
-			ent->s.pos.trType = TR_STATIONARY;
-			VectorClear( ent->s.pos.trDelta );
-
-			script_linkentity( ent );
+	if ( g_gametype.integer == GT_WOLF_STOPWATCH && nextTimeLimit ) {
+		trap_Cvar_Set( "timelimit", va( "%f", nextTimeLimit ) );
+	} else {
+		if ( g_userTimeLimit.integer ) {
+			trap_Cvar_Set( "timelimit", va( "%i", g_userTimeLimit.integer ) );
+		} else {
+			trap_Cvar_Set( "timelimit", token );
 		}
-
-		ent->scriptStatusBackup = ent->scriptStatusCurrent;
-		ent->scriptStatus.scriptFlags |= SCFL_WAITING_RESTORE;
 	}
 
 	return qtrue;
 }
 
 /*
-=================
-G_ScriptAction_RestoreScript
+===================
+G_ScriptAction_RemoveEntity
 
-  restores the state of the scripting to the previous backup
-=================
+  syntax: remove
+===================
 */
-qboolean G_ScriptAction_RestoreScript( gentity_t *ent, char *params ) {
+qboolean G_ScriptAction_RemoveEntity( gentity_t *ent, char *params ) {
+	ent->think = G_FreeEntity;
+	ent->nextthink = level.time + FRAMETIME;
 
-	ent->scriptStatus = ent->scriptStatusBackup;
-	ent->scriptStatus.scriptStackChangeTime = level.time;       // start moves again
-	return qfalse;  // dont continue scripting until next frame
-
-}
-
-/*
-==================
-G_ScriptAction_SetHealth
-==================
-*/
-qboolean G_ScriptAction_SetHealth( gentity_t *ent, char *params ) {
-	if ( !params || !params[0] ) {
-		G_Error( "G_ScriptAction_SetHealth: sethealth requires a health value\n" );
-	}
-	ent->health = atoi( params );
 	return qtrue;
 }

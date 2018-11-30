@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -169,7 +169,7 @@ int Export_BotLibSetup( void ) {
 	botimport.Print( PRT_MESSAGE, "------- BotLib Initialization -------\n" );
 	//
 	botlibglobals.maxclients = (int) LibVarValue( "maxclients", "128" );
-	botlibglobals.maxentities = (int) LibVarValue( "maxentities", "2048" );
+	botlibglobals.maxentities = (int) LibVarValue( "maxentities", "1024" );
 
 	errnum = AAS_Setup();           //be_aas_main.c
 	if ( errnum != BLERR_NOERROR ) {
@@ -185,10 +185,8 @@ int Export_BotLibSetup( void ) {
 //	if (errnum != BLERR_NOERROR) return errnum;
 //	errnum = BotSetupChatAI();		//be_ai_chat.c
 //	if (errnum != BLERR_NOERROR) return errnum;
-	errnum = BotSetupMoveAI();      //be_ai_move.c
-	if ( errnum != BLERR_NOERROR ) {
-		return errnum;
-	}
+//	errnum = BotSetupMoveAI();		//be_ai_move.c
+//	if (errnum != BLERR_NOERROR) return errnum;
 
 	botlibsetup = qtrue;
 	botlibglobals.botlibsetup = qtrue;
@@ -339,7 +337,7 @@ void ElevatorBottomCenter( aas_reachability_t *reach, vec3_t bottomcenter );
 int BotGetReachabilityToGoal( vec3_t origin, int areanum, int entnum,
 							  int lastgoalareanum, int lastareanum,
 							  int *avoidreach, float *avoidreachtimes, int *avoidreachtries,
-							  bot_goal_t *goal, int travelflags );
+							  bot_goal_t *goal, int travelflags, int movetravelflags );
 
 int AAS_PointLight( vec3_t origin, int *red, int *green, int *blue );
 
@@ -355,8 +353,6 @@ int AAS_NearestHideArea( int srcnum, vec3_t origin, int areanum, int enemynum, v
 
 int AAS_FindAttackSpotWithinRange( int srcnum, int rangenum, int enemynum, float rangedist, int travelflags, float *outpos );
 
-qboolean AAS_GetRouteFirstVisPos( vec3_t srcpos, vec3_t destpos, int travelflags, vec3_t retpos );
-
 void AAS_SetAASBlockingEntity( vec3_t absmin, vec3_t absmax, qboolean blocking );
 
 int BotExportTest( int parm0, char *parm1, vec3_t parm2, vec3_t parm3 ) {
@@ -366,7 +362,7 @@ int BotExportTest( int parm0, char *parm1, vec3_t parm2, vec3_t parm3 ) {
 #ifdef DEBUG
 	static int area = -1;
 	static int line[2];
-	int newarea, i, highlightarea, bot_testhidepos, hideposarea, bot_testroutevispos;
+	int newarea, i, highlightarea, bot_testhidepos, hideposarea;
 //	int reachnum;
 	vec3_t eye, forward, right, end, origin;
 //	vec3_t bottomcenter;
@@ -407,49 +403,14 @@ int BotExportTest( int parm0, char *parm1, vec3_t parm2, vec3_t parm3 ) {
 		} //end if
 		AAS_ClearShownPolygons();
 		AAS_ClearShownDebugLines();
-		hideposarea = AAS_NearestHideArea( -1, origin, AAS_PointAreaNum( origin ), 0,
+		hideposarea = AAS_NearestHideArea( 0, origin, AAS_PointAreaNum( origin ), 0,
 										   botlibglobals.goalorigin, botlibglobals.goalareanum, TFL_DEFAULT );
-
-		if ( bot_testhidepos > 1 ) {
-			if ( hideposarea ) {
-				botimport.Print( PRT_MESSAGE, "hidepos (%i) %2.1f %2.1f %2.1f\n",
-								 hideposarea,
-								 ( *aasworld ).areawaypoints[hideposarea][0],
-								 ( *aasworld ).areawaypoints[hideposarea][1],
-								 ( *aasworld ).areawaypoints[hideposarea][2] );
-			} else {
-				botimport.Print( PRT_MESSAGE, "no hidepos found\n" );
-			}
-		}
 
 		//area we are currently in
 		AAS_ShowAreaPolygons( newarea, 1, qtrue );
 		//enemy position
 		AAS_ShowAreaPolygons( botlibglobals.goalareanum, 2, qtrue );
 		//area we should go hide
-		AAS_ShowAreaPolygons( hideposarea, 4, qtrue );
-		return 0;
-	}
-
-	bot_testroutevispos = LibVarGetValue( "bot_testroutevispos" );
-	if ( bot_testroutevispos ) {
-		VectorCopy( parm2, origin );
-		newarea = BotFuzzyPointReachabilityArea( origin );
-		if ( parm0 & 1 ) {
-			botlibglobals.goalareanum = newarea;
-			VectorCopy( origin, botlibglobals.goalorigin );
-			botimport.Print( PRT_MESSAGE, "new enemy position %2.1f %2.1f %2.1f area %d\n",
-							 origin[0], origin[1], origin[2], newarea );
-		} //end if
-		AAS_ClearShownPolygons();
-		AAS_ClearShownDebugLines();
-		AAS_GetRouteFirstVisPos( botlibglobals.goalorigin, origin, TFL_DEFAULT, eye );
-		//area we are currently in
-		AAS_ShowAreaPolygons( newarea, 1, qtrue );
-		//enemy position
-		AAS_ShowAreaPolygons( botlibglobals.goalareanum, 2, qtrue );
-		//area that is visible in path from enemy pos
-		hideposarea = BotFuzzyPointReachabilityArea( eye );
 		AAS_ShowAreaPolygons( hideposarea, 4, qtrue );
 		return 0;
 	}
@@ -748,7 +709,6 @@ static void Init_AAS_Export( aas_export_t *aas ) {
 	aas->AAS_RT_ShowRoute = AAS_RT_ShowRoute;
 	aas->AAS_RT_GetHidePos = AAS_RT_GetHidePos;
 	aas->AAS_FindAttackSpotWithinRange = AAS_FindAttackSpotWithinRange;
-	aas->AAS_GetRouteFirstVisPos = AAS_GetRouteFirstVisPos;
 	aas->AAS_SetAASBlockingEntity = AAS_SetAASBlockingEntity;
 	// done.
 

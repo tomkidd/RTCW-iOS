@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -75,7 +75,8 @@ void CG_BuildSolidList( void ) {
 			continue;
 		}
 
-		if ( ent->eType == ET_ITEM || ent->eType == ET_PUSH_TRIGGER || ent->eType == ET_TELEPORT_TRIGGER ) {
+		if ( ent->eType == ET_ITEM || ent->eType == ET_PUSH_TRIGGER || ent->eType == ET_TELEPORT_TRIGGER
+			 || ent->eType == ET_CONCUSSIVE_TRIGGER || ent->eType == ET_OID_TRIGGER ) { // JPW NERVE
 			cg_triggerEntities[cg_numTriggerEntities] = cent;
 			cg_numTriggerEntities++;
 			continue;
@@ -110,11 +111,6 @@ static void CG_ClipMoveToEntities( const vec3_t start, const vec3_t mins, const 
 		ent = &cent->currentState;
 
 		if ( ent->number == skipNumber ) {
-			continue;
-		}
-
-		// RF, special case, ignore chairs if we are carrying them
-		if ( ent->eType == ET_PROP && ent->otherEntityNum == skipNumber + 1 ) {
 			continue;
 		}
 
@@ -347,6 +343,11 @@ static void CG_TouchItem( centity_t *cent ) {
 		return;
 	}
 
+	// (SA) treasure needs to be activeated, no touch
+	if ( item->giType == IT_TREASURE ) {
+		return;
+	}
+
 	// Special case for flags.
 	// We don't predict touching our own flag
 	if ( cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_RED &&
@@ -370,34 +371,18 @@ static void CG_TouchItem( centity_t *cent ) {
 
 	// if it's a weapon, give them some predicted ammo so the autoswitch will work
 	if ( item->giType == IT_WEAPON ) {
-		int weapon;
-//----(SA)	added
-		weapon = item->giTag;
-
-		if ( weapon == WP_COLT ) {
-			if ( COM_BitCheck( cg.predictedPlayerState.weapons, WP_COLT ) ) {
-				// you got the colt, you gettin' another
-				weapon = WP_AKIMBO;
-			}
-		}
-//----(SA)	end
-
-		COM_BitSet( cg.predictedPlayerState.weapons, weapon );
+		COM_BitSet( cg.predictedPlayerState.weapons, item->giTag );
 
 //----(SA)	added
-		if ( weapon == WP_SNOOPERSCOPE ) {
+		if ( item->giTag == WP_SNOOPERSCOPE ) {
 			COM_BitSet( cg.predictedPlayerState.weapons, WP_GARAND );
-		} else if ( weapon == WP_GARAND ) {
+		} else if ( item->giTag == WP_GARAND ) {
 			COM_BitSet( cg.predictedPlayerState.weapons, WP_SNOOPERSCOPE );
-		} else if ( weapon == WP_FG42 ) {
-			COM_BitSet( cg.predictedPlayerState.weapons, WP_FG42SCOPE );
-		} else if ( weapon == WP_SNIPERRIFLE ) {
-			COM_BitSet( cg.predictedPlayerState.weapons, WP_MAUSER );
 		}
 //----(SA)	end
 
-		if ( !cg.predictedPlayerState.ammo[ BG_FindAmmoForWeapon( weapon )] ) {
-			cg.predictedPlayerState.ammo[ BG_FindAmmoForWeapon( weapon )] = 1;
+		if ( !cg.predictedPlayerState.ammo[ BG_FindAmmoForWeapon( item->giTag )] ) {
+			cg.predictedPlayerState.ammo[ BG_FindAmmoForWeapon( item->giTag )] = 1;
 		}
 	}
 
@@ -407,6 +392,9 @@ static void CG_TouchItem( centity_t *cent ) {
 	}
 //----(SA)	end
 }
+
+void CG_AddDirtBulletParticles( vec3_t origin, vec3_t dir, int speed, int duration, int count, float randScale,
+								float width, float height, float alpha, char *shadername );
 
 
 /*
@@ -423,6 +411,7 @@ static void CG_TouchTriggerPrediction( void ) {
 	clipHandle_t	cmodel;
 	centity_t	*cent;
 	qboolean	spectator;
+	const char      *cs;
 
 	// dead clients don't activate triggers
 	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
@@ -460,9 +449,13 @@ static void CG_TouchTriggerPrediction( void ) {
 			continue;
 		}
 
-		if ( ent->eType == ET_TELEPORT_TRIGGER ) {
+		if ( ent->eType == ET_OID_TRIGGER ) {
+			cs = CG_ConfigString( CS_OID_TRIGGERS + ent->teamNum );
+
+			CG_ObjectivePrint( va( "You are near %s\n", cs ), SMALLCHAR_WIDTH );
+		} else if ( ent->eType == ET_TELEPORT_TRIGGER )   {
 			cg.hyperspace = qtrue;
-		} else {
+		} else if ( ent->eType == ET_PUSH_TRIGGER )   {
 			float s;
 			vec3_t dir;
 
@@ -523,7 +516,7 @@ void CG_PredictPlayerState( void ) {
 	qboolean moved;
 	usercmd_t oldestCmd;
 	usercmd_t latestCmd;
-	vec3_t deltaAngles;
+	vec3_t deltaAngles = { 0 };
 
 	cg.hyperspace = qfalse; // will be set if touching a trigger_teleport
 
@@ -542,15 +535,28 @@ void CG_PredictPlayerState( void ) {
 	}
 
 	// non-predicting local movement will grab the latest angles
-	if ( cg_nopredict.integer || cg_synchronousClients.integer
-		 || ( cg.snap->ps.eFlags & EF_MG42_ACTIVE ) ) { // RF, somewhat of a hack, but just disable prediction if on MG42, since it's just not very prediction friendly
+	if ( cg_nopredict.integer || cg_synchronousClients.integer ) {
 		CG_InterpolatePlayerState( qtrue );
 		return;
 	}
 
 	// prepare for pmove
 	cg_pmove.ps = &cg.predictedPlayerState;
-	cg_pmove.trace = CG_TraceCapsule;
+	cg_pmove.pmext = &cg.pmext;
+
+	// Arnout: are we using an mg42?
+	if ( cg_pmove.ps->eFlags & EF_MG42_ACTIVE ) {
+		cg_pmove.pmext->harc = cg_entities[cg_pmove.ps->viewlocked_entNum].currentState.origin2[0];
+		cg_pmove.pmext->varc = cg_entities[cg_pmove.ps->viewlocked_entNum].currentState.origin2[1];
+		VectorCopy( cg_entities[cg_pmove.ps->viewlocked_entNum].currentState.angles2, cg_pmove.pmext->centerangles );
+		cg_pmove.pmext->centerangles[PITCH] = AngleNormalize180( cg_pmove.pmext->centerangles[PITCH] );
+		cg_pmove.pmext->centerangles[YAW] = AngleNormalize180( cg_pmove.pmext->centerangles[YAW] );
+		cg_pmove.pmext->centerangles[ROLL] = AngleNormalize180( cg_pmove.pmext->centerangles[ROLL] );
+	}
+
+	//DHM - Nerve :: We've gone back to using normal bbox traces
+	//cg_pmove.trace = CG_TraceCapsule;
+	cg_pmove.trace = CG_Trace;
 	cg_pmove.pointcontents = CG_PointContents;
 	if ( cg_pmove.ps->pm_type == PM_DEAD ) {
 		cg_pmove.tracemask = MASK_PLAYERSOLID & ~CONTENTS_BODY;
@@ -620,8 +626,9 @@ void CG_PredictPlayerState( void ) {
 
 //----(SA)	added
 	// restore persistant client-side playerstate variables before doing the pmove
-	// this could be done as suggested in qshared.h ~line 1444, but right now I copy each variable individually
-	cg.predictedPlayerState.weapAnim                = oldPlayerState.weapAnim;
+	// this could be done as suggested in q_shared.h ~line 1404, but right now I copy each variable individually
+	// DHM - Nerve :: weapAnim is transmitted now
+//	cg.predictedPlayerState.weapAnim				= oldPlayerState.weapAnim;
 	cg.predictedPlayerState.weapAnimTimer           = oldPlayerState.weapAnimTimer;
 	cg.predictedPlayerState.venomTime               = oldPlayerState.venomTime;
 //----(SA)	end
@@ -662,7 +669,10 @@ void CG_PredictPlayerState( void ) {
 			vec3_t delta;
 			float len;
 
-			if ( cg.thisFrameTeleport ) {
+			if ( cg_pmove.ps->eFlags & EF_MG42_ACTIVE ) {
+				// no prediction errors here, we're locked in place
+				VectorClear( cg.predictedError );
+			} else if ( cg.thisFrameTeleport )   {
 				// a teleport will not cause an error decay
 				VectorClear( cg.predictedError );
 				if ( cg_showmiss.integer ) {
@@ -672,7 +682,7 @@ void CG_PredictPlayerState( void ) {
 			} else {
 				vec3_t adjusted, new_angles;
 				CG_AdjustPositionForMover( cg.predictedPlayerState.origin,
-				cg.predictedPlayerState.groundEntityNum, cg.physicsTime, cg.oldTime, adjusted, cg.predictedPlayerState.viewangles, new_angles, deltaAngles );
+				cg.predictedPlayerState.groundEntityNum, cg.physicsTime, cg.oldTime, adjusted, cg.predictedPlayerState.viewangles, new_angles);
 				// RF, add the deltaAngles (fixes jittery view while riding trains)
 				cg.predictedPlayerState.delta_angles[YAW] += ANGLE2SHORT( deltaAngles[YAW] );
 
@@ -718,7 +728,7 @@ void CG_PredictPlayerState( void ) {
 		}
 
 		// RF, if waiting for mission stats to go, ignore all input
-		if ( ( cgs.scrFadeAlphaCurrent ) || cg_norender.integer ) {
+		if ( strlen( cg_missionStats.string ) > 1 || cg_norender.integer ) {
 			cg_pmove.cmd.buttons = 0;
 			cg_pmove.cmd.forwardmove = 0;
 			cg_pmove.cmd.rightmove = 0;
@@ -728,10 +738,15 @@ void CG_PredictPlayerState( void ) {
 			cg_pmove.cmd.angles[0] = cg_pmove.oldcmd.angles[0];
 			cg_pmove.cmd.angles[1] = cg_pmove.oldcmd.angles[1];
 			cg_pmove.cmd.angles[2] = cg_pmove.oldcmd.angles[2];
-			if ( cg_pmove.cmd.serverTime - cg.predictedPlayerState.commandTime > 1 ) {
-				cg_pmove.cmd.serverTime = cg.predictedPlayerState.commandTime + 1;
-			}
 		}
+
+		// NERVE - SMF
+		cg_pmove.gametype = cgs.gametype;
+		cg_pmove.ltChargeTime = cg_LTChargeTime.integer;
+		cg_pmove.soldierChargeTime = cg_soldierChargeTime.integer;
+		cg_pmove.engineerChargeTime = cg_engineerChargeTime.integer;
+		cg_pmove.medicChargeTime = cg_medicChargeTime.integer;
+		// -NERVE - SMF
 
 		Pmove( &cg_pmove );
 
@@ -755,7 +770,7 @@ void CG_PredictPlayerState( void ) {
 	// adjust for the movement of the groundentity
 	CG_AdjustPositionForMover( cg.predictedPlayerState.origin,
 		cg.predictedPlayerState.groundEntityNum,
-		cg.physicsTime, cg.time, cg.predictedPlayerState.origin, cg.predictedPlayerState.viewangles, cg.predictedPlayerState.viewangles, deltaAngles );
+		cg.physicsTime, cg.time, cg.predictedPlayerState.origin, cg.predictedPlayerState.viewangles, cg.predictedPlayerState.viewangles);
 
 	// fire events and other transition triggered things
 	CG_TransitionPlayerState( &cg.predictedPlayerState, &oldPlayerState );

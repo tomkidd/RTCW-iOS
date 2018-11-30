@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -43,6 +43,7 @@ int drawTeamOverlayModificationCount = -1;
 //static char teamChat1[256];
 //static char teamChat2[256];
 
+int CG_DrawField( int x, int y, int width, int value, int charWidth, int charHeight, qboolean dodrawpic, qboolean leftAlign );      // NERVE - SMF
 
 void CG_InitTeamChat( void ) {
 #ifdef MISSIONPACK
@@ -148,7 +149,7 @@ int CG_GetSelectedPlayer( void ) {
 
 void CG_SelectNextPlayer( void ) {
 	CG_CheckOrderPending();
-	if ( cg_currentSelectedPlayer.integer >= 0 && cg_currentSelectedPlayer.integer < numSortedTeamPlayers ) {
+	if ( cg_currentSelectedPlayer.integer >= 0 && cg_currentSelectedPlayer.integer <= numSortedTeamPlayers ) {
 		cg_currentSelectedPlayer.integer++;
 	} else {
 		cg_currentSelectedPlayer.integer = 0;
@@ -158,7 +159,7 @@ void CG_SelectNextPlayer( void ) {
 
 void CG_SelectPrevPlayer( void ) {
 	CG_CheckOrderPending();
-	if ( cg_currentSelectedPlayer.integer > 0 && cg_currentSelectedPlayer.integer <= numSortedTeamPlayers ) {
+	if ( cg_currentSelectedPlayer.integer > 0 && cg_currentSelectedPlayer.integer < numSortedTeamPlayers ) {
 		cg_currentSelectedPlayer.integer--;
 	} else {
 		cg_currentSelectedPlayer.integer = numSortedTeamPlayers;
@@ -192,18 +193,19 @@ static void CG_DrawPlayerArmorIcon( rectDef_t *rect, qboolean draw2D ) {
 #endif
 }
 
-static void CG_DrawPlayerArmorValue( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+static void CG_DrawPlayerArmorValue( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
 	char num[16];
 	int value;
 	playerState_t   *ps;
 
 	ps = &cg.snap->ps;
 
-	value = ps->stats[STAT_ARMOR];
-
-	if ( cg_fixedAspect.integer == 2 ) {
-		CG_SetScreenPlacement(PLACE_LEFT, PLACE_BOTTOM);
+	// NERVE - SMF - don't draw armor in wolfMP
+	if ( cgs.gametype >= GT_WOLF ) {
+		return;
 	}
+
+	value = ps->stats[STAT_ARMOR];
 
 	if ( shader ) {
 		trap_R_SetColor( color );
@@ -211,8 +213,8 @@ static void CG_DrawPlayerArmorValue( rectDef_t *rect, int font, float scale, vec
 		trap_R_SetColor( NULL );
 	} else {
 		Com_sprintf( num, sizeof( num ), "%i", value );
-		value = CG_Text_Width( num, font, scale, 0 );
-		CG_Text_Paint( rect->x + ( rect->w - value ) / 2, rect->y + rect->h, font, scale, color, num, 0, 0, textStyle );
+		value = CG_Text_Width( num, scale, 0 );
+		CG_Text_Paint( rect->x + ( rect->w - value ) / 2, rect->y + rect->h, scale, color, num, 0, 0, textStyle );
 	}
 }
 
@@ -236,6 +238,7 @@ static int weapIconDrawSize( int weap ) {
 
 		// weapons to not draw
 	case WP_KNIFE:
+	case WP_KNIFE2:
 		return 0;
 
 		// weapons with 'wide' icons
@@ -246,8 +249,12 @@ static int weapIconDrawSize( int weap ) {
 	case WP_GARAND:
 	case WP_VENOM:
 	case WP_TESLA:
+	case WP_ROCKET_LAUNCHER:
 	case WP_PANZERFAUST:
 	case WP_FLAMETHROWER:
+	case WP_SPEARGUN:
+	case WP_BAR:        //----(SA)	added
+	case WP_BAR2:       //----(SA)	added
 	case WP_FG42:
 	case WP_FG42SCOPE:
 	case WP_SNOOPERSCOPE:
@@ -269,32 +276,23 @@ static void CG_DrawPlayerWeaponIcon( rectDef_t *rect, qboolean drawHighlighted, 
 	int realweap;                   // DHM - Nerve
 	qhandle_t icon;
 	float scale,halfScale;
+// JPW NERVE
+	vec4_t hcolor;
+
+	VectorSet( hcolor,1.f,1.f,1.f );
+	hcolor[3] = cg_hudAlpha.value;
+// jpw
+
 
 	if ( !cg_drawIcons.integer ) {
 		return;
 	}
 
-	if ( cg_fixedAspect.integer == 2 ) {
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement(PLACE_RIGHT, PLACE_BOTTOM);
 	}
 
-	// DHM - Nerve :: special case for WP_CLASS_SPECIAL
-
 	realweap = cg.predictedPlayerState.weapon;
-
-	if ( cgs.gametype == GT_WOLF && realweap == WP_CLASS_SPECIAL ) {
-		switch ( cg.predictedPlayerState.stats[ STAT_PLAYER_CLASS ] ) {
-		case PC_MEDIC:
-			realweap = WP_MEDIC_HEAL;
-			break;
-		case PC_LT:
-			realweap = WP_GRENADE_SMOKE;
-			break;
-		default:
-			break;
-		}
-	}
-	// dhm
 
 	size = weapIconDrawSize( realweap );
 
@@ -314,7 +312,7 @@ static void CG_DrawPlayerWeaponIcon( rectDef_t *rect, qboolean drawHighlighted, 
 	if ( cg.predictedPlayerState.grenadeTimeLeft ) {   // grenades and dynamite set this
 
 		// these time differently
-		if ( realweap == WP_DYNAMITE ) {
+		if ( realweap == WP_DYNAMITE || realweap == WP_DYNAMITE2 ) {
 			if ( ( ( cg.grenLastTime ) % 1000 ) > ( ( cg.predictedPlayerState.grenadeTimeLeft ) % 1000 ) ) {
 				trap_S_StartLocalSound( cgs.media.grenadePulseSound4, CHAN_LOCAL_SOUND );
 			}
@@ -377,6 +375,7 @@ static void CG_DrawPlayerWeaponIcon( rectDef_t *rect, qboolean drawHighlighted, 
 		}
 
 
+		trap_R_SetColor( hcolor ); // JPW NERVE
 		CG_DrawPic( x, y, w, h, icon );
 	}
 }
@@ -428,13 +427,10 @@ CG_DrawCursorHints
 
 ==============
 */
-extern void CG_DrawExitStats( void );
-
 static void CG_DrawCursorhint( rectDef_t *rect ) {
 	float       *color;
 	qhandle_t icon, icon2 = 0;
 	float scale, halfscale;
-	qboolean redbar = qfalse;
 
 	if ( !cg_cursorHints.integer ) {
 		return;
@@ -442,45 +438,144 @@ static void CG_DrawCursorhint( rectDef_t *rect ) {
 
 	CG_CheckForCursorHints();
 
-	icon = cgs.media.hintShaders[cg.cursorHintIcon];
-
 	if ( cg_fixedAspect.integer ) {
 		CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
 	}
 
 	switch ( cg.cursorHintIcon ) {
+
 	case HINT_NONE:
 	case HINT_FORCENONE:
 		icon = 0;
 		break;
+	case HINT_DOOR:
+		icon = cgs.media.doorHintShader;
+		break;
+	case HINT_DOOR_ROTATING:
+		icon = cgs.media.doorRotateHintShader;
+		break;
+	case HINT_DOOR_LOCKED:
+		icon = cgs.media.doorLockHintShader;
+		break;
+	case HINT_DOOR_ROTATING_LOCKED:
+		icon = cgs.media.doorRotateLockHintShader;
+		break;
+	case HINT_MG42:
+		icon = cgs.media.mg42HintShader;
+		break;
+	case HINT_BREAKABLE:
 	case HINT_BREAKABLE_DYNAMITE:
-		icon = cgs.media.hintShaders[HINT_BREAKABLE];
+
+		// DHM - Nerve :: We use HINT_BREAKABLE_DYNAMITE in multiplayer
+		if ( cgs.gametype >= GT_WOLF && cg.cursorHintIcon == HINT_BREAKABLE_DYNAMITE ) {
+			icon = cgs.media.dynamiteHintShader;
+		} else {
+			icon = cgs.media.breakableHintShader;
+		}
+
 		break;
 	case HINT_CHAIR:
+		icon = cgs.media.notUsableHintShader;
+
 		// only show 'pickupable' if you're not armed, or are armed with a single handed weapon
-		if ( cg.predictedPlayerState.weapon && !( WEAPS_ONE_HANDED & ( 1 << ( cg.predictedPlayerState.weapon ) ) ) ) { // (SA) this was backwards
-			icon = cgs.media.hintShaders[HINT_NOACTIVATE];
+		if ( !( cg.predictedPlayerState.weapon ) ||
+			 WEAPS_ONE_HANDED & ( 1 << ( cg.predictedPlayerState.weapon ) )
+			 ) {
+			icon = cgs.media.chairHintShader;
 		}
 		break;
-	case HINT_PLAYER:
-		icon = cgs.media.hintShaders[HINT_NOACTIVATE];
+	case HINT_ALARM:
+		icon = cgs.media.alarmHintShader;
+		break;
+	case HINT_HEALTH:
+		icon = cgs.media.healthHintShader;
+		break;
+	case HINT_TREASURE:
+		icon = cgs.media.treasureHintShader;
+		break;
+	case HINT_KNIFE:
+		icon = cgs.media.knifeHintShader;
+		break;
+	case HINT_LADDER:
+		icon = cgs.media.ladderHintShader;
+		break;
+	case HINT_BUTTON:
+		icon = cgs.media.buttonHintShader;
+		break;
+	case HINT_WATER:
+		icon = cgs.media.waterHintShader;
+		break;
+	case HINT_CAUTION:
+		icon = cgs.media.cautionHintShader;
+		break;
+	case HINT_DANGER:
+		icon = cgs.media.dangerHintShader;
+		break;
+	case HINT_SECRET:
+		icon = cgs.media.secretHintShader;
+		break;
+	case HINT_QUESTION:
+		icon = cgs.media.qeustionHintShader;
+		break;
+	case HINT_EXCLAMATION:
+		icon = cgs.media.exclamationHintShader;
+		break;
+	case HINT_CLIPBOARD:
+		icon = cgs.media.clipboardHintShader;
+		break;
+	case HINT_WEAPON:
+		icon = cgs.media.weaponHintShader;
+		break;
+	case HINT_AMMO:
+		icon = cgs.media.ammoHintShader;
+		break;
+	case HINT_ARMOR:
+		icon = cgs.media.armorHintShader;
+		break;
+	case HINT_POWERUP:
+		icon = cgs.media.powerupHintShader;
+		break;
+	case HINT_HOLDABLE:
+		icon = cgs.media.holdableHintShader;
+		break;
+	case HINT_INVENTORY:
+		icon = cgs.media.inventoryHintShader;
+		break;
+	case HINT_EXIT:
+		icon = cgs.media.exitHintShader;
 		break;
 	case HINT_PLYR_FRIEND:
+		icon = cgs.media.hintPlrFriendShader;
 		break;
-	case HINT_NOEXIT_FAR:
-		redbar = qtrue;     // draw the status bar in red to show that you can't exit yet
-	case HINT_EXIT_FAR:
+	case HINT_PLYR_NEUTRAL:
+		icon = cgs.media.hintPlrNeutralShader;
 		break;
-	case HINT_NOEXIT:
-		redbar = qtrue;     // draw the status bar in red to show that you can't exit yet
-	case HINT_EXIT:
-		cg.exitStatsFade = 250;     // fade /up/ time
-		if ( !cg.exitStatsTime ) {
-			cg.exitStatsTime = cg.time;
-		}
-		CG_DrawExitStats();
+	case HINT_PLYR_ENEMY:
+		icon = cgs.media.hintPlrEnemyShader;
 		break;
+	case HINT_PLYR_UNKNOWN:
+		icon = cgs.media.hintPlrUnknownShader;
+		break;
+
+		// DHM - Nerve :: multiplayer hints
+	case HINT_BUILD:
+		icon = cgs.media.buildHintShader;
+		break;
+	case HINT_DISARM:
+		icon = cgs.media.disarmHintShader;
+		break;
+	case HINT_REVIVE:
+		icon = cgs.media.reviveHintShader;
+		break;
+	case HINT_DYNAMITE:
+		icon = cgs.media.dynamiteHintShader;
+		break;
+		// dhm - end
+
+	case HINT_ACTIVATE:
+	case HINT_PLAYER:
 	default:
+		icon = cgs.media.usableHintShader;
 		break;
 	}
 
@@ -493,8 +588,6 @@ static void CG_DrawCursorhint( rectDef_t *rect ) {
 	color = CG_FadeColor( cg.cursorHintTime, cg.cursorHintFade );
 	if ( !color ) {
 		trap_R_SetColor( NULL );
-		cg.exitStatsTime = 0;   // exit stats will fade up next time they're hit
-		cg.cursorHintIcon = HINT_NONE;  // clear the hint
 		return;
 	}
 
@@ -527,42 +620,12 @@ static void CG_DrawCursorhint( rectDef_t *rect ) {
 	trap_R_SetColor( NULL );
 
 	// draw status bar under the cursor hint
-	if ( cg.cursorHintValue && ( !( cg.time - cg.cursorHintTime ) ) ) {    // don't fade bar out w/ hint icon
-		if ( redbar ) {
-			Vector4Set( color, 1, 0, 0, 0.5f );
-		} else {
-			Vector4Set( color, 0, 0, 1, 0.5f );
-		}
+	if ( cg.cursorHintValue ) {
+		Vector4Set( color, 0, 0, 1, 0.5f );
 		CG_FilledBar( rect->x, rect->y + rect->h + 4, rect->w, 8, color, NULL, NULL, (float)cg.cursorHintValue / 255.0f, 0 );
 	}
 
 }
-
-
-
-/*
-==============
-CG_DrawMessageIcon
-==============
-*/
-//----(SA)	added
-
-static void CG_DrawMessageIcon( rectDef_t *rect ) {
-	int icon;
-
-	if ( !cg_youGotMail.integer ) {
-		return;
-	}
-
-	if ( cg_youGotMail.integer == 2 ) {
-		icon = cgs.media.youGotObjectiveShader;
-	} else {
-		icon = cgs.media.youGotMailShader;
-	}
-
-	CG_DrawPic( rect->x, rect->y, rect->w, rect->h, icon );
-}
-
 
 
 /*
@@ -572,13 +635,15 @@ CG_DrawPlayerAmmoValue
 	1 - clip
 ==============
 */
-static void CG_DrawPlayerAmmoValue( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle, int type ) {
-	char num[16];
-	int value, value2 = 0;
+int CG_DrawFieldWidth( int x, int y, int width, int value, int charWidth, int charHeight );
+
+static void CG_DrawPlayerAmmoValue( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle, int type ) {
+	int ammovalue, clipvalue;
 	centity_t   *cent;
 	playerState_t   *ps;
-	int weap;
+	int weap, startx;
 	qboolean special = qfalse;
+	qboolean skipammo = qfalse;
 
 	cent = &cg_entities[cg.snap->ps.clientNum];
 	ps = &cg.snap->ps;
@@ -589,28 +654,32 @@ static void CG_DrawPlayerAmmoValue( rectDef_t *rect, int font, float scale, vec4
 		return;
 	}
 
-	if ( ps->weaponstate == WEAPON_RELOADING && type != 0 ) {
-		return;
-	}
-
-	if ( cg_fixedAspect.integer == 2 ) {
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement(PLACE_RIGHT, PLACE_BOTTOM);
 	}
 
 	switch ( weap ) {      // some weapons don't draw ammo count text
 	case WP_KNIFE:
-	case WP_CLASS_SPECIAL:              // DHM - Nerve
+	case WP_KNIFE2:
+	case WP_MEDKIT:
+	case WP_PLIERS:
+	case WP_SMOKE_GRENADE:
+	case WP_AMMO:       // JPW NERVE
+	case WP_DYNAMITE:     // JPW NERVE
 		return;
 
 	case WP_AKIMBO:
 		special = qtrue;
 		break;
 
+	case WP_MEDIC_SYRINGE:     // JPW NERVE
 	case WP_GRENADE_LAUNCHER:
 	case WP_GRENADE_PINEAPPLE:
-	case WP_DYNAMITE:
+//	case WP_DYNAMITE:	// JPW NERVE these recharge
+	case WP_DYNAMITE2:
 	case WP_TESLA:
 	case WP_FLAMETHROWER:
+		skipammo = qtrue;
 		if ( type == 0 ) {  // don't draw reserve value, just clip (since these weapons have all their ammo in the clip)
 			return;
 		}
@@ -620,41 +689,52 @@ static void CG_DrawPlayerAmmoValue( rectDef_t *rect, int font, float scale, vec4
 		break;
 	}
 
+	// ammo
+	ammovalue = cg.snap->ps.ammo[BG_FindAmmoForWeapon( weap )];
 
-	if ( type == 0 ) { // ammo
-		value = cg.snap->ps.ammo[BG_FindAmmoForWeapon( weap )];
-	} else {        // clip
-		value = ps->ammoclip[BG_FindClipForWeapon( weap )];
-		if ( special ) {
-			value2 = value;
-			if ( weapAlts[weap] ) {
-				value = ps->ammoclip[weapAlts[weap]];
-			}
-//				value2 = ps->ammoclip[weapAlts[weap]];
+	// clip
+	clipvalue = ps->ammoclip[BG_FindClipForWeapon( weap )];
+	if ( special ) {
+		if ( weapAlts[weap] ) {
+			clipvalue = ps->ammoclip[weapAlts[weap]];
 		}
 	}
 
-	if ( value > -1 ) {
+	// NERVE - SMF
+	if ( !skipammo ) {
+		startx = CG_DrawFieldWidth( rect->x, rect->y, 4, ammovalue, 20 * scale, 32 * scale );
+	} else {
+		startx = 0;
+	}
+
+	if ( ammovalue > -1 && type == 0 ) {
 		if ( shader ) {
 			trap_R_SetColor( color );
 			CG_DrawPic( rect->x, rect->y, rect->w, rect->h, shader );
 			trap_R_SetColor( NULL );
 		} else {
-			Com_sprintf( num, sizeof( num ), "%i", value );
-			value = CG_Text_Width( num, font, scale, 0 );
-			if ( type == 0 ) {
-				// Moved this up a little so it's not on top of the weapon heat bar
-				CG_Text_Paint( -12 + rect->x + ( rect->w - value ) / 2, -15 + rect->y + rect->h, font, scale, color, num, 0, 0, textStyle );
-			} else {
-				CG_Text_Paint( -12 + rect->x + ( rect->w - value ) / 2, rect->y + rect->h, font, scale, color, num, 0, 0, textStyle );
-			}
+			trap_R_SetColor( color );
 
-//			if(special) {	// draw '0' for akimbo guns
-			if ( value2 || ( special && type == 1 ) ) {
-				Com_sprintf( num, sizeof( num ), "%i /", value2 );
-				value = CG_Text_Width( num, font, scale, 0 );
-				CG_Text_Paint( -42 + rect->x + ( rect->w - value ) / 2, rect->y + rect->h, font, scale, color, num, 0, 0, textStyle );
-			}
+			// draw the clip count
+			CG_DrawField( rect->x, rect->y, 4, ammovalue, 20 * scale, 32 * scale, qtrue, qfalse );
+		}
+
+		// draw the slash
+		if ( type == 0 ) {
+			CG_DrawPic( rect->x - startx - 16, rect->y, 16, 28, trap_R_RegisterShader( "gfx/2d/numbers/slash" ) );
+		}
+	}
+
+	if ( clipvalue > -1 && type == 1 ) {
+		if ( shader ) {
+			trap_R_SetColor( color );
+			CG_DrawPic( rect->x, rect->y, rect->w, rect->h, shader );
+			trap_R_SetColor( NULL );
+		} else {
+			trap_R_SetColor( color );
+
+			// draw the clip count
+			CG_DrawField( rect->x - startx, rect->y, 4, clipvalue, 20 * scale, 32 * scale, qtrue, qfalse );
 		}
 	}
 }
@@ -710,7 +790,7 @@ static void CG_DrawPlayerHead( rectDef_t *rect, qboolean draw2D ) {
 	CG_DrawHead( x, rect->y, rect->w, rect->h, cg.snap->ps.clientNum, angles );
 }
 
-static void CG_DrawSelectedPlayerHealth( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+static void CG_DrawSelectedPlayerHealth( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
 	clientInfo_t *ci;
 	int value;
 	char num[16];
@@ -723,13 +803,13 @@ static void CG_DrawSelectedPlayerHealth( rectDef_t *rect, int font, float scale,
 			trap_R_SetColor( NULL );
 		} else {
 			Com_sprintf( num, sizeof( num ), "%i", ci->health );
-			value = CG_Text_Width( num, font, scale, 0 );
-			CG_Text_Paint( rect->x + ( rect->w - value ) / 2, rect->y + rect->h, font, scale, color, num, 0, 0, textStyle );
+			value = CG_Text_Width( num, scale, 0 );
+			CG_Text_Paint( rect->x + ( rect->w - value ) / 2, rect->y + rect->h, scale, color, num, 0, 0, textStyle );
 		}
 	}
 }
 
-static void CG_DrawSelectedPlayerArmor( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+static void CG_DrawSelectedPlayerArmor( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
 	clientInfo_t *ci;
 	int value;
 	char num[16];
@@ -743,8 +823,8 @@ static void CG_DrawSelectedPlayerArmor( rectDef_t *rect, int font, float scale, 
 				trap_R_SetColor( NULL );
 			} else {
 				Com_sprintf( num, sizeof( num ), "%i", ci->armor );
-				value = CG_Text_Width( num, font, scale, 0 );
-				CG_Text_Paint( rect->x + ( rect->w - value ) / 2, rect->y + rect->h, font, scale, color, num, 0, 0, textStyle );
+				value = CG_Text_Width( num, scale, 0 );
+				CG_Text_Paint( rect->x + ( rect->w - value ) / 2, rect->y + rect->h, scale, color, num, 0, 0, textStyle );
 			}
 		}
 	}
@@ -816,37 +896,37 @@ static void CG_DrawPlayerStatus( rectDef_t *rect ) {
 }
 
 
-static void CG_DrawSelectedPlayerName( rectDef_t *rect, int font, float scale, vec4_t color, qboolean voice, int textStyle ) {
+static void CG_DrawSelectedPlayerName( rectDef_t *rect, float scale, vec4_t color, qboolean voice, int textStyle ) {
 	clientInfo_t *ci;
 
 //	ci = cgs.clientinfo + ((voice) ? cgs.currentVoiceClient : sortedTeamPlayers[CG_GetSelectedPlayer()]);
 	ci = cgs.clientinfo + sortedTeamPlayers[CG_GetSelectedPlayer()];
 	if ( ci ) {
-		CG_Text_Paint( rect->x, rect->y + rect->h, font, scale, color, ci->name, 0, 0, textStyle );
+		CG_Text_Paint( rect->x, rect->y + rect->h, scale, color, ci->name, 0, 0, textStyle );
 	}
 }
 
-static void CG_DrawSelectedPlayerLocation( rectDef_t *rect, int font, float scale, vec4_t color, int textStyle ) {
+static void CG_DrawSelectedPlayerLocation( rectDef_t *rect, float scale, vec4_t color, int textStyle ) {
 	clientInfo_t *ci;
 	ci = cgs.clientinfo + sortedTeamPlayers[CG_GetSelectedPlayer()];
 	if ( ci ) {
-		const char *p = CG_ConfigString( CS_LOCATIONS + ci->location );
+		const char *p = CG_TranslateString( CG_ConfigString( CS_LOCATIONS + ci->location ) );
 
 		if ( !p || !*p ) {
 			p = "unknown";
 		}
-		CG_Text_Paint( rect->x, rect->y + rect->h, font, scale, color, p, 0, 0, textStyle );
+		CG_Text_Paint( rect->x, rect->y + rect->h, scale, color, p, 0, 0, textStyle );
 	}
 }
 
-static void CG_DrawPlayerLocation( rectDef_t *rect, int font, float scale, vec4_t color, int textStyle  ) {
+static void CG_DrawPlayerLocation( rectDef_t *rect, float scale, vec4_t color, int textStyle  ) {
 	clientInfo_t *ci = &cgs.clientinfo[cg.snap->ps.clientNum];
 	if ( ci ) {
-		const char *p = CG_ConfigString( CS_LOCATIONS + ci->location );
+		const char *p = CG_TranslateString( CG_ConfigString( CS_LOCATIONS + ci->location ) );
 		if ( !p || !*p ) {
 			p = "unknown";
 		}
-		CG_Text_Paint( rect->x, rect->y + rect->h, font, scale, color, p, 0, 0, textStyle );
+		CG_Text_Paint( rect->x, rect->y + rect->h, scale, color, p, 0, 0, textStyle );
 	}
 }
 
@@ -865,7 +945,7 @@ static void CG_DrawSelectedPlayerWeapon( rectDef_t *rect ) {
 	}
 }
 
-static void CG_DrawPlayerScore( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+static void CG_DrawPlayerScore( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
 	char num[16];
 	int value = cg.snap->ps.persistant[PERS_SCORE];
 
@@ -875,13 +955,14 @@ static void CG_DrawPlayerScore( rectDef_t *rect, int font, float scale, vec4_t c
 		trap_R_SetColor( NULL );
 	} else {
 		Com_sprintf( num, sizeof( num ), "%i", value );
-		value = CG_Text_Width( num, font, scale, 0 );
-		CG_Text_Paint( rect->x + ( rect->w - value ) / 2, rect->y + rect->h, font, scale, color, num, 0, 0, textStyle );
+		value = CG_Text_Width( num, scale, 0 );
+		CG_Text_Paint( rect->x + ( rect->w - value ) / 2, rect->y + rect->h, scale, color, num, 0, 0, textStyle );
 	}
 }
 
 
-static void CG_DrawHoldableItem( rectDef_t *rect, int font, float scale, qboolean draw2D ) {
+static void CG_DrawHoldableItem( rectDef_t *rect, float scale, qboolean draw2D ) {
+/*
 	int	value;
 	gitem_t	*item;
 
@@ -891,14 +972,9 @@ static void CG_DrawHoldableItem( rectDef_t *rect, int font, float scale, qboolea
 		return;
 	}
 
-	if ( cg_fixedAspect.integer == 2 ) {
-		CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
-	}
-
 	value = cg.predictedPlayerState.holdable[cg.holdableSelect];
 
 	if ( value ) {
-//		CG_RegisterItemVisuals( value );
 		CG_RegisterItemVisuals( item - bg_itemlist );
 
 		if ( cg.holdableSelect == HI_WINE ) {
@@ -912,54 +988,10 @@ static void CG_DrawHoldableItem( rectDef_t *rect, int font, float scale, qboolea
 			CG_DrawPic( rect->x, rect->y, rect->w, rect->h, cg_items[item - bg_itemlist].icons[0] );
 		}
 	}
+*/
 }
 
-void flubfoo( void ) {
-	int value;
-	gitem_t *item;
-
-	if ( !cg.holdableSelect ) {
-		return;
-	}
-
-	item    = BG_FindItemForHoldable( cg.holdableSelect );
-
-	if ( !item ) {
-		return;
-	}
-
-	value   = cg.predictedPlayerState.holdable[cg.holdableSelect];
-
-	if ( value ) {
-
-		trap_R_SetColor( NULL );
-
-		CG_RegisterItemVisuals( item - bg_itemlist );
-
-		if ( cg.holdableSelect == HI_WINE ) {
-			if ( value > 3 ) {
-				value = 3;  // 3 stages to icon, just draw full if beyond 'full'
-
-			}
-			//----(SA)	trying smaller text
-			//----(SA)	and off to the right side of the HUD
-//			CG_DrawPic( 100, (SCREEN_HEIGHT-ICON_SIZE)-8, ICON_SIZE/2, ICON_SIZE, cg_items[item - bg_itemlist].icons[2-(value-1)] );
-			CG_DrawPic( 606, 366, 24, 48, cg_items[item - bg_itemlist].icons[2 - ( value - 1 )] );
-
-		} else {
-//			CG_DrawPic( 100, (SCREEN_HEIGHT-ICON_SIZE)-8, ICON_SIZE/2, ICON_SIZE, cg_items[item - bg_itemlist].icons[0] );
-			CG_DrawPic( 606, 366, 24, 48, cg_items[item - bg_itemlist].icons[0] );
-
-		}
-
-		// draw the selection box so it's not just floating in space
-		CG_DrawPic( 606 - 4, 366 - 4, 32, 56, cgs.media.selectShader );
-	}
-}
-
-
-
-static void CG_DrawPlayerItem( rectDef_t *rect, int font, float scale, qboolean draw2D ) {
+static void CG_DrawPlayerItem( rectDef_t *rect, float scale, qboolean draw2D ) {
 	int value;
 	vec3_t origin, angles;
 
@@ -1056,16 +1088,25 @@ static void CG_DrawSelectedPlayerHead( rectDef_t *rect, qboolean draw2D, qboolea
 	}
 }
 
-static void CG_DrawPlayerHealth( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+static void CG_DrawPlayerHealth( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
 	playerState_t   *ps;
 	int value;
-	char num[16];
+	vec4_t color2;
 
 	ps = &cg.snap->ps;
 
-	value = ps->stats[STAT_HEALTH];
+	if ( cgs.gametype >= GT_WOLF && ( ps->pm_flags & PMF_FOLLOW ) ) {
+		value = cgs.clientinfo[ ps->clientNum ].health;
+	} else {
+		value = ps->stats[STAT_HEALTH];
+	}
 
-	if ( cg_fixedAspect.integer == 2 ) {
+	// DHM - Nerve :: Don't show negative health
+	if ( value < 0 ) {
+		value = 0;
+	}
+
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement(PLACE_LEFT, PLACE_BOTTOM);
 	}
 
@@ -1074,13 +1115,35 @@ static void CG_DrawPlayerHealth( rectDef_t *rect, int font, float scale, vec4_t 
 		CG_DrawPic( rect->x, rect->y, rect->w, rect->h, shader );
 		trap_R_SetColor( NULL );
 	} else {
-		Com_sprintf( num, sizeof( num ), "%i", value );
-		value = CG_Text_Width( num, font, scale, 0 );
-		CG_Text_Paint( rect->x + ( rect->w - value ) / 2, rect->y + rect->h, font, scale, color, num, 0, 0, textStyle );
+		trap_R_SetColor( color );
+		CG_DrawField( rect->x, rect->y, 3, value, 20 * scale, 32 * scale, qtrue, qtrue );           // NERVE - SMF
+
+		// DHM - Nerve :: temp display of number of lifes left
+
+		if ( ps->persistant[PERS_RESPAWNS_LEFT] >= 0 ) {
+
+			VectorSet( color2, 1.0f, 1.0f, 1.0f );
+			color2[3] = color[3];
+			trap_R_SetColor( color2 );
+
+			if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
+				CG_DrawPic( rect->x + 92, rect->y - 2, 64, 32, cgs.media.hudAlliedHelmet );
+			} else {
+				CG_DrawPic( rect->x + 92, rect->y - 2, 64, 32, cgs.media.hudAxisHelmet );
+			}
+
+			trap_R_SetColor( color );
+			CG_DrawField( rect->x + 144, rect->y, 3, ps->persistant[PERS_RESPAWNS_LEFT], 20 * scale, 32 * scale, qtrue, qtrue );
+		}
+
+		if ( cgs.clientinfo[cg.snap->ps.clientNum].powerups & ( 1 << PW_INVULNERABLE ) ) {
+			CG_DrawPic( rect->x + 6, rect->y - 44, 36, 36, cgs.media.spawnInvincibleShader );
+		}
+		// dhm
 	}
 }
 
-static void CG_DrawRedScore( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+static void CG_DrawRedScore( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
 	int value;
 	char num[16];
 	if ( cgs.scores1 == SCORE_NOT_PRESENT ) {
@@ -1088,11 +1151,11 @@ static void CG_DrawRedScore( rectDef_t *rect, int font, float scale, vec4_t colo
 	} else {
 		Com_sprintf( num, sizeof( num ), "%i", cgs.scores1 );
 	}
-	value = CG_Text_Width( num, font, scale, 0 );
-	CG_Text_Paint( rect->x + rect->w - value, rect->y + rect->h, font, scale, color, num, 0, 0, textStyle );
+	value = CG_Text_Width( num, scale, 0 );
+	CG_Text_Paint( rect->x + rect->w - value, rect->y + rect->h, scale, color, num, 0, 0, textStyle );
 }
 
-static void CG_DrawBlueScore( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+static void CG_DrawBlueScore( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
 	int value;
 	char num[16];
 
@@ -1101,24 +1164,24 @@ static void CG_DrawBlueScore( rectDef_t *rect, int font, float scale, vec4_t col
 	} else {
 		Com_sprintf( num, sizeof( num ), "%i", cgs.scores2 );
 	}
-	value = CG_Text_Width( num, font, scale, 0 );
-	CG_Text_Paint( rect->x + rect->w - value, rect->y + rect->h, font, scale, color, num, 0, 0, textStyle );
+	value = CG_Text_Width( num, scale, 0 );
+	CG_Text_Paint( rect->x + rect->w - value, rect->y + rect->h, scale, color, num, 0, 0, textStyle );
 }
 
 // FIXME: team name support
-static void CG_DrawRedName( rectDef_t *rect, int font, float scale, vec4_t color, int textStyle ) {
+static void CG_DrawRedName( rectDef_t *rect, float scale, vec4_t color, int textStyle ) {
 #ifdef MISSIONPACK
-	CG_Text_Paint( rect->x, rect->y + rect->h, font, scale, color, cg_redTeamName.string, 0, 0, textStyle );
+	CG_Text_Paint( rect->x, rect->y + rect->h, scale, color, cg_redTeamName.string, 0, 0, textStyle );
 #endif  // #ifdef MISSIONPACK
 }
 
-static void CG_DrawBlueName( rectDef_t *rect, int font, float scale, vec4_t color, int textStyle ) {
+static void CG_DrawBlueName( rectDef_t *rect, float scale, vec4_t color, int textStyle ) {
 #ifdef MISSIONPACK
-	CG_Text_Paint( rect->x, rect->y + rect->h, font, scale, color, cg_blueTeamName.string, 0, 0, textStyle );
+	CG_Text_Paint( rect->x, rect->y + rect->h, scale, color, cg_blueTeamName.string, 0, 0, textStyle );
 #endif  // #ifdef MISSIONPACK
 }
 
-static void CG_DrawBlueFlagName( rectDef_t *rect, int font, float scale, vec4_t color, int textStyle ) {
+static void CG_DrawBlueFlagName( rectDef_t *rect, float scale, vec4_t color, int textStyle ) {
 #ifdef MISSIONPACK
 	int i;
 	for ( i = 0 ; i < cgs.maxclients ; i++ ) {
@@ -1174,7 +1237,7 @@ static void CG_DrawBlueFlagHead( rectDef_t *rect ) {
 #endif  // #ifdef MISSIONPACK
 }
 
-static void CG_DrawRedFlagName( rectDef_t *rect, int font, float scale, vec4_t color, int textStyle ) {
+static void CG_DrawRedFlagName( rectDef_t *rect, float scale, vec4_t color, int textStyle ) {
 #ifdef MISSIONPACK
 	int i;
 	for ( i = 0 ; i < cgs.maxclients ; i++ ) {
@@ -1230,7 +1293,7 @@ static void CG_DrawRedFlagHead( rectDef_t *rect ) {
 #endif  // #ifdef MISSIONPACK
 }
 
-static void CG_HarvesterSkulls( rectDef_t *rect, int font, float scale, vec4_t color, qboolean force2D, int textStyle ) {
+static void CG_HarvesterSkulls( rectDef_t *rect, float scale, vec4_t color, qboolean force2D, int textStyle ) {
 #ifdef MISSIONPACK
 	char num[16];
 	vec3_t origin, angles;
@@ -1246,7 +1309,7 @@ static void CG_HarvesterSkulls( rectDef_t *rect, int font, float scale, vec4_t c
 	}
 
 	Com_sprintf( num, sizeof( num ), "%i", value );
-	value = CG_Text_Width( num, font, scale, 0 );
+	value = CG_Text_Width( num, scale, 0 );
 	CG_Text_Paint( rect->x + ( rect->w - value ), rect->y + rect->h, scale, color, num, 0, 0, textStyle );
 
 	if ( cg_drawIcons.integer ) {
@@ -1320,14 +1383,14 @@ static void CG_DrawTeamColor( rectDef_t *rect, vec4_t color ) {
 }
 
 
-static void CG_DrawAreaHoldable( rectDef_t *rect, int align, float spacing, int font, float scale, vec4_t color ) {
+static void CG_DrawAreaHoldable( rectDef_t *rect, int align, float spacing, float scale, vec4_t color ) {
 }
 
-static void CG_DrawAreaWeapons( rectDef_t *rect, int align, float spacing, int font, float scale, vec4_t color ) {
+static void CG_DrawAreaWeapons( rectDef_t *rect, int align, float spacing, float scale, vec4_t color ) {
 }
 
 
-static void CG_DrawAreaPowerUp( rectDef_t *rect, int align, float spacing, int font, float scale, vec4_t color ) {
+static void CG_DrawAreaPowerUp( rectDef_t *rect, int align, float spacing, float scale, vec4_t color ) {
 	char num[16];
 	int sorted[MAX_POWERUPS];
 	int sortedTime[MAX_POWERUPS];
@@ -1405,7 +1468,7 @@ static void CG_DrawAreaPowerUp( rectDef_t *rect, int align, float spacing, int f
 			CG_DrawPic( r2.x, r2.y, r2.w * .75, r2.h, trap_R_RegisterShader( item->icon ) );
 
 			Com_sprintf( num, sizeof( num ), "%i", sortedTime[i] / 1000 );
-			CG_Text_Paint( r2.x + ( r2.w * .75 ) + 3, r2.y + r2.h, font, scale, color, num, 0, 0, 0 );
+			CG_Text_Paint( r2.x + ( r2.w * .75 ) + 3, r2.y + r2.h, scale, color, num, 0, 0, 0 );
 			*inc += r2.w + spacing;
 		}
 
@@ -1459,7 +1522,12 @@ float CG_GetValue( int ownerDraw, int type ) {
 		return cg.snap->ps.persistant[PERS_SCORE];
 		break;
 	case CG_PLAYER_HEALTH:
-		return ps->stats[STAT_HEALTH];
+		if ( cgs.gametype >= GT_WOLF && ( ps->pm_flags & PMF_FOLLOW ) ) {
+			ci = &cgs.clientinfo[ ps->clientNum ];
+			return ci->health;
+		} else {
+			return ps->stats[STAT_HEALTH];
+		}
 		break;
 	case CG_RED_SCORE:
 		return cgs.scores1;
@@ -1716,16 +1784,16 @@ static void CG_DrawPlayerHasFlag( rectDef_t *rect, qboolean force2D ) {
 #endif  // #ifdef MISSIONPACK
 }
 
-static void CG_DrawAreaSystemChat( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader ) {
-	CG_Text_Paint( rect->x, rect->y + rect->h, font, scale, color, systemChat, 0, 0, 0 );
+static void CG_DrawAreaSystemChat( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader ) {
+	CG_Text_Paint( rect->x, rect->y + rect->h, scale, color, systemChat, 0, 0, 0 );
 }
 
-static void CG_DrawAreaTeamChat( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader ) {
-	CG_Text_Paint( rect->x, rect->y + rect->h, font, scale, color,teamChat1, 0, 0, 0 );
+static void CG_DrawAreaTeamChat( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader ) {
+	CG_Text_Paint( rect->x, rect->y + rect->h, scale, color,teamChat1, 0, 0, 0 );
 }
 
-static void CG_DrawAreaChat( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader ) {
-	CG_Text_Paint( rect->x, rect->y + rect->h, font, scale, color, teamChat2, 0, 0, 0 );
+static void CG_DrawAreaChat( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader ) {
+	CG_Text_Paint( rect->x, rect->y + rect->h, scale, color, teamChat2, 0, 0, 0 );
 }
 
 const char *CG_GetKillerText( void ) {
@@ -1737,30 +1805,30 @@ const char *CG_GetKillerText( void ) {
 }
 
 
-static void CG_DrawKiller( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+static void CG_DrawKiller( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
 	// fragged by ... line
 	if ( cg.killerName[0] ) {
 		int x = rect->x + rect->w / 2;
-		CG_Text_Paint( x - CG_Text_Width( CG_GetKillerText(),font, scale, 0 ) / 2, rect->y + rect->h, font, scale, color, CG_GetKillerText(), 0, 0, textStyle );
+		CG_Text_Paint( x - CG_Text_Width( CG_GetKillerText(), scale, 0 ) / 2, rect->y + rect->h, scale, color, CG_GetKillerText(), 0, 0, textStyle );
 	}
 
 }
 
 
-static void CG_DrawCapFragLimit( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+static void CG_DrawCapFragLimit( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
 	int limit = ( cgs.gametype >= GT_CTF ) ? cgs.capturelimit : cgs.fraglimit;
-	CG_Text_Paint( rect->x, rect->y, font, scale, color, va( "%2i", limit ),0, 0, textStyle );
+	CG_Text_Paint( rect->x, rect->y, scale, color, va( "%2i", limit ),0, 0, textStyle );
 }
 
-static void CG_Draw1stPlace( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+static void CG_Draw1stPlace( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
 	if ( cgs.scores1 != SCORE_NOT_PRESENT ) {
-		CG_Text_Paint( rect->x, rect->y, font, scale, color, va( "%2i", cgs.scores1 ),0, 0, textStyle );
+		CG_Text_Paint( rect->x, rect->y, scale, color, va( "%2i", cgs.scores1 ),0, 0, textStyle );
 	}
 }
 
-static void CG_Draw2ndPlace( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+static void CG_Draw2ndPlace( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
 	if ( cgs.scores2 != SCORE_NOT_PRESENT ) {
-		CG_Text_Paint( rect->x, rect->y, font, scale, color, va( "%2i", cgs.scores2 ),0, 0, textStyle );
+		CG_Text_Paint( rect->x, rect->y, scale, color, va( "%2i", cgs.scores2 ),0, 0, textStyle );
 	}
 }
 
@@ -1782,8 +1850,8 @@ const char *CG_GetGameStatusText( void ) {
 	return s;
 }
 
-static void CG_DrawGameStatus( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
-	CG_Text_Paint( rect->x, rect->y + rect->h, font, scale, color, CG_GetGameStatusText(), 0, 0, textStyle );
+static void CG_DrawGameStatus( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+	CG_Text_Paint( rect->x, rect->y + rect->h, scale, color, CG_GetGameStatusText(), 0, 0, textStyle );
 }
 
 const char *CG_GameTypeString( void ) {
@@ -1804,11 +1872,11 @@ const char *CG_GameTypeString( void ) {
 	}
 	return "";
 }
-static void CG_DrawGameType( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
-	CG_Text_Paint( rect->x, rect->y + rect->h, font, scale, color, CG_GameTypeString(), 0, 0, textStyle );
+static void CG_DrawGameType( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+	CG_Text_Paint( rect->x, rect->y + rect->h, scale, color, CG_GameTypeString(), 0, 0, textStyle );
 }
 
-static void CG_Text_Paint_Limit( float *maxX, float x, float y, int font, float scale, vec4_t color, const char* text, float adjust, int limit ) {
+static void CG_Text_Paint_Limit( float *maxX, float x, float y, float scale, vec4_t color, const char* text, float adjust, int limit ) {
 	int len, count;
 	vec4_t newColor;
 	glyphInfo_t *glyph;
@@ -1817,18 +1885,10 @@ static void CG_Text_Paint_Limit( float *maxX, float x, float y, int font, float 
 		float max = *maxX;
 		float useScale;
 		fontInfo_t *fnt = &cgDC.Assets.textFont;
-		if ( font == UI_FONT_DEFAULT ) {
-			if ( scale <= cg_smallFont.value ) {
-				fnt = &cgDC.Assets.smallFont;
-			} else if ( scale > cg_bigFont.value ) {
-				fnt = &cgDC.Assets.bigFont;
-			}
-		} else if ( font == UI_FONT_BIG ) {
-			fnt = &cgDC.Assets.bigFont;
-		} else if ( font == UI_FONT_SMALL ) {
+		if ( scale <= cg_smallFont.value ) {
 			fnt = &cgDC.Assets.smallFont;
-		} else if ( font == UI_FONT_HANDWRITING ) {
-			fnt = &cgDC.Assets.handwritingFont;
+		} else if ( scale > cg_bigFont.value ) {
+			fnt = &cgDC.Assets.bigFont;
 		}
 		useScale = scale * fnt->glyphScale;
 		trap_R_SetColor( color );
@@ -1847,7 +1907,7 @@ static void CG_Text_Paint_Limit( float *maxX, float x, float y, int font, float 
 				continue;
 			} else {
 				float yadj = useScale * glyph->top;
-				if ( CG_Text_Width( s, font, scale, 1 ) + x > max ) {
+				if ( CG_Text_Width( s, scale, 1 ) + x > max ) {
 					*maxX = 0;
 					break;
 				}
@@ -1875,7 +1935,7 @@ static void CG_Text_Paint_Limit( float *maxX, float x, float y, int font, float 
 
 #define PIC_WIDTH 12
 
-void CG_DrawNewTeamInfo( rectDef_t *rect, float text_x, float text_y, int font, float scale, vec4_t color, qhandle_t shader ) {
+void CG_DrawNewTeamInfo( rectDef_t *rect, float text_x, float text_y, float scale, vec4_t color, qhandle_t shader ) {
 #ifdef MISSIONPACK
 	int xx;
 	float y;
@@ -1893,7 +1953,7 @@ void CG_DrawNewTeamInfo( rectDef_t *rect, float text_x, float text_y, int font, 
 	for ( i = 0; i < count; i++ ) {
 		ci = cgs.clientinfo + sortedTeamPlayers[i];
 		if ( ci->infoValid && ci->team == cg.snap->ps.persistant[PERS_TEAM] ) {
-			len = CG_Text_Width( ci->name, font, scale, 0 );
+			len = CG_Text_Width( ci->name, scale, 0 );
 			if ( len > pwidth ) {
 				pwidth = len;
 			}
@@ -1903,9 +1963,9 @@ void CG_DrawNewTeamInfo( rectDef_t *rect, float text_x, float text_y, int font, 
 	// max location name width
 	lwidth = 0;
 	for ( i = 1; i < MAX_LOCATIONS; i++ ) {
-		p = CG_ConfigString( CS_LOCATIONS + i );
+		p = CG_TranslateString( CG_ConfigString( CS_LOCATIONS + i ) );
 		if ( p && *p ) {
-			len = CG_Text_Width( p, font, scale, 0 );
+			len = CG_Text_Width( p, scale, 0 );
 			if ( len > lwidth ) {
 				lwidth = len;
 			}
@@ -1976,9 +2036,9 @@ void CG_DrawNewTeamInfo( rectDef_t *rect, float text_x, float text_y, int font, 
 
 
 
-			CG_Text_Paint_Limit( &maxx, xx, y + text_y, UI_FONT_DEFAULT, scale, color, ci->name, 0, 0 );
+			CG_Text_Paint_Limit( &maxx, xx, y + text_y, scale, color, ci->name, 0, 0 );
 
-			p = CG_ConfigString( CS_LOCATIONS + ci->location );
+			p = CG_TranslateString( CG_ConfigString( CS_LOCATIONS + ci->location ) );
 			if ( !p || !*p ) {
 				p = "unknown";
 			}
@@ -1986,7 +2046,7 @@ void CG_DrawNewTeamInfo( rectDef_t *rect, float text_x, float text_y, int font, 
 			xx += leftOver / 3 + 2;
 			maxx = rect->w - 4;
 
-			CG_Text_Paint_Limit( &maxx, xx, y + text_y, UI_FONT_DEFAULT, scale, color, p, 0, 0 );
+			CG_Text_Paint_Limit( &maxx, xx, y + text_y, scale, color, p, 0, 0 );
 			y += text_y + 2;
 			if ( y + text_y + 2 > rect->y + rect->h ) {
 				break;
@@ -1998,7 +2058,7 @@ void CG_DrawNewTeamInfo( rectDef_t *rect, float text_x, float text_y, int font, 
 }
 
 
-void CG_DrawTeamSpectators( rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader ) {
+void CG_DrawTeamSpectators( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader ) {
 	if ( cg.spectatorLen ) {
 		float maxX;
 
@@ -2018,7 +2078,7 @@ void CG_DrawTeamSpectators( rectDef_t *rect, int font, float scale, vec4_t color
 			cg.spectatorTime = cg.time + 10;
 			if ( cg.spectatorPaintX <= rect->x + 2 ) {
 				if ( cg.spectatorOffset < cg.spectatorLen ) {
-					cg.spectatorPaintX += CG_Text_Width( &cg.spectatorList[cg.spectatorOffset], font, scale, 1 ) - 1;
+					cg.spectatorPaintX += CG_Text_Width( &cg.spectatorList[cg.spectatorOffset], scale, 1 ) - 1;
 					cg.spectatorOffset++;
 				} else {
 					cg.spectatorOffset = 0;
@@ -2038,10 +2098,10 @@ void CG_DrawTeamSpectators( rectDef_t *rect, int font, float scale, vec4_t color
 		}
 
 		maxX = rect->x + rect->w - 2;
-		CG_Text_Paint_Limit( &maxX, cg.spectatorPaintX, rect->y + rect->h - 3, UI_FONT_DEFAULT, scale, color, &cg.spectatorList[cg.spectatorOffset], 0, 0 );
+		CG_Text_Paint_Limit( &maxX, cg.spectatorPaintX, rect->y + rect->h - 3, scale, color, &cg.spectatorList[cg.spectatorOffset], 0, 0 );
 		if ( cg.spectatorPaintX2 >= 0 ) {
 			float maxX2 = rect->x + rect->w - 2;
-			CG_Text_Paint_Limit( &maxX2, cg.spectatorPaintX2, rect->y + rect->h - 3, UI_FONT_DEFAULT, scale, color, cg.spectatorList, 0, cg.spectatorOffset );
+			CG_Text_Paint_Limit( &maxX2, cg.spectatorPaintX2, rect->y + rect->h - 3, scale, color, cg.spectatorList, 0, cg.spectatorOffset );
 		}
 		if ( cg.spectatorOffset && maxX > 0 ) {
 			// if we have an offset ( we are skipping the first part of the string ) and we fit the string
@@ -2057,7 +2117,7 @@ void CG_DrawTeamSpectators( rectDef_t *rect, int font, float scale, vec4_t color
 
 
 
-void CG_DrawMedal( int ownerDraw, rectDef_t *rect, int font, float scale, vec4_t color, qhandle_t shader ) {
+void CG_DrawMedal( int ownerDraw, rectDef_t *rect, float scale, vec4_t color, qhandle_t shader ) {
 	score_t *score = &cg.scores[cg.selectedScore];
 	float value = 0;
 	char *text = NULL;
@@ -2114,8 +2174,8 @@ void CG_DrawMedal( int ownerDraw, rectDef_t *rect, int font, float scale, vec4_t
 
 	if ( text ) {
 		color[3] = 1.0;
-		value = CG_Text_Width( text, font, scale, 0 );
-		CG_Text_Paint( rect->x + ( rect->w - value ) / 2, rect->y + rect->h + 10, font, scale, color, text, 0, 0, 0 );
+		value = CG_Text_Width( text, scale, 0 );
+		CG_Text_Paint( rect->x + ( rect->w - value ) / 2, rect->y + rect->h + 10, scale, color, text, 0, 0, 0 );
 	}
 	trap_R_SetColor( NULL );
 
@@ -2137,7 +2197,7 @@ void CG_DrawWeapStability( rectDef_t *rect, vec4_t color, int align ) {
 		return;
 	}
 
-	if ( cg_drawSpreadScale.integer == 1 && !( cg.weaponSelect == WP_SNOOPERSCOPE || cg.weaponSelect == WP_SNIPERRIFLE || cg.weaponSelect == WP_FG42SCOPE ) ) {
+	if ( cg_drawSpreadScale.integer == 1 && !( cg.weaponSelect == WP_SNOOPERSCOPE || cg.weaponSelect == WP_SNIPERRIFLE ) ) {
 		// cg_drawSpreadScale of '1' means only draw for scoped weapons, '2' means draw all the time (for debugging)
 		return;
 	}
@@ -2163,7 +2223,7 @@ void CG_DrawWeapHeat( rectDef_t *rect, int align ) {
 		return;
 	}
 
-	if ( cg_fixedAspect.integer == 2 ) {
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement(PLACE_RIGHT, PLACE_BOTTOM);
 	}
 
@@ -2188,11 +2248,9 @@ CG_DrawFatigue
 
 static void CG_DrawFatigue( rectDef_t *rect, vec4_t color, int align ) {
 	vec4_t colorBonus = {1, 1, 0, 0.45f};   // yellow (a little more solid for the 'bonus' stamina)
-	float barFrac;  //, omBarFrac;
 	int flags = 0;
-	float chargeTime;       // DHM - Nerve
 
-	if ( cg_fixedAspect.integer == 2 ) {
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement(PLACE_LEFT, PLACE_BOTTOM);
 	}
 
@@ -2201,14 +2259,44 @@ static void CG_DrawFatigue( rectDef_t *rect, vec4_t color, int align ) {
 		flags |= 1;   // BAR_LEFT (left, when vertical means grow 'up')
 	}
 
-	CG_FilledBar( rect->x, rect->y, rect->w, rect->h, color, NULL, NULL, (float)cg.snap->ps.sprintTime / SPRINTTIME, flags );
+	CG_FilledBar( rect->x, rect->y + 6, rect->w, rect->h * 0.82f, color, NULL, NULL, (float)cg.snap->ps.sprintTime / SPRINTTIME, flags );
 
 	// fill in the left side of the bar with the counter for the nofatigue powerup
 	if ( cg.snap->ps.powerups[PW_NOFATIGUE] ) {
 		CG_FilledBar( rect->x, rect->y, rect->w / 2, rect->h, colorBonus, NULL, NULL, cg.snap->ps.powerups[PW_NOFATIGUE] / BONUSTIME, flags );
 	}
-// JPW NERVE -- added drawWeaponPercent in multiplayer, drawn to left
-	if ( cgs.gametype != GT_SINGLE_PLAYER ) {
+
+	colorBonus[2] = 1.0f;
+	colorBonus[3] = cg_hudAlpha.value;
+	trap_R_SetColor( colorBonus ); // JPW NERVE
+}
+
+// DHM - Nerve
+static void CG_DrawWeapRecharge( rectDef_t *rect, vec4_t color, int align ) {
+	float barFrac;
+	float chargeTime;
+	int weap = 0;
+	int flags = 0;
+	qboolean fade = qfalse;
+	vec4_t bgcolor = {1.0f, 1.0f, 1.0f, 0.25f};
+
+	if ( align != HUD_HORIZONTAL ) {
+		flags |= 4;   // BAR_VERT
+		flags |= 1;   // BAR_LEFT (left, when vertical means grow 'up')
+	}
+	flags |= 16;
+
+// JPW NERVE -- added drawWeaponPercent in multiplayer
+	if ( cgs.gametype >= GT_WOLF ) {
+
+		// DHM - Only draw bar if weapon uses it
+		weap = cg.snap->ps.weapon;
+
+		if ( !( cg.snap->ps.eFlags & EF_ZOOMING ) ) {
+			if ( weap != WP_PANZERFAUST && weap != WP_DYNAMITE && weap != WP_MEDKIT && weap != WP_SMOKE_GRENADE && weap != WP_PLIERS && weap != WP_AMMO ) {
+				fade = qtrue;
+			}
+		}
 
 		if ( cg.snap->ps.stats[ STAT_PLAYER_CLASS ] == PC_ENGINEER ) {
 			chargeTime = cg_engineerChargeTime.value;
@@ -2230,17 +2318,28 @@ static void CG_DrawFatigue( rectDef_t *rect, vec4_t color, int align ) {
 		color[1] = color[2] = barFrac;
 		color[3] = 0.25 + barFrac * 0.5;
 
-		CG_FilledBar( rect->x - rect->w, rect->y, rect->w / 2, rect->h, color, NULL, NULL, barFrac, flags );
+		if ( fade ) {
+			bgcolor[3] *= 0.4f;
+			color[3] *= 0.4;
+		}
+
+		CG_FilledBar( rect->x, rect->y + 6, rect->w, rect->h * 0.84f, color, NULL, bgcolor, barFrac, flags );
+
+		color[1] = color[2] = 1.0f;
+		color[3] = cg_hudAlpha.value;
+		trap_R_SetColor( color );
+//		CG_DrawPic( rect->x, rect->y, rect->w, rect->h, cgs.media.hudSprintBar );
 	}
 // jpw
 }
+// dhm - end
 
 /*
 ==============
 CG_OwnerDraw
 ==============
 */
-void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, int font, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
+void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle ) {
 	rectDef_t rect;
 
 	if ( cg_drawStatus.integer == 0 ) {
@@ -2267,7 +2366,7 @@ void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_
 		CG_DrawPlayerArmorIcon( &rect, qtrue );
 		break;
 	case CG_PLAYER_ARMOR_VALUE:
-		CG_DrawPlayerArmorValue( &rect, font, scale, color, shader, textStyle );
+		CG_DrawPlayerArmorValue( &rect, scale, color, shader, textStyle );
 		break;
 	case CG_PLAYER_AMMO_ICON:
 		CG_DrawPlayerAmmoIcon( &rect, ownerDrawFlags & CG_SHOW_2DONLY );
@@ -2276,18 +2375,13 @@ void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_
 		CG_DrawPlayerAmmoIcon( &rect, qtrue );
 		break;
 	case CG_PLAYER_AMMO_VALUE:
-		CG_DrawPlayerAmmoValue( &rect, font, scale, color, shader, textStyle, 0 );
+		CG_DrawPlayerAmmoValue( &rect, scale, color, shader, textStyle, 0 );
 		break;
 	case CG_CURSORHINT:
 		CG_DrawCursorhint( &rect );
 		break;
-//----(SA)	added
-	case CG_NEWMESSAGE:
-		CG_DrawMessageIcon( &rect );
-		break;
-//----(SA)	end
 	case CG_PLAYER_AMMOCLIP_VALUE:
-		CG_DrawPlayerAmmoValue( &rect, font, scale, color, shader, textStyle, 1 );
+		CG_DrawPlayerAmmoValue( &rect, scale, color, shader, textStyle, 1 );
 		break;
 	case CG_SELECTEDPLAYER_HEAD:
 		CG_DrawSelectedPlayerHead( &rect, ownerDrawFlags & CG_SHOW_2DONLY, qfalse );
@@ -2296,22 +2390,22 @@ void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_
 		CG_DrawSelectedPlayerHead( &rect, ownerDrawFlags & CG_SHOW_2DONLY, qtrue );
 		break;
 	case CG_VOICE_NAME:
-		CG_DrawSelectedPlayerName( &rect, font, scale, color, qtrue, textStyle );
+		CG_DrawSelectedPlayerName( &rect, scale, color, qtrue, textStyle );
 		break;
 	case CG_SELECTEDPLAYER_STATUS:
 		CG_DrawSelectedPlayerStatus( &rect );
 		break;
 	case CG_SELECTEDPLAYER_ARMOR:
-		CG_DrawSelectedPlayerArmor( &rect, font, scale, color, shader, textStyle );
+		CG_DrawSelectedPlayerArmor( &rect, scale, color, shader, textStyle );
 		break;
 	case CG_SELECTEDPLAYER_HEALTH:
-		CG_DrawSelectedPlayerHealth( &rect, font, scale, color, shader, textStyle );
+		CG_DrawSelectedPlayerHealth( &rect, scale, color, shader, textStyle );
 		break;
 	case CG_SELECTEDPLAYER_NAME:
-		CG_DrawSelectedPlayerName( &rect, font, scale, color, qfalse, textStyle );
+		CG_DrawSelectedPlayerName( &rect, scale, color, qfalse, textStyle );
 		break;
 	case CG_SELECTEDPLAYER_LOCATION:
-		CG_DrawSelectedPlayerLocation( &rect, font, scale, color, textStyle );
+		CG_DrawSelectedPlayerLocation( &rect, scale, color, textStyle );
 		break;
 	case CG_SELECTEDPLAYER_WEAPON:
 		CG_DrawSelectedPlayerWeapon( &rect );
@@ -2328,32 +2422,37 @@ void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_
 	case CG_STAMINA:
 		CG_DrawFatigue( &rect, color, align );
 		break;
+		// DHM - Nerve
+	case CG_PLAYER_WEAPON_RECHARGE:
+		CG_DrawWeapRecharge( &rect, color, align );
+		break;
+		// dhm - end
 	case CG_PLAYER_HEAD:
 		CG_DrawPlayerHead( &rect, ownerDrawFlags & CG_SHOW_2DONLY );
 		break;
 	case CG_PLAYER_HOLDABLE:
-		CG_DrawHoldableItem( &rect, font, scale, ownerDrawFlags & CG_SHOW_2DONLY );
+		CG_DrawHoldableItem( &rect, scale, ownerDrawFlags & CG_SHOW_2DONLY );
 		break;
 	case CG_PLAYER_ITEM:
-		CG_DrawPlayerItem( &rect, font, scale, ownerDrawFlags & CG_SHOW_2DONLY );
+		CG_DrawPlayerItem( &rect, scale, ownerDrawFlags & CG_SHOW_2DONLY );
 		break;
 	case CG_PLAYER_SCORE:
-		CG_DrawPlayerScore( &rect, font, scale, color, shader, textStyle );
+		CG_DrawPlayerScore( &rect, scale, color, shader, textStyle );
 		break;
 	case CG_PLAYER_HEALTH:
-		CG_DrawPlayerHealth( &rect, font, scale, color, shader, textStyle );
+		CG_DrawPlayerHealth( &rect, scale, color, shader, textStyle );
 		break;
 	case CG_RED_SCORE:
-		CG_DrawRedScore( &rect, font, scale, color, shader, textStyle );
+		CG_DrawRedScore( &rect, scale, color, shader, textStyle );
 		break;
 	case CG_BLUE_SCORE:
-		CG_DrawBlueScore( &rect, font, scale, color, shader, textStyle );
+		CG_DrawBlueScore( &rect, scale, color, shader, textStyle );
 		break;
 	case CG_RED_NAME:
-		CG_DrawRedName( &rect, font, scale, color, textStyle );
+		CG_DrawRedName( &rect, scale, color, textStyle );
 		break;
 	case CG_BLUE_NAME:
-		CG_DrawBlueName( &rect, font, scale, color, textStyle );
+		CG_DrawBlueName( &rect, scale, color, textStyle );
 		break;
 	case CG_BLUE_FLAGHEAD:
 		CG_DrawBlueFlagHead( &rect );
@@ -2362,7 +2461,7 @@ void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_
 		CG_DrawBlueFlagStatus( &rect, shader );
 		break;
 	case CG_BLUE_FLAGNAME:
-		CG_DrawBlueFlagName( &rect, font, scale, color, textStyle );
+		CG_DrawBlueFlagName( &rect, scale, color, textStyle );
 		break;
 	case CG_RED_FLAGHEAD:
 		CG_DrawRedFlagHead( &rect );
@@ -2371,19 +2470,19 @@ void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_
 		CG_DrawRedFlagStatus( &rect, shader );
 		break;
 	case CG_RED_FLAGNAME:
-		CG_DrawRedFlagName( &rect, font, scale, color, textStyle );
+		CG_DrawRedFlagName( &rect, scale, color, textStyle );
 		break;
 	case CG_HARVESTER_SKULLS:
-		CG_HarvesterSkulls( &rect, font, scale, color, qfalse, textStyle );
+		CG_HarvesterSkulls( &rect, scale, color, qfalse, textStyle );
 		break;
 	case CG_HARVESTER_SKULLS2D:
-		CG_HarvesterSkulls( &rect, font, scale, color, qtrue, textStyle );
+		CG_HarvesterSkulls( &rect, scale, color, qtrue, textStyle );
 		break;
 	case CG_ONEFLAG_STATUS:
 		CG_OneFlagStatus( &rect );
 		break;
 	case CG_PLAYER_LOCATION:
-		CG_DrawPlayerLocation( &rect, font, scale, color, textStyle );
+		CG_DrawPlayerLocation( &rect, scale, color, textStyle );
 		break;
 	case CG_TEAM_COLOR:
 		CG_DrawTeamColor( &rect, color );
@@ -2392,13 +2491,13 @@ void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_
 		CG_DrawCTFPowerUp( &rect );
 		break;
 	case CG_AREA_WEAPON:
-		CG_DrawAreaWeapons( &rect, align, special, font, scale, color );
+		CG_DrawAreaWeapons( &rect, align, special, scale, color );
 		break;
 	case CG_AREA_HOLDABLE:
-		CG_DrawAreaHoldable( &rect, align, special, font, scale, color );
+		CG_DrawAreaHoldable( &rect, align, special, scale, color );
 		break;
 	case CG_AREA_POWERUP:
-		CG_DrawAreaPowerUp( &rect, align, special, font, scale, color );
+		CG_DrawAreaPowerUp( &rect, align, special, scale, color );
 		break;
 	case CG_PLAYER_STATUS:
 		CG_DrawPlayerStatus( &rect );
@@ -2410,22 +2509,22 @@ void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_
 		CG_DrawPlayerHasFlag( &rect, qtrue );
 		break;
 	case CG_AREA_SYSTEMCHAT:
-		CG_DrawAreaSystemChat( &rect, font, scale, color, shader );
+		CG_DrawAreaSystemChat( &rect, scale, color, shader );
 		break;
 	case CG_AREA_TEAMCHAT:
-		CG_DrawAreaTeamChat( &rect, font, scale, color, shader );
+		CG_DrawAreaTeamChat( &rect, scale, color, shader );
 		break;
 	case CG_AREA_CHAT:
-		CG_DrawAreaChat( &rect, font, scale, color, shader );
+		CG_DrawAreaChat( &rect, scale, color, shader );
 		break;
 	case CG_GAME_TYPE:
-		CG_DrawGameType( &rect, font, scale, color, shader, textStyle );
+		CG_DrawGameType( &rect, scale, color, shader, textStyle );
 		break;
 	case CG_GAME_STATUS:
-		CG_DrawGameStatus( &rect, font, scale, color, shader, textStyle );
+		CG_DrawGameStatus( &rect, scale, color, shader, textStyle );
 		break;
 	case CG_KILLER:
-		CG_DrawKiller( &rect, font, scale, color, shader, textStyle );
+		CG_DrawKiller( &rect, scale, color, shader, textStyle );
 		break;
 	case CG_ACCURACY:
 	case CG_ASSISTS:
@@ -2435,24 +2534,24 @@ void CG_OwnerDraw( float x, float y, float w, float h, float text_x, float text_
 	case CG_PERFECT:
 	case CG_GAUNTLET:
 	case CG_CAPTURES:
-		CG_DrawMedal( ownerDraw, &rect, font, scale, color, shader );
+		CG_DrawMedal( ownerDraw, &rect, scale, color, shader );
 		break;
 	case CG_SPECTATORS:
-		CG_DrawTeamSpectators( &rect, font, scale, color, shader );
+		CG_DrawTeamSpectators( &rect, scale, color, shader );
 		break;
 	case CG_TEAMINFO:
 		if ( cg_currentSelectedPlayer.integer == numSortedTeamPlayers ) {
-			CG_DrawNewTeamInfo( &rect, text_x, text_y, font, scale, color, shader );
+			CG_DrawNewTeamInfo( &rect, text_x, text_y, scale, color, shader );
 		}
 		break;
 	case CG_CAPFRAGLIMIT:
-		CG_DrawCapFragLimit( &rect, font, scale, color, shader, textStyle );
+		CG_DrawCapFragLimit( &rect, scale, color, shader, textStyle );
 		break;
 	case CG_1STPLACE:
-		CG_Draw1stPlace( &rect, font, scale, color, shader, textStyle );
+		CG_Draw1stPlace( &rect, scale, color, shader, textStyle );
 		break;
 	case CG_2NDPLACE:
-		CG_Draw2ndPlace( &rect, font, scale, color, shader, textStyle );
+		CG_Draw2ndPlace( &rect, scale, color, shader, textStyle );
 		break;
 	default:
 		break;
@@ -2568,6 +2667,14 @@ void CG_KeyEvent( int key, qboolean down ) {
 			cgs.capturedItem = Display_CaptureItem( cgs.cursorX, cgs.cursorY );
 		}
 	}
+}
+
+// prevent centerview exploits
+qboolean CG_CheckCenterView() {
+	if ( cg.pmext.blockCenterViewTime && cg.time < cg.pmext.blockCenterViewTime ) {
+		return qfalse;
+	}
+	return qtrue;
 }
 
 int CG_ClientNumFromName( const char *p ) {

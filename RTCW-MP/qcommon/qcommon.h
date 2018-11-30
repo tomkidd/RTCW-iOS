@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -39,6 +39,8 @@ If you have questions concerning this license or the applicable additional terms
 #endif
 #endif
 
+//#define	PRE_RELEASE_DEMO
+
 //============================================================================
 
 //
@@ -51,6 +53,7 @@ typedef struct {
 	byte    *data;
 	int maxsize;
 	int cursize;
+	int uncompsize;             // NERVE - SMF - net debugging
 	int readcount;
 	int bit;                    // for bitwise reads and writes
 } msg_t;
@@ -66,7 +69,7 @@ void MSG_Bitstream( msg_t *buf );
 // copy a msg_t in case we need to store it as is for a bit
 // (as I needed this to keep an msg_t from a static var for later use)
 // sets data buffer as MSG_Init does prior to do the copy
-void MSG_Copy(msg_t *buf, byte *data, int length, msg_t *src);
+void MSG_Copy( msg_t *buf, byte *data, int length, msg_t *src );
 
 struct usercmd_s;
 struct entityState_s;
@@ -126,11 +129,6 @@ NET
 ==============================================================
 */
 
-// TTimo: set to 1 to perform net encoding, 0 to drop
-// single player game with no networking doesn't need encoding
-// show_bug.cgi?id=404
-#define DO_NET_ENCODE 0
-
 #define NET_ENABLEV4            0x01
 #define NET_ENABLEV6            0x02
 // if this flag is set, always attempt ipv6 connections instead of ipv4 if a v6 address is found.
@@ -144,7 +142,7 @@ NET
 
 #define MAX_PACKET_USERCMDS     32      // max number of usercmd_t in a packet
 
-#define	MAX_SNAPSHOT_ENTITIES	256
+#define  MAX_SNAPSHOT_ENTITIES  256
 
 #define PORT_ANY            -1
 
@@ -172,6 +170,7 @@ typedef enum {
 } netsrc_t;
 
 #define NET_ADDRSTRMAXLEN 48	// maximum length of an IPv6 address string including trailing '\0'
+
 typedef struct {
 	netadrtype_t type;
 
@@ -184,24 +183,24 @@ typedef struct {
 
 void        NET_Init( void );
 void        NET_Shutdown( void );
-void	    NET_Restart_f( void );
+void		NET_Restart_f( void );
 void        NET_Config( qboolean enableNetworking );
 
-void	    NET_FlushPacketQueue(void);
+void		NET_FlushPacketQueue(void);
 void        NET_SendPacket( netsrc_t sock, int length, const void *data, netadr_t to );
 void		QDECL NET_OutOfBandPrint( netsrc_t net_socket, netadr_t adr, const char *format, ...) __attribute__ ((format (printf, 3, 4)));
-void		QDECL NET_OutOfBandData( netsrc_t sock, netadr_t adr, byte *format, int len );
+void QDECL NET_OutOfBandData( netsrc_t sock, netadr_t adr, byte *format, int len );
 
 qboolean    NET_CompareAdr( netadr_t a, netadr_t b );
-qboolean    NET_CompareBaseAdrMask(netadr_t a, netadr_t b, int netmask);
+qboolean	NET_CompareBaseAdrMask(netadr_t a, netadr_t b, int netmask);
 qboolean    NET_CompareBaseAdr( netadr_t a, netadr_t b );
 qboolean    NET_IsLocalAddress( netadr_t adr );
 const char  *NET_AdrToString( netadr_t a );
-const char  *NET_AdrToStringwPort (netadr_t a);
-int	    NET_StringToAdr ( const char *s, netadr_t *a, netadrtype_t family);
+const char	*NET_AdrToStringwPort (netadr_t a);
+int		NET_StringToAdr ( const char *s, netadr_t *a, netadrtype_t family);
 qboolean    NET_GetLoopPacket( netsrc_t sock, netadr_t *net_from, msg_t *net_message );
-void	    NET_JoinMulticast6(void);
-void	    NET_LeaveMulticast6(void);
+void		NET_JoinMulticast6(void);
+void		NET_LeaveMulticast6(void);
 void        NET_Sleep( int msec );
 
 
@@ -262,8 +261,6 @@ void Netchan_TransmitNextFragment( netchan_t *chan );
 qboolean Netchan_Process( netchan_t *chan, msg_t *msg );
 
 
-
-
 /*
 ==============================================================
 
@@ -272,36 +269,69 @@ PROTOCOL
 ==============================================================
 */
 
-#define	PROTOCOL_VERSION	50
-#define PROTOCOL_LEGACY_VERSION	49
-//#define	PROTOCOL_VERSION	43	// (SA) bump this up
+// sent by the server, printed on connection screen, works for all clients
+// (restrictions: does not handle \n, no more than 256 chars)
+#define PROTOCOL_MISMATCH_ERROR "ERROR: Protocol Mismatch Between Client and Server.\
+The server you are attempting to join is running an incompatible version of the game."
+
+// long version used by the client in diagnostic window
+#define PROTOCOL_MISMATCH_ERROR_LONG "ERROR: Protocol Mismatch Between Client and Server.\n\n\
+The server you attempted to join is running an incompatible version of the game.\n\
+You or the server may be running older versions of the game. Press the auto-update\
+ button if it appears on the Main Menu screen."
+
+#ifndef PRE_RELEASE_DEMO
+// 1.33 - protocol 59
+// 1.4 - protocol 60
+#define	PROTOCOL_VERSION	61
+#define PROTOCOL_LEGACY_VERSION	60
+#define GAMENAME_STRING     "wolfmp"
+#else
+// the demo uses a different protocol version for independant browsing
+  #define   PROTOCOL_LEGACY_VERSION    50  // NERVE - SMF - wolfMP protocol version
+#endif
 
 // maintain a list of compatible protocols for demo playing
 // NOTE: that stuff only works with two digits protocols
 extern int demo_protocols[];
 
-//----(SA)	heh, whoops.  we've been talking to id servers since we got a connection...
-//#define	UPDATE_SERVER_NAME	"update.quake3arena.com"
-//#define MASTER_SERVER_NAME	"master.quake3arena.com"
-//#define	AUTHORIZE_SERVER_NAME	"authorize.quake3arena.com"
-//----(SA)	yes, these are bogus addresses.  I'm guessing these will be set to a machine at Activision or id eventually
+// NERVE - SMF - wolf multiplayer master servers
 #if !defined UPDATE_SERVER_NAME && !defined STANDALONE
-#define UPDATE_SERVER_NAME      "update.gmistudios.com"
+#define UPDATE_SERVER_NAME		"wolfmotd.idsoftware.com"	// 192.246.40.65
 #endif
-// override on command line, config files etc.
+
 #ifndef MASTER_SERVER_NAME
- #define MASTER_SERVER_NAME      "master.gmistudios.com"
+#define MASTER_SERVER_NAME		"wolfmaster.idsoftware.com"	// Official master server
+//#define MASTER_SERVER_NAME		"dpmaster.deathmask.net"
 #endif
 
 #ifndef STANDALONE
 #ifdef USE_AUTHORIZE_SERVER
   #ifndef AUTHORIZE_SERVER_NAME
-    #define	AUTHORIZE_SERVER_NAME	"authorize.gmistudios.com"
+    #define	AUTHORIZE_SERVER_NAME	"wolfauthorize.idsoftware.com"	// Decommissioned
   #endif
   #ifndef PORT_AUTHORIZE
     #define	PORT_AUTHORIZE		27952
   #endif
 #endif
+#endif
+
+//#define AUTOUPDATE_SERVER_NAME	"foobar"
+
+#if !defined AUTOUPDATE_SERVER_NAME && !defined STANDALONE
+// TTimo: allow override for easy dev/testing..
+// see cons -- update_server=myhost
+  #define AUTOUPDATE_SERVER1_NAME   "au2rtcw1.activision.com"            // DHM - Nerve
+  #define AUTOUPDATE_SERVER2_NAME   "au2rtcw2.activision.com"            // DHM - Nerve
+  #define AUTOUPDATE_SERVER3_NAME   "au2rtcw3.activision.com"            // DHM - Nerve
+  #define AUTOUPDATE_SERVER4_NAME   "au2rtcw4.activision.com"            // DHM - Nerve
+  #define AUTOUPDATE_SERVER5_NAME   "au2rtcw5.activision.com"            // DHM - Nerve
+#else
+  #define AUTOUPDATE_SERVER1_NAME   AUTOUPDATE_SERVER_NAME
+  #define AUTOUPDATE_SERVER2_NAME   AUTOUPDATE_SERVER_NAME
+  #define AUTOUPDATE_SERVER3_NAME   AUTOUPDATE_SERVER_NAME
+  #define AUTOUPDATE_SERVER4_NAME   AUTOUPDATE_SERVER_NAME
+  #define AUTOUPDATE_SERVER5_NAME   AUTOUPDATE_SERVER_NAME
 #endif
 
 #define PORT_MASTER         27950
@@ -403,8 +433,6 @@ void	*VM_ExplicitArgPtr( vm_t *vm, intptr_t intValue );
 
 qboolean VM_IsNative( vm_t *vm );
 
-intptr_t VM_Alloc( int size );
-
 // for making block of memory available for passing data to a qvm
 unsigned VM_GetTempMemory( vm_t *vm, int size, const void *initData );
 void VM_FreeTempMemory( vm_t *vm, unsigned qvmPointer, int size, void *outData );
@@ -492,7 +520,7 @@ void    Cmd_ArgvBuffer( int arg, char *buffer, int bufferLength );
 char    *Cmd_Args( void );
 char    *Cmd_ArgsFrom( int arg );
 void    Cmd_ArgsBuffer( char *buffer, int bufferLength );
-char	*Cmd_Cmd (void);
+char    *Cmd_Cmd( void );
 void	Cmd_Args_Sanitize( void );
 // The functions that execute commands get their parameters with these
 // functions. Cmd_Argv () will return an empty string, not a NULL
@@ -600,7 +628,7 @@ char    *Cvar_InfoString_Big( int bit );
 // in their flags ( CVAR_USERINFO, CVAR_SERVERINFO, CVAR_SYSTEMINFO, etc )
 void    Cvar_InfoStringBuffer( int bit, char *buff, int buffsize );
 void Cvar_CheckRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral );
- 
+
 void	Cvar_Restart(qboolean unsetVM);
 void    Cvar_Restart_f( void );
 
@@ -623,7 +651,7 @@ issues.
 ==============================================================
 */
 
-#define BASEGAME "main"
+// #define BASEGAME "main"
 
 // referenced flags
 // these are in loop specific order so don't change the order
@@ -631,16 +659,16 @@ issues.
 #define FS_UI_REF       0x02
 #define FS_CGAME_REF    0x04
 // #define FS_QAGAME_REF   0x08
-// number of id paks that will never be autodownloaded from baseq3
+// number of id paks that will never be autodownloaded from main
 #define NUM_ID_PAKS	6
-#define NUM_SP_PAKS	4
+#define NUM_MP_PAKS	6
 
 #define MAX_FILE_HANDLES    64
 
 #ifdef DEDICATED
 #	define Q3CONFIG_CFG "wolfconfig_server.cfg"
 #else
-#	define Q3CONFIG_CFG "wolfconfig.cfg"
+#	define Q3CONFIG_CFG "wolfconfig_mp.cfg"
 #endif
 
 qboolean FS_Initialized( void );
@@ -652,7 +680,7 @@ qboolean FS_ConditionalRestart(int checksumFeed, qboolean disconnect);
 void    FS_Restart( int checksumFeed );
 // shutdown and restart the filesystem so changes to fs_gamedir can take effect
 
-void FS_AddGameDirectory( const char *path, const char *dir );
+void FS_AddGameDirectory( const char *path, const char *dir, qboolean allowUnzippedDLLs );
 
 char    **FS_ListFiles( const char *directory, const char *extension, int *numfiles );
 // directory should not have either a leading or trailing /
@@ -665,7 +693,7 @@ qboolean FS_FileExists( const char *file );
 
 qboolean FS_CreatePath (char *OSPath);
 
-int FS_FindVM(void **startSearch, char *found, int foundlen, const char *name, int enableDll);
+int FS_FindVM(void **startSearch, char *found, int foundlen, const char *name, qboolean unpure, int enableQvm);
 
 char   *FS_BuildOSPath( const char *base, const char *game, const char *qpath );
 qboolean FS_CompareZipChecksum(const char *zipfile);
@@ -686,11 +714,22 @@ fileHandle_t FS_SV_FOpenFileWrite( const char *filename );
 long		FS_SV_FOpenFileRead( const char *filename, fileHandle_t *fp );
 void    FS_SV_Rename( const char *from, const char *to, qboolean safe );
 long		FS_FOpenFileRead( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
-// if uniqueFILE is true, then a new FILE will be fopened even if the file
-// is found in an already open pak file.  If uniqueFILE is false, you must call
-// FS_FCloseFile instead of fclose, otherwise the pak FILE would be improperly closed
-// It is generally safe to always set uniqueFILE to true, because the majority of
-// file IO goes through FS_ReadFile, which Does The Right Thing already.
+/*
+if uniqueFILE is true, then a new FILE will be fopened even if the file
+is found in an already open pak file.  If uniqueFILE is false, you must call
+FS_FCloseFile instead of fclose, otherwise the pak FILE would be improperly closed
+It is generally safe to always set uniqueFILE to true, because the majority of
+file IO goes through FS_ReadFile, which Does The Right Thing already.
+*/
+/* TTimo
+show_bug.cgi?id=506
+added exclude flag to filter out regular dirs or pack files on demand
+would rather have used FS_FOpenFileRead(..., int filter_flag = 0)
+but that's a C++ construct ..
+*/
+#define FS_EXCLUDE_DIR 0x1
+#define FS_EXCLUDE_PK3 0x2
+int FS_FOpenFileRead_Filtered( const char *qpath, fileHandle_t *file, qboolean uniqueFILE, int filter_flag );
 
 int     FS_FileIsInPAK( const char *filename, int *pChecksum );
 // returns 1 if a file is in the PAK file, otherwise -1
@@ -781,7 +820,17 @@ void	FS_FilenameCompletion( const char *dir, const char *ext,
 const char *FS_GetCurrentGameDir(void);
 qboolean FS_Which(const char *filename, void *searchPath);
 
-void    FS_CopyFileOS(  char *from, char *to ); //DAJ
+char *FS_BuildOSPath( const char *base, const char *game, const char *qpath );
+
+#if !defined( DEDICATED )
+extern int cl_connectedToPureServer;
+qboolean FS_CL_ExtractFromPakFile( void *searchpath, const char *fullpath, const char *filename, const char *cvar_lastVersion );
+#endif
+
+char *FS_ShiftedStrStr( const char *string, const char *substring, int shift );
+char *FS_ShiftStr( const char *string, int shift );
+
+qboolean FS_VerifyPak( const char *pak );
 
 /*
 ==============================================================
@@ -816,8 +865,25 @@ MISC
 */
 
 // centralizing the declarations for cl_cdkey
-// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=470
+// (old code causing buffer overflows)
 extern char cl_cdkey[34];
+
+#ifndef STANDALONE
+void Com_AppendCDKey( const char *filename );
+void Com_ReadCDKey( const char *filename );
+#endif
+
+// returned by Sys_GetProcessorId
+#define CPUID_GENERIC           0           // any unrecognized processor
+
+//#define CPUID_AXP               0x10
+
+//#define CPUID_INTEL_UNSUPPORTED 0x20            // Intel 386/486
+//#define CPUID_INTEL_PENTIUM     0x21            // Intel Pentium or PPro
+//#define CPUID_INTEL_MMX         0x22            // Intel Pentium/MMX or P2/MMX
+//#define CPUID_INTEL_KATMAI      0x23            // Intel Katmai
+
+//#define CPUID_AMD_3DNOW         0x30            // AMD K6 3DNOW!
 
 // returned by Sys_GetProcessorFeatures
 typedef enum
@@ -832,16 +898,17 @@ typedef enum
   CF_ALTIVEC    = 1 << 7
 } cpuFeatures_t;
 
+// TTimo
 // centralized and cleaned, that's the max string you can send to a Com_Printf / Com_DPrintf (above gets truncated)
-#define	MAXPRINTMSG	4096
+#define MAXPRINTMSG 4096
+
 
 typedef enum {
 	// SE_NONE must be zero
 	SE_NONE = 0,		// evTime is still valid
 	SE_KEY,			// evValue is a key code, evValue2 is the down flag
 	SE_CHAR,		// evValue is an ascii char
-    SE_MOUSE,        // evValue and evValue2 are relative signed x / y moves
-    SE_MOUSE_ABS,   // evValue and evValue2 are absolute signed x / y moves
+	SE_MOUSE,		// evValue and evValue2 are relative signed x / y moves
 	SE_JOYSTICK_AXIS,	// evValue is an axis number and evValue2 is the current state (-127 to 127)
 	SE_CONSOLE		// evPtr is a char*
 } sysEventType_t;
@@ -871,7 +938,11 @@ void		Com_GameRestart(int checksumFeed, qboolean disconnect);
 
 int         Com_Milliseconds( void );   // will be journaled properly
 unsigned    Com_BlockChecksum( const void *buffer, int length );
+#if !defined( USE_PBMD5 )
 char		*Com_MD5File(const char *filename, int length, const char *prefix, int prefix_len);
+#else
+char		*Com_PBMD5File( char *key );
+#endif
 int         Com_Filter( char *filter, char *name, int casesensitive );
 int         Com_FilterPath( char *filter, char *name, int casesensitive );
 int         Com_RealTime( qtime_t *qtime );
@@ -881,7 +952,7 @@ void		Com_RunAndTimeServerPacket(netadr_t *evFrom, msg_t *buf);
 qboolean	Com_IsVoipTarget(uint8_t *voipTargets, int voipTargetsSize, int clientNum);
 
 void        Com_StartupVariable( const char *match );
-void        Com_SetRecommended( qboolean vid_restart );
+void        Com_SetRecommended( void );
 // checks for and removes command line "+set var arg" constructs
 // if match is NULL, all set commands will be executed, otherwise
 // only a set with the exact name.  Only used during startup.
@@ -969,10 +1040,21 @@ temp file loading
 #define ZONE_DEBUG
 #endif
 
+#ifdef ZONE_DEBUG
+#define Z_TagMalloc( size, tag )          Z_TagMallocDebug( size, tag, # size, __FILE__, __LINE__ )
+#define Z_Malloc( size )                  Z_MallocDebug( size, # size, __FILE__, __LINE__ )
+#define S_Malloc( size )                  S_MallocDebug( size, # size, __FILE__, __LINE__ )
+void *Z_TagMallocDebug( int size, int tag, char *label, char *file, int line ); // NOT 0 filled memory
+void *Z_MallocDebug( int size, char *label, char *file, int line );         // returns 0 filled memory
+void *S_MallocDebug( int size, char *label, char *file, int line );         // returns 0 filled memory
+#else
 void *Z_TagMalloc( int size, int tag ); // NOT 0 filled memory
 void *Z_Malloc( int size );         // returns 0 filled memory
+void *S_Malloc( int size );         // NOT 0 filled memory only for small allocations
+#endif
 void Z_Free( void *ptr );
 void Z_FreeTags( int tag );
+void Z_LogHeap( void );
 
 void Hunk_Clear( void );
 void Hunk_ClearToMark( void );
@@ -1020,7 +1102,7 @@ void CL_KeyEvent( int key, qboolean down, unsigned time );
 void CL_CharEvent( int key );
 // char events are for field typing, not game control
 
-void CL_MouseEvent(int dx, int dy, int time, qboolean absolute);
+void CL_MouseEvent( int dx, int dy, int time );
 
 void CL_JoystickEvent( int axis, int value, int time );
 
@@ -1039,14 +1121,8 @@ void    CL_ForwardCommandToServer( const char *string );
 // things like godmode, noclip, etc, are commands directed to the server,
 // so when they are typed in at the console, they will need to be forwarded.
 
-
 void CL_CDDialog( void );
 // bring up the "need a cd to play" dialog
-
-//----(SA)	added
-void CL_EndgameMenu( void );
-// bring up the "need a cd to play" dialog
-//----(SA)	end
 
 void CL_FlushMemory( void );
 // dump all memory on an error
@@ -1066,10 +1142,14 @@ void CL_Snd_Shutdown(void);
 void Key_KeynameCompletion( void(*callback)(const char *s) );
 // for keyname autocompletion
 
+#ifndef UPDATE_SERVER
+void CL_CheckAutoUpdate( void );
+// Send a message to auto-update server
+#endif
+
 void Key_WriteBindings( fileHandle_t f );
 // for writing the config files
 
-//void S_ClearSoundBuffer( qboolean killStreaming );  //----(SA)	modified
 void S_ClearSoundBuffer( void );
 // call before filesystem access
 
@@ -1120,14 +1200,11 @@ void *Sys_InitializeCriticalSection( void );
 void Sys_EnterCriticalSection( void *ptr );
 void Sys_LeaveCriticalSection( void *ptr );
 
-// general development dll loading for virtual machine testing
+// FIXME: wants win32 implementation
 char* Sys_GetDLLName( const char *name );
 void	* QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(intptr_t, ...),
 				  intptr_t (QDECL *systemcalls)(intptr_t, ...) );
 void    Sys_UnloadDll( void *dllHandle );
-
-// tkidd: adding back in
-void    Sys_UnloadGame( void );
 
 qboolean Sys_DllExtension( const char *name );
 
@@ -1138,6 +1215,7 @@ void	Sys_Quit (void) __attribute__ ((noreturn));
 char    *Sys_GetClipboardData( void );  // note that this isn't journaled...
 
 void    Sys_Print( const char *msg );
+
 
 // Sys_Milliseconds should only be used for profiling purposes,
 // any game related timing information should come from event timestamps
@@ -1160,7 +1238,7 @@ qboolean	Sys_StringToAdr( const char *s, netadr_t *a, netadrtype_t family );
 qboolean    Sys_IsLANAddress( netadr_t adr );
 void        Sys_ShowIP( void );
 
-FILE	*Sys_FOpen( const char *ospath, const char *mode );
+FILE  *Sys_FOpen( const char *ospath, const char *mode );
 qboolean Sys_Mkdir( const char *path );
 FILE	*Sys_Mkfifo( const char *ospath );
 char    *Sys_Cwd( void );
@@ -1189,6 +1267,17 @@ qboolean Sys_LowPhysicalMemory( void );
 
 void Sys_SetEnv(const char *name, const char *value);
 
+// NOTE TTimo - on win32 the cwd is prepended .. non portable behaviour
+void Sys_StartProcess( char *cmdline, qboolean doexit );            // NERVE - SMF
+void Sys_OpenURL( const char *url, qboolean doexit );                       // NERVE - SMF
+int Sys_GetHighQualityCPU( void );
+
+#ifdef __linux__
+// TTimo only on linux .. maybe on Mac too?
+// will OR with the existing mode (chmod ..+..)
+void Sys_Chmod( char *file, int mode );
+#endif
+
 typedef enum
 {
 	DR_YES = 0,
@@ -1210,13 +1299,6 @@ dialogResult_t Sys_Dialog( dialogType_t type, const char *message, const char *t
 
 void Sys_RemovePIDFile( const char *gamedir );
 void Sys_InitPIDFile( const char *gamedir );
-
-void Sys_StartProcess( char *cmdline, qboolean doexit );            // NERVE - SMF
-// TTimo
-// show_bug.cgi?id=447
-//int Sys_ShellExecute(char *op, char *file, qboolean doexit, char *params, char *dir);	//----(SA) added
-void Sys_OpenURL( char *url, qboolean doexit );                     // NERVE - SMF
-int Sys_GetHighQualityCPU( void );
 
 /* This is based on the Adaptive Huffman algorithm described in Sayood's Data
  * Compression book.  The ranks are not actually stored, but implicitly defined
@@ -1283,3 +1365,4 @@ extern huffman_t clientHuffTables;
 #define DLF_NO_DISCONNECT 8
 
 #endif // _QCOMMON_H_
+

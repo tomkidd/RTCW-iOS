@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -39,6 +39,8 @@ If you have questions concerning this license or the applicable additional terms
 										// GAME BOTH REFERENCE !!!
 
 #define MAX_ENT_CLUSTERS    16
+
+#define MAX_BPS_WINDOW      20          // NERVE - SMF - net debugging
 
 #ifdef USE_VOIP
 #define VOIP_QUEUE_LENGTH 64
@@ -78,7 +80,10 @@ typedef struct {
 	qboolean restarting;                // if true, send configstring changes during SS_LOADING
 	int serverId;                       // changes each server start
 	int restartedServerId;              // serverId before a map_restart
-	int checksumFeed;                   //
+	int checksumFeed;                   // the feed key that we use to compute the pure checksum strings
+	// show_bug.cgi?id=475
+	// the serverId associated with the current checksumFeed (always <= serverId)
+	int checksumFeedServerId;
 	int snapshotCounter;                // incremented for each snapshot built
 	int timeResidual;                   // <= 1000 / sv_frame->value
 	int nextFrameTime;                  // when time > nextFrameTime, process world
@@ -96,7 +101,21 @@ typedef struct {
 	int gameClientSize;                 // will be > sizeof(playerState_t) due to game private data
 
 	int restartTime;
-	int				time;
+	int time;
+
+	// NERVE - SMF - net debugging
+	int bpsWindow[MAX_BPS_WINDOW];
+	int bpsWindowSteps;
+	int bpsTotalBytes;
+	int bpsMaxBytes;
+
+	int ubpsWindow[MAX_BPS_WINDOW];
+	int ubpsTotalBytes;
+	int ubpsMaxBytes;
+
+	float ucompAve;
+	int ucompNum;
+	// -NERVE - SMF
 } server_t;
 
 
@@ -118,31 +137,15 @@ typedef struct {
 
 typedef enum {
 	CS_FREE,        // can be reused for a new connection
-	CS_ZOMBIE,      // client has been disconnected, but don't reuse
-					// connection for a couple seconds
+	CS_ZOMBIE,      // client has been disconnected, but don't reuse connection for a couple seconds
 	CS_CONNECTED,   // has been assigned to a client_t, but no gamestate yet
 	CS_PRIMED,      // gamestate has been sent, but client hasn't sent a usercmd
 	CS_ACTIVE       // client is fully in game
 } clientState_t;
 
-// RF, now using a global string buffer to hold all reliable commands
-//#define	RELIABLE_COMMANDS_MULTI		128
-//#define	RELIABLE_COMMANDS_SINGLE	256		// need more for loadgame situations
-
-#define RELIABLE_COMMANDS_CHARS     384     // we can scale this down from the max of 1024, since not all commands are going to use that many chars
-
-typedef struct {
-	int bufSize;
-	char    *buf;               // actual strings
-	char    **commands;         // pointers to actual strings
-	int     *commandLengths;    // lengths of actual strings
-	//
-	char    *rover;
-} reliableCommands_t;
-
 typedef struct netchan_buffer_s {
-	msg_t           msg;
-	byte            msgBuffer[MAX_MSGLEN];
+	msg_t msg;
+	byte msgBuffer[MAX_MSGLEN];
 #ifdef LEGACY_PROTOCOL
 	char		clientCommandString[MAX_STRING_CHARS];	// valid command string for SV_Netchan_Encode
 #endif
@@ -153,8 +156,7 @@ typedef struct client_s {
 	clientState_t state;
 	char userinfo[MAX_INFO_STRING];                 // name, etc
 
-	//char			reliableCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
-	reliableCommands_t reliableCommands;
+	char reliableCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
 	int reliableSequence;                   // last added reliable message, not necesarily sent or acknowledged yet
 	int reliableAcknowledge;                // last acknowledged reliable message
 	int reliableSent;                       // last sent reliable message, not necesarily acknowledged yet
@@ -187,7 +189,7 @@ typedef struct client_s {
 	int nextReliableTime;               // svs.time when another reliable command will be allowed
 	int lastPacketTime;                 // svs.time when packet was last received
 	int lastConnectTime;                // svs.time when connection started
-	int lastSnapshotTime;		    // svs.time of last sent snapshot
+	int lastSnapshotTime;			// svs.time of last sent snapshot
 	qboolean rateDelayed;               // true if nextSnapshotTime was set based on rate instead of snapshotMsec
 	int timeoutCount;                   // must timeout a few frames in a row so debugging doesn't break
 	clientSnapshot_t frames[PACKET_BACKUP];     // updates can be delta'd from here
@@ -195,7 +197,7 @@ typedef struct client_s {
 	int rate;                           // bytes / second
 	int snapshotMsec;                   // requests a snapshot every snapshotMsec unless rate choked
 	int pureAuthentic;
-
+	qboolean gotCP;  // TTimo - additional flag to distinguish between a bad pure checksum, and no cp command at all
 	netchan_t netchan;
 	// TTimo
 	// queuing outgoing fragmented messages to send them properly, without udp packet bursts
@@ -227,7 +229,7 @@ typedef struct client_s {
 // MAX_CHALLENGES is made large to prevent a denial
 // of service attack that could cycle all of them
 // out before legitimate users connected
-#define	MAX_CHALLENGES	2048
+#define MAX_CHALLENGES  2048
 // Allow a certain amount of challenges to have the same IP address
 // to make it a bit harder to DOS one single IP address from connecting
 // while not allowing a single ip to grab all challenge resources
@@ -242,6 +244,7 @@ typedef struct {
 	int time;                       // time the last packet was sent to the autherize server
 	int pingTime;                   // time the challenge response was sent to client
 	int firstTime;                  // time the adr was first used, for authorize timeout checks
+	int firstPing;                  // Used for min and max ping checks
 	qboolean wasrefused;
 	qboolean connected;
 } challenge_t;
@@ -280,6 +283,25 @@ typedef struct
 	qboolean isexception;
 } serverBan_t;
 
+//================
+// DHM - Nerve
+#ifdef UPDATE_SERVER
+
+typedef struct {
+	char version[MAX_QPATH];
+	char platform[MAX_QPATH];
+	char installer[MAX_QPATH];
+} versionMapping_t;
+
+
+#define MAX_UPDATE_VERSIONS 128
+extern versionMapping_t versionMap[MAX_UPDATE_VERSIONS];
+extern int numVersions;
+// Maps client version to appropriate installer
+
+#endif
+// DHM - Nerve
+
 //=============================================================================
 
 extern serverStatic_t svs;                  // persistant server info across maps
@@ -292,7 +314,11 @@ extern cvar_t  *sv_zombietime;
 extern cvar_t  *sv_rconPassword;
 extern cvar_t  *sv_privatePassword;
 extern cvar_t  *sv_allowDownload;
+extern cvar_t  *sv_friendlyFire;        // NERVE - SMF
+extern cvar_t  *sv_maxlives;            // NERVE - SMF
+extern cvar_t  *sv_tourney;             // NERVE - SMF
 extern cvar_t  *sv_maxclients;
+
 extern cvar_t  *sv_privateClients;
 extern cvar_t  *sv_hostname;
 extern cvar_t  *sv_master[MAX_MASTER_SERVERS];
@@ -311,9 +337,13 @@ extern cvar_t  *sv_maxPing;
 extern cvar_t  *sv_gametype;
 extern cvar_t  *sv_pure;
 extern cvar_t  *sv_floodProtect;
-extern cvar_t  *sv_lanForceRate;
 extern cvar_t  *sv_allowAnonymous;
-extern cvar_t  *sv_banFile;
+extern cvar_t  *sv_lanForceRate;
+extern cvar_t  *sv_onlyVisibleClients;
+
+extern cvar_t *sv_forceNameUniq;
+
+extern	cvar_t	*sv_banFile;
 
 extern	serverBan_t serverBans[SERVER_MAXBANS];
 extern	int serverBansCount;
@@ -323,11 +353,21 @@ extern	cvar_t	*sv_voip;
 extern	cvar_t	*sv_voipProtocol;
 #endif
 
+#if defined ANTIWALLHACK
+extern cvar_t *awh_active;
+extern cvar_t *awh_bbox_horz;
+extern cvar_t *awh_bbox_vert;
+#endif
+
+extern cvar_t  *sv_showAverageBPS;          // NERVE - SMF - net debugging
+
 // Rafael gameskill
 extern cvar_t  *sv_gameskill;
 // done
 
-extern cvar_t  *sv_reloading;   //----(SA)	added
+// TTimo - autodl
+extern cvar_t *sv_dl_maxRate;
+
 
 //===========================================================
 
@@ -363,11 +403,9 @@ void QDECL SV_SendServerCommand( client_t *cl, const char *fmt, ...) __attribute
 void SV_AddOperatorCommands( void );
 void SV_RemoveOperatorCommands( void );
 
-
 void SV_MasterShutdown( void );
 
 int SV_RateMsec(client_t *client);
-
 
 //
 // sv_init.c
@@ -382,12 +420,6 @@ void SV_GetUserinfo( int index, char *buffer, int bufferSize );
 void SV_ChangeMaxClients( void );
 void SV_SpawnServer( char *server, qboolean killBots );
 
-//RF, reliable commands
-char *SV_GetReliableCommand( client_t *cl, int index );
-void SV_FreeAcknowledgedReliableCommands( client_t *cl );
-qboolean SV_AddReliableCommand( client_t *cl, int index, const char *cmd );
-void SV_InitReliableCommandsForClient( client_t *cl, int commands );
-void SV_FreeReliableCommandsForClient( client_t *cl );
 
 
 //
@@ -462,6 +494,16 @@ void BotImport_DebugPolygonDelete( int id );
 
 void SV_BotInitBotLib(void);
 
+#if defined ANTIWALLHACK
+//
+// sv_wallhack.c
+//
+void AWH_Init(void);
+void AWH_RandomizePos(int player, int other);
+int AWH_CanSee(int player, int other);
+int AWH_CanHear(int player, int other);
+#endif
+
 //============================================================
 //
 // high level object sorting to reduce interaction tests
@@ -519,8 +561,8 @@ void SV_ClipToEntity( trace_t *trace, const vec3_t start, const vec3_t mins, con
 //
 // sv_net_chan.c
 //
-void SV_Netchan_Transmit( client_t *client, msg_t *msg );    //int length, const byte *data );
-int SV_Netchan_TransmitNextFragment(client_t *client);
+void SV_Netchan_Transmit( client_t *client, msg_t *msg );
+int SV_Netchan_TransmitNextFragment( client_t *client );
 qboolean SV_Netchan_Process( client_t *client, msg_t *msg );
 
 void SV_Netchan_FreeQueue(client_t *client);

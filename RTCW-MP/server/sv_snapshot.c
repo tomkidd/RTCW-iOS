@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -229,8 +229,7 @@ void SV_UpdateServerCommandsToClient( client_t *client, msg_t *msg ) {
 	for ( i = client->reliableAcknowledge + 1 ; i <= client->reliableSequence ; i++ ) {
 		MSG_WriteByte( msg, svc_serverCommand );
 		MSG_WriteLong( msg, i );
-		//MSG_WriteString( msg, client->reliableCommands[ i & (MAX_RELIABLE_COMMANDS-1) ] );
-		MSG_WriteString( msg, SV_GetReliableCommand( client, i & ( MAX_RELIABLE_COMMANDS - 1 ) ) );
+		MSG_WriteString( msg, client->reliableCommands[ i & ( MAX_RELIABLE_COMMANDS - 1 ) ] );
 	}
 	client->reliableSent = client->reliableSequence;
 }
@@ -292,6 +291,60 @@ static void SV_AddEntToSnapshot( svEntity_t *svEnt, sharedEntity_t *gEnt, snapsh
 	eNums->numSnapshotEntities++;
 }
 
+#if defined ANTIWALLHACK
+static int has_player_sound(int entnum)
+{
+	return 0;
+
+#if 0  // Leaving this code inactive for now
+	int event;
+	sharedEntity_t *ent;
+	playerState_t *ps;
+
+	// check for weapon ready looping sound
+	ps = SV_GameClientNum(entnum);  
+	if ( ps->weapon == WP_FLAMETHROWER )
+		return 1;
+
+	// check for sound event
+	ent = SV_GentityNum(entnum);
+	event = ent->s.event & ~EV_EVENT_BITS;
+	if (event == 0)
+		return 0;
+
+	switch (event)
+	{
+		case EV_FOOTSTEP:
+		case EV_FOOTSTEP_METAL:
+		case EV_FOOTSTEP_WOOD:
+		case EV_FOOTSTEP_GRASS:
+		case EV_FOOTSTEP_GRAVEL:
+		case EV_FOOTSTEP_ROOF:
+		case EV_FOOTSTEP_SNOW:
+		case EV_FOOTSTEP_CARPET:
+		case EV_FOOTSPLASH:
+		case EV_SWIM:
+		case EV_FALL_SHORT:
+		case EV_FALL_MEDIUM:
+		case EV_FALL_FAR:
+		case EV_JUMP:
+		case EV_WATER_TOUCH:
+		case EV_WATER_LEAVE:
+		case EV_WATER_UNDER:
+		case EV_WATER_CLEAR:
+		case EV_CHANGE_WEAPON:
+		case EV_PAIN:
+			return 1;
+			break;
+    
+		default:
+			return 0;
+			break;
+	}
+#endif
+}
+#endif
+
 /*
 ===============
 SV_AddEntitiesVisibleFromPoint
@@ -309,6 +362,10 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 	int leafnum;
 	byte    *clientpvs;
 	byte    *bitvector;
+
+#if defined ANTIWALLHACK
+	sharedEntity_t *client;
+#endif
 
 	// during an error shutdown message we may need to transmit
 	// the shutdown message after the server has shutdown, so
@@ -490,6 +547,31 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 			}
 		}
 
+#if defined ANTIWALLHACK
+		if (e < sv_maxclients->integer)  	// client
+		{
+			if (e == frame->ps.clientNum)
+				continue;
+
+			client = SV_GentityNum(frame->ps.clientNum);
+
+			if (awh_active->integer && ! portal && ! (client->r.svFlags & SVF_BOT) &&
+				(frame->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR) )
+			{
+				if (! AWH_CanSee(frame->ps.clientNum, e))
+				{
+					if (! has_player_sound(e))
+						continue;
+
+					if (! AWH_CanHear(frame->ps.clientNum, e))
+						continue;
+
+					AWH_RandomizePos(frame->ps.clientNum, e);
+				}
+			}
+		}
+#endif
+
 		// add it
 		SV_AddEntToSnapshot( svEnt, ent, eNums );
 
@@ -553,29 +635,12 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	// this is the frame we are creating
 	frame = &client->frames[ client->netchan.outgoingSequence & PACKET_MASK ];
 
-//	// try to use a previous frame as the source for delta compressing the snapshot
-//	if ( client->deltaMessage <= 0 || client->state != CS_ACTIVE ) {
-//		// client is asking for a retransmit
-//		oldframe = NULL;
-//	} else if ( client->netchan.outgoingSequence - client->deltaMessage
-//		>= (PACKET_BACKUP - 3) ) {
-//		// client hasn't gotten a good message through in a long time
-//		Com_DPrintf ("%s: Delta request from out of date packet.\n", client->name);
-//		oldframe = NULL;
-//	} else {
-//		// we have a valid snapshot to delta from
-//		oldframe = &client->frames[ client->deltaMessage & PACKET_MASK ];
-//
-//		// the snapshot's entities may still have rolled off the buffer, though
-//		if ( oldframe->first_entity <= svs.nextSnapshotEntities - svs.numSnapshotEntities ) {
-//			Com_DPrintf ("%s: Delta request from out of date entities.\n", client->name);
-//			oldframe = NULL;
-//		}
-//	}
-
 	// clear everything in this snapshot
 	entityNumbers.numSnapshotEntities = 0;
 	memset( frame->areabits, 0, sizeof( frame->areabits ) );
+
+	// show_bug.cgi?id=62
+	frame->num_entities = 0;
 
 	clent = client->gentity;
 	if ( !clent || client->state == CS_ZOMBIE ) {
@@ -614,7 +679,6 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	// add all the entities directly visible to the eye, which
 	// may include portal entities that merge other viewpoints
 	SV_AddEntitiesVisibleFromPoint( org, frame, &entityNumbers, qfalse, client->netchan.remoteAddress.type == NA_LOOPBACK );
-//	SV_AddEntitiesVisibleFromPoint( org, frame, &entityNumbers, qfalse, oldframe, client->netchan.remoteAddress.type == NA_LOOPBACK );
 
 	// if there were portals visible, there may be out of order entities
 	// in the list which will need to be resorted for the delta compression
@@ -636,6 +700,7 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 		ent = SV_GentityNum( entityNumbers.snapshotEntities[i] );
 		state = &svs.snapshotEntities[svs.nextSnapshotEntities % svs.numSnapshotEntities];
 		*state = ent->s;
+
 		svs.nextSnapshotEntities++;
 		// this should never hit, map should always be restarted first in SV_Frame
 		if ( svs.nextSnapshotEntities >= 0x7FFFFFFE ) {
@@ -701,6 +766,7 @@ Called by SV_SendClientSnapshot and SV_SendClientGameState
 */
 void SV_SendMessageToClient(msg_t *msg, client_t *client)
 {
+
 	// record information about the message
 	client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageSize = msg->cursize;
 	client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageSent = svs.time;
@@ -722,11 +788,6 @@ Also called by SV_FinalMessage
 void SV_SendClientSnapshot( client_t *client ) {
 	byte msg_buf[MAX_MSGLEN];
 	msg_t msg;
-
-	//RF, AI don't need snapshots built
-	if ( client->gentity && client->gentity->r.svFlags & SVF_CASTAI ) {
-		return;
-	}
 
 	// build the snapshot
 	SV_BuildClientSnapshot( client );
@@ -762,6 +823,9 @@ void SV_SendClientSnapshot( client_t *client ) {
 	}
 
 	SV_SendMessageToClient( &msg, client );
+
+	sv.bpsTotalBytes += msg.cursize;            // NERVE - SMF - net debugging
+	sv.ubpsTotalBytes += msg.uncompsize / 8;    // NERVE - SMF - net debugging
 }
 
 
@@ -770,10 +834,14 @@ void SV_SendClientSnapshot( client_t *client ) {
 SV_SendClientMessages
 =======================
 */
-void SV_SendClientMessages(void)
-{
-	int		i;
+
+void SV_SendClientMessages( void ) {
+	int i;
 	client_t    *c;
+	int numclients = 0;         // NERVE - SMF - net debugging
+
+	sv.bpsTotalBytes = 0;       // NERVE - SMF - net debugging
+	sv.ubpsTotalBytes = 0;      // NERVE - SMF - net debugging
 
 	// send a message to each connected client
 	for(i=0; i < sv_maxclients->integer; i++)
@@ -788,6 +856,8 @@ void SV_SendClientMessages(void)
 
 		if(*c->downloadName)
 			continue;		// Client is downloading, don't send snapshots
+
+		numclients++;       // NERVE - SMF - net debugging
 
 		if(c->netchan.unsentFragments || c->netchan_start_queue)
 		{
@@ -812,5 +882,50 @@ void SV_SendClientMessages(void)
 		c->lastSnapshotTime = svs.time;
 		c->rateDelayed = qfalse;
 	}
-}
 
+	// NERVE - SMF - net debugging
+	if ( sv_showAverageBPS->integer && numclients > 0 ) {
+		float ave = 0, uave = 0;
+
+		for ( i = 0; i < MAX_BPS_WINDOW - 1; i++ ) {
+			sv.bpsWindow[i] = sv.bpsWindow[i + 1];
+			ave += sv.bpsWindow[i];
+
+			sv.ubpsWindow[i] = sv.ubpsWindow[i + 1];
+			uave += sv.ubpsWindow[i];
+		}
+
+		sv.bpsWindow[MAX_BPS_WINDOW - 1] = sv.bpsTotalBytes;
+		ave += sv.bpsTotalBytes;
+
+		sv.ubpsWindow[MAX_BPS_WINDOW - 1] = sv.ubpsTotalBytes;
+		uave += sv.ubpsTotalBytes;
+
+		if ( sv.bpsTotalBytes >= sv.bpsMaxBytes ) {
+			sv.bpsMaxBytes = sv.bpsTotalBytes;
+		}
+
+		if ( sv.ubpsTotalBytes >= sv.ubpsMaxBytes ) {
+			sv.ubpsMaxBytes = sv.ubpsTotalBytes;
+		}
+
+		sv.bpsWindowSteps++;
+
+		if ( sv.bpsWindowSteps >= MAX_BPS_WINDOW ) {
+			float comp_ratio;
+
+			sv.bpsWindowSteps = 0;
+
+			ave = ( ave / (float)MAX_BPS_WINDOW );
+			uave = ( uave / (float)MAX_BPS_WINDOW );
+
+			comp_ratio = ( 1 - ave / uave ) * 100.f;
+			sv.ucompAve += comp_ratio;
+			sv.ucompNum++;
+
+			Com_DPrintf( "bpspc(%2.0f) bps(%2.0f) pk(%i) ubps(%2.0f) upk(%i) cr(%2.2f) acr(%2.2f)\n",
+						 ave / (float)numclients, ave, sv.bpsMaxBytes, uave, sv.ubpsMaxBytes, comp_ratio, sv.ucompAve / sv.ucompNum );
+		}
+	}
+	// -NERVE - SMF
+}

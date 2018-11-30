@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -89,32 +89,15 @@ static int R_CullModel( mdcHeader_t *header, trRefEntity_t *ent ) {
 	vec3_t bounds[2];
 	md3Frame_t  *oldFrame, *newFrame;
 	int i;
-	qboolean cullSphere;    //----(SA)	added
-	float radScale;
-
-	cullSphere = qtrue;
-
-
 
 	// compute frame pointers
 	newFrame = ( md3Frame_t * )( ( byte * ) header + header->ofsFrames ) + ent->e.frame;
 	oldFrame = ( md3Frame_t * )( ( byte * ) header + header->ofsFrames ) + ent->e.oldframe;
 
-	radScale = 1.0f;
-
-	if ( ent->e.nonNormalizedAxes ) {
-		cullSphere = qfalse;    // by defalut, cull bounding sphere ONLY if this is not an upscaled entity
-
-		// but allow the radius to be scaled if specified
-//		if(ent->e.reFlags & REFLAG_SCALEDSPHERECULL) {
-//			cullSphere = qtrue;
-//			radScale = ent->e.radius;
-//		}
-	}
-
-	if ( cullSphere ) {
+	// cull bounding sphere ONLY if this is not an upscaled entity
+	if ( !ent->e.nonNormalizedAxes ) {
 		if ( ent->e.frame == ent->e.oldframe ) {
-			switch ( R_CullLocalPointAndRadius( newFrame->localOrigin, newFrame->radius * radScale ) )
+			switch ( R_CullLocalPointAndRadius( newFrame->localOrigin, newFrame->radius ) )
 			{
 			case CULL_OUT:
 				tr.pc.c_sphere_cull_md3_out++;
@@ -132,11 +115,11 @@ static int R_CullModel( mdcHeader_t *header, trRefEntity_t *ent ) {
 		{
 			int sphereCull, sphereCullB;
 
-			sphereCull  = R_CullLocalPointAndRadius( newFrame->localOrigin, newFrame->radius * radScale );
+			sphereCull  = R_CullLocalPointAndRadius( newFrame->localOrigin, newFrame->radius );
 			if ( newFrame == oldFrame ) {
 				sphereCullB = sphereCull;
 			} else {
-				sphereCullB = R_CullLocalPointAndRadius( oldFrame->localOrigin, oldFrame->radius * radScale );
+				sphereCullB = R_CullLocalPointAndRadius( oldFrame->localOrigin, oldFrame->radius );
 			}
 
 			if ( sphereCull == sphereCullB ) {
@@ -158,9 +141,6 @@ static int R_CullModel( mdcHeader_t *header, trRefEntity_t *ent ) {
 	for ( i = 0 ; i < 3 ; i++ ) {
 		bounds[0][i] = oldFrame->bounds[0][i] < newFrame->bounds[0][i] ? oldFrame->bounds[0][i] : newFrame->bounds[0][i];
 		bounds[1][i] = oldFrame->bounds[1][i] > newFrame->bounds[1][i] ? oldFrame->bounds[1][i] : newFrame->bounds[1][i];
-
-		bounds[0][i] *= radScale;   //----(SA)	added
-		bounds[1][i] *= radScale;   //----(SA)	added
 	}
 
 	switch ( R_CullLocalBox( bounds ) )
@@ -197,8 +177,7 @@ static int R_ComputeLOD( trRefEntity_t *ent ) {
 	if ( tr.currentModel->numLods < 2 ) {
 		// model has only 1 LOD level, skip computations and bias
 		lod = 0;
-	}
-	else
+	} else
 	{
 		// multiple LODs exist, so compute projected bounding sphere
 		// and use that as a criteria for selecting LOD
@@ -215,25 +194,25 @@ static int R_ComputeLOD( trRefEntity_t *ent ) {
 		}
 		else
 		{
-			// RF, checked for a forced lowest LOD
-			if ( ent->e.reFlags & REFLAG_FORCE_LOD ) {
-				return ( tr.currentModel->numLods - 1 );
-			}
+		// RF, checked for a forced lowest LOD
+		if ( ent->e.reFlags & REFLAG_FORCE_LOD ) {
+			return ( tr.currentModel->numLods - 1 );
+		}
 
-			frame = ( md3Frame_t * )( ( ( unsigned char * ) tr.currentModel->mdc[0] ) + tr.currentModel->mdc[0]->ofsFrames );
-	
-			frame += ent->e.frame;
-	
-			radius = RadiusFromBounds( frame->bounds[0], frame->bounds[1] );
-	
-			//----(SA)	testing
-			if ( ent->e.reFlags & REFLAG_ORIENT_LOD ) {
-				// right now this is for trees, and pushes the lod distance way in.
-				// this is not the intended purpose, but is helpful for the new
-				// terrain level that has loads of trees
-//				radius = radius/2.0f;
-			}
-			//----(SA)	end
+		frame = ( md3Frame_t * )( ( ( unsigned char * ) tr.currentModel->mdc[0] ) + tr.currentModel->mdc[0]->ofsFrames );
+
+		frame += ent->e.frame;
+
+		radius = RadiusFromBounds( frame->bounds[0], frame->bounds[1] );
+
+		//----(SA)	testing
+		if ( ent->e.reFlags & REFLAG_ORIENT_LOD ) {
+			// right now this is for trees, and pushes the lod distance way in.
+			// this is not the intended purpose, but is helpful for the new
+			// terrain level that has loads of trees
+//			radius = radius/2.0f;
+		}
+		//----(SA)	end
 		}
 
 		if ( ( projectedRadius = ProjectRadius( radius, ent->e.origin ) ) != 0 ) {
@@ -382,36 +361,38 @@ void R_AddMDCSurfaces( trRefEntity_t *ent ) {
 	//
 	surface = ( mdcSurface_t * )( (byte *)header + header->ofsSurfaces );
 	for ( i = 0 ; i < header->numSurfaces ; i++ ) {
-		int j;
-
-//----(SA)	blink will change to be an overlay rather than replacing the head texture.
-//		think of it like batman's mask.  the polygons that have eye texture are duplicated
-//		and the 'lids' rendered with polygonoffset over the top of the open eyes.  this gives
-//		minimal overdraw/alpha blending/texture use without breaking the model and causing seams
-		if ( !Q_stricmp( surface->name, "h_blink" ) ) {
-			if ( !( ent->e.renderfx & RF_BLINK ) ) {
-				surface = ( mdcSurface_t * )( (byte *)surface + surface->ofsEnd );
-				continue;
-			}
-		}
-//----(SA)	end
 
 		if ( ent->e.customShader ) {
 			shader = R_GetShaderByHandle( ent->e.customShader );
 		} else if ( ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins ) {
 			skin_t *skin;
+			int j;
 
 			skin = R_GetSkinByHandle( ent->e.customSkin );
 
 			// match the surface name to something in the skin file
 			shader = tr.defaultShader;
-			for ( j = 0 ; j < skin->numSurfaces ; j++ ) {
-				// the names have both been lowercased
-				if ( !strcmp( skin->surfaces[j].name, surface->name ) ) {
-					shader = skin->surfaces[j].shader;
-					break;
+//----(SA)	added blink
+			if ( ent->e.renderfx & RF_BLINK ) {
+				const char *s = va( "%s_b", surface->name );   // append '_b' for 'blink'
+				for ( j = 0 ; j < skin->numSurfaces ; j++ ) {
+					if ( !strcmp( skin->surfaces[j].name, s ) ) {
+						shader = skin->surfaces[j].shader;
+						break;
+					}
 				}
 			}
+
+			if ( shader == tr.defaultShader ) {    // blink reference in skin was not found
+				for ( j = 0 ; j < skin->numSurfaces ; j++ ) {
+					// the names have both been lowercased
+					if ( !strcmp( skin->surfaces[j].name, surface->name ) ) {
+						shader = skin->surfaces[j].shader;
+						break;
+					}
+				}
+			}
+//----(SA)	end
 		} else if ( surface->numShaders <= 0 ) {
 			shader = tr.defaultShader;
 		} else {
@@ -429,22 +410,20 @@ void R_AddMDCSurfaces( trRefEntity_t *ent ) {
 			 && fogNum == 0
 			 && !( ent->e.renderfx & ( RF_NOSHADOW | RF_DEPTHHACK ) )
 			 && shader->sort == SS_OPAQUE ) {
-// GR - tessellate according to model capabilities
-			R_AddDrawSurf( (void *)surface, tr.shadowShader, 0, qfalse, tr.currentModel->ATI_tess );
+			R_AddDrawSurf( (void *)surface, tr.shadowShader, 0, qfalse );
 		}
 
 		// projection shadows work fine with personal models
 		if ( r_shadows->integer == 3
-			&& fogNum == 0
-			&& (ent->e.renderfx & RF_SHADOW_PLANE )
-			&& shader->sort == SS_OPAQUE ) {
-			R_AddDrawSurf( (void *)surface, tr.projectionShadowShader, 0, qfalse, tr.currentModel->ATI_tess );
+			 && fogNum == 0
+			 && ( ent->e.renderfx & RF_SHADOW_PLANE )
+			 && shader->sort == SS_OPAQUE ) {
+			R_AddDrawSurf( (void *)surface, tr.projectionShadowShader, 0, qfalse );
 		}
 
 		// don't add third_person objects if not viewing through a portal
 		if ( !personalModel ) {
-// GR - tessellate according to model capabilities
-			R_AddDrawSurf( (void *)surface, shader, fogNum, qfalse, tr.currentModel->ATI_tess );
+			R_AddDrawSurf( (void *)surface, shader, fogNum, qfalse );
 		}
 
 		surface = ( mdcSurface_t * )( (byte *)surface + surface->ofsEnd );

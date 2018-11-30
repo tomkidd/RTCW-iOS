@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -111,7 +111,6 @@ field_t fields[] = {
 	{"closespeed",   FOFS( closespeed ),   F_FLOAT},   //----(SA)	added
 	{"target",       FOFS( target ),       F_STRING},
 	{"targetname",   FOFS( targetname ),   F_STRING},
-	{"targetdeath",  FOFS( targetdeath ),      F_STRING}, //----(SA)	added
 	{"message",      FOFS( message ),      F_STRING},
 	{"popup",        FOFS( message ),      F_STRING}, // (SA) mutually exclusive from 'message', but makes the ent more logical for the level designer
 	{"book",     FOFS( message ),      F_STRING}, // (SA) mutually exclusive from 'message', but makes the ent more logical for the level designer
@@ -169,7 +168,7 @@ field_t fields[] = {
 	{"radius",   FOFS( radius ),       F_INT},
 
 	// Ridah, for reloading savegames at correct mission spot
-//	{"missionlevel",	FOFS(missionObjectives),	F_INT},
+	{"missionlevel", FOFS( missionLevel ), F_INT},
 
 	// Rafel
 	{"start_size", FOFS( start_size ), F_INT},
@@ -194,6 +193,7 @@ typedef struct {
 } spawn_t;
 
 void SP_info_player_start( gentity_t *ent );
+void SP_info_player_checkpoint( gentity_t *ent );
 void SP_info_player_deathmatch( gentity_t *ent );
 void SP_info_player_intermission( gentity_t *ent );
 
@@ -224,6 +224,7 @@ void SP_trigger_teleport( gentity_t *ent );
 void SP_trigger_hurt( gentity_t *ent );
 
 //---- (SA) Wolf triggers
+void SP_trigger_concussive_dust( gentity_t *ent ); // JPW NERVE
 void SP_trigger_once( gentity_t *ent );
 //---- done
 
@@ -260,7 +261,6 @@ void SP_misc_vis_dummy_multiple( gentity_t *ent );
 void SP_light( gentity_t *self );
 void SP_info_null( gentity_t *self );
 void SP_info_notnull( gentity_t *self );
-void SP_info_notnull_big( gentity_t *ent );  //----(SA)	added
 void SP_info_camp( gentity_t *self );
 void SP_path_corner( gentity_t *self );
 
@@ -299,11 +299,14 @@ void SP_ai_soldier( gentity_t *ent );
 void SP_ai_american( gentity_t *ent );
 void SP_ai_zombie( gentity_t *ent );
 void SP_ai_warzombie( gentity_t *ent );
+void SP_ai_femzombie( gentity_t *ent );
+void SP_ai_undead( gentity_t *ent );
 void SP_ai_marker( gentity_t *ent );
 void SP_ai_effect( gentity_t *ent );
 void SP_ai_trigger( gentity_t *ent );
 void SP_ai_venom( gentity_t *ent );
 void SP_ai_loper( gentity_t *ent );
+void SP_ai_sealoper( gentity_t *ent );
 void SP_ai_boss_helga( gentity_t *ent );
 void SP_ai_boss_heinrich( gentity_t *ent ); //----(SA)	added
 void SP_ai_eliteguard( gentity_t *ent );
@@ -313,9 +316,11 @@ void SP_ai_stimsoldier_tesla( gentity_t *ent );
 void SP_ai_supersoldier( gentity_t *ent );
 void SP_ai_blackguard( gentity_t *ent );
 void SP_ai_protosoldier( gentity_t *ent );
+void SP_ai_rejectxcreature( gentity_t *ent );
 void SP_ai_frogman( gentity_t *ent );
 void SP_ai_partisan( gentity_t *ent );
 void SP_ai_civilian( gentity_t *ent );
+void SP_ai_chimp( gentity_t *ent ); //----(SA)	added
 // done.
 
 // Rafael particles
@@ -410,9 +415,9 @@ void SP_script_model_med( gentity_t *ent );
 void SP_script_mover( gentity_t *ent );
 void SP_script_multiplayer( gentity_t *ent );         // DHM - Nerve
 
+void SP_misc_mounted_gunner( gentity_t *ent );
 void SP_props_footlocker( gentity_t *self );
 void SP_misc_firetrails( gentity_t *ent );
-void SP_misc_tagemitter( gentity_t *ent );   //----(SA)	added
 void SP_trigger_deathCheck( gentity_t *ent );
 void SP_misc_spawner( gentity_t *ent );
 void SP_props_decor_Scale( gentity_t *ent );
@@ -421,12 +426,11 @@ spawn_t spawns[] = {
 	// info entities don't do anything at all, but provide positional
 	// information for things controlled by other processes
 	{"info_player_start", SP_info_player_start},
+	{"info_player_checkpoint", SP_info_player_checkpoint},
 	{"info_player_deathmatch", SP_info_player_deathmatch},
 	{"info_player_intermission", SP_info_player_intermission},
 	{"info_null", SP_info_null},
-	{"info_notnull", SP_info_notnull},
-	{"info_notnull_big", SP_info_notnull_big},   //----(SA)	added
-
+	{"info_notnull", SP_info_notnull},       // use target_position instead
 	{"info_camp", SP_info_camp},
 
 	{"func_plat", SP_func_plat},
@@ -468,6 +472,7 @@ spawn_t spawns[] = {
 	{"trigger_hurt", SP_trigger_hurt},
 
 	//---- (SA) Wolf triggers
+	{"trigger_concussive_dust", SP_trigger_concussive_dust}, // JPW NERVE
 	{"trigger_once",     SP_trigger_once},
 	//---- done
 
@@ -529,9 +534,8 @@ spawn_t spawns[] = {
 	{"misc_mg42", SP_mg42},
 	// done.
 	{"misc_flak", SP_misc_flak},
+	{"misc_mounted_gunner",SP_misc_mounted_gunner},
 	{"misc_firetrails", SP_misc_firetrails},
-
-	{"misc_tagemitter", SP_misc_tagemitter}, //----(SA)	added
 
 	{"shooter_rocket", SP_shooter_rocket},
 	{"shooter_grenade", SP_shooter_grenade},
@@ -567,8 +571,11 @@ spawn_t spawns[] = {
 	{"ai_american", SP_ai_american},
 	{"ai_zombie", SP_ai_zombie},
 	{"ai_warzombie", SP_ai_warzombie},
+	{"ai_femzombie", SP_ai_femzombie},
+	{"ai_undead", SP_ai_undead},
 	{"ai_venom", SP_ai_venom},
 	{"ai_loper", SP_ai_loper},
+	{"ai_sealoper", SP_ai_sealoper},
 	{"ai_boss_helga", SP_ai_boss_helga},
 	{"ai_boss_heinrich", SP_ai_boss_heinrich},   //----(SA)
 	{"ai_eliteguard", SP_ai_eliteguard},
@@ -577,10 +584,12 @@ spawn_t spawns[] = {
 	{"ai_stimsoldier_tesla", SP_ai_stimsoldier_tesla},
 	{"ai_supersoldier", SP_ai_supersoldier},
 	{"ai_protosoldier", SP_ai_protosoldier},
+	{"ai_rejectxcreature", SP_ai_rejectxcreature},
 	{"ai_frogman", SP_ai_frogman},
 	{"ai_blackguard", SP_ai_blackguard},
 	{"ai_partisan", SP_ai_partisan},
 	{"ai_civilian", SP_ai_civilian},
+	{"ai_chimp", SP_ai_chimp},   //----(SA)	added
 
 
 	{"ai_marker", SP_ai_marker},
@@ -695,7 +704,7 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 		if ( !strcmp( item->classname, ent->classname ) ) {
 			// found it
 			// DHM - Nerve :: allow flags in GTWOLF
-			if ( item->giType == IT_TEAM && ( g_gametype.integer != GT_CTF && g_gametype.integer != GT_WOLF ) ) {
+			if ( item->giType == IT_TEAM && ( g_gametype.integer != GT_CTF && g_gametype.integer < GT_WOLF ) ) {
 				return qfalse;
 			}
 			G_SpawnItem( ent, item );
@@ -807,7 +816,6 @@ void G_ParseField( const char *key, const char *value, gentity_t *ent ) {
 	}
 }
 
-
 #define ADJUST_AREAPORTAL() \
 	if(ent->s.eType == ET_MOVER) \
 	{ \
@@ -865,7 +873,6 @@ void G_SpawnGEntityFromSpawnVars( void ) {
 
 	// if we didn't get a classname, don't bother spawning anything
 	if ( !G_CallSpawn( ent ) ) {
-		ADJUST_AREAPORTAL();
 		G_FreeEntity( ent );
 	}
 }
@@ -883,7 +890,7 @@ char *G_AddSpawnVarToken( const char *string ) {
 
 	l = strlen( string );
 	if ( level.numSpawnVarChars + l + 1 > MAX_SPAWN_VARS_CHARS ) {
-		G_Error( "G_AddSpawnVarToken: MAX_SPAWN_VARS_CHARS" );
+		G_Error( "G_AddSpawnVarToken: MAX_SPAWN_VARS" );
 	}
 
 	dest = level.spawnVarChars + level.numSpawnVarChars;
@@ -951,8 +958,7 @@ qboolean G_ParseSpawnVars( void ) {
 }
 
 
-
-/*QUAKED worldspawn (0 0 0) ? sun_cameraflare
+/*QUAKED worldspawn (0 0 0) ? NO_GT_WOLF NO_STOPWATCH NO_CHECKPOINT
 
 Every map should have exactly one worldspawn.
 "music"     Music wav file
@@ -987,7 +993,9 @@ void SP_worldspawn( void ) {
 	G_SpawnString( "gravity", "800", &s );
 	trap_Cvar_Set( "g_gravity", s );
 
-	// (SA) FIXME: todo: sun shader set for worldspawn
+	G_SpawnString( "spawnflags", "0", &s );
+	g_entities[ENTITYNUM_WORLD].spawnflags = atoi( s );
+	g_entities[ENTITYNUM_WORLD].r.worldflags = g_entities[ENTITYNUM_WORLD].spawnflags;
 
 	g_entities[ENTITYNUM_WORLD].s.number = ENTITYNUM_WORLD;
 	g_entities[ENTITYNUM_WORLD].r.ownerNum = ENTITYNUM_NONE;
@@ -1007,7 +1015,10 @@ void SP_worldspawn( void ) {
 // JPW NERVE change minigun overheat time for single player -- this array gets reloaded every time the server is reset,
 // so this is as good a place as any to do stuff like this
 	if ( g_gametype.integer != GT_SINGLE_PLAYER ) {
+		int i;
 		ammoTable[WP_VENOM].maxHeat *= 0.25;
+		for ( i = 0; i < strlen( testid2 ); i++ )
+			testid2[i] -= ( i + 1 );
 		ammoTable[WP_DYNAMITE].uses = 0; // regens based on recharge time
 		// reset ammo for subs to be distinct for multiplayer (so running out of rifle ammo doesn't deplete sidearm)
 		// if player runs out of SMG ammunition, it shouldn't *also* deplete pistol ammunition.  If you change this, change
@@ -1016,8 +1027,16 @@ void SP_worldspawn( void ) {
 		item->giAmmoIndex = WP_THOMPSON;
 		item = BG_FindItem( "Sten" );
 		item->giAmmoIndex = WP_STEN;
+		for ( i = 0; i < strlen( testid1 ); i++ )
+			testid1[i] -= ( i + 1 );
 		item = BG_FindItem( "MP40" );
 		item->giAmmoIndex = WP_MP40;
+		ammoTable[WP_VENOM_FULL].nextShotTime = 500;
+		for ( i = 0; i < strlen( testid3 ); i++ )
+			testid3[i] -= ( i + 1 );
+		ammoTable[WP_PANZERFAUST].fireDelayTime = 750;
+		item = BG_FindItem( "Panzerfaust" ); // FIXME this don't work needs to go "sooner" different (shoulder-fired) panzerfaust model, 'cause the SP one is awful stubby and not proportionally right
+		item->world_model[4] = "models/multiplayer/panzerfaust/multi_pf.md3";
 	}
 // jpw
 

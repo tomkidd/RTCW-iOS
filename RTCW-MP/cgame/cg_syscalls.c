@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -204,20 +204,13 @@ void    trap_S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t
 	syscall( CG_S_ADDLOOPINGSOUND, entityNum, origin, velocity, range, sfx, volume );     // volume was previously removed from CG_S_ADDLOOPINGSOUND.  I added 'range'
 }
 
-// not in use
-//void    trap_S_AddRealLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume ) {
-//	syscall( CG_S_ADDREALLOOPINGSOUND, entityNum, origin, velocity, range, sfx, volume );	//----(SA)	modified
-//}
+void    trap_S_AddRealLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume ) {
+	syscall( CG_S_ADDREALLOOPINGSOUND, entityNum, origin, velocity, range, sfx, volume );
+}
 
 void    trap_S_StopLoopingSound( int entityNum ) {
 	syscall( CG_S_STOPLOOPINGSOUND, entityNum );
 }
-
-//----(SA)	added
-void    trap_S_StopStreamingSound( int entityNum ) {
-	syscall( CG_S_STOPSTREAMINGSOUND, entityNum );
-}
-//----(SA)	end
 
 void    trap_S_UpdateEntityPosition( int entityNum, const vec3_t origin ) {
 	syscall( CG_S_UPDATEENTITYPOSITION, entityNum, origin );
@@ -238,19 +231,9 @@ sfxHandle_t trap_S_RegisterSound( const char *sample ) {
 	return syscall( CG_S_REGISTERSOUND, sample );
 }
 
-void    trap_S_StartBackgroundTrack( const char *intro, const char *loop, int fadeupTime ) {
-	syscall( CG_S_STARTBACKGROUNDTRACK, intro, loop, fadeupTime );
+void    trap_S_StartBackgroundTrack( const char *intro, const char *loop ) {
+	syscall( CG_S_STARTBACKGROUNDTRACK, intro, loop );
 }
-
-//----(SA)	added
-void    trap_S_FadeBackgroundTrack( float targetvol, int time, int num ) {   // yes, i know.  fadebackground coming in, fadestreaming going out.  will have to see where functionality leads...
-	syscall( CG_S_FADESTREAMINGSOUND, PASSFLOAT( targetvol ), time, num ); // 'num' is '0' if it's music, '1' if it's "all streaming sounds"
-}
-
-void    trap_S_FadeAllSound( float targetvol, int time ) {
-	syscall( CG_S_FADEALLSOUNDS, PASSFLOAT( targetvol ), time );
-}
-//----(SA)	end
 
 void    trap_S_StartStreamingSound( const char *intro, const char *loop, int entnum, int channel, int attenuation ) {
 	syscall( CG_S_STARTSTREAMINGSOUND, intro, loop, entnum, channel, attenuation );
@@ -310,10 +293,6 @@ void    trap_R_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t
 void    trap_R_AddPolysToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int numPolys ) {
 	syscall( CG_R_ADDPOLYSTOSCENE, hShader, numVerts, verts, numPolys );
 }
-
-void    trap_RB_ZombieFXAddNewHit( int entityNum, const vec3_t hitPos, const vec3_t hitDir ) {
-	syscall( CG_RB_ZOMBIEFXADDNEWHIT, entityNum, hitPos, hitDir );
-}
 // done.
 
 void    trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b, int overdraw ) {
@@ -321,8 +300,8 @@ void    trap_R_AddLightToScene( const vec3_t org, float intensity, float r, floa
 }
 
 //----(SA)
-void    trap_R_AddCoronaToScene( const vec3_t org, float r, float g, float b, float scale, int id, int flags ) {
-	syscall( CG_R_ADDCORONATOSCENE, org, PASSFLOAT( r ), PASSFLOAT( g ), PASSFLOAT( b ), PASSFLOAT( scale ), id, flags );
+void    trap_R_AddCoronaToScene( const vec3_t org, float r, float g, float b, float scale, int id, qboolean visible ) {
+	syscall( CG_R_ADDCORONATOSCENE, org, PASSFLOAT( r ), PASSFLOAT( g ), PASSFLOAT( b ), PASSFLOAT( scale ), id, visible );
 }
 //----(SA)
 
@@ -342,6 +321,11 @@ void    trap_R_SetColor( const float *rgba ) {
 void    trap_R_DrawStretchPic( float x, float y, float w, float h,
 							   float s1, float t1, float s2, float t2, qhandle_t hShader ) {
 	syscall( CG_R_DRAWSTRETCHPIC, PASSFLOAT( x ), PASSFLOAT( y ), PASSFLOAT( w ), PASSFLOAT( h ), PASSFLOAT( s1 ), PASSFLOAT( t1 ), PASSFLOAT( s2 ), PASSFLOAT( t2 ), hShader );
+}
+
+void    trap_R_DrawRotatedPic( float x, float y, float w, float h,
+							   float s1, float t1, float s2, float t2, qhandle_t hShader, float angle ) {
+	syscall( CG_R_DRAWROTATEDPIC, PASSFLOAT( x ), PASSFLOAT( y ), PASSFLOAT( w ), PASSFLOAT( h ), PASSFLOAT( s1 ), PASSFLOAT( t1 ), PASSFLOAT( s2 ), PASSFLOAT( t2 ), hShader, PASSFLOAT( angle ) );
 }
 
 void    trap_R_DrawStretchPicGradient(  float x, float y, float w, float h,
@@ -390,8 +374,12 @@ qboolean    trap_GetUserCmd( int cmdNumber, usercmd_t *ucmd ) {
 	return syscall( CG_GETUSERCMD, cmdNumber, ucmd );
 }
 
-void        trap_SetUserCmdValue( int stateValue, int holdableValue, float sensitivityScale, int cld ) {    //----(SA)	// NERVE - SMF - added cld
-	syscall( CG_SETUSERCMDVALUE, stateValue, holdableValue, PASSFLOAT( sensitivityScale ), cld );
+void        trap_SetUserCmdValue( int stateValue, int holdableValue, float sensitivityScale, int mpSetup, int mpIdentClient ) {
+	syscall( CG_SETUSERCMDVALUE, stateValue, holdableValue, PASSFLOAT( sensitivityScale ), mpSetup, mpIdentClient );
+}
+
+void        trap_SetClientLerpOrigin( float x, float y, float z ) {
+	syscall( CG_SETCLIENTLERPORIGIN, PASSFLOAT( x ), PASSFLOAT( y ), PASSFLOAT( z ) );
 }
 
 void        testPrintInt( char *string, int i ) {
@@ -413,12 +401,6 @@ qboolean trap_loadCamera( int camNum, const char *name ) {
 void trap_startCamera( int camNum, int time ) {
 	syscall( CG_STARTCAMERA, camNum, time );
 }
-
-//----(SA)	added
-void trap_stopCamera( int camNum ) {
-	syscall( CG_STOPCAMERA, camNum );
-}
-//----(SA)	end
 
 qboolean trap_getCameraInfo( int camNum, int time, vec3_t *origin, vec3_t *angles, float *fov ) {
 	return syscall( CG_GETCAMERAINFO, camNum, time, origin, angles, fov );
@@ -530,11 +512,19 @@ void trap_UI_ClosePopup( const char *arg0 ) {
 }
 // -NERVE - SMF
 
-qboolean trap_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **modelInfo ) {
-	return syscall( CG_GETMODELINFO, clientNum, modelName, modelInfo );
+void trap_Key_GetBindingBuf( int keynum, char *buf, int buflen ) {
+	syscall( CG_KEY_GETBINDINGBUF, keynum, buf, buflen );
 }
 
-// New in IORTCW
-void *trap_Alloc( int size ) {
-	return (void*)syscall( CG_ALLOC, size );
+void trap_Key_SetBinding( int keynum, const char *binding ) {
+	syscall( CG_KEY_SETBINDING, keynum, binding );
 }
+
+void trap_Key_KeynumToStringBuf( int keynum, char *buf, int buflen ) {
+	syscall( CG_KEY_KEYNUMTOSTRINGBUF, keynum, buf, buflen );
+}
+
+void trap_TranslateString( const char *string, char *buf ) {
+	syscall( CG_TRANSLATE_STRING, string, buf );
+}
+// -NERVE - SMF

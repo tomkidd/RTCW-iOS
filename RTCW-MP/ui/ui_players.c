@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -71,6 +71,15 @@ tryagain:
 		return;
 	}
 
+	// NERVE - SMF - multiplayer only hack to show correct panzerfaust and venom barrel
+	if ( weaponNum == WP_PANZERFAUST ) {
+		pi->weaponModel = trap_R_RegisterModel( "models/multiplayer/panzerfaust/multi_pf.md3" );
+		return;
+	} else if ( weaponNum == WP_VENOM )   {
+		pi->barrelModel = trap_R_RegisterModel( "models/weapons2/venom/venom_barrel.md3" );
+	}
+	// -NERVE - SMF
+
 	for ( item = bg_itemlist + 1; item->classname ; item++ ) {
 		if ( item->giType != IT_WEAPON ) {
 			continue;
@@ -96,7 +105,7 @@ tryagain:
 	}
 
 	COM_StripExtension( item->world_model[0], path, sizeof(path) );
-	Q_strcat( path, sizeof(path), "_flash.md3" );
+	Q_strcat( path, sizeof(path), "_flash.md3" ); 
 	pi->flashModel = trap_R_RegisterModel( path );
 
 	switch ( weaponNum ) {
@@ -114,6 +123,10 @@ tryagain:
 
 	case WP_GRENADE_LAUNCHER:
 		MAKERGB( pi->flashDlightColor, 1, 0.7, 0.5 );
+		break;
+
+	case WP_ROCKET_LAUNCHER:
+		MAKERGB( pi->flashDlightColor, 1, 0.75, 0 );
 		break;
 
 	case WP_FLAMETHROWER:
@@ -158,8 +171,8 @@ static void UI_ForceLegsAnim( playerInfo_t *pi, int anim ) {
 UI_SetLegsAnim
 ===============
 */
-// TTimo: unused
 /*
+// TTimo: unused
 static void UI_SetLegsAnim( playerInfo_t *pi, int anim ) {
 	if ( pi->pendingLegsAnim ) {
 		anim = pi->pendingLegsAnim;
@@ -192,8 +205,8 @@ static void UI_ForceTorsoAnim( playerInfo_t *pi, int anim ) {
 UI_SetTorsoAnim
 ===============
 */
-// TTimo: unused
 /*
+// TTimo: unused
 static void UI_SetTorsoAnim( playerInfo_t *pi, int anim ) {
 	if ( pi->pendingTorsoAnim ) {
 		anim = pi->pendingTorsoAnim;
@@ -209,8 +222,8 @@ static void UI_SetTorsoAnim( playerInfo_t *pi, int anim ) {
 UI_TorsoSequencing
 ===============
 */
-// TTimo: unused
 /*
+// TTimo: unused
 static void UI_TorsoSequencing( playerInfo_t *pi ) {
 	int				currentAnim;
 	animNumber_t	raisetype;	//----(SA) added
@@ -255,7 +268,12 @@ static void UI_TorsoSequencing( playerInfo_t *pi ) {
 			case WP_SILENCER:
 			case WP_LUGER:
 			case WP_KNIFE:
+			case WP_KNIFE2:
 				raisetype = TORSO_RAISE3;	// (pistol)
+				break;
+
+			case WP_ROCKET_LAUNCHER:
+				raisetype = TORSO_RAISE4;	// (shoulder)
 				break;
 
 			case WP_GRENADE_LAUNCHER:
@@ -287,8 +305,8 @@ static void UI_TorsoSequencing( playerInfo_t *pi ) {
 UI_LegsSequencing
 ===============
 */
-// TTimo: unused
 /*
+// TTimo: unused
 static void UI_LegsSequencing( playerInfo_t *pi ) {
 	int		currentAnim;
 
@@ -371,8 +389,8 @@ static void UI_PositionRotatedEntityOnTag( refEntity_t *entity, const refEntity_
 UI_SetLerpFrameAnimation
 ===============
 */
-// TTimo: unused
 /*
+// TTimo: unused
 static void UI_SetLerpFrameAnimation( playerInfo_t *ci, lerpFrame_t *lf, int newAnimation ) {
 	animation_t	*anim;
 
@@ -395,8 +413,8 @@ static void UI_SetLerpFrameAnimation( playerInfo_t *ci, lerpFrame_t *lf, int new
 UI_RunLerpFrame
 ===============
 */
-// TTimo: unused
 /*
+// TTimo: unused
 static void UI_RunLerpFrame( playerInfo_t *ci, lerpFrame_t *lf, int newAnimation ) {
 	int			f;
 	animation_t	*anim;
@@ -459,8 +477,8 @@ static void UI_RunLerpFrame( playerInfo_t *ci, lerpFrame_t *lf, int newAnimation
 UI_PlayerAnimation
 ===============
 */
-// TTimo: unused
 /*
+// TTimo: unused
 static void UI_PlayerAnimation( playerInfo_t *pi, int *legsOld, int *legs, float *legsBackLerp,
 						int *torsoOld, int *torso, float *torsoBackLerp ) {
 
@@ -750,9 +768,9 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 	refEntity_t torso = {0};
 	refEntity_t head = {0};
 	refEntity_t gun = {0};
+	refEntity_t barrel = {0};
 	refEntity_t backpack = {0};
 	refEntity_t helmet = {0};
-//	refEntity_t		barrel = {0};
 	refEntity_t flash = {0};
 	vec3_t origin;
 	int renderfx;
@@ -883,6 +901,18 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 	}
 
 	//
+	// add the gun barrel
+	//
+	if ( pi->currentWeapon != WP_NONE && pi->barrelModel ) {
+		memset( &barrel, 0, sizeof( barrel ) );
+		barrel.hModel = pi->barrelModel;
+		VectorCopy( origin, barrel.lightingOrigin );
+		UI_PositionEntityOnTag( &barrel, &gun, pi->weaponModel, "tag_barrel" );
+		barrel.renderfx = renderfx;
+		trap_R_AddRefEntityToScene( &barrel );
+	}
+
+	//
 	// add muzzle flash
 	//
 	if ( dp_realtime <= pi->muzzleFlashTime ) {
@@ -936,15 +966,15 @@ void UI_DrawPlayer( float x, float y, float w, float h, playerInfo_t *pi, int ti
 	//
 	// add an accent light
 	//
-//	origin[0] -= 100;	// + = behind, - = in front
-//	origin[1] += 100;	// + = left, - = right
-//	origin[2] += 100;	// + = above, - = below
-	trap_R_AddLightToScene( origin, 500, 1.0, 1.0, 1.0, 0 );
+	origin[0] -= 100;   // + = behind, - = in front
+	origin[1] += 100;   // + = left, - = right
+	origin[2] += 100;   // + = above, - = below
+	trap_R_AddLightToScene( origin, 1000, 1.0, 1.0, 1.0, 0 );
 
 	origin[0] -= 100;
 	origin[1] -= 100;
 	origin[2] -= 100;
-	trap_R_AddLightToScene( origin, 500, 1.0, 0.0, 0.0, 0 );
+	trap_R_AddLightToScene( origin, 1000, 1.0, 1.0, 1.0, 0 );
 
 	trap_R_RenderScene( &refdef );
 }
@@ -1092,7 +1122,7 @@ static qboolean AnimParseAnimConfig( playerInfo_t *animModelInfo, const char *fi
 
 		if ( animModelInfo->version < 2 ) {
 			// if it is a number, start parsing animations
-			if ( Q_isnumeric( token[0] ) ) {
+			if ( token[0] >= '0' && token[0] <= '9' ) {
 				text_p -= strlen( token );    // unget the token
 				break;
 			}
@@ -1216,7 +1246,7 @@ static qboolean AnimParseAnimConfig( playerInfo_t *animModelInfo, const char *fi
 		return qfalse;
 	}
 
-#if 0
+#if 0  // NERVE - SMF - blah
 	// check for head anims
 	token = COM_Parse( &text_p );
 	if ( token && token[0] ) {
@@ -1301,6 +1331,7 @@ static qboolean UI_ParseAnimationFile( const char *filename, playerInfo_t *pi ) 
 	return qtrue;
 }
 
+
 /*
 ==========================
 UI_RegisterClientModelname
@@ -1345,11 +1376,13 @@ qboolean UI_RegisterClientModelname( playerInfo_t *pi, const char *modelSkinName
 		const char *playerClass;
 		int var, teamval;
 
-		teamval = trap_Cvar_VariableValue( "mp_team" );
-
-		if ( teamval == 1 ) {
+		// DHM - Nerve :: Don't rely on cvar for team, use modelname instead
+		//teamval = trap_Cvar_VariableValue( "mp_team" );
+		if ( !strcmp( modelSkinName, "multi" ) ) {
+			teamval = 1;
 			team = "blue";
 		} else {
+			teamval = 0;
 			team = "red";
 		}
 
@@ -1363,7 +1396,7 @@ qboolean UI_RegisterClientModelname( playerInfo_t *pi, const char *modelSkinName
 				helmet = "acc/helmet_american/sol.md3";
 			} else {
 				backpack = "acc/backpack/backpack_german_sol.md3";
-				helmet = "acc/helmet_german/helmet_german_sol.md3";
+				helmet = "acc/helmet_german/helmet_sol.md3";
 			}
 		} else if ( var == 1 )   {
 			playerClass = "medic";
@@ -1373,7 +1406,7 @@ qboolean UI_RegisterClientModelname( playerInfo_t *pi, const char *modelSkinName
 				helmet = "acc/helmet_american/med.md3";
 			} else {
 				backpack = "acc/backpack/backpack_german_med.md3";
-				helmet = "acc/helmet_german/helmet_german_med.md3";
+				helmet = "acc/helmet_german/helmet_med.md3";
 			}
 		} else if ( var == 2 )   {
 			playerClass = "engineer";
@@ -1383,7 +1416,7 @@ qboolean UI_RegisterClientModelname( playerInfo_t *pi, const char *modelSkinName
 				helmet = "acc/helmet_american/eng.md3";
 			} else {
 				backpack = "acc/backpack/backpack_german_eng.md3";
-				helmet = "acc/helmet_german/helmet_german_eng.md3";
+				helmet = "acc/helmet_german/helmet_eng.md3";
 			}
 		} else {
 			playerClass = "lieutenant";
@@ -1393,7 +1426,7 @@ qboolean UI_RegisterClientModelname( playerInfo_t *pi, const char *modelSkinName
 				helmet = "acc/helmet_american/lieu.md3";
 			} else {
 				backpack = "acc/backpack/backpack_german_lieu.md3";
-				helmet = "acc/helmet_american/lieu.md3";
+				helmet = "acc/helmet_german/helmet_leiu.md3";
 			}
 		}
 

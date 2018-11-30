@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -64,8 +64,11 @@ itemDef_t *g_editItem = NULL;
 menuDef_t Menus[MAX_MENUS];      // defined menus
 int menuCount = 0;               // how many
 
-menuDef_t *menuStack[MAX_OPEN_MENUS];
-int openMenuCount = 0;
+// TTimo
+// a stack for modal menus only, stores the menus to come back to
+// (an item can be NULL, goes back to main menu / no action required)
+menuDef_t *modalMenuStack[MAX_MODAL_MENUS];
+int modalMenuCount = 0;
 
 static qboolean debugMode = qfalse;
 
@@ -84,67 +87,11 @@ static qboolean Menu_OverActiveItem( menuDef_t *menu, float x, float y );
 #ifdef CGAME
 #define MEM_POOL_SIZE  128 * 1024
 #else
-#define MEM_POOL_SIZE  1280 * 1024
+#define MEM_POOL_SIZE  1024 * 1024
 #endif
 
 static char memoryPool[MEM_POOL_SIZE];
 static int allocPoint, outOfMemory;
-
-// these are expected to be translated by the strings.txt file
-translateString_t translateStrings[] = {
-	{"end_time"},                //	"Time"
-	{"end_objectives"},          //	"Objectives"
-	{"end_secrets"},         //	"Secret Areas"
-	{"end_treasure"},            //	"Treasure"
-	{"end_attempts"},            //	"Attempts"
-
-	{"missionfail0"},            //	"Mission Failed"
-	{"secretarea"},              //	"You found a secret area"
-	{"objectivesnotcomplete"},   //	"Objectives not complete"
-	{"drankwine"},               //	"You drank the wine"
-	{"noitem"},                  //	"No item to use"
-	{"gamesaved"},               //	"Game Saved"
-
-	{"missionfail1"},            //	"Mission Failed\nYou Killed a Civilian"
-	{"missionfail2"},            //	"Mission Failed\nYou Killed a Kreisau Agent"
-	{"missionfail3"},            //	"Mission Failed\nYou Killed Kessler"
-	{"missionfail4"},            //	"Mission Failed\nYou Killed Karl"
-	{"missionfail5"},            //	"Mission Failed\nYou Have Been Detected"
-	{"missionfail6"},            //	"Mission Failed\nRocket Launched"
-	{"missionfail7"},            //	"Mission Failed\nThe Scientist Has Been Killed"
-	{"missionfail8"},            //	"fail 8"
-	{"missionfail9"},            //	"fail 9"
-	{"missionfail10"},           //	"fail 10"
-	{"missionfail11"},           //	"fail 11"
-	{"missionfail12"},           //	"fail 12"
-	{"missionfail13"},           //	"fail 13"
-	{"missionfail14"},           //	"fail 14"
-	{"missionfail15"},           //	"fail 15"
-	{"missionfail16"},           //	"fail 16"
-	{"end_title"},               //	"Mission Stats"
-	{"end_exit"},                //	"Proceed forward to exit..."
-	{"end_noexit"},              //	"Exit not yet available"
-
-	{"yes"},                 //
-	{"no"},                      //
-	{"keywait"},             //	"Waiting for new key... Press ESCAPE to cancel"
-	{"keychange"},               //	"Press ENTER or CLICK to change, Press BACKSPACE to clear"
-	{"pleasewait"},              //	"Please Wait..."
-	{"dynamitetimer"},           //	"Dynamite timer set at"
-	{"second"},                  //
-	{"seconds"},             //
-	{"minute"},                  //
-	{"minutes"},             //
-	{"hour"},                    //
-	{"hours"},                   //
-	{"day"},                 //
-	{"days"},                    //
-	{"month"},                   //
-	{"months"},                  //
-	{"year"},                    //
-	{"years"},                   //
-	{"or"}                       //
-};
 
 vmCvar_t ui_fixedAspect;
 vmCvar_t ui_fixedAspectFOV;
@@ -220,25 +167,6 @@ void UI_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 		*h *= DC->yscale;
 	}
 }
-
-
-//----(SA)	added
-/*
-==============
-UI_RoQDone
-==============
-*/
-void UI_RoQDone( void ) {
-	menuDef_t *menu = Menu_GetFocused();
-	if ( menu->onROQDone ) {
-		itemDef_t it;
-		it.parent = menu;
-		Item_RunScript( &it, menu->onROQDone );
-
-	}
-}
-//----(SA)	end
-
 
 /*
 ===============
@@ -369,7 +297,7 @@ const char *String_Alloc( const char *p ) {
 	return NULL;
 }
 
-void String_Report( void ) {
+void String_Report(void) {
 	float f;
 	Com_Printf( "Memory/String Pool Info\n" );
 	Com_Printf( "----------------\n" );
@@ -383,13 +311,12 @@ void String_Report( void ) {
 	Com_Printf( "Memory Pool is %.1f%% full, %i bytes out of %i used.\n", f, allocPoint, MEM_POOL_SIZE );
 }
 
-
 /*
 =================
 String_Init
 =================
 */
-void String_Init( void ) {
+void String_Init(void) {
 	int i;
 	for ( i = 0; i < HASH_TABLE_SIZE; i++ ) {
 		strHandle[i] = NULL;
@@ -397,7 +324,7 @@ void String_Init( void ) {
 	strHandleCount = 0;
 	strPoolIndex = 0;
 	menuCount = 0;
-	openMenuCount = 0;
+	modalMenuCount = 0;
 	UI_InitMemory();
 	Item_SetupKeywordHash();
 	Menu_SetupKeywordHash();
@@ -669,6 +596,24 @@ qboolean PC_String_Parse( int handle, const char **out ) {
 	return qtrue;
 }
 
+/*
+=================
+PC_String_Parse_Trans
+
+NERVE - SMF - translates string
+=================
+*/
+qboolean PC_String_Parse_Trans( int handle, const char **out ) {
+	pc_token_t token;
+
+	if ( !trap_PC_ReadToken( handle, &token ) ) {
+		return qfalse;
+	}
+
+	*( out ) = String_Alloc( DC->translateString( token.string ) );
+	return qtrue;
+}
+
 // NERVE - SMF
 /*
 =================
@@ -790,6 +735,8 @@ void Fade( int *flags, float *f, float clamp, int *nextTime, int offsetTime, qbo
 	}
 }
 
+
+
 void Window_Paint( Window *w, float fadeAmount, float fadeClamp, float fadeCycle ) {
 	//float bordersize = 0;
 	vec4_t color = {0};
@@ -832,7 +779,7 @@ void Window_Paint( Window *w, float fadeAmount, float fadeClamp, float fadeCycle
 	}
 
 	// Make menus pillarboxed if using 4:3 UI
-	if ( ui_fixedAspect.integer == 1 ) {
+	if ( ui_fixedAspect.integer == 1 || !Q_stricmpn( w->name, "wm_limbo", 8 ) ) {
 		if ( DC->glconfig.vidWidth * 480.0 > DC->glconfig.vidHeight * 640.0 ) {
 			vec4_t col = {0, 0, 0, 1};
 			float pillar = 0.5 * ( ( DC->glconfig.vidWidth - ( DC->xscale * 640.0 ) ) / DC->xscale );
@@ -1304,7 +1251,7 @@ void Menus_ShowByName( const char *p ) {
 }
 
 void Menus_OpenByName( const char *p ) {
-	Menus_ActivateByName( p );
+	Menus_ActivateByName( p, qtrue );
 }
 
 static void Menu_RunCloseScript( menuDef_t *menu ) {
@@ -1320,10 +1267,22 @@ void Menus_CloseByName( const char *p ) {
 	if ( menu != NULL ) {
 		Menu_RunCloseScript( menu );
 		menu->window.flags &= ~( WINDOW_VISIBLE | WINDOW_HASFOCUS );
+		if ( menu->window.flags & WINDOW_MODAL ) {
+			if ( modalMenuCount <= 0 ) {
+				Com_Printf( S_COLOR_YELLOW "WARNING: tried closing a modal window with an empty modal stack!\n" );
+			} else
+			{
+				modalMenuCount--;
+				// if modal doesn't have a parent, the stack item may be NULL .. just go back to the main menu then
+				if ( modalMenuStack[modalMenuCount] ) {
+					Menus_ActivateByName( modalMenuStack[modalMenuCount]->window.name, qfalse ); // don't try to push the one we are opening to the stack
+				}
+			}
+		}
 	}
 }
 
-void Menus_CloseAll( void ) {
+void Menus_CloseAll(void) {
 	int i;
 	for ( i = 0; i < menuCount; i++ ) {
 		Menu_RunCloseScript( &Menus[i] );
@@ -1369,6 +1328,27 @@ void Script_Open( itemDef_t *item, char **args ) {
 	}
 }
 
+// DHM - Nerve
+
+void Script_ConditionalOpen( itemDef_t *item, char **args ) {
+	const char *cvar;
+	const char *name1;
+	const char *name2;
+	float val;
+
+	if ( String_Parse( args, &cvar ) && String_Parse( args, &name1 ) && String_Parse( args, &name2 ) ) {
+
+		val = DC->getCVarValue( cvar );
+		if ( val == 0.f ) {
+			Menus_OpenByName( name2 );
+		} else {
+			Menus_OpenByName( name1 );
+		}
+	}
+}
+
+// DHM - Nerve
+
 void Script_Close( itemDef_t *item, char **args ) {
 	const char *name;
 	if ( String_Parse( args, &name ) ) {
@@ -1393,7 +1373,7 @@ void Script_Clipboard( itemDef_t *item, char **args ) {
 
 
 
-#define NOTEBOOK_MAX_PAGES 6    // this will not be a define
+//#define NOTEBOOK_MAX_PAGES 6    // this will not be a define
 
 
 /*
@@ -1407,6 +1387,7 @@ Script_NotebookShowpage
 ==============
 */
 void Script_NotebookShowpage( itemDef_t *item, char **args ) {
+/*
 	int i, inc, curpage, newpage = 0, pages;
 
 	pages = DC->getCVarValue( "cg_notebookpages" );
@@ -1497,6 +1478,7 @@ void Script_NotebookShowpage( itemDef_t *item, char **args ) {
 		DC->setCVar( "ui_notebookCurrentPage", va( "%d", curpage ) ); // store new current page
 
 	}
+*/
 }
 
 
@@ -1602,12 +1584,21 @@ void Script_SetPlayerHead( itemDef_t *item, char **args ) {
 	}
 }
 
+// ATVI Wolfenstein Misc #304
+// the parser misreads setCvar "bleh" ""
+// you have to use clearCvar "bleh"
+void Script_ClearCvar( itemDef_t *item, char **args ) {
+	const char *cvar;
+	if ( String_Parse( args, &cvar ) ) {
+		DC->setCVar( cvar, "" );
+	}
+}
+
 void Script_SetCvar( itemDef_t *item, char **args ) {
 	const char *cvar, *val;
 	if ( String_Parse( args, &cvar ) && String_Parse( args, &val ) ) {
 		DC->setCVar( cvar, val );
 	}
-
 }
 
 void Script_Exec( itemDef_t *item, char **args ) {
@@ -1627,9 +1618,8 @@ void Script_Play( itemDef_t *item, char **args ) {
 void Script_playLooped( itemDef_t *item, char **args ) {
 	const char *val;
 	if ( String_Parse( args, &val ) ) {
-		// (SA) don't think this should happen...
-//		DC->stopBackgroundTrack();
-		DC->startBackgroundTrack( val, val, 0 );
+		DC->stopBackgroundTrack();
+		DC->startBackgroundTrack( val, val );
 	}
 }
 
@@ -1646,6 +1636,15 @@ void Script_AddListItem( itemDef_t *item, char **args ) {
 	}
 }
 // -NERVE - SMF
+// DHM - Nerve
+void Script_CheckAutoUpdate( itemDef_t *item, char **args ) {
+	DC->checkAutoUpdate();
+}
+
+void Script_GetAutoUpdate( itemDef_t *item, char **args ) {
+	DC->getAutoUpdate();
+}
+// DHM - Nerve
 
 commandDef_t commandList[] =
 {
@@ -1655,6 +1654,10 @@ commandDef_t commandList[] =
 	{"hide", &Script_Hide},                      // group/name
 	{"setcolor", &Script_SetColor},              // works on this
 	{"open", &Script_Open},                      // menu
+
+	{"conditionalopen", &Script_ConditionalOpen},    // DHM - Nerve:: cvar menu menu
+													 // opens first menu if cvar is true[non-zero], second if false
+
 	{"close", &Script_Close},                    // menu
 	{"clipboard", &Script_Clipboard},            // show the current clipboard group by name
 	{"showpage", &Script_NotebookShowpage},          //
@@ -1667,11 +1670,14 @@ commandDef_t commandList[] =
 	{"setplayerhead", &Script_SetPlayerHead},    // sets this background color to team color
 	{"transition", &Script_Transition},          // group/name
 	{"setcvar", &Script_SetCvar},                // group/name
+	{"clearcvar", &Script_ClearCvar},
 	{"exec", &Script_Exec},                      // group/name
 	{"play", &Script_Play},                      // group/name
 	{"playlooped", &Script_playLooped},          // group/name
 	{"orbit", &Script_Orbit},                    // group/name
-	{"addlistitem", &Script_AddListItem}     // NERVE - SMF - special command to add text items to list box
+	{"addlistitem", &Script_AddListItem},        // NERVE - SMF - special command to add text items to list box
+	{"checkautoupdate", &Script_CheckAutoUpdate},    // DHM - Nerve
+	{"getautoupdate", &Script_GetAutoUpdate} // DHM - Nerve
 };
 
 int scriptCommandCount = ARRAY_LEN(commandList);
@@ -1758,13 +1764,14 @@ qboolean Item_SetFocus( itemDef_t *item, float x, float y ) {
 	itemDef_t *oldFocus;
 	sfxHandle_t *sfx = &DC->Assets.itemFocusSound;
 	qboolean playSound = qfalse;
-	menuDef_t *parent = NULL;
+	menuDef_t *parent;
 	// sanity check, non-null, not a decoration and does not already have the focus
 	if ( item == NULL || item->window.flags & WINDOW_DECORATION || item->window.flags & WINDOW_HASFOCUS || !( item->window.flags & WINDOW_VISIBLE ) ) {
 		return qfalse;
 	}
 
-	parent = (menuDef_t *)item->parent;
+	// this can be NULL.
+	parent = (menuDef_t*)item->parent;
 
 	// items can be enabled and disabled based on cvars
 	if ( item->cvarFlags & ( CVAR_ENABLE | CVAR_DISABLE ) && !Item_EnableShowViaCvar( item, CVAR_ENABLE ) ) {
@@ -2277,9 +2284,7 @@ qboolean Item_ListBox_HandleKey( itemDef_t *item, int key, qboolean down, qboole
 				}
 				lastListBoxClickTime = DC->realTime + DOUBLE_CLICK_DELAY;
 				if ( item->cursorPos != listPtr->cursorPos ) {
-					if ( listPtr->cursorPos < DC->feederCount( item->special ) ) {
-						item->cursorPos = listPtr->cursorPos;   // only set if it's valid
-					}
+					item->cursorPos = listPtr->cursorPos;
 					DC->feederSelection( item->special, item->cursorPos );
 				}
 			}
@@ -2355,14 +2360,14 @@ qboolean Item_YesNo_HandleKey( itemDef_t *item, int key ) {
 		} else if (UI_SelectForKey(key) != 0) {
 			action = qtrue;
  		}
-		if (action) {
+		// ATVI Wolfenstein Misc #462
+		// added the flag to toggle via action script only
+		if (action && !(item->cvarFlags & CVAR_NOTOGGLE)) {
 			DC->setCVar(item->cvar, va("%i", !DC->getCVarValue(item->cvar)));
 			return qtrue;
 		}
 	}
-
 	return qfalse;
-
 }
 
 int Item_Multi_CountSettings( itemDef_t *item ) {
@@ -2493,13 +2498,6 @@ qboolean Item_TextField_HandleKey( itemDef_t *item, int key ) {
 			}
 
 
-			// 'valid filename' text entry.  so users can't try to save games like '!**$er' and stuff (from the menu)
-			if ( item->type == ITEM_TYPE_VALIDFILEFIELD ) {
-				if ( !Q_isforfilename( key ) ) {
-					return qtrue;
-				}
-			}
-
 			//
 			// ignore any non printable chars
 			//
@@ -2508,7 +2506,7 @@ qboolean Item_TextField_HandleKey( itemDef_t *item, int key ) {
 			}
 
 			if ( item->type == ITEM_TYPE_NUMERICFIELD ) {
-				if ( !Q_isnumeric( key ) ) {
+				if ( key < '0' || key > '9' ) {
 					return qfalse;
 				}
 			}
@@ -2546,7 +2544,7 @@ qboolean Item_TextField_HandleKey( itemDef_t *item, int key ) {
 			}
 
 			if ( key == K_RIGHTARROW || key == K_KP_RIGHTARROW ) {
-				if ( editPtr->maxPaintChars && item->cursorPos >= editPtr->maxPaintChars && item->cursorPos < len ) {
+				if ( editPtr->maxPaintChars && item->cursorPos >= editPtr->paintOffset + editPtr->maxPaintChars && item->cursorPos < len ) {
 					item->cursorPos++;
 					editPtr->paintOffset++;
 					return qtrue;
@@ -2589,14 +2587,14 @@ qboolean Item_TextField_HandleKey( itemDef_t *item, int key ) {
 
 		if ( key == K_TAB || key == K_DOWNARROW || key == K_KP_DOWNARROW ) {
 			newItem = Menu_SetNextCursorItem( item->parent );
-			if ( newItem && ( newItem->type == ITEM_TYPE_EDITFIELD || newItem->type == ITEM_TYPE_NUMERICFIELD || newItem->type == ITEM_TYPE_VALIDFILEFIELD ) ) {
+			if ( newItem && ( newItem->type == ITEM_TYPE_EDITFIELD || newItem->type == ITEM_TYPE_NUMERICFIELD ) ) {
 				g_editItem = newItem;
 			}
 		}
 
 		if ( key == K_UPARROW || key == K_KP_UPARROW ) {
 			newItem = Menu_SetPrevCursorItem( item->parent );
-			if ( newItem && ( newItem->type == ITEM_TYPE_EDITFIELD || newItem->type == ITEM_TYPE_NUMERICFIELD || newItem->type == ITEM_TYPE_VALIDFILEFIELD ) ) {
+			if ( newItem && ( newItem->type == ITEM_TYPE_EDITFIELD || newItem->type == ITEM_TYPE_NUMERICFIELD ) ) {
 				g_editItem = newItem;
 			}
 		}
@@ -2725,7 +2723,6 @@ void Item_StartCapture( itemDef_t *item, int key ) {
 	switch ( item->type ) {
 	case ITEM_TYPE_EDITFIELD:
 	case ITEM_TYPE_NUMERICFIELD:
-	case ITEM_TYPE_VALIDFILEFIELD:  //----(SA)	added
 
 	case ITEM_TYPE_LISTBOX:
 	{
@@ -2825,7 +2822,7 @@ qboolean Item_Slider_HandleKey( itemDef_t *item, int key, qboolean down ) {
 			}
 		}
 	}
-	//DC->Print("slider handle key exit\n");
+	DC->Print( "slider handle key exit\n" );
 	return qfalse;
 }
 
@@ -2838,10 +2835,6 @@ qboolean Item_HandleKey( itemDef_t *item, int key, qboolean down ) {
 		captureFunc = 0;
 		captureData = NULL;
 	} else {
-		// TTimo: gcc: suggest parentheses around && within ||
-		// initial line:
-		// if (down && key == K_MOUSE1 || key == K_MOUSE2 || key == K_MOUSE3) {
-		// changed behaviour
 		if ( down && ( key == K_MOUSE1 || key == K_MOUSE2 || key == K_MOUSE3 ) ) {
 			Item_StartCapture( item, key );
 		}
@@ -2863,7 +2856,6 @@ qboolean Item_HandleKey( itemDef_t *item, int key, qboolean down ) {
 		break;
 	case ITEM_TYPE_EDITFIELD:
 	case ITEM_TYPE_NUMERICFIELD:
-	case ITEM_TYPE_VALIDFILEFIELD:  //----(SA)	added
 		//return Item_TextField_HandleKey(item, key);
 		return qfalse;
 		break;
@@ -2921,6 +2913,12 @@ itemDef_t *Menu_SetPrevCursorItem( menuDef_t *menu ) {
 			wrapped = qtrue;
 			menu->cursorItem = menu->itemCount - 1;
 		}
+		// NERVE - SMF
+		if ( menu->cursorItem < 0 ) {
+			menu->cursorItem = oldCursor;
+			return NULL;
+		}
+		// -NERVE - SMF
 
 		if ( Item_SetFocus( menu->items[menu->cursorItem], DC->cursorx, DC->cursory ) ) {
 			Menu_HandleMouseMove( menu, menu->items[menu->cursorItem]->window.rect.x + 1, menu->items[menu->cursorItem]->window.rect.y + 1 );
@@ -3003,7 +3001,7 @@ void  Menus_Activate( menuDef_t *menu ) {
 
 	if ( menu->soundName && *menu->soundName ) {
 //		DC->stopBackgroundTrack();					// you don't want to do this since it will reset s_rawend
-		DC->startBackgroundTrack( menu->soundName, menu->soundName, 0 );
+		DC->startBackgroundTrack( menu->soundName, menu->soundName );
 	}
 
 	Display_CloseCinematics();
@@ -3094,6 +3092,8 @@ void Menu_HandleKey( menuDef_t *menu, int key, qboolean down ) {
 	int i;
 	itemDef_t *item = NULL;
 
+	Menu_HandleMouseMove( menu, DC->cursorx, DC->cursory );     // NERVE - SMF - fix for focus not resetting on unhidden buttons
+
 	if ( g_waitingForKey && down ) {
 		Item_Bind_HandleKey( g_bindItem, key, down );
 		return;
@@ -3108,8 +3108,7 @@ void Menu_HandleKey( menuDef_t *menu, int key, qboolean down ) {
 			g_editingField = qfalse;
 			g_editItem = NULL;
 			Display_MouseMove( NULL, DC->cursorx, DC->cursory );
-//		} else if (key == K_TAB || key == K_UPARROW || key == K_DOWNARROW) {
-		} else {
+		} else if ( key == K_TAB || key == K_UPARROW || key == K_DOWNARROW ) {
 			return;
 		}
 	}
@@ -3121,10 +3120,6 @@ void Menu_HandleKey( menuDef_t *menu, int key, qboolean down ) {
 	// see if the mouse is within the window bounds and if so is this a mouse click
 	if ( down && !( menu->window.flags & WINDOW_POPUP ) && !Rect_ContainsPoint( &menu->window.rect, DC->cursorx, DC->cursory ) ) {
 		static qboolean inHandleKey = qfalse;
-		// TTimo: gcc: suggest parentheses around && within ||
-		// initial line:
-		// if (!inHandleKey && key == K_MOUSE1 || key == K_MOUSE2 || key == K_MOUSE3) {
-		// changed behaviour
 		if ( !inHandleKey && ( key == K_MOUSE1 || key == K_MOUSE2 || key == K_MOUSE3 ) ) {
 			inHandleKey = qtrue;
 			Menus_HandleOOBClick( menu, key, down );
@@ -3176,8 +3171,6 @@ void Menu_HandleKey( menuDef_t *menu, int key, qboolean down ) {
 		break;
 	case K_KP_UPARROW:
 	case K_UPARROW:
-	case K_LEFTARROW:
-	case K_MWHEELUP:
 		Menu_SetPrevCursorItem( menu );
 		break;
 
@@ -3192,8 +3185,6 @@ void Menu_HandleKey( menuDef_t *menu, int key, qboolean down ) {
 	case K_TAB:
 	case K_KP_DOWNARROW:
 	case K_DOWNARROW:
-	case K_RIGHTARROW:
-	case K_MWHEELDOWN:
 		Menu_SetNextCursorItem( menu );
 		break;
 
@@ -3204,11 +3195,19 @@ void Menu_HandleKey( menuDef_t *menu, int key, qboolean down ) {
 				if ( Rect_ContainsPoint( Item_CorrectedTextRect( item ), DC->cursorx, DC->cursory ) ) {
 					Item_Action( item );
 				}
-			} else if ( item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_NUMERICFIELD || item->type == ITEM_TYPE_VALIDFILEFIELD ) {
+			} else if ( item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_NUMERICFIELD ) {
 				if ( Rect_ContainsPoint( &item->window.rect, DC->cursorx, DC->cursory ) ) {
+					editFieldDef_t *editPtr = (editFieldDef_t*)item->typeData;
+
+					// NERVE - SMF - reset scroll offset so we can see what we're editing
+					if ( editPtr ) {
+						editPtr->paintOffset = 0;
+					}
+
 					item->cursorPos = 0;
 					g_editingField = qtrue;
 					g_editItem = item;
+
 				}
 			} else {
 				if ( Rect_ContainsPoint( &item->window.rect, DC->cursorx, DC->cursory ) ) {
@@ -3242,7 +3241,7 @@ void Menu_HandleKey( menuDef_t *menu, int key, qboolean down ) {
 	case K_ENTER:
 	case K_MOUSE3:
 		if ( item ) {
-			if ( item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_NUMERICFIELD || item->type == ITEM_TYPE_VALIDFILEFIELD ) {
+			if ( item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_NUMERICFIELD ) {
 				item->cursorPos = 0;
 				g_editingField = qtrue;
 				g_editItem = item;
@@ -3278,26 +3277,30 @@ void Item_SetTextExtents( itemDef_t *item, int *width, int *height, const char *
 	*height = item->textRect.h;
 
 	// keeps us from computing the widths and heights more than once
-	if ( *width == 0 || ( item->type == ITEM_TYPE_OWNERDRAW && item->textalignment == ITEM_ALIGN_CENTER ) ) {
-		int originalWidth = DC->textWidth( item->text, item->font, item->textscale, 0 );
+	if ( *width == 0 || ( item->type == ITEM_TYPE_OWNERDRAW && item->textalignment == ITEM_ALIGN_CENTER ) || item->textalignment == ITEM_ALIGN_CENTER2 ) {
+		int originalWidth = DC->textWidth( item->text, item->textscale, 0 );
 
 		if ( item->type == ITEM_TYPE_OWNERDRAW && ( item->textalignment == ITEM_ALIGN_CENTER || item->textalignment == ITEM_ALIGN_RIGHT ) ) {
-			originalWidth += DC->ownerDrawWidth( item->window.ownerDraw, item->font, item->textscale );
-		} else if ( ( item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_VALIDFILEFIELD ) && item->textalignment == ITEM_ALIGN_CENTER && item->cvar ) {
+			originalWidth += DC->ownerDrawWidth( item->window.ownerDraw, item->textscale );
+		} else if ( item->type == ITEM_TYPE_EDITFIELD && item->textalignment == ITEM_ALIGN_CENTER && item->cvar ) {
 			char buff[256];
 			DC->getCVarString( item->cvar, buff, 256 );
-			originalWidth += DC->textWidth( buff, item->font, item->textscale, 0 );
+			originalWidth += DC->textWidth( buff, item->textscale, 0 );
+		} else if ( item->textalignment == ITEM_ALIGN_CENTER2 )   {
+			// NERVE - SMF - default centering case
+			originalWidth += DC->textWidth( text, item->textscale, 0 );
 		}
 
-		*width = DC->textWidth( textPtr, item->font, item->textscale, 0 );
-		*height = DC->textHeight( textPtr, item->font, item->textscale, 0 );
+		*width = DC->textWidth( textPtr, item->textscale, 0 );
+		*height = DC->textHeight( textPtr, item->textscale, 0 );
 		item->textRect.w = *width;
 		item->textRect.h = *height;
 		item->textRect.x = item->textalignx;
 		item->textRect.y = item->textaligny;
 		if ( item->textalignment == ITEM_ALIGN_RIGHT ) {
 			item->textRect.x = item->textalignx - originalWidth;
-		} else if ( item->textalignment == ITEM_ALIGN_CENTER ) {
+		} else if ( item->textalignment == ITEM_ALIGN_CENTER || item->textalignment == ITEM_ALIGN_CENTER2 ) {
+			// NERVE - SMF - default centering case
 			item->textRect.x = item->textalignx - originalWidth / 2;
 		}
 
@@ -3374,7 +3377,7 @@ void Item_Text_AutoWrapped_Paint( itemDef_t *item ) {
 			newLinePtr = p + 1;
 			newLineWidth = textWidth;
 		}
-		textWidth = DC->textWidth( buff, item->font, item->textscale, 0 );
+		textWidth = DC->textWidth( buff, item->textscale, 0 );
 		if ( ( newLine && textWidth > item->window.rect.w ) || *p == '\n' || *p == '\0' ) {
 			if ( len ) {
 				if ( item->textalignment == ITEM_ALIGN_LEFT ) {
@@ -3388,7 +3391,7 @@ void Item_Text_AutoWrapped_Paint( itemDef_t *item ) {
 				ToWindowCoords( &item->textRect.x, &item->textRect.y, &item->window );
 				//
 				buff[newLine] = '\0';
-				DC->drawText( item->textRect.x, item->textRect.y, item->font, item->textscale, color, buff, 0, 0, item->textStyle );
+				DC->drawText( item->textRect.x, item->textRect.y, item->textscale, color, buff, 0, 0, item->textStyle );
 			}
 			if ( *p == '\0' ) {
 				break;
@@ -3446,28 +3449,19 @@ void Item_Text_Wrapped_Paint( itemDef_t *item ) {
 	while ( p && *p ) {
 		strncpy( buff, start, p - start + 1 );
 		buff[p - start] = '\0';
-		DC->drawText( x, y, item->font, item->textscale, color, buff, 0, 0, item->textStyle );
+		DC->drawText( x, y, item->textscale, color, buff, 0, 0, item->textStyle );
 		y += height + 5;
 		start += p - start + 1;
 		p = strchr( p + 1, '\r' );
 	}
-	DC->drawText( x, y, item->font, item->textscale, color, start, 0, 0, item->textStyle );
+	DC->drawText( x, y, item->textscale, color, start, 0, 0, item->textStyle );
 }
 
 void Item_Text_Paint( itemDef_t *item ) {
 	char text[1024];
-	char infostring[SAVE_INFOSTRING_LENGTH];
 	const char *textPtr;
 	int height, width;
 	vec4_t color;
-
-
-//----(SA)	added
-	if ( item->textSavegameInfo ) {
-		DC->getCVarString( "ui_savegameInfo", infostring, sizeof( infostring ) );    // grab the string the client set
-		item->text = &infostring[0];
-	}
-//----(SA)	end
 
 	if ( item->window.flags & WINDOW_WRAPPED ) {
 		Item_Text_Wrapped_Paint( item );
@@ -3528,18 +3522,18 @@ void Item_Text_Paint( itemDef_t *item ) {
 //		DC->drawText(item->textRect.x - 1, item->textRect.y + 1, item->textscale * 1.02, item->window.outlineColor, textPtr, adjust);
 //	}
 
-	DC->drawText( item->textRect.x, item->textRect.y, item->font, item->textscale, color, textPtr, 0, 0, item->textStyle );
+	DC->drawText( item->textRect.x, item->textRect.y, item->textscale, color, textPtr, 0, 0, item->textStyle );
 }
 
 
-
-//float			trap_Cvar_VariableValue( const char *var_name );
-//void			trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
 
 void Item_TextField_Paint( itemDef_t *item ) {
 	char buff[1024];
 	vec4_t newColor, lowLight;
 	int offset;
+	int text_len = 0; // screen length of the editfield text that will be printed
+	int field_offset; // character offset in the editfield string
+	int screen_offset; // offset on screen for precise placement
 	menuDef_t *parent = (menuDef_t*)item->parent;
 	editFieldDef_t *editPtr = (editFieldDef_t*)item->typeData;
 
@@ -3561,12 +3555,37 @@ void Item_TextField_Paint( itemDef_t *item ) {
 		memcpy( &newColor, &item->window.foreColor, sizeof( vec4_t ) );
 	}
 
+	// NOTE: offset from the editfield prefix (like "Say: " in limbo menu)
 	offset = ( item->text && *item->text ) ? 8 : 0;
+
+	// TTimo
+	// text length control
+	// if the edit field goes beyond the available width, drop some characters at the beginning of the string and apply some offseting
+	// FIXME: we could cache the text length and offseting, but given the low count of edit fields, I abstained for now
+	// FIXME: this won't handle going back into the line of the editfield to the hidden area
+	// start of text painting: item->textRect.x + item->textRect.w + offset
+	// our window limit: item->window.rect.x + item->window.rect.w
+	field_offset = -1;
+	do
+	{
+		field_offset++;
+		if ( buff + editPtr->paintOffset + field_offset == '\0' ) {
+			break;                                                   // keep it safe
+		}
+		text_len = DC->textWidth( buff + editPtr->paintOffset + field_offset, item->textscale, 0 );
+	} while ( text_len + item->textRect.x + item->textRect.w + offset > item->window.rect.x + item->window.rect.w );
+	if ( field_offset ) {
+		// we had to take out some chars to make it fit in, there is an additional screen offset to compute
+		screen_offset = item->window.rect.x + item->window.rect.w - ( text_len + item->textRect.x + item->textRect.w + offset );
+	} else {
+		screen_offset = 0;
+	}
+
 	if ( item->window.flags & WINDOW_HASFOCUS && g_editingField ) {
 		char cursor = DC->getOverstrikeMode() ? '_' : '|';
-		DC->drawTextWithCursor( item->textRect.x + item->textRect.w + offset, item->textRect.y, item->font, item->textscale, newColor, buff + editPtr->paintOffset, item->cursorPos - editPtr->paintOffset, cursor, editPtr->maxPaintChars, item->textStyle );
+		DC->drawTextWithCursor( item->textRect.x + item->textRect.w + offset + screen_offset, item->textRect.y, item->textscale, newColor, buff + editPtr->paintOffset + field_offset, item->cursorPos - editPtr->paintOffset - field_offset, cursor, editPtr->maxPaintChars, item->textStyle );
 	} else {
-		DC->drawText( item->textRect.x + item->textRect.w + offset, item->textRect.y, item->font, item->textscale, newColor, buff + editPtr->paintOffset, 0, editPtr->maxPaintChars, item->textStyle );
+		DC->drawText( item->textRect.x + item->textRect.w + offset + screen_offset, item->textRect.y, item->textscale, newColor, buff + editPtr->paintOffset + field_offset, 0, editPtr->maxPaintChars, item->textStyle );
 	}
 
 }
@@ -3575,7 +3594,6 @@ void Item_YesNo_Paint( itemDef_t *item ) {
 	vec4_t newColor, lowLight;
 	float value;
 	menuDef_t *parent = (menuDef_t*)item->parent;
-	const char *yes_str = "yes", *no_str = "no";
 
 	value = ( item->cvar ) ? DC->getCVarValue( item->cvar ) : 0;
 
@@ -3589,14 +3607,12 @@ void Item_YesNo_Paint( itemDef_t *item ) {
 		memcpy( &newColor, &item->window.foreColor, sizeof( vec4_t ) );
 	}
 
-	yes_str = DC->getTranslatedString( yes_str );
-	no_str = DC->getTranslatedString( no_str );
-
 	if ( item->text ) {
 		Item_Text_Paint( item );
-		DC->drawText( item->textRect.x + item->textRect.w + 8, item->textRect.y, item->font, item->textscale, newColor, ( value != 0 ) ? yes_str : no_str, 0, 0, item->textStyle );
+		DC->drawText( item->textRect.x + item->textRect.w + 8, item->textRect.y, item->textscale, newColor,
+					  ( value != 0 ) ? DC->translateString( "Yes" ) : DC->translateString( "No" ), 0, 0, item->textStyle );
 	} else {
-		DC->drawText( item->textRect.x, item->textRect.y, item->font, item->textscale, newColor, ( value != 0 ) ? yes_str : no_str, 0, 0, item->textStyle );
+		DC->drawText( item->textRect.x, item->textRect.y, item->textscale, newColor, ( value != 0 ) ? "Yes" : "No", 0, 0, item->textStyle );
 	}
 }
 
@@ -3619,9 +3635,9 @@ void Item_Multi_Paint( itemDef_t *item ) {
 
 	if ( item->text ) {
 		Item_Text_Paint( item );
-		DC->drawText( item->textRect.x + item->textRect.w + 8, item->textRect.y, item->font, item->textscale, newColor, text, 0, 0, item->textStyle );
+		DC->drawText( item->textRect.x + item->textRect.w + 8, item->textRect.y, item->textscale, newColor, text, 0, 0, item->textStyle );
 	} else {
-		DC->drawText( item->textRect.x, item->textRect.y, item->font, item->textscale, newColor, text, 0, 0, item->textStyle );
+		DC->drawText( item->textRect.x, item->textRect.y, item->textscale, newColor, text, 0, 0, item->textStyle );
 	}
 }
 
@@ -3670,6 +3686,67 @@ static bind_t g_bindings[] =
 	{"weaponbank 8", '8',         -1, -1, -1},
 	{"weaponbank 9", '9',         -1, -1, -1},
 	{"weaponbank 10",    '0',         -1, -1, -1},
+	{"+attack",      K_CTRL,         -1, -1, -1},
+	{"weapprev",     K_MWHEELDOWN,   -1, -1, -1},
+	{"weapnext",     K_MWHEELUP,     -1, -1, -1},
+	{"weapalt",          -1,             -1, -1, -1},
+	{"weaplastused", -1,             -1, -1, -1}, //----(SA)	added
+	{"weapnextinbank",   -1,             -1, -1, -1}, //----(SA)	added
+	{"weapprevinbank",   -1,             -1, -1, -1}, //----(SA)	added
+	{"+useitem",     K_ENTER,        -1, -1, -1},
+	{"itemprev",     '[',         -1, -1, -1},
+	{"itemnext",     ']',         -1, -1, -1},
+	{"+button3",     K_MOUSE3,       -1, -1, -1},
+
+/*
+	{"prevTeamMember",	-1,				-1, -1, -1},
+	{"nextTeamMember",	-1,				-1, -1, -1},
+	{"nextOrder",		-1,				-1, -1, -1},
+	{"confirmOrder",	-1,				-1, -1, -1},
+	{"denyOrder",		-1,				-1, -1, -1},
+	{"taskOffense",     -1,				-1, -1, -1},
+	{"taskDefense",     -1,				-1, -1, -1},
+	{"taskPatrol",		-1,				-1, -1, -1},
+	{"taskCamp",		-1,				-1, -1, -1},
+	{"taskFollow",		-1,				-1, -1, -1},
+	{"taskRetrieve",	-1,				-1, -1, -1},
+	{"taskEscort",		-1,				-1, -1, -1},
+	{"taskOwnFlag",     -1,				-1, -1, -1},
+	{"taskSuicide",     -1,				-1, -1, -1},
+	{"tauntKillInsult", -1,				-1, -1, -1},
+	{"tauntPraise",     -1,				-1, -1, -1},
+	{"tauntTaunt",		-1,				-1, -1, -1},
+	{"tauntDeathInsult",-1,				-1, -1, -1},
+	{"tauntGauntlet",	-1,				-1, -1, -1},
+*/
+	{"scoresUp",     -1,             -1, -1, -1},
+	{"scoresDown",       -1,             -1, -1, -1},
+	{"messagemode",  -1,             -1, -1, -1},
+	{"messagemode2", -1,             -1, -1, -1},
+	{"messagemode3", -1,             -1, -1, -1},
+	{"messagemode4", -1,             -1, -1, -1},
+
+	{"+activate",        -1,             -1, -1, -1},
+	{"zoomin",           -1,             -1, -1, -1},
+	{"zoomout",          -1,             -1, -1, -1},
+	{"+kick",            -1,             -1, -1, -1},
+	{"+reload",      -1,             -1, -1, -1},
+	{"+sprint",      -1,             -1, -1, -1},
+	{"notebook",     K_TAB,          -1, -1, -1},
+	{"help",         K_F1,           -1, -1, -1},
+	{"+leanleft",        -1,             -1, -1, -1},
+	{"+leanright",       -1,             -1, -1, -1},
+
+	// DHM - Nerve
+	{"vote yes",     -1,             -1, -1, -1},
+	{"vote no",          -1,             -1, -1, -1},
+	// dhm
+	// NERVE - SMF
+	{"OpenLimboMenu",    -1,             -1, -1, -1},
+	{"mp_QuickMessage",  -1,             -1, -1, -1},
+	{"+dropweapon",  -1,             -1, -1, -1},
+	// -NERVE - SMF
+
 	{"weapon 1",     -1,             -1, -1, -1},
 	{"weapon 2",     -1,             -1, -1, -1},
 	{"weapon 3",     -1,             -1, -1, -1},
@@ -3701,71 +3778,35 @@ static bind_t g_bindings[] =
 	{"weapon 29",        -1,             -1, -1, -1},
 	{"weapon 30",        -1,             -1, -1, -1},
 	{"weapon 31",        -1,             -1, -1, -1},
-	{"weapon 32",        -1,             -1, -1, -1},
-	{"+attack",      K_CTRL,         -1, -1, -1},
-	{"weapprev",     K_MWHEELDOWN,   -1, -1, -1},
-	{"weapnext",     K_MWHEELUP,     -1, -1, -1},
-	{"weapalt",          -1,             -1, -1, -1},
-	{"weaplastused", -1,             -1, -1, -1},    //----(SA)	added
-	{"weapnextinbank",   -1,             -1, -1, -1},    //----(SA)	added
-	{"weapprevinbank",   -1,             -1, -1, -1},    //----(SA)	added
-	{"+useitem",     K_ENTER,        -1, -1, -1},
-	{"itemprev",     '[',         -1, -1, -1},
-	{"itemnext",     ']',         -1, -1, -1},
-	{"+button3",     K_MOUSE3,       -1, -1, -1},
-	{"prevTeamMember",   -1,             -1, -1, -1},
-	{"nextTeamMember",   -1,             -1, -1, -1},
-	{"nextOrder",        -1,             -1, -1, -1},
-	{"confirmOrder", -1,             -1, -1, -1},
-	{"denyOrder",        -1,             -1, -1, -1},
-	{"taskOffense",  -1,             -1, -1, -1},
-	{"taskDefense",  -1,             -1, -1, -1},
-	{"taskPatrol",       -1,             -1, -1, -1},
-	{"taskCamp",     -1,             -1, -1, -1},
-	{"taskFollow",       -1,             -1, -1, -1},
-	{"taskRetrieve", -1,             -1, -1, -1},
-	{"taskEscort",       -1,             -1, -1, -1},
-	{"taskOwnFlag",  -1,             -1, -1, -1},
-	{"taskSuicide",  -1,             -1, -1, -1},
-	{"tauntKillInsult", -1,              -1, -1, -1},
-	{"tauntPraise",  -1,             -1, -1, -1},
-	{"tauntTaunt",       -1,             -1, -1, -1},
-	{"tauntDeathInsult",-1,              -1, -1, -1},
-	{"tauntGauntlet",    -1,             -1, -1, -1},
-	{"scoresUp",     -1,             -1, -1, -1},
-	{"scoresDown",       -1,             -1, -1, -1},
-	{"messagemode",  -1,             -1, -1, -1},
-	{"messagemode2", -1,             -1, -1, -1},
-	{"messagemode3", -1,             -1, -1, -1},
-	{"messagemode4", -1,             -1, -1, -1},
-
-	{"savegame quicksave",   -1,         -1, -1, -1},    //----(SA)	added
-	{"loadgame quicksave",   -1,         -1, -1, -1},    //----(SA)	added
-
-	{"+activate",        -1,             -1, -1, -1},
-	{"zoomin",           -1,             -1, -1, -1},
-	{"zoomout",          -1,             -1, -1, -1},
-	{"+kick",            -1,             -1, -1, -1},
-	{"+reload",      -1,             -1, -1, -1},
-	{"+sprint",      -1,             -1, -1, -1},
-	{"notebook",     K_TAB,          -1, -1, -1},
-//	{"help",			K_F1,           -1, -1, -1},
-	{"+leanleft",        -1,             -1, -1, -1},
-	{"+leanright",       -1,             -1, -1, -1},
-	{"kill",         -1,             -1, -1, -1}
+	{"weapon 32",        -1,             -1, -1, -1}
 };
 
 
 static const int g_bindCount = ARRAY_LEN(g_bindings);
 
-// (SA) removed code that made me nervous and didn't do anything.  (10/11/01)
+/*
+// TTimo unused
+static configcvar_t g_configcvars[] =
+{
+	{"cl_run",			0,					0},
+	{"m_pitch",			0,					0},
+	{"cg_autoswitch",	0,					0},
+	{"sensitivity",		0,					0},
+	{"in_joystick",		0,					0},
+	{"joy_threshold",	0,					0},
+	{"m_filter",		0,					0},
+	{"cl_freelook",		0,					0},
+	{"cg_quickMessageAlt",	0,				0},			// NERVE - SMF
+	{NULL,				0,					0}
+};
+*/
 
 /*
 =================
 Controls_GetKeyAssignment
 =================
 */
-static void Controls_GetKeyAssignment( char *command, int *twokeys ) {
+void Controls_GetKeyAssignment( char *command, int *twokeys ) {
 	int count;
 	int j;
 	char b[256];
@@ -3839,9 +3880,20 @@ void Controls_SetConfig( qboolean restart ) {
 		}
 	}
 
-	// TTimo: FIXME
-	// show_bug.cgi?id=430
+	//if ( s_controls.invertmouse.curvalue )
+	//	DC->setCVar("m_pitch", va("%f),-fabs( DC->getCVarValue( "m_pitch" ) ) );
+	//else
+	//	trap_Cvar_SetValue( "m_pitch", fabs( trap_Cvar_VariableValue( "m_pitch" ) ) );
+
+	//trap_Cvar_SetValue( "m_filter", s_controls.smoothmouse.curvalue );
+	//trap_Cvar_SetValue( "cl_run", s_controls.alwaysrun.curvalue );
+	//trap_Cvar_SetValue( "cg_autoswitch", s_controls.autoswitch.curvalue );
+	//trap_Cvar_SetValue( "sensitivity", s_controls.sensitivity.curvalue );
+	//trap_Cvar_SetValue( "in_joystick", s_controls.joyenable.curvalue );
+	//trap_Cvar_SetValue( "joy_threshold", s_controls.joythreshold.curvalue );
+	//trap_Cvar_SetValue( "cl_freelook", s_controls.freelook.curvalue );
 	DC->executeText( EXEC_APPEND, "in_restart\n" );
+	//trap_Cmd_ExecuteText( EXEC_APPEND, "in_restart\n" );
 }
 
 /*
@@ -3883,7 +3935,7 @@ int BindingIDFromName( const char *name ) {
 char g_nameBind1[32];
 char g_nameBind2[32];
 
-void BindingFromName( const char *cvar ) {
+char* BindingFromName( const char *cvar ) {
 	int i, b1, b2;
 
 	// iterate each command, set its default binding
@@ -3901,13 +3953,14 @@ void BindingFromName( const char *cvar ) {
 			if ( b2 != -1 ) {
 				DC->keynumToStringBuf( b2, g_nameBind2, 32 );
 				Q_strupr( g_nameBind2 );
-				strcat( g_nameBind1, va( " %s ", DC->getTranslatedString( "or" ) ) );
+				strcat( g_nameBind1, DC->translateString( " or " ) );
 				strcat( g_nameBind1, g_nameBind2 );
 			}
-			return;
+			return g_nameBind1;         // NERVE - SMF
 		}
 	}
 	strcpy( g_nameBind1, "???" );
+	return g_nameBind1;         // NERVE - SMF
 }
 
 void Item_Slider_Paint( itemDef_t *item ) {
@@ -3968,13 +4021,13 @@ void Item_Bind_Paint( itemDef_t *item ) {
 	if ( item->text ) {
 		Item_Text_Paint( item );
 		BindingFromName( item->cvar );
-		DC->drawText( item->textRect.x + item->textRect.w + 8, item->textRect.y, item->font, item->textscale, newColor, g_nameBind1, 0, maxChars, item->textStyle );
+		DC->drawText( item->textRect.x + item->textRect.w + 8, item->textRect.y, item->textscale, newColor, g_nameBind1, 0, maxChars, item->textStyle );
 	} else {
-		DC->drawText(item->textRect.x, item->textRect.y, item->font, item->textscale, newColor, "FIXME", 0, maxChars, item->textStyle);
+		DC->drawText(item->textRect.x, item->textRect.y, item->textscale, newColor, "FIXME", 0, maxChars, item->textStyle);
 	}
 }
 
-qboolean Display_KeyBindPending( void ) {
+qboolean Display_KeyBindPending(void) {
 	return g_waitingForKey;
 }
 
@@ -3983,7 +4036,7 @@ qboolean Item_Bind_HandleKey( itemDef_t *item, int key, qboolean down ) {
 	int i;
 
 	if (!g_waitingForKey)
- 	{
+	{
 		if (down && ((key == K_MOUSE1 && Rect_ContainsPoint(&item->window.rect, DC->cursorx, DC->cursory))
 				|| key == K_ENTER || key == K_KP_ENTER || key == K_JOY1 || key == K_JOY2 || key == K_JOY3 || key == K_JOY4)) {
 			g_waitingForKey = qtrue;
@@ -4344,7 +4397,8 @@ void Item_ListBox_Paint( itemDef_t *item ) {
 						if ( optionalImage >= 0 ) {
 							DC->drawHandlePic( x + 4 + listPtr->columnInfo[j].pos, y - 1 + listPtr->elementHeight / 2, listPtr->columnInfo[j].width, listPtr->columnInfo[j].width, optionalImage );
 						} else if ( text ) {
-							DC->drawText( x + 4 + listPtr->columnInfo[j].pos, y + listPtr->elementHeight, item->font, item->textscale, item->window.foreColor, text, 0, listPtr->columnInfo[j].maxChars, item->textStyle );
+							DC->drawText( x + 4 + listPtr->columnInfo[j].pos + item->textalignx,
+										  y + listPtr->elementHeight + item->textaligny, item->textscale, item->window.foreColor, text, 0, listPtr->columnInfo[j].maxChars, item->textStyle );
 						}
 					}
 				} else {
@@ -4352,12 +4406,12 @@ void Item_ListBox_Paint( itemDef_t *item ) {
 					if ( optionalImage >= 0 ) {
 						//DC->drawHandlePic(x + 4 + listPtr->elementHeight, y, listPtr->columnInfo[j].width, listPtr->columnInfo[j].width, optionalImage);
 					} else if ( text ) {
-						DC->drawText( x + 4, y + listPtr->elementHeight, item->font, item->textscale, item->window.foreColor, text, 0, 0, item->textStyle );
+						DC->drawText( x + 4, y + listPtr->elementHeight, item->textscale, item->window.foreColor, text, 0, 0, item->textStyle );
 					}
 				}
 
 				if ( i == item->cursorPos ) {
-					DC->fillRect( x + 2, y + 2, item->window.rect.w - SCROLLBAR_SIZE - 4, listPtr->elementHeight, item->window.outlineColor );
+					DC->fillRect( x, y, item->window.rect.w - SCROLLBAR_SIZE - 4, listPtr->elementHeight - 1, item->window.outlineColor );
 				}
 
 				size -= listPtr->elementHeight;
@@ -4375,7 +4429,6 @@ void Item_ListBox_Paint( itemDef_t *item ) {
 
 
 void Item_OwnerDraw_Paint( itemDef_t *item ) {
-
 	if ( item == NULL ) {
 		return;
 	}
@@ -4425,12 +4478,12 @@ void Item_OwnerDraw_Paint( itemDef_t *item ) {
 			Item_Text_Paint( item );
 			if ( item->text[0] ) {
 				// +8 is an offset kludge to properly align owner draw items that have text combined with them
-				DC->ownerDrawItem( item->textRect.x + item->textRect.w + 8, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, item->textaligny, item->window.ownerDraw, item->window.ownerDrawFlags, item->alignment, item->special, item->font, item->textscale, color, item->window.background, item->textStyle );
+				DC->ownerDrawItem( item->textRect.x + item->textRect.w + 8, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, item->textaligny, item->window.ownerDraw, item->window.ownerDrawFlags, item->alignment, item->special, item->textscale, color, item->window.background, item->textStyle );
 			} else {
-				DC->ownerDrawItem( item->textRect.x + item->textRect.w, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, item->textaligny, item->window.ownerDraw, item->window.ownerDrawFlags, item->alignment, item->special, item->font, item->textscale, color, item->window.background, item->textStyle );
+				DC->ownerDrawItem( item->textRect.x + item->textRect.w, item->window.rect.y, item->window.rect.w, item->window.rect.h, 0, item->textaligny, item->window.ownerDraw, item->window.ownerDrawFlags, item->alignment, item->special, item->textscale, color, item->window.background, item->textStyle );
 			}
 		} else {
-			DC->ownerDrawItem( item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h, item->textalignx, item->textaligny, item->window.ownerDraw, item->window.ownerDrawFlags, item->alignment, item->special, item->font, item->textscale, color, item->window.background, item->textStyle );
+			DC->ownerDrawItem( item->window.rect.x, item->window.rect.y, item->window.rect.w, item->window.rect.h, item->textalignx, item->textaligny, item->window.ownerDraw, item->window.ownerDrawFlags, item->alignment, item->special, item->textscale, color, item->window.background, item->textStyle );
 		}
 	}
 }
@@ -4439,11 +4492,17 @@ void Item_OwnerDraw_Paint( itemDef_t *item ) {
 void Item_Paint( itemDef_t *item ) {
 	vec4_t red;
 	menuDef_t *parent;
+
 	red[0] = red[3] = 1;
 	red[1] = red[2] = 0;
 
 	if ( item == NULL ) {
 		return;
+	}
+
+	// NERVE - SMF
+	if ( DC->textFont ) {
+		DC->textFont( item->font );
 	}
 
 	parent = (menuDef_t*)item->parent;
@@ -4600,7 +4659,6 @@ void Item_Paint( itemDef_t *item ) {
 		break;
 	case ITEM_TYPE_EDITFIELD:
 	case ITEM_TYPE_NUMERICFIELD:
-	case ITEM_TYPE_VALIDFILEFIELD:      //----(SA)	added
 		Item_TextField_Paint( item );
 		break;
 	case ITEM_TYPE_COMBO:
@@ -4655,7 +4713,7 @@ itemDef_t *Menu_GetFocusedItem( menuDef_t *menu ) {
 	return NULL;
 }
 
-menuDef_t *Menu_GetFocused( void ) {
+menuDef_t *Menu_GetFocused(void) {
 	int i;
 	for ( i = 0; i < menuCount; i++ ) {
 		if ( Menus[i].window.flags & WINDOW_HASFOCUS && Menus[i].window.flags & WINDOW_VISIBLE ) {
@@ -4705,7 +4763,7 @@ void Menu_SetFeederSelection( menuDef_t *menu, int feeder, int index, const char
 	}
 }
 
-qboolean Menus_AnyFullScreenVisible( void ) {
+qboolean Menus_AnyFullScreenVisible(void) {
 	int i;
 	for ( i = 0; i < menuCount; i++ ) {
 		if ( Menus[i].window.flags & WINDOW_VISIBLE && Menus[i].fullScreen ) {
@@ -4715,7 +4773,7 @@ qboolean Menus_AnyFullScreenVisible( void ) {
 	return qfalse;
 }
 
-menuDef_t *Menus_ActivateByName( const char *p ) {
+menuDef_t *Menus_ActivateByName( const char *p, qboolean modalStack ) {
 	int i;
 	menuDef_t *m = NULL;
 	menuDef_t *focus = Menu_GetFocused();
@@ -4723,8 +4781,11 @@ menuDef_t *Menus_ActivateByName( const char *p ) {
 		if ( Q_stricmp( Menus[i].window.name, p ) == 0 ) {
 			m = &Menus[i];
 			Menus_Activate( m );
-			if ( openMenuCount < MAX_OPEN_MENUS && focus != NULL ) {
-				menuStack[openMenuCount++] = focus;
+			if ( modalStack && m->window.flags & WINDOW_MODAL ) {
+				if ( modalMenuCount >= MAX_MODAL_MENUS ) {
+					Com_Error( ERR_DROP, "MAX_MODAL_MENUS exceeded\n" );
+				}
+				modalMenuStack[modalMenuCount++] = focus;
 			}
 		} else {
 			Menus[i].window.flags &= ~WINDOW_HASFOCUS;
@@ -4759,6 +4820,16 @@ void Menu_HandleMouseMove( menuDef_t *menu, float x, float y ) {
 	}
 
 	if ( itemCapture ) {
+		if ( itemCapture->type == ITEM_TYPE_LISTBOX ) {
+			// NERVE - SMF - lose capture if out of client rect
+			if ( !Rect_ContainsPoint( &itemCapture->window.rect, x, y ) ) {
+				Item_StopCapture( itemCapture );
+				itemCapture = NULL;
+				captureFunc = 0;
+				captureData = NULL;
+			}
+
+		}
 		//Item_MouseMove(itemCapture, x, y);
 		return;
 	}
@@ -4875,10 +4946,10 @@ void Item_ValidateTypeData( itemDef_t *item ) {
 	if ( item->type == ITEM_TYPE_LISTBOX ) {
 		item->typeData = UI_Alloc( sizeof( listBoxDef_t ) );
 		memset( item->typeData, 0, sizeof( listBoxDef_t ) );
-	} else if ( item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_NUMERICFIELD || item->type == ITEM_TYPE_VALIDFILEFIELD || item->type == ITEM_TYPE_YESNO || item->type == ITEM_TYPE_BIND || item->type == ITEM_TYPE_SLIDER || item->type == ITEM_TYPE_TEXT ) {
+	} else if ( item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_NUMERICFIELD || item->type == ITEM_TYPE_YESNO || item->type == ITEM_TYPE_BIND || item->type == ITEM_TYPE_SLIDER || item->type == ITEM_TYPE_TEXT ) {
 		item->typeData = UI_Alloc( sizeof( editFieldDef_t ) );
 		memset( item->typeData, 0, sizeof( editFieldDef_t ) );
-		if ( item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_VALIDFILEFIELD ) {
+		if ( item->type == ITEM_TYPE_EDITFIELD ) {
 			if ( !( (editFieldDef_t *) item->typeData )->maxPaintChars ) {
 				( (editFieldDef_t *) item->typeData )->maxPaintChars = MAX_EDITFIELD;
 			}
@@ -4912,7 +4983,7 @@ int KeywordHash_Key( char *keyword ) {
 
 	hash = 0;
 	for ( i = 0; keyword[i] != '\0'; i++ ) {
-		if ( Q_isupper( keyword[i] ) ) {
+		if ( keyword[i] >= 'A' && keyword[i] <= 'Z' ) {
 			hash += ( keyword[i] + ( 'a' - 'A' ) ) * ( 119 + i );
 		} else {
 			hash += keyword[i] * ( 119 + i );
@@ -4999,19 +5070,6 @@ qboolean ItemParse_textfile( itemDef_t *item, int handle ) {
 	return qtrue;
 }
 //----(SA)
-
-
-//----(SA)	added
-qboolean ItemParse_textsavegame( itemDef_t *item, int handle ) {
-
-	// this'll get picked up when the savegames are parsed
-	item->text = "savegameinfo";
-	item->textSavegameInfo = qtrue;
-	return qtrue;
-}
-//----(SA)	end
-
-
 
 // group <string>
 qboolean ItemParse_group( itemDef_t *item, int handle ) {
@@ -5147,6 +5205,25 @@ qboolean ItemParse_rect( itemDef_t *item, int handle ) {
 	}
 	return qtrue;
 }
+
+// NERVE - SMF
+// origin <integer, integer>
+qboolean ItemParse_origin( itemDef_t *item, int handle ) {
+	int x, y;
+
+	if ( !PC_Int_Parse( handle, &x ) ) {
+		return qfalse;
+	}
+	if ( !PC_Int_Parse( handle, &y ) ) {
+		return qfalse;
+	}
+
+	item->window.rectClient.x += x;
+	item->window.rectClient.y += y;
+
+	return qtrue;
+}
+// -NERVE - SMF
 
 // style <integer>
 qboolean ItemParse_style( itemDef_t *item, int handle ) {
@@ -5745,6 +5822,11 @@ qboolean ItemParse_disableCvar( itemDef_t *item, int handle ) {
 	return qfalse;
 }
 
+qboolean ItemParse_noToggle( itemDef_t *item, int handle ) {
+	item->cvarFlags |= CVAR_NOTOGGLE;
+	return qtrue;
+}
+
 qboolean ItemParse_showCvar( itemDef_t *item, int handle ) {
 	if ( PC_Script_Parse( handle, &item->enableCvar ) ) {
 		item->cvarFlags = CVAR_SHOW;
@@ -5766,7 +5848,6 @@ keywordHash_t itemParseKeywords[] = {
 	{"name", ItemParse_name, NULL},
 	{"text", ItemParse_text, NULL},
 	{"textfile", ItemParse_textfile, NULL},  //----(SA)	added
-	{"textsavegame", ItemParse_textsavegame, NULL},  //----(SA)	added
 	{"group", ItemParse_group, NULL},
 	{"asset_model", ItemParse_asset_model, NULL},
 	{"asset_shader", ItemParse_asset_shader, NULL},
@@ -5777,6 +5858,7 @@ keywordHash_t itemParseKeywords[] = {
 	{"model_angle", ItemParse_model_angle, NULL},
 	{"model_animplay", ItemParse_model_animplay, NULL},
 	{"rect", ItemParse_rect, NULL},
+	{"origin", ItemParse_origin, NULL},              // NERVE - SMF
 	{"style", ItemParse_style, NULL},
 	{"decoration", ItemParse_decoration, NULL},
 	{"notselectable", ItemParse_notselectable, NULL},
@@ -5799,7 +5881,7 @@ keywordHash_t itemParseKeywords[] = {
 	{"textaligny", ItemParse_textaligny, NULL},
 	{"textscale", ItemParse_textscale, NULL},
 	{"textstyle", ItemParse_textstyle, NULL},
-	{"textfont", ItemParse_textfont, NULL},
+	{"textfont", ItemParse_textfont, NULL},              // (SA)
 	{"backcolor", ItemParse_backcolor, NULL},
 	{"forecolor", ItemParse_forecolor, NULL},
 	{"bordercolor", ItemParse_bordercolor, NULL},
@@ -5831,6 +5913,7 @@ keywordHash_t itemParseKeywords[] = {
 	{"hideCvar", ItemParse_hideCvar, NULL},
 	{"cinematic", ItemParse_cinematic, NULL},
 	{"doubleclick", ItemParse_doubleClick, NULL},
+	{"noToggle", ItemParse_noToggle, NULL}, // TTimo: use with ITEM_TYPE_YESNO and an action script (see sv_punkbuster)
 	{NULL, 0, NULL}
 };
 
@@ -5901,6 +5984,17 @@ Hacks to fix issues with menu scripts
 ===============
 */
 static void Item_ApplyHacks( itemDef_t *item ) {
+
+	// Fix length of favorite address in createfavorite.menu
+	if ( item->type == ITEM_TYPE_EDITFIELD && item->cvar && !Q_stricmp( item->cvar, "ui_favoriteAddress" ) ) {
+		editFieldDef_t *editField = (editFieldDef_t *)item->typeData;
+
+		// enough to hold an IPv6 address plus null
+		if ( editField->maxChars < 48 ) {
+			DC->DPrint( "Extended create favorite address edit field length to hold an IPv6 address\n" );
+			editField->maxChars = 48;
+		}
+	}
 
 	// Add video modes to system menu
 	if ( item->type == ITEM_TYPE_MULTI && item->cvar && !Q_stricmp( item->cvar, "r_mode" ) ) {
@@ -6078,17 +6172,6 @@ qboolean MenuParse_onESC( itemDef_t *item, int handle ) {
 	}
 	return qtrue;
 }
-
-//----(SA)	added
-qboolean MenuParse_onROQDone( itemDef_t *item, int handle ) {
-	menuDef_t *menu = (menuDef_t*)item;
-	if ( !PC_Script_Parse( handle, &menu->onROQDone ) ) {
-		return qfalse;
-	}
-	return qtrue;
-}
-
-//----(SA)	end
 
 
 
@@ -6307,7 +6390,7 @@ qboolean MenuParse_execKey( itemDef_t *item, int handle ) {
 	if ( !PC_Char_Parse( handle, &keyname ) ) {
 		return qfalse;
 	}
-	keyindex = ( unsigned char )keyname;
+	keyindex = keyname;
 
 	if ( !PC_Script_Parse( handle, &menu->onKey[keyindex] ) ) {
 		return qfalse;
@@ -6330,6 +6413,14 @@ qboolean MenuParse_execKeyInt( itemDef_t *item, int handle ) {
 }
 // -NERVE - SMF
 
+// TTimo
+qboolean MenuParse_modal( itemDef_t *item, int handle ) {
+	menuDef_t *menu = (menuDef_t*)item;
+	menu->window.flags |= WINDOW_MODAL;
+	return qtrue;
+}
+
+
 keywordHash_t menuParseKeywords[] = {
 	{"font", MenuParse_font, NULL},
 	{"name", MenuParse_name, NULL},
@@ -6340,7 +6431,6 @@ keywordHash_t menuParseKeywords[] = {
 	{"onOpen", MenuParse_onOpen, NULL},
 	{"onClose", MenuParse_onClose, NULL},
 	{"onESC", MenuParse_onESC, NULL},
-	{"onROQDone", MenuParse_onROQDone, NULL},    //----(SA)	added
 	{"border", MenuParse_border, NULL},
 	{"borderSize", MenuParse_borderSize, NULL},
 	{"backcolor", MenuParse_backcolor, NULL},
@@ -6362,6 +6452,7 @@ keywordHash_t menuParseKeywords[] = {
 	{"fadeAmount", MenuParse_fadeAmount, NULL},
 	{"execKey", MenuParse_execKey, NULL},                // NERVE - SMF
 	{"execKeyInt", MenuParse_execKeyInt, NULL},          // NERVE - SMF
+	{"modal", MenuParse_modal, NULL },
 	{NULL, 0, NULL}
 };
 
@@ -6439,11 +6530,11 @@ void Menu_New( int handle ) {
 	}
 }
 
-int Menu_Count( void ) {
+int Menu_Count(void) {
 	return menuCount;
 }
 
-void Menu_PaintAll( void ) {
+void Menu_PaintAll(void) {
 	int i;
 	if ( captureFunc ) {
 		captureFunc( captureData );
@@ -6455,11 +6546,11 @@ void Menu_PaintAll( void ) {
 
 	if ( debugMode ) {
 		vec4_t v = {1, 1, 1, 1};
-		DC->drawText( 5, 25, 0, .5, v, va( "fps: %f", DC->FPS ), 0, 0, 0 );
+		DC->drawText( 5, 25, .5, v, va( "fps: %f", DC->FPS ), 0, 0, 0 );
 	}
 }
 
-void Menu_Reset( void ) {
+void Menu_Reset(void) {
 	menuCount = 0;
 }
 
@@ -6467,11 +6558,8 @@ displayContextDef_t *Display_GetContext(void) {
 	return DC;
 }
 
-// TTimo: unused
-/*
-static float captureX;
-static float captureY;
-*/
+//static float captureX; // TTimo: unused
+//static float captureY; // TTimo: unused
 
 void *Display_CaptureItem( int x, int y ) {
 	int i;
@@ -6543,9 +6631,6 @@ static void Window_CacheContents( windowDef_t *window ) {
 			int cin = DC->playCinematic( window->cinematicName, 0, 0, 0, 0 );
 			DC->stopCinematic( cin );
 		}
-		// (SA) added for cachinig in music
-//		if(window->
-//----(SA)	end
 	}
 }
 
@@ -6572,7 +6657,7 @@ static void Menu_CacheContents( menuDef_t *menu ) {
 
 }
 
-void Display_CacheAll( void ) {
+void Display_CacheAll(void) {
 	int i;
 	for ( i = 0; i < menuCount; i++ ) {
 		Menu_CacheContents( &Menus[i] );

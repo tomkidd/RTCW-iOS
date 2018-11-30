@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -46,7 +46,7 @@ void SetPlaneSignbits( cplane_t *out ) {
 	}
 	out->signbits = bits;
 }
-#endif //BSPC
+#endif
 
 // to allow boxes to be treated as brush models, we allocate
 // some extra indexes along with those needed by the map
@@ -110,7 +110,7 @@ void CMod_LoadShaders( lump_t *l ) {
 	cm.shaders = Hunk_Alloc( count * sizeof( *cm.shaders ), h_high );
 	cm.numShaders = count;
 
-	Com_Memcpy( cm.shaders, in, count * sizeof( *cm.shaders ) );
+	memcpy( cm.shaders, in, count * sizeof( *cm.shaders ) );
 
 	if ( LittleLong( 1 ) != 1 ) {
 		out = cm.shaders;
@@ -460,7 +460,7 @@ CMod_LoadEntityString
 void CMod_LoadEntityString( lump_t *l ) {
 	cm.entityString = Hunk_Alloc( l->filelen, h_high );
 	cm.numEntityChars = l->filelen;
-	Com_Memcpy( cm.entityString, cmod_base + l->fileofs, l->filelen );
+	memcpy( cm.entityString, cmod_base + l->fileofs, l->filelen );
 }
 
 /*
@@ -477,7 +477,7 @@ void CMod_LoadVisibility( lump_t *l ) {
 	if ( !len ) {
 		cm.clusterBytes = ( cm.numClusters + 31 ) & ~31;
 		cm.visibility = Hunk_Alloc( cm.clusterBytes, h_high );
-		Com_Memset( cm.visibility, 255, cm.clusterBytes );
+		memset( cm.visibility, 255, cm.clusterBytes );
 		return;
 	}
 	buf = cmod_base + l->fileofs;
@@ -486,7 +486,7 @@ void CMod_LoadVisibility( lump_t *l ) {
 	cm.visibility = Hunk_Alloc( len, h_high );
 	cm.numClusters = LittleLong( ( (int *)buf )[0] );
 	cm.clusterBytes = LittleLong( ( (int *)buf )[1] );
-	Com_Memcpy( cm.visibility, buf + VIS_HEADER, len - VIS_HEADER );
+	memcpy( cm.visibility, buf + VIS_HEADER, len - VIS_HEADER );
 }
 
 //==================================================================
@@ -567,7 +567,7 @@ Free any loaded map and all submodels
 ==================
 */
 void CM_FreeMap( void ) {
-	Com_Memset( &cm, 0, sizeof( cm ) );
+	memset( &cm, 0, sizeof( cm ) );
 	Hunk_ClearHigh();
 	CM_ClearLevelPatches();
 }
@@ -628,7 +628,7 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	}
 
 	// free old stuff
-	Com_Memset( &cm, 0, sizeof( cm ) );
+	memset( &cm, 0, sizeof( cm ) );
 	CM_ClearLevelPatches();
 
 	if ( !name[0] ) {
@@ -653,7 +653,7 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 		Com_Error( ERR_DROP, "Couldn't load %s", name );
 	}
 
-	last_checksum = LittleLong (Com_BlockChecksum (buf.i, length));
+	last_checksum = LittleLong( Com_BlockChecksum( buf.i, length ) );
 	*checksum = last_checksum;
 
 	header = *(dheader_t *)buf.i;
@@ -661,12 +661,10 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 		( (int *)&header )[i] = LittleLong( ( (int *)&header )[i] );
 	}
 
-#ifndef _SKIP_BSP_CHECK
 	if ( header.version != BSP_VERSION ) {
 		Com_Error( ERR_DROP, "CM_LoadMap: %s has wrong version number (%i should be %i)"
 				   , name, header.version, BSP_VERSION );
 	}
-#endif
 
 	cmod_base = (byte *)buf.i;
 
@@ -839,6 +837,10 @@ clipHandle_t CM_TempBoxModel( const vec3_t mins, const vec3_t maxs, int capsule 
 	VectorCopy( mins, box_model.mins );
 	VectorCopy( maxs, box_model.maxs );
 
+	if ( capsule ) {
+		return CAPSULE_MODEL_HANDLE;
+	}
+
 	box_planes[0].dist = maxs[0];
 	box_planes[1].dist = -maxs[0];
 	box_planes[2].dist = mins[0];
@@ -855,12 +857,15 @@ clipHandle_t CM_TempBoxModel( const vec3_t mins, const vec3_t maxs, int capsule 
 	VectorCopy( mins, box_brush->bounds[0] );
 	VectorCopy( maxs, box_brush->bounds[1] );
 
-	if ( capsule ) {
-		return CAPSULE_MODEL_HANDLE;
-	}
-
 	return BOX_MODEL_HANDLE;
 }
+
+// DHM - Nerve
+void CM_SetTempBoxModelContents( int contents ) {
+
+	box_brush->contents = contents;
+}
+// dhm
 
 /*
 ===================

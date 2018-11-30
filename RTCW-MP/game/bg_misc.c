@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -37,23 +37,23 @@ If you have questions concerning this license or the applicable additional terms
 #include "../qcommon/q_shared.h"
 #include "bg_public.h"
 
-
+// JPW NERVE -- added because I need to check single/multiplayer instances and branch accordingly
 #ifdef CGAMEDLL
 extern vmCvar_t cg_gameType;
 #endif
 #ifdef GAMEDLL
 extern vmCvar_t g_gametype;
 #endif
-
+// jpw
 
 // NOTE: weapons that share ammo (ex. colt/thompson) need to share max ammo, but not necessarily uses or max clip
 #define MAX_AMMO_45     300
 #define MAX_AMMO_9MM    300
 #define MAX_AMMO_VENOM  1000
-#define MAX_AMMO_MAUSER 200
-#define MAX_AMMO_GARAND 10
-#define MAX_AMMO_FG42   MAX_AMMO_MAUSER
-#define MAX_AMMO_BAR    200
+#define MAX_AMMO_MAUSER 50
+#define MAX_AMMO_GARAND 1000
+#define MAX_AMMO_FG42   500
+#define MAX_AMMO_BAR    500
 
 
 // these defines are matched with the character torso animations
@@ -62,6 +62,19 @@ extern vmCvar_t g_gametype;
 #define DELAY_PISTOL    100 // colt, luger, sp5, cross
 #define DELAY_SHOULDER  50  // rl
 #define DELAY_THROW     250 // grenades, dynamite
+
+// JPW NERVE -- moved this from cg_weapons.c 'cause I need it for a droplist for weapondrop command (wbuttons & (1 << 6))
+// JPW NERVE -- in mutiplayer, characters get knife/special on button 1, pistols on 2, 2-handed on 3
+int weapBanksMultiPlayer[MAX_WEAP_BANKS_MP][MAX_WEAPS_IN_BANK_MP] = {
+	{0,                     0,                      0,          0,          0,          0,              0,          0           },  // empty bank '0'
+	{WP_KNIFE,              0,                      0,          0,          0,          0,              0,          0           },
+	{WP_LUGER,              WP_COLT,                0,          0,          0,          0,              0,          0           },
+	{WP_MP40,               WP_THOMPSON,            WP_STEN,    WP_MAUSER,  WP_GARAND,  WP_PANZERFAUST, WP_VENOM,   WP_FLAMETHROWER     },
+	{WP_GRENADE_LAUNCHER,   WP_GRENADE_PINEAPPLE,   0,          0,          0,          0,              0,          0,          },
+	{WP_MEDIC_SYRINGE,      WP_PLIERS,              WP_SMOKE_GRENADE,       0,          0,              0,          0,          0,      },
+	{WP_DYNAMITE,           WP_MEDKIT,              WP_AMMO,    0,          0,          0,              0,          0           }
+};
+// jpw
 
 // [0] = maxammo		-	max player ammo carrying capacity.
 // [1] = uses			-	how many 'rounds' it takes/costs to fire one cycle.
@@ -96,44 +109,57 @@ ammotable_t ammoTable[] = {
 	{   MAX_AMMO_MAUSER,1,      10,     2500,   DELAY_HIGH,     1200,   0,      0,      MOD_MAUSER              },  //	WP_MAUSER				// 4	// NOTE: authentic clips are 5/10/25 rounds
 	{   MAX_AMMO_FG42,  1,      20,     2000,   DELAY_LOW,      200,    0,      0,      MOD_FG42                },  //	WP_FG42					// 5
 	{   15,             1,      15,     1000,   DELAY_THROW,    1600,   0,      0,      MOD_GRENADE_LAUNCHER    },  //	WP_GRENADE_LAUNCHER		// 6
-	{   5,              1,      1,      1000,   DELAY_SHOULDER, 2000,   0,      0,      MOD_PANZERFAUST         },  //	WP_PANZERFAUST			// 7
+	{   5,              1,      1,      1000,   750,           2000,   0,      0,      MOD_PANZERFAUST         },   //	WP_PANZERFAUST			// 7	// DHM - Nerve :: updated delay so prediction is correct
 //	{	MAX_AMMO_VENOM,	1,		500,	3000,	750,			30,		5000,	200,	MOD_VENOM				},	//	WP_VENOM				// -
 	{   MAX_AMMO_VENOM, 1,      500,    3000,   750,            45,     5000,   200,    MOD_VENOM               },  //	WP_VENOM				// 8	// JPW NOTE: changed next_shot 50->45 to genlock firing to every server frame (fire rate shouldn't be framerate dependent now)
-	{   150,            1,      150,    1000,   DELAY_LOW,      50,     0,      0,      MOD_FLAMETHROWER        },  //	WP_FLAMETHROWER			// 9
+	{   200,            1,      200,    1000,   DELAY_LOW,      50,     0,      0,      MOD_FLAMETHROWER        },  //	WP_FLAMETHROWER			// 9 // JPW NOTE: changed maxclip for MP 500->150
 	{   300,            1,      300,    1000,   DELAY_LOW,      0,      0,      0,      MOD_TESLA               },  //	WP_TESLA				// 10
-//	{	50,				1,		50,		1000,	DELAY_LOW,		1200,	0,		0,		MOD_SPEARGUN			},	//	WP_SPEARGUN				// 11
+	{   50,             1,      50,     1000,   DELAY_LOW,      1200,   0,      0,      MOD_SPEARGUN            },  //	WP_SPEARGUN				// 11
 
-//	{	999,			0,		999,	0,		50,				200,	0,		0,		MOD_KNIFE2				},	//	WP_KNIFE2				// 12
+	{   999,            0,      999,    0,      50,             200,    0,      0,      MOD_KNIFE2              },  //	WP_KNIFE2				// 12
 	{   MAX_AMMO_45,    1,      8,      1500,   DELAY_PISTOL,   400,    0,      0,      MOD_COLT                },  //	WP_COLT					// 13
 	{   MAX_AMMO_45,    1,      30,     2400,   DELAY_LOW,      120,    0,      0,      MOD_THOMPSON            },  //	WP_THOMPSON				// 14	// NOTE: also 50 round drum magazine
 	{   MAX_AMMO_GARAND,1,      5,      2500,   DELAY_HIGH,     1200,   0,      0,      MOD_GARAND              },  //	WP_GARAND				// 15	// NOTE: always 5 round clips
-//	{	MAX_AMMO_BAR,	1,		20,		2000,	DELAY_LOW,		200,	0,		0,		MOD_BAR					},	//	WP_BAR					// 16
+	{   MAX_AMMO_BAR,   1,      20,     2000,   DELAY_LOW,      200,    0,      0,      MOD_BAR                 },  //	WP_BAR					// 16
 	{   15,             1,      15,     1000,   DELAY_THROW,    1600,   0,      0,      MOD_GRENADE_PINEAPPLE   },  //	WP_GRENADE_PINEAPPLE	// 17
-//	{	5,				1,		5,		1000,	DELAY_SHOULDER,	1200,	0,		0,		MOD_ROCKET_LAUNCHER		},	//	WP_ROCKET_LAUNCHER		// 18
+	{   5,              1,      5,      1000,   DELAY_SHOULDER, 1200,   0,      0,      MOD_ROCKET_LAUNCHER     },  //	WP_ROCKET_LAUNCHER		// 18
 
 	{   MAX_AMMO_MAUSER,1,      10,     3000,   0,              1700,   0,      0,      MOD_SNIPERRIFLE         },  //	WP_SNIPER_GER			// 19
 	{   MAX_AMMO_GARAND,1,      5,      3000,   0,              1200,   0,      0,      MOD_SNOOPERSCOPE        },  //	WP_SNIPER_AM			// 20
 //	{	MAX_AMMO_VENOM,	10,		300,	3000,	1200,			1200,	0,		0,		MOD_VENOM_FULL			},	//	WP_VENOM_FULL			// -
-//	{	MAX_AMMO_VENOM,	10,		300,	3000,	1000,			1000,	0,		0,		MOD_VENOM_FULL			},	//	WP_VENOM_FULL			// 21
-//	{	20,				1,		20,		1000,	DELAY_LOW,		1200,	0,		0,		MOD_SPEARGUN_CO2		},	//	WP_SPEARGUN_CO2			// 22
+	{   MAX_AMMO_VENOM, 10,     300,    3000,   1000,           1000,   0,      0,      MOD_VENOM_FULL          },  //	WP_VENOM_FULL			// 21
+	{   20,             1,      20,     1000,   DELAY_LOW,      1200,   0,      0,      MOD_SPEARGUN_CO2        },  //	WP_SPEARGUN_CO2			// 22
 
 	{   MAX_AMMO_FG42,  1,      20,     2000,   DELAY_LOW,      200,    0,      0,      MOD_FG42SCOPE           },  //	WP_FG42SCOPE			// 23
-//	{	MAX_AMMO_BAR,	1,		20,		2000,	DELAY_LOW,		90,		0,		0,		MOD_BAR					},	//	WP_BAR2					// 24
+	{   MAX_AMMO_BAR,   1,      20,     2000,   DELAY_LOW,      90,     0,      0,      MOD_BAR                 },  //	WP_BAR2					// 24
 	{   MAX_AMMO_9MM,   1,      32,     3100,   DELAY_LOW,      110,    700,    300,    MOD_STEN                },  //	WP_STEN					// 25
-	{   MAX_AMMO_9MM,   1,      8,      1500,   DELAY_PISTOL,   400,    0,      0,      MOD_SILENCER            },  //	WP_SILENCER				// 26
-	{   MAX_AMMO_45,    1,      8,      2700,   DELAY_PISTOL,   200,    0,      0,      MOD_AKIMBO              },  //	WP_AKIMBO				// 27
+	{   3,              1,      1,      1500,   50,             1000,   0,      0,      MOD_SYRINGE             },  //	WP_MEDIC_SYRINGE		// 26 // JPW NERVE
+	{   1,              0,      1,      3000,   50,             1000,   0,      0,      MOD_AMMO,               },  //	WP_AMMO					// 27 // JPW NERVE
+	{   1,              0,      1,      3000,   50,             1000,   0,      0,      MOD_ARTY,               },  //	WP_ARTY
+	{   MAX_AMMO_9MM,   1,      8,      1500,   DELAY_PISTOL,   400,    0,      0,      MOD_SILENCER            },  //	WP_SILENCER				// 28
+	{   30,             1,      8,      1850,   DELAY_PISTOL,   200,    0,      0,      MOD_AKIMBO              },  //	WP_AKIMBO				// 29
 
-	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_CLASS_SPECIAL		// 28	//	class_special
-//	{	100,			1,		100,	1000,	DELAY_PISTOL,	900,	0,		0,		MOD_CROSS				},	//	WP_CROSS				// 29
-	{   10,             1,      10,     1000,   DELAY_THROW,    1600,   0,      0,      MOD_DYNAMITE            },  //	WP_DYNAMITE				// 30
-//	{	10,				1,		10,		1000,	DELAY_THROW,	1600,	0,		0,		MOD_DYNAMITE			},	//	WP_DYNAMITE2			// 31
+	{   100,            1,      100,    1000,   DELAY_PISTOL,   900,    0,      0,      MOD_CROSS               },  //	WP_CROSS				// 31
+	{   10,             0,      10,     1000,   DELAY_THROW,    1600,   0,      0,      MOD_DYNAMITE            },  //	WP_DYNAMITE				// 32 // JPW NERVE used 1
+	{   10,             1,      10,     1000,   DELAY_THROW,    1600,   0,      0,      MOD_DYNAMITE            },  //	WP_DYNAMITE2			// 33
 
 // stubs for some "not-real" weapons (so they always return "yes, you have enough ammo for that gauntlet", etc.)
-//	{	5,				1,		5,		1000,	DELAY_SHOULDER,	1200,	0,		0,		0 /*mod_prox*/			},	//	WP_PROX					// 32
-	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MONSTER_ATTACK1		// 33
-	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MONSTER_ATTACK2		// 34
-	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MONSTER_ATTACK3		// 35
-	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       }   //	WP_GAUNTLET				// 36
+	{   5,              1,      5,      1000,   DELAY_SHOULDER, 1200,   0,      0,      0 /*mod_prox*/          },  //	WP_PROX					// 34
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MONSTER_ATTACK1		// 35
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MONSTER_ATTACK2		// 36
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MONSTER_ATTACK3		// 37
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_GAUNTLET				// 38
+
+	// NERVE - SMF
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_SNIPER				// 39
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MORTAR				// 40
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	VERYBIGEXPLOSION		// 41
+
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MEDKIT				// 42
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_PLIERS				// 43
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_SMOKE_GRENADE		// 44
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_SMOKE_GRENADE		// 44
+	// -NERVE - SMF
 };
 
 
@@ -147,30 +173,49 @@ int weapAlts[] = {
 	WP_FG42SCOPE,       // 5 WP_FG42	// was SP5
 	WP_NONE,            // 6 WP_GRENADE_LAUNCHER
 	WP_NONE,            // 7 WP_PANZERFAUST
-	WP_NONE,            // 8 WP_VENOM
+	WP_VENOM_FULL,      // 8 WP_VENOM
+//	WP_NONE,			// WP_VENOM				-- taking venom shotgun out of rotation until animations are done for venom
 	WP_NONE,            // 9 WP_FLAMETHROWER
 	WP_NONE,            // 10 WP_TESLA
-//	WP_SPEARGUN_CO2,	// 11 WP_SPEARGUN
-//	WP_NONE,			// 12 WP_KNIFE2
+	WP_SPEARGUN_CO2,    // 11 WP_SPEARGUN
+	WP_NONE,            // 12 WP_KNIFE2
 	WP_AKIMBO,          // 13 WP_COLT		//----(SA)	new
 	WP_NONE,            // 14 WP_THOMPSON
 	WP_SNOOPERSCOPE,    // 15 WP_GARAND
-//	WP_BAR2,			// 16 WP_BAR		//----(SA)	modified
+	WP_BAR2,            // 16 WP_BAR		//----(SA)	modified
 	WP_NONE,            // 17 WP_GRENADE_PINEAPPLE
-//	WP_NONE,			// 18 WP_ROCKET_LAUNCHER
+	WP_NONE,            // 18 WP_ROCKET_LAUNCHER
 	WP_MAUSER,          // 19 WP_SNIPERRIFLE
 	WP_GARAND,          // 20 WP_SNOOPERSCOPE
-//	WP_VENOM,			// 21 WP_VENOM_FULL
-//	WP_SPEARGUN,		// 22 WP_SPEARGUN_CO2
+	WP_VENOM,           // 21 WP_VENOM_FULL
+	WP_SPEARGUN,        // 22 WP_SPEARGUN_CO2
 	WP_FG42,            // 23 WP_FG42SCOPE
-//	WP_BAR,				// 24 WP_BAR2		//----(SA)	new
+	WP_BAR,             // 24 WP_BAR2		//----(SA)	new
 	WP_NONE,            // 25 WP_STEN
-	WP_LUGER,           // 26 WP_SILENCER	//----(SA)	was sp5
-	WP_COLT,            // 27 WP_AKIMBO		//----(SA)	new
-	WP_NONE,            // 28 WP_CLASS_SPECIAL
-//	WP_NONE,			// 29 WP_CROSS
-	WP_NONE             // 30 WP_DYNAMITE	//----(SA)	modified (not in rotation yet)
-//	WP_DYNAMITE			// 31 WP_DYNAMITE2	//----(SA)	new
+	WP_NONE,            // 26 WP_MEDIC_SYRINGE	// JPW NERVE
+	WP_NONE,            // 27 WP_AMMO		// JPW NERVE
+	WP_NONE,            // 28 WP_ARTY		// JPW NERVE
+	WP_LUGER,           // 29 WP_SILENCER	//----(SA)	was sp5
+	WP_COLT,            // 30 WP_AKIMBO		//----(SA)	new
+	WP_NONE,            // 31 WP_CROSS
+	WP_NONE,            // 32 WP_DYNAMITE	//----(SA)	modified (not in rotation yet)
+	WP_NONE, /*WP_DYNAMITE2,*/  // 33 WP_DYNAMITE	//----(SA)	modified
+	WP_DYNAMITE,        // 34 WP_DYNAMITE2	//----(SA)	new
+
+	// NERVE - SMF
+	WP_NONE,            // 34 WP_PROX
+	WP_NONE,            // 35 WP_MONSTER_ATTACK1
+	WP_NONE,            // 36 WP_MONSTER_ATTACK2
+	WP_NONE,            // 37 WP_MONSTER_ATTACK3
+	WP_NONE,            // 38 WP_SMOKETRAIL
+	WP_NONE,            // 39 WP_GAUNTLET
+	WP_NONE,            // 40 WP_SNIPER
+	WP_NONE,            // 41 WP_MORTAR
+	WP_NONE,            // 42 VERYBIGEXPLOSION
+	WP_NONE,            // 43 WP_MEDKIT
+	WP_NONE,            // 44 WP_PLIERS
+	WP_NONE,            // 45 WP_SMOKE_GRENADE
+	// -NERVE - SMF
 };
 
 
@@ -478,7 +523,7 @@ gitem_t bg_itemlist[] =
 		0,          // cliptype
 		"",          // precache
 		"",          // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},  // leave index 0 alone
 
 
@@ -501,7 +546,7 @@ model="models/powerups/clipboard/clipboard.md3"
 */
 	{
 		"item_clipboard",
-		"sound/pickup/armor/body_pickup.wav",
+		"",
 		{   "models/powerups/clipboard/clipboard.md3",
 			0,
 			0,
@@ -516,10 +561,10 @@ model="models/powerups/clipboard/clipboard.md3"
 		0,
 		"",
 		"",
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
-/*QUAKED item_treasure (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN
+/*QUAKED item_treasure (1 1 0) (-8 -8 -8) (8 8 8) suspended
 Items the player picks up that are just used to tally a score at end-level
 "model" defaults to 'models/powerups/treasure/goldbar.md3'
 "noise" sound to play on pickup.  defaults to 'sound/pickup/treasure/gold.wav'
@@ -547,7 +592,7 @@ model="models/powerups/treasure/goldbar.md3"
 		0,
 		"",
 		"",
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 
@@ -556,13 +601,13 @@ model="models/powerups/treasure/goldbar.md3"
 	//
 
 
-/*QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/health/health_s.md3"
 */
 	{
 		"item_health_small",
-		"sound/pickup/health/health_pickup.wav",
+		"sound/items/n_health.wav",
 		{   "models/powerups/health/health_s.md3",
 			0,
 			0, 0,  0 },
@@ -576,18 +621,18 @@ model="models/powerups/health/health_s.md3"
 		0,
 		"",
 		"",
-		{10,10,5,5}
+		{10,5,5,5,5}
 	},
 
-/*QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/health/health_m.md3"
 */
 	{
 		"item_health",
-		"sound/pickup/health/health_pickup.wav",
-		{   "models/powerups/health/health_m.md3",
-			0,
+		"sound/multiplayer/health_pickup.wav", // JPW NERVE also not single-binary friendly FIXME
+		{   "models/multiplayer/medpack/medpack_pickup.md3", // JPW NERVE was	"models/powerups/health/health_m.md3",
+			0,                                              // FIXME this isn't single/multiplayer friendly if we go back to 1 codebase
 			0, 0,  0 },
 		"icons/iconh_med",
 		NULL,   // ammo icon
@@ -599,16 +644,16 @@ model="models/powerups/health/health_m.md3"
 		0,
 		"",
 		"",
-		{25,25,15,15}
+		{50,25,20,15,15}
 	},
 
-/*QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/health/health_l.md3"
 */
 	{
 		"item_health_large",
-		"sound/pickup/health/health_pickup.wav",
+		"sound/items/n_health.wav",
 		{   "models/powerups/health/health_l.md3",
 			0, 0, 0,   0 },
 		"icons/iconh_large",
@@ -621,10 +666,10 @@ model="models/powerups/health/health_l.md3"
 		0,
 		"",
 		"",
-		{50,50,30,20}
+		{100,50,50,30,30}
 	},
 
-/*QUAKED item_health_turkey (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED item_health_turkey (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 multi-stage health item.
 gives amount on first use based on skill:
 skill 1: 50
@@ -641,7 +686,7 @@ model="models/powerups/health/health_t1.md3"
 */
 	{
 		"item_health_turkey",
-		"sound/pickup/health/hot_pickup.wav",
+		"sound/items/n_health.wav",
 		{   "models/powerups/health/health_t3.md3",  // just plate (should now be destructable)
 			"models/powerups/health/health_t2.md3",  // half eaten
 			"models/powerups/health/health_t1.md3",  // whole turkey
@@ -656,69 +701,10 @@ model="models/powerups/health/health_t1.md3"
 		0,
 		"",
 		"",
-		{45,35,25,15}   // amount given in first stage based on gameskill level
+		{50,50,50,40,30}    // amount given in first stage based on gameskill level
 	},
 
-/*QUAKED item_health_breadandmeat (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
-multi-stage health item.
-gives amount on first use based on skill:
-skill 1: 30
-skill 2: 30
-skill 3: 30
-skill 4: 20
-skill 5: 10
-
-then gives 10 on "finishing up"
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/powerups/health/health_b1.md3"
-*/
-	{
-		"item_health_breadandmeat",
-		"sound/pickup/health/cold_pickup.wav",
-		{   "models/powerups/health/health_b3.md3",  // just plate (should now be destructable)
-			"models/powerups/health/health_b2.md3",  // half eaten
-			"models/powerups/health/health_b1.md3",  // whole turkey
-			0, 0 },
-		"icons/iconh_breadandmeat",
-		NULL,   // ammo icon
-		"Cold Meal",
-		10,                 // amount given in last stage
-		IT_HEALTH,
-		0,
-		0,
-		0,
-		"",
-		"",
-		{30,30,20,15}   // amount given in first stage based on gameskill level
-	},
-
-/*QUAKED item_health_wall_box (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED - - RESPAWN
-single use health with dual state model.
-please set the suspended flag to keep it from falling on the ground
-defaults to 50 pts health
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/powerups/health/health_wallbox.md3"
-*/
-	{
-		"item_health_wall_box",
-		"sound/pickup/health/health_pickup.wav",
-		{   "models/powerups/health/health_wallbox2.md3",
-			"models/powerups/health/health_wallbox1.md3",
-			0, 0, 0},
-		"icons/iconh_wall",
-		NULL,   // ammo icon
-		"Health",
-		25,
-		IT_HEALTH,
-		0,
-		0,
-		0,
-		"",
-		"",
-		{25,25,25,25}
-	},
-
-/*QUAKED item_health_wall (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED - - RESPAWN
+/*QUAKED item_health_wall (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 defaults to 50 pts health
 you will probably want to check the 'suspended' box to keep it from falling to the ground
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -726,7 +712,7 @@ model="models/powerups/health/health_w.md3"
 */
 	{
 		"item_health_wall",
-		"sound/pickup/health/health_pickup.wav",
+		"sound/items/n_health.wav",
 		{   "models/powerups/health/health_w.md3",
 			0, 0, 0,   0 },
 		"icons/iconh_wall",
@@ -739,7 +725,7 @@ model="models/powerups/health/health_w.md3"
 		0,
 		"",
 		"",
-		{25,25,15,15}
+		{25,25,25,25,25}
 	},
 
 	//
@@ -747,18 +733,17 @@ model="models/powerups/health/health_w.md3"
 	//
 
 
-/*QUAKED item_stamina_stein (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED item_stamina_stein (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 defaults to 30 sec stamina boost
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/instant/stamina_stein.md3"
 */
-
 	{
 		"item_stamina_stein",
-		"sound/pickup/health/stamina_pickup.wav",
+		"sound/items/n_health.wav",
 		{   "models/powerups/instant/stamina_stein.md3",
 			0, 0, 0,   0 },
-		"icons/icons_stein",
+		"icons/icons_wall",
 		NULL,   // ammo icon
 		"Stamina",
 		25,
@@ -768,11 +753,11 @@ model="models/powerups/instant/stamina_stein.md3"
 		0,
 		"",
 		"",
-		{30,25,20,15}
+		{25,25,25,25,25}
 	},
 
 
-/*QUAKED item_stamina_brandy (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED item_stamina_brandy (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 defaults to 30 sec stamina boost
 
 multi-stage health item.
@@ -789,14 +774,13 @@ player will only eat what he needs.  health at 90, turkey fills up and leaves re
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/instant/stamina_brandy1.md3"
 */
-
 	{
 		"item_stamina_brandy",
-		"sound/sound/pickup/health/stamina_pickup.wav",
+		"sound/items/n_health.wav",
 		{   "models/powerups/instant/stamina_brandy2.md3",
 			"models/powerups/instant/stamina_brandy1.md3",
 			0, 0,  0 },
-		"icons/icons_brandy",
+		"icons/iconh_wall",
 		NULL,   // ammo icon
 		"Stamina",
 		25,
@@ -806,8 +790,9 @@ model="models/powerups/instant/stamina_brandy1.md3"
 		0,
 		"",
 		"",
-		{30,25,20,15}
+		{25,25,25,25,25}
 	},
+
 
 
 	//
@@ -815,7 +800,7 @@ model="models/powerups/instant/stamina_brandy1.md3"
 	//
 
 
-/*QUAKED item_armor_body (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED item_armor_body (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/armor/armor_body1.md3"
 */
@@ -834,32 +819,10 @@ model="models/powerups/armor/armor_body1.md3"
 		0,
 		"",
 		"",
-		{75,75,75,75}
+		{75,75,75,75,75}
 	},
 
-/*QUAKED item_armor_body_hang (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED - - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/powerups/armor/armor_body2.md3"
-*/
-	{
-		"item_armor_body_hang",
-		"sound/pickup/armor/body_pickup.wav",
-		{   "models/powerups/armor/armor_body2.md3",
-			0, 0, 0,   0 },
-		"icons/iconr_bodyh",
-		NULL,   // ammo icon
-		"Flak Jacket",
-		75,
-		IT_ARMOR,
-		0,
-		0,
-		0,
-		"",
-		"",
-		{75,75,75,75}
-	},
-
-/*QUAKED item_armor_head (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED item_armor_head (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/armor/armor_head1.md3"
 */
@@ -878,7 +841,7 @@ model="models/powerups/armor/armor_head1.md3"
 		0,
 		"",
 		"",
-		{25,25,25,25}
+		{25,25,25,25,25}
 	},
 
 
@@ -886,43 +849,20 @@ model="models/powerups/armor/armor_head1.md3"
 	//
 	// WEAPONS
 	//
-
-/*
-weapon_gauntlet
-*/
-	{
-		"weapon_gauntlet",
-		"sound/misc/w_pkup.wav",
-		{   "models/weapons2/gauntlet/gauntlet.md3",
-			0, 0, 0,    0 },
-		"",  // icon
-		"icons/ammo1",           // ammo icon
-		"Gauntlet",              // pickup
-		0,
-		IT_WEAPON,
-		WP_GAUNTLET,
-		WP_GAUNTLET,
-		WP_GAUNTLET,
-		"",                      // precache
-		"",                      // sounds
-		{0,0,0,0}
-	},
-
-
-
 	// wolf weapons (SA)
 
-/*QUAKED weapon_knife (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED weapon_knife (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/weapons2/knife/knife.md3"
 */
 	{
 		"weapon_knife",
 		"sound/misc/w_pkup.wav",
-		{   "models/weapons2/knife/knife.md3",
-			"models/weapons2/knife/v_knife.md3",
-			"models/weapons2/knife/pu_knife.md3",
-			0, 0 },
+		{   "models/multiplayer/knife/knife.md3",
+			"models/multiplayer/knife/v_knife.md3",
+			0,
+			"models/multiplayer/knife/v_knife_axis.md3",
+			0},
 
 		"icons/iconw_knife_1",   // icon
 		"icons/ammo2",           // ammo icon
@@ -934,39 +874,37 @@ model="models/weapons2/knife/knife.md3"
 		WP_KNIFE,
 		"",                      // precache
 		"",                      // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 
-/* weapon_knife2 (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED weapon_knife2 (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/weapons2/knife2/knife2.md3"
 */
-/*
 	{
 		"weapon_knife2",
 		"sound/misc/w_pkup.wav",
-		{	"models/weapons2/knife2/knife2.md3",
+		{   "models/weapons2/knife2/knife2.md3",
 			"models/weapons2/knife2/v_knife2.md3",
-			"models/weapons2/knife2/pu_knife2.md3",
-			0, 0 },
+			0, 0, 0 },
 
-		"icons/iconw_knife2_1",	// icon
-		"icons/ammo2",			// ammo icon
-		"Other Knife",			// pickup
+		"icons/iconw_knife2_1",  // icon
+		"icons/ammo2",           // ammo icon
+		"Other Knife",           // pickup
 		50,
 		IT_WEAPON,
 		WP_KNIFE2,
 		WP_KNIFE2,
 		WP_KNIFE2,
-		"",						// precache
-		"",						// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"",                      // sounds
+		{0,0,0,0,0}
 	},
-*/
 
 
-/*QUAKED weapon_luger (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+
+/*QUAKED weapon_luger (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/weapons2/luger/luger.md3"
 */
@@ -975,8 +913,8 @@ model="models/weapons2/luger/luger.md3"
 		"sound/misc/w_pkup.wav",
 		{   "models/weapons2/luger/luger.md3",
 			"models/weapons2/luger/v_luger.md3",
-			"models/weapons2/luger/pu_luger.md3",
-			0, 0 },
+			0, 0,
+			"models/weapons2/luger/ss_luger.md3"},
 
 		"icons/iconw_luger_1",   // icon
 		"icons/ammo2",           // ammo icon
@@ -988,11 +926,11 @@ model="models/weapons2/luger/luger.md3"
 		WP_LUGER,
 		"",                      // precache
 		"",                      // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 
-/*QUAKED weapon_mauserRifle (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED weapon_mauserRifle (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/weapons2/mauser/mauser.md3"
 */
@@ -1001,8 +939,9 @@ model="models/weapons2/mauser/mauser.md3"
 		"sound/misc/w_pkup.wav",
 		{   "models/weapons2/mauser/mauser.md3",
 			"models/weapons2/mauser/v_mauser.md3",
-			"models/weapons2/mauser/pu_mauser.md3",
-			0, 0  },
+			"models/multiplayer/mauser/mauser_pickup.md3",
+			"models/multiplayer/mauser/v_mauser_axis.md3",
+			"models/weapons2/mauser/ss_mauser.md3" },
 
 		"icons/iconw_mauser_1",  // icon
 		"icons/ammo3",           // ammo icon
@@ -1014,10 +953,10 @@ model="models/weapons2/mauser/mauser.md3"
 		WP_MAUSER,
 		"",                      // precache
 		"",                      // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
-/*QUAKED weapon_thompson (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED weapon_thompson (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/weapons2/thompson/thompson.md3"
 */
@@ -1026,8 +965,9 @@ model="models/weapons2/thompson/thompson.md3"
 		"sound/misc/w_pkup.wav",
 		{   "models/weapons2/thompson/thompson.md3",
 			"models/weapons2/thompson/v_thompson.md3",
-			"models/weapons2/thompson/pu_thompson.md3",
-			0, 0 },
+			0,
+			"models/multiplayer/thompson/v_thompson_barrel3_axis.md3",
+			"models/weapons2/thompson/ss_thompson.md3"},
 
 		"icons/iconw_thompson_1",    // icon
 		"icons/ammo2",           // ammo icon
@@ -1039,10 +979,10 @@ model="models/weapons2/thompson/thompson.md3"
 		WP_THOMPSON,
 		"",                  // precache
 		"",                  // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
-/*QUAKED weapon_sten (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED weapon_sten (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/weapons2/sten/sten.md3"
 */
@@ -1051,8 +991,8 @@ model="models/weapons2/sten/sten.md3"
 		"sound/misc/w_pkup.wav",
 		{   "models/weapons2/sten/sten.md3",
 			"models/weapons2/sten/v_sten.md3",
-			"models/weapons2/sten/pu_sten.md3",
-			0,0 },
+			0, 0,
+			"models/weapons2/sten/ss_sten.md3"},
 		"icons/iconw_sten_1",    // icon
 		"icons/ammo2",           // ammo icon
 		"Sten",                  // pickup
@@ -1063,35 +1003,10 @@ model="models/weapons2/sten/sten.md3"
 		WP_STEN,
 		"",                  // precache
 		"",                  // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
-/*weapon_akimbo
-dual colts
-*/
-	{
-		"weapon_akimbo",
-		"sound/misc/w_pkup.wav",
-		{   "models/weapons2/colt2/colt2.md3",
-			"models/weapons2/colt2/v_colt2.md3",
-			"models/weapons2/colt2/pu_colt2.md3",
-			0, 0 },
-
-		"icons/iconw_colt_1",    // icon
-		"icons/ammo2",           // ammo icon
-		"Dual Colts",            // pickup
-		50,
-		IT_WEAPON,
-		WP_AKIMBO,
-		WP_COLT,
-//		WP_COLT,
-		WP_AKIMBO,
-		"",                      // precache
-		"",                      // sounds
-		{0,0,0,0}
-	},
-
-/*QUAKED weapon_colt (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED weapon_colt (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/weapons2/colt/colt.md3"
 */
@@ -1100,8 +1015,8 @@ model="models/weapons2/colt/colt.md3"
 		"sound/misc/w_pkup.wav",
 		{   "models/weapons2/colt/colt.md3",
 			"models/weapons2/colt/v_colt.md3",
-			"models/weapons2/colt/pu_colt.md3",
-			0, 0 },
+			0, 0,
+			"models/weapons2/colt/ss_colt.md3"},
 
 		"icons/iconw_colt_1",    // icon
 		"icons/ammo2",           // ammo icon
@@ -1113,38 +1028,10 @@ model="models/weapons2/colt/colt.md3"
 		WP_COLT,
 		"",                      // precache
 		"",                      // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
-
-// (SA) snooper is the parent, so 'garand' is no longer available as a stand-alone weap w/ an optional scope
-/*
-weapon_garandRifle (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/garand/garand.md3"
-*/
-	{
-		"NOT_weapon_garandRifle",    //----(SA)	modified so it can no longer be given individually
-		"sound/misc/w_pkup.wav",
-		{   "models/weapons2/garand/garand.md3",
-			"models/weapons2/garand/v_garand.md3",
-			"models/weapons2/garand/pu_garand.md3",
-			0, 0 },
-
-		"icons/iconw_garand_1",  // icon
-		"icons/ammo3",           // ammo icon
-		"",                      // pickup			//----(SA)	modified so it can no longer be given individually
-		50,
-		IT_WEAPON,
-		WP_GARAND,
-		WP_GARAND,
-		WP_GARAND,
-		"",                      // precache
-		"",                      // sounds
-		{0,0,0,0}
-	},
-
-/*QUAKED weapon_mp40 (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED weapon_mp40 (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 "stand" values:
 	no value:	laying in a default position on it's side (default)
 	2:			upright, barrel pointing up, slightly angled (rack mount)
@@ -1156,8 +1043,9 @@ model="models\weapons2\mp40\mp40.md3"
 		"sound/misc/w_pkup.wav",
 		{   "models/weapons2/mp40/mp40.md3",
 			"models/weapons2/mp40/v_mp40.md3",
-			"models/weapons2/mp40/pu_mp40.md3",
-			0, 0 },
+			0,
+			"models/multiplayer/mp40/v_mp40_barrel3_axis.md3",
+			"models/weapons2/mp40/ss_mp40.md3" },
 
 		"icons/iconw_mp40_1",    // icon
 		"icons/ammo2",       // ammo icon
@@ -1169,121 +1057,10 @@ model="models\weapons2\mp40\mp40.md3"
 		WP_MP40,
 		"",                  // precache
 		"",                  // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
-
-
-/*QUAKED weapon_fg42 (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/fg42/fg42.md3"
-*/
-	{
-		"weapon_fg42",
-		"sound/misc/w_pkup.wav",
-		{   "models/weapons2/fg42/fg42.md3",
-			"models/weapons2/fg42/v_fg42.md3",
-			"models/weapons2/fg42/pu_fg42.md3",
-			0, 0 },
-
-		"icons/iconw_fg42_1",    // icon
-		"icons/ammo5",          // ammo icon
-		"FG42 Paratroop Rifle",      // pickup
-		10,
-		IT_WEAPON,
-		WP_FG42,
-		WP_MAUSER,
-		WP_FG42,
-		"",                  // precache
-		"",                  // sounds
-		{0,0,0,0}
-	},
-
-//----(SA)	added
-
-/* weapon_bar (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/bar/bar.md3"
-*/
-/*
-	{
-		"weapon_bar",
-		"sound/misc/w_pkup.wav",
-		{	"models/weapons2/bar/bar.md3",
-			"models/weapons2/bar/v_bar.md3",
-			"models/weapons2/bar/pu_bar.md3",
-			0, 0 },
-
-		"icons/iconw_bar_1",	// icon
-			"icons/ammo5",		// ammo icon
-		"BAR",		// pickup
-		10,
-		IT_WEAPON,
-		WP_BAR,
-		WP_BAR,
-		WP_BAR,
-		"",					// precache
-		"",					// sounds
-		{0,0,0,0}
-	},
-
-*/
-/* weapon_bar2
-*/
-/*
-	{
-		"weapon_bar2",
-		"sound/misc/w_pkup.wav",
-		{	"models/weapons2/bar/bar.md3",
-			"models/weapons2/bar/v_bar.md3",
-			"models/weapons2/bar/pu_bar.md3",
-			0, 0 },
-
-		"icons/iconw_bar_1",	// icon
-			"icons/ammo5",		// ammo icon
-		"BAR",		// pickup
-		10,
-		IT_WEAPON,
-		WP_BAR2,
-		WP_BAR,
-		WP_BAR,
-		"",					// precache
-		"",					// sounds
-		{0,0,0,0}
-	},
-*/
-
-//----(SA)	end
-
-
-//----(SA)	modified sp5 to be silencer mod for luger
-/*QUAKED weapon_silencer (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/sp5/sp5.md3"
-*/
-	{
-		"weapon_silencer",
-		"sound/misc/w_pkup.wav",
-		{   "models/weapons2/silencer/silencer.md3", //----(SA)	changed 10/25
-			"models/weapons2/silencer/v_silencer.md3",
-			"models/weapons2/silencer/pu_silencer.md3",
-			0, 0},
-
-		"icons/iconw_silencer_1",    // icon
-		"icons/ammo5",       // ammo icon
-//		"Silencer",		// pickup
-		"sp5 pistol",
-		10,
-		IT_WEAPON,
-		WP_SILENCER,
-		WP_LUGER,
-		WP_LUGER,
-		"",                  // precache
-		"",                  // sounds
-		{0,0,0,0}
-	},
-
-/*QUAKED weapon_panzerfaust (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED weapon_panzerfaust (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/weapons2/panzerfaust/pf.md3"
 */
@@ -1292,8 +1069,8 @@ model="models/weapons2/panzerfaust/pf.md3"
 		"sound/misc/w_pkup.wav",
 		{   "models/weapons2/panzerfaust/pf.md3",
 			"models/weapons2/panzerfaust/v_pf.md3",
-			"models/weapons2/panzerfaust/pu_pf.md3",
-			0, 0 },
+			0, 0,
+			"models/weapons2/panzerfaust/ss_pf.md3"},
 
 		"icons/iconw_panzerfaust_1", // icon
 		"icons/ammo6",       // ammo icon
@@ -1305,63 +1082,8 @@ model="models/weapons2/panzerfaust/pf.md3"
 		WP_PANZERFAUST,
 		"",                      // precache
 		"",                      // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
-
-/* weapon_rocketlauncher (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/rocketl/rocketl.md3"
-*/
-/*
-	{
-		"weapon_rocketlauncher",
-		"sound/misc/w_pkup.wav",
-		{	"models/weapons2/rocketl/rocketl.md3",
-			"models/weapons2/rocketl/v_rocketl.md3",
-			"models/weapons2/rocketl/pu_rocketl.md3",
-			0, 0 },
-
-		"icons/iconw_rocket_1",	// icon
-		"icons/ammo6",		// ammo icon
-		"Bazooka",				// pickup
-		5,
-		IT_WEAPON,
-		WP_ROCKET_LAUNCHER,
-		WP_ROCKET_LAUNCHER,
-		WP_ROCKET_LAUNCHER,
-		"",						// precache
-		"",						// sounds
-		{0,0,0,0}
-	},
-*/
-
-/* weapon_proxlauncher (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/prox/prox.md3"
-*/
-
-/*
-	{
-		"weapon_proxlauncher",
-		"sound/misc/w_pkup.wav",
-		{	"models/weapons2/rocketl/rocketl.md3",
-			"models/weapons2/rocketl/v_rocketl.md3",
-			"models/weapons2/rocketl/pu_rocketl.md3",
-			0, 0 },
-
-		"icons/iconw_rocket_1",	// icon
-		"icons/ammo6",		// ammo icon
-		"Bazooka",				// pickup
-		5,
-		IT_WEAPON,
-		WP_PROX,
-		WP_PROX,
-		WP_PROX,
-		"",						// precache
-		"",						// sounds
-		{0,0,0,0}
-	},
-*/
 
 //----(SA)	removed the quaked for this.  we don't actually have a grenade launcher as such.  It's given implicitly
 //			by virtue of getting grenade ammo.  So we don't need to have them in maps
@@ -1373,8 +1095,8 @@ weapon_grenadelauncher
 		"sound/misc/w_pkup.wav",
 		{   "models/weapons2/grenade/grenade.md3",
 			"models/weapons2/grenade/v_grenade.md3",
-			"models/weapons2/grenade/pu_grenade.md3",
-			0, 0 },
+			0, 0,
+			"models/weapons2/grenade/ss_grenade.md3"},
 
 		"icons/iconw_grenade_1", // icon
 		"icons/icona_grenade",   // ammo icon
@@ -1386,7 +1108,7 @@ weapon_grenadelauncher
 		WP_GRENADE_LAUNCHER,
 		"",                      // precache
 		"sound/weapons/grenade/hgrenb1a.wav sound/weapons/grenade/hgrenb2a.wav",             // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 /*
@@ -1397,8 +1119,8 @@ weapon_grenadePineapple
 		"sound/misc/w_pkup.wav",
 		{   "models/weapons2/grenade/pineapple.md3",
 			"models/weapons2/grenade/v_pineapple.md3",
-			"models/weapons2/grenade/pu_pineapple.md3",
-			0, 0 },
+			0, 0,
+			"models/weapons2/grenade/ss_pineapple.md3"},
 
 		"icons/iconw_pineapple_1",   // icon
 		"icons/icona_pineapple", // ammo icon
@@ -1410,71 +1132,91 @@ weapon_grenadePineapple
 		WP_GRENADE_PINEAPPLE,
 		"",                      // precache
 		"sound/weapons/grenade/hgrenb1a.wav sound/weapons/grenade/hgrenb2a.wav",             // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 /* JPW NERVE
 weapon_grenadesmoke
 */
-/*	// just commented out to remove the registration errors in SP (we register every weapon in every map in SP)
 	{
 		"weapon_grenadesmoke",
 		"sound/misc/w_pkup.wav",
-		{	"models/multiplayer/smokegrenade/smokegrenade.md3",
+		{   "models/multiplayer/smokegrenade/smokegrenade.md3",
 			"models/multiplayer/smokegrenade/v_smokegrenade.md3",
-			"models/multiplayer/smokegrenade/pu_smokegrenade.md3",
-			0, 0},
+			0, 0, 0},
 
-		"icons/iconw_smokegrenade_1",	// icon
-		"icons/ammo2",	// ammo icon
-		"smokeGrenade",				// pickup
+		"icons/iconw_smokegrenade_1",    // icon
+		"icons/ammo2",   // ammo icon
+		"smokeGrenade",              // pickup
 		50,
 		IT_WEAPON,
-		WP_GRENADE_SMOKE,
-		WP_GRENADE_SMOKE,
-		WP_GRENADE_SMOKE,
-		"",						// precache
-		"sound/weapons/grenade/hgrenb1a.wav sound/weapons/grenade/hgrenb2a.wav",				// sounds
-		{0,0,0,0}
+		WP_SMOKE_GRENADE,
+		WP_SMOKE_GRENADE,
+		WP_SMOKE_GRENADE,
+		"",                      // precache
+		"sound/weapons/grenade/hgrenb1a.wav sound/weapons/grenade/hgrenb2a.wav",             // sounds
+		{0,0,0,0,0}
 	},
 // jpw
+
+/* JPW NERVE
+weapon_smoketrail -- only used as a special effects emitter for smoke trails (artillery spotter etc)
 */
+	{
+		"weapon_smoketrail",
+		"sound/misc/w_pkup.wav",
+		{   "models/multiplayer/smokegrenade/smokegrenade.md3",
+			"models/multiplayer/smokegrenade/v_smokegrenade.md3",
+			0, 0, 0},
+
+		"icons/iconw_smokegrenade_1",    // icon
+		"icons/ammo2",   // ammo icon
+		"smokeTrail",                // pickup
+		50,
+		IT_WEAPON,
+		WP_SMOKETRAIL,
+		WP_SMOKETRAIL,
+		WP_SMOKETRAIL,
+		"",                      // precache
+		"sound/weapons/grenade/hgrenb1a.wav sound/weapons/grenade/hgrenb2a.wav",             // sounds
+		{0,0,0,0,0}
+	},
+// jpw
+
 // DHM - Nerve
 /*
 weapon_medic_heal
 */
-/*	{
+	{
 		"weapon_medic_heal",
 		"sound/misc/w_pkup.wav",
-		{	"models/multiplayer/medpack/medpack.md3",
+		{   "models/multiplayer/medpack/medpack.md3",
 			"models/multiplayer/medpack/v_medpack.md3",
-			"models/multiplayer/medpack/pu_medpack.md3",
-			0, 0 },
+			0, 0, 0 },
 
-		"icons/iconw_medheal_1",	// icon
-		"icons/ammo2",			// ammo icon
-		"Medic Heal",			// pickup
+		"icons/iconw_medheal_1", // icon
+		"icons/ammo2",           // ammo icon
+		"medicheal",         // pickup
 		50,
 		IT_WEAPON,
-		WP_MEDIC_HEAL,
-		WP_MEDIC_HEAL,
-		WP_MEDIC_HEAL,
-		"",						// precache
-		"",						// sounds
-		{0,0,0,0}
+		WP_MEDKIT,
+		WP_MEDKIT,
+		WP_MEDKIT,
+		"",                      // precache
+		"sound/multiplayer/allies/a-medic3.wav sound/multiplayer/axis/g-medic3.wav sound/multiplayer/allies/a-medic2.wav sound/multiplayer/axis/g-medic2.wav sound/multiplayer/axis/g-medic1.wav sound/multiplayer/allies/a-medic1.wav",                     // sounds
+		{0,0,0,0,0}
 	},
 // dhm
-*/
+
 /*
 weapon_dynamite
 */
 	{
 		"weapon_dynamite",
 		"sound/misc/w_pkup.wav",
-		{   "models/weapons2/dynamite/dynamite.md3",
-			"models/weapons2/dynamite/v_dynamite.md3",
-			"models/weapons2/dynamite/pu_dynamite.md3",
-			0, 0 },
+		{   "models/multiplayer/dynamite/dynamite_3rd.md3", // JPW NERVE
+			"models/weapons2/dynamite/v_dynamite.md3",  // JPW NERVE
+			0, 0, 0 },
 
 		"icons/iconw_dynamite_1",    // icon
 		"icons/ammo9",           // ammo icon
@@ -1484,43 +1226,38 @@ weapon_dynamite
 		WP_DYNAMITE,
 		WP_DYNAMITE,
 		WP_DYNAMITE,
-		"",                      // precache
+		"models/multiplayer/dynamite/dynamite.md3 models/multiplayer/dynamite/dynamite_3rd.md3", // precache // JPW NERVE
 		"",                      // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 
 /*
 weapon_dynamite2
 */
-/*
 	{
 		"weapon_dynamite2",
 		"sound/misc/w_pkup.wav",
-		{	"models/weapons2/dynamite/dynamite.md3",
+		{   "models/weapons2/dynamite/dynamite.md3",
 			"models/weapons2/dynamite/v_dynamite.md3",
-			"models/weapons2/dynamite/pu_dynamite.md3",
-			0, 0 },
+			0, 0, 0 },
 
-		"icons/iconw_dynamite_1",	// icon
-		"icons/ammo9",			// ammo icon
-		"Dynamite Weapon",		// pickup
+		"icons/iconw_dynamite_1",    // icon
+		"icons/ammo9",           // ammo icon
+		"Dynamite Weapon",       // pickup
 		7,
 		IT_WEAPON,
 		WP_DYNAMITE2,
 		WP_DYNAMITE,
 		WP_DYNAMITE,
-		"",						// precache
-		"",						// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"",                      // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-
-
-/*QUAKED weapon_venom (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED weapon_venom (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/venom/pu_venom.md3"
+model="models/weapons2/venom/venom.md3"
 */
 	{
 		"weapon_venom",
@@ -1528,7 +1265,8 @@ model="models/weapons2/venom/pu_venom.md3"
 		{   "models/weapons2/venom/venom.md3",
 			"models/weapons2/venom/v_venom.md3",
 			"models/weapons2/venom/pu_venom.md3",
-			0, 0 },
+			0,
+			"models/weapons2/venom/ss_venom.md3"},
 
 		"icons/iconw_venom_1",   // icon
 		"icons/ammo8",           // ammo icon
@@ -1540,67 +1278,12 @@ model="models/weapons2/venom/pu_venom.md3"
 		WP_VENOM,
 		"",                      // precache
 		"",                      // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
-/* weapon_venom_shotgun (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED weapon_flamethrower (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/venom/pu_venom.md3"
-*/
-/*
-	{
-		"weapon_venom_shotgun",
-		"sound/misc/w_pkup.wav",
-		{	"models/weapons2/venom/venom.md3",
-			"models/weapons2/venom/v_venom.md3",
-			"models/weapons2/venom/pu_venom.md3",
-			0, 0 },
-
-		"icons/iconw_venom_1",	// icon
-		"icons/ammo8",			// ammo icon
-		"Venom Shotgun",		// pickup
-		700,
-		IT_WEAPON,
-		WP_VENOM_FULL,
-		WP_VENOM,
-		WP_VENOM_FULL,
-		"",						// precache
-		"",						// sounds
-		{0,0,0,0}
-	},
-*/
-
-/* weapon_cross(.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/cross/cross.md3"
-*/
-/*
-	{
-		"weapon_cross",
-		"sound/misc/w_pkup.wav",
-		{	"models/weapons2/cross/cross.md3",
-			"models/weapons2/cross/v_cross.md3",
-			"models/weapons2/cross/pu_cross.md3",
-			0, 0 },
-
-		"icons/iconw_cross_1",	// icon
-		"icons/ammo9",			// ammo icon
-		"This dont exist",	// pickup
-		7,
-		IT_WEAPON,
-		WP_CROSS,
-		WP_CROSS,
-		WP_CROSS,
-		"",						// precache
-		"",						// sounds
-		{0,0,0,0}
-	},
-*/
-
-
-/*QUAKED weapon_flamethrower (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/flamethrower/pu_flamethrower.md3"
+model="models/weapons2/flamethrower/flamethrower.md3"
 */
 	{
 		"weapon_flamethrower",
@@ -1608,7 +1291,8 @@ model="models/weapons2/flamethrower/pu_flamethrower.md3"
 		{   "models/weapons2/flamethrower/flamethrower.md3",
 			"models/weapons2/flamethrower/v_flamethrower.md3",
 			"models/weapons2/flamethrower/pu_flamethrower.md3",
-			0, 0 },
+			0,
+			"models/weapons2/flamethrower/ss_flamethrower.md3"},
 
 		"icons/iconw_flamethrower_1",    // icon
 		"icons/ammo10",              // ammo icon
@@ -1620,95 +1304,12 @@ model="models/weapons2/flamethrower/pu_flamethrower.md3"
 		WP_FLAMETHROWER,
 		"",                          // precache
 		"",                          // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
-
-/*QUAKED weapon_tesla (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED weapon_sniperScope (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/tesla/pu_tesla.md3"
-*/
-	{
-		"weapon_tesla",
-		"sound/misc/w_pkup.wav",
-
-		{   "models/weapons2/tesla/tesla.md3",
-			"models/weapons2/tesla/v_tesla.md3",
-			"models/weapons2/tesla/pu_tesla.md3",
-			0, 0 },
-
-		"icons/iconw_tesla_1",   // icon
-		"icons/ammo10",              // ammo icon
-		"Tesla Gun",             // pickup
-		200,
-		IT_WEAPON,
-		WP_TESLA,
-		WP_TESLA,
-		WP_TESLA,
-		"",                          // precache
-		"",                          // sounds
-		{0,0,0,0}
-	},
-
-
-//----(SA)	new weaps
-
-/* weapon_speargun (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/speargun/pu_speargun.md3"
-*/
-/*
-	{
-		"weapon_speargun",
-		"sound/misc/w_pkup.wav",
-		{	"models/weapons2/speargun/speargun.md3",
-			"models/weapons2/speargun/v_speargun.md3",
-			"models/weapons2/speargun/pu_speargun.md3",
-			0, 0 },
-		"icons/iconw_speargun_1",	// icon
-		"icons/ammo10",				// ammo icon
-		"Speargun",					// pickup
-		50,
-		IT_WEAPON,
-		WP_SPEARGUN,
-		WP_SPEARGUN,
-		WP_SPEARGUN,
-		"",							// precache
-		"",							// sounds
-		{0,0,0,0}
-	},
-	*/
-
-/* weapon_speargun_c02 (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/speargun/pu_speargun.md3"
-*/
-/*
-	{
-		"weapon_speargun_co2",
-		"sound/misc/w_pkup.wav",
-		{	"models/weapons2/speargun/speargun.md3",
-			"models/weapons2/speargun/v_speargun.md3",
-			"models/weapons2/speargun/pu_speargun.md3",
-			0, 0 },
-
-		"icons/iconw_speargun_1",	// icon
-		"icons/ammo10",				// ammo icon
-		"CO2 Spears",					// pickup
-		50,
-		IT_WEAPON,
-		WP_SPEARGUN_CO2,
-		WP_SPEARGUN_CO2,
-		WP_SPEARGUN_CO2,
-		"",							// precache
-		"",							// sounds
-		{0,0,0,0}
-	},
-*/
-
-/*QUAKED weapon_sniperScope (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/mauser/pu_mauser_scope.md3"
+model="models/weapons2/mauser/mauser.md3"
 */
 	{
 		"weapon_sniperScope",
@@ -1716,8 +1317,9 @@ model="models/weapons2/mauser/pu_mauser_scope.md3"
 		{   "models/weapons2/mauser/mauser.md3",
 			"models/weapons2/mauser/v_mauser.md3",
 //			"models/weapons2/mauser/v_mauser_scope.md3",
-			"models/weapons2/mauser/pu_mauser_scope.md3",
-			0, 0 },
+			"models/multiplayer/mauser/mauser_pickup.md3",
+			0,
+			"models/weapons2/mauser/ss_mauser.md3"},
 
 //		"icons/iconw_sniper_1",	// icon
 		"icons/iconw_mauser_1",  // icon
@@ -1730,121 +1332,7 @@ model="models/weapons2/mauser/pu_mauser_scope.md3"
 		WP_MAUSER,
 		"",                          // precache
 		"",                          // sounds
-		{0,0,0,0}
-	},
-
-/*QUAKED weapon_snooperrifle (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons2/garand/garand.md3"
-*/
-	{
-		"weapon_snooperrifle",   //----(SA)	modified
-		"sound/misc/w_pkup.wav",
-		{   "models/weapons2/garand/garand.md3",
-			"models/weapons2/garand/v_garand.md3",
-			"models/weapons2/garand/pu_garand.md3",
-			0, 0 },
-
-		"icons/iconw_garand_1",  // icon
-		"icons/ammo10",              // ammo icon
-		"Snooper Rifle",             // pickup		//----(SA)	modified
-		20,
-		IT_WEAPON,
-		WP_SNOOPERSCOPE,
-		WP_GARAND,
-		WP_GARAND,
-		"",                          // precache
-		"",                          // sounds
-		{0,0,0,0}
-	},
-
-/* weapon_fg42scope
-*/
-	{
-		"weapon_fg42scope",  //----(SA)	modified
-		"sound/misc/w_pkup.wav",
-		{   "models/weapons2/fg42/fg42.md3",
-			"models/weapons2/fg42/v_fg42.md3",
-			"models/weapons2/fg42/pu_fg42.md3",
-			0, 0},
-
-		"icons/iconw_fg42_1",    // icon
-		"icons/ammo5",               // ammo icon
-		"FG42 Scope",                // pickup		//----(SA)	modified
-		0,
-		IT_WEAPON,
-		WP_FG42SCOPE,   // this weap
-		WP_MAUSER,      // shares ammo w/
-		WP_FG42,        // shares clip w/
-		"",                          // precache
-		"",                          // sounds
-		{0,0,0,0}
-	},
-
-
-// Ridah, need this for the scripting
-/*
-weapon_monster_attack1 (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
-*/
-	{
-		"weapon_monster_attack1",
-		"",
-		{   "",
-			"",
-			0, 0},
-		"",  // icon
-		NULL,   // ammo icon
-		"MonsterAttack1",            // pickup
-		100,
-		IT_WEAPON,
-		WP_MONSTER_ATTACK1,
-		WP_MONSTER_ATTACK1,         // ammo
-		WP_MONSTER_ATTACK1,         //
-		"",                          // precache
-		"",                          // sounds
-		{0,0,0,0}
-	},
-/*
-weapon_monster_attack2 (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
-*/
-	{
-		"weapon_monster_attack2",
-		"",
-		{   "",
-			"",
-			0, 0},
-		"",  // icon
-		NULL,   // ammo icon
-		"MonsterAttack2",            // pickup
-		100,
-		IT_WEAPON,
-		WP_MONSTER_ATTACK2,
-		WP_MONSTER_ATTACK2,         // ammo
-		WP_MONSTER_ATTACK2,         //
-		"",                          // precache
-		"",                          // sounds
-		{0,0,0,0}
-	},
-/*
-weapon_monster_attack3 (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
-*/
-	{
-		"weapon_monster_attack3",
-		"",
-		{   "",
-			"",
-			0, 0},
-		"",  // icon
-		NULL,   // ammo icon
-		"MonsterAttack3",            // pickup
-		100,
-		IT_WEAPON,
-		WP_MONSTER_ATTACK3,
-		WP_MONSTER_ATTACK3,         // ammo
-		WP_MONSTER_ATTACK3,
-		"",                          // precache
-		"",                          // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 /*
@@ -1855,7 +1343,6 @@ weapon_mortar (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 		"sound/misc/w_pkup.wav",
 		{   "models/weapons2/grenade/grenade.md3",
 			"models/weapons2/grenade/v_grenade.md3",
-			"models/weapons2/grenade/pu_grenade.md3",
 			0, 0},
 		"icons/iconw_grenade_1", // icon
 		"icons/icona_grenade",   // ammo icon
@@ -1867,7 +1354,7 @@ weapon_mortar (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 		WP_MORTAR,
 		"",                      // precache
 		"sound/weapons/mortar/mortarf1.wav",             // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 
@@ -1875,31 +1362,127 @@ weapon_mortar (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 /*
 weapon_class_special (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 */
-/*
 	{
 		"weapon_class_special",
 		"sound/misc/w_pkup.wav",
-		{	"models/multiplayer/hammer/hammer.md3",
-			"models/multiplayer/hammer/v_hammer.md3",
-			"models/multiplayer/hammer/pu_hammer.md3",
-			0, 0, },
+		{   "models/multiplayer/pliers/pliers.md3",
+			"models/multiplayer/pliers/v_pliers.md3",
+			0,
+			"models/multiplayer/pliers/v_pliers_axis.md3",
+			""},
 
-		"icons/iconw_hammer_1",	// icon
-		"icons/ammo2",			// ammo icon
-		"Special",				// pickup
+		"icons/iconw_pliers_1",  // icon
+		"icons/ammo2",           // ammo icon
+		"Special",               // pickup
 		50, // this should never be picked up
 		IT_WEAPON,
-		WP_CLASS_SPECIAL,
-		WP_CLASS_SPECIAL,
-		WP_CLASS_SPECIAL,
-		"",						// precache
-		"",						// sounds
-		{0,0,0,0}
+		WP_PLIERS,
+		WP_PLIERS,
+		WP_PLIERS,
+		"",                      // precache
+		"sound/multiplayer/allies/a-dynamite_planted.wav sound/multiplayer/axis/g-dynamite_planted.wav sound/multiplayer/allies/a-dynamite_defused.wav sound/multiplayer/axis/g-dynamite_defused.wav",   // sounds
+		{0,0,0,0,0}
 	},
-// jpw
+
+/*
+weapon_arty (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 */
+	{
+		"weapon_arty",
+		"sound/misc/w_pkup.wav",
+		{   "models/multiplayer/syringe/syringe.md3",
+			"models/multiplayer/syringe/v_syringe.md3",
+			0,
+			0,
+			""},
 
+		"icons/iconw_syringe_1", // icon
+		"icons/ammo2",           // ammo icon
+		"Artillery",             // pickup
+		50, // this should never be picked up
+		IT_WEAPON,
+		WP_ARTY,
+		WP_ARTY,
+		WP_ARTY,
+		"",                      // precache
+		"sound/multiplayer/allies/a-firing.wav sound/multiplayer/axis/g-firing.wav sound/multiplayer/allies/a-art_abort.wav sound/multiplayer/axis/g-art_abort.wav", // sounds
+		{0,0,0,0,0}
+	},
 
+	/*
+weapon_medic_syringe (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
+*/
+	{
+		"weapon_medic_syringe",
+		"sound/misc/w_pkup.wav",
+		{   "models/multiplayer/syringe/syringe.md3",
+			"models/multiplayer/syringe/v_syringe.md3",
+			0,
+			"models/multiplayer/syringe/v_syringe_axis.md3",
+			""},
+
+		"icons/iconw_syringe_1", // icon
+		"icons/ammo2",           // ammo icon
+		"Syringe",               // pickup
+		50, // this should never be picked up
+		IT_WEAPON,
+		WP_MEDIC_SYRINGE,
+		WP_MEDIC_SYRINGE,
+		WP_MEDIC_SYRINGE,
+		"",                      // precache
+		"sound/multiplayer/vo_revive.wav",   // sounds
+		{0,0,0,0,0}
+	},
+/*
+weapon_magicammo (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
+*/
+	{
+		"weapon_magicammo",
+		"sound/misc/w_pkup.wav",
+		{   "models/multiplayer/ammopack/ammopack.md3",
+			"models/multiplayer/ammopack/v_ammopack.md3",
+			"models/multiplayer/ammopack/ammopack_pickup.md3",
+			0,
+			""},
+
+		"icons/iconw_ammopack_1",    // icon
+		"icons/ammo2",           // ammo icon
+		"Ammo Pack",             // pickup
+		50, // this should never be picked up
+		IT_WEAPON,
+		WP_AMMO,
+		WP_AMMO,
+		WP_AMMO,
+		"",                      // precache
+		"sound/multiplayer/allies/a-aborting.wav sound/multiplayer/axis/g-aborting.wav sound/multiplayer/allies/a-affirmative_omw.wav sound/multiplayer/axis/g-affirmative_omw.wav",                     // sounds
+		{0,0,0,0,0}
+	},
+/*
+weapon_binoculars (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
+*/
+	{
+		"weapon_binoculars",
+		"sound/misc/w_pkup.wav",
+		{   "",
+			"",
+			"",
+			0,
+			""},
+
+		"",  // icon
+		"",          // ammo icon
+		"Binoculars",                // pickup
+		50, // this should never be picked up
+		IT_WEAPON,
+		WP_BINOCULARS,
+		WP_BINOCULARS,
+		WP_BINOCULARS,
+		"",                      // precache
+		"",                      // sounds
+		{0,0,0,0,0}
+	},
+
+// jpw
 
 
 	//
@@ -1908,7 +1491,7 @@ weapon_class_special (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 
 
 
-/*QUAKED ammo_9mm_small (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_9mm_small (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Luger pistol, MP40 machinegun
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -1918,7 +1501,7 @@ model="models/powerups/ammo/am9mm_s.md3"
 		"ammo_9mm_small",
 		"sound/misc/am_pkup.wav",
 		{ "models/powerups/ammo/am9mm_s.md3",
-		  0, 0, 0, 0 },
+		  0, 0, 0,    0 },
 		"icons/iconw_luger_1", // icon
 		NULL,               // ammo icon
 		"9mm Rounds",        // pickup
@@ -1929,9 +1512,9 @@ model="models/powerups/ammo/am9mm_s.md3"
 		WP_LUGER,
 		"",                  // precache
 		"",                  // sounds
-		{32,24,16,16}
+		{100,60,45,30,30}
 	},
-/*QUAKED ammo_9mm (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_9mm (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Luger pistol, MP40 machinegun
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -1952,9 +1535,9 @@ model="models/powerups/ammo/am9mm_m.md3"
 		WP_LUGER,
 		"",                  // precache
 		"",                  // sounds
-		{64,48,32,32}
+		{100,60,45,30,30}
 	},
-/*QUAKED ammo_9mm_large (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_9mm_large (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Luger pistol, MP40 machinegun
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -1975,11 +1558,11 @@ model="models/powerups/ammo/am9mm_l.md3"
 		WP_LUGER,
 		"",                  // precache
 		"",                  // sounds
-		{96,64,48,48}
+		{100,60,45,30,30}
 	},
 
 
-/*QUAKED ammo_45cal_small (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_45cal_small (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Thompson, Colt
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -2000,9 +1583,9 @@ model="models/powerups/ammo/am45cal_s.md3"
 		WP_COLT,
 		"",                  // precache
 		"",                  // sounds
-		{30,20,15,15}
+		{100,60,45,30,30}
 	},
-/*QUAKED ammo_45cal (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_45cal (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Thompson, Colt
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -2023,9 +1606,9 @@ model="models/powerups/ammo/am45cal_m.md3"
 		WP_COLT,
 		"",                  // precache
 		"",                  // sounds
-		{60,45,30,30}
+		{100,60,45,30,30}
 	},
-/*QUAKED ammo_45cal_large (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_45cal_large (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Thompson, Colt
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -2046,13 +1629,13 @@ model="models/powerups/ammo/am45cal_l.md3"
 		WP_COLT,
 		"",                  // precache
 		"",                  // sounds
-		{90,60,45,45}
+		{100,60,45,30,30}
 	},
 
 
 
 
-/*QUAKED ammo_792mm_small (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_792mm_small (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Mauser rifle, FG42
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -2073,9 +1656,9 @@ model="models/powerups/ammo/am792mm_s.md3"
 		WP_MAUSER,
 		"",                          // precache
 		"",                          // sounds
-		{16,12,8,8}
+		{85,50,35,25,25}
 	},
-/*QUAKED ammo_792mm (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_792mm (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Mauser rifle, FG42
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -2096,9 +1679,9 @@ model="models/powerups/ammo/am792mm_m.md3"
 		WP_MAUSER,
 		"",                          // precache
 		"",                          // sounds
-		{32,24,16,16}
+		{10,10,10,10,10}
 	},
-/*QUAKED ammo_792mm_large (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_792mm_large (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Mauser rifle, FG42
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -2119,13 +1702,13 @@ model="models/powerups/ammo/am792mm_l.md3"
 		WP_MAUSER,
 		"",                          // precache
 		"",                          // sounds
-		{48,32,24,24}
+		{85,50,35,25,25}
 	},
 
 
 
 
-/*QUAKED ammo_30cal_small (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_30cal_small (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Garand rifle
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -2146,9 +1729,9 @@ model="models/powerups/ammo/am30cal_s.md3"
 		WP_GARAND,
 		"",                          // precache
 		"",                          // sounds
-		{5,2,2,2}
+		{85,50,35,25,25}
 	},
-/*QUAKED ammo_30cal (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_30cal (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Garand rifle
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -2169,9 +1752,9 @@ model="models/powerups/ammo/am30cal_m.md3"
 		WP_GARAND,
 		"",                          // precache
 		"",                          // sounds
-		{5,5,5,5    }
+		{85,50,35,25,25}
 	},
-/*QUAKED ammo_30cal_large (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_30cal_large (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Garand rifle
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -2192,13 +1775,13 @@ model="models/powerups/ammo/am30cal_l.md3"
 		WP_GARAND,
 		"",                          // precache
 		"",                          // sounds
-		{10,10,10,5}
+		{85,50,35,25,25}
 	},
 
 
 
 
-/*QUAKED ammo_127mm (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_127mm (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Venom gun
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -2219,10 +1802,10 @@ model="models/powerups/ammo/am127mm.md3"
 		WP_VENOM,
 		"",                          // precache
 		"",                          // sounds
-		{100,75,50,50}
+		{150,100,75,50,50}
 	},
 
-/*QUAKED ammo_grenades (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_grenades (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/ammo/amgren_bag.md3"
@@ -2242,18 +1825,18 @@ model="models/powerups/ammo/amgren_bag.md3"
 		WP_GRENADE_LAUNCHER,
 		"",                      // precache
 		"",                      // sounds
-		{5,4,3,3}
+		{10,5,4,3,3}
 	},
 
-/*QUAKED ammo_grenades_american (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_grenades_american (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/powerups/ammo/amgrenus_bag.md3"
+model="models/powerups/ammo/amgren_bag.md3"
 */
 	{
 		"ammo_grenades_american",
 		"sound/misc/am_pkup.wav",
-		{ "models/powerups/ammo/amgrenus_bag.md3",
+		{ "models/powerups/ammo/amgren_bag.md3",
 		  0, 0, 0,    0 },
 		"icons/icona_pineapple", // icon
 		NULL,                   // ammo icon
@@ -2265,18 +1848,18 @@ model="models/powerups/ammo/amgrenus_bag.md3"
 		WP_GRENADE_PINEAPPLE,
 		"",                      // precache
 		"",                      // sounds
-		{5,4,3,3}
+		{10,5,4,3,3}
 	},
 
-/*QUAKED ammo_dynamite (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_dynamite (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 
  -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/powerups/ammo/dynamite.md3"
+model="models/powerups/ammo/amgren_bag.md3"
 */
 	{
 		"ammo_dynamite",
 		"sound/misc/am_pkup.wav",
-		{ "models/powerups/ammo/dynamite.md3",
+		{ "models/multiplayer/dynamite/dynamite.md3",
 		  0, 0, 0,    0 },
 		"icons/icona_dynamite",  // icon
 		NULL,                   // ammo icon
@@ -2288,16 +1871,16 @@ model="models/powerups/ammo/dynamite.md3"
 		WP_DYNAMITE,
 		"",                      // precache
 		"",                      // sounds
-		{1,1,1,1}
+		{1,1,1,1,1}
 	},
 
 
-/*QUAKED ammo_cell (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_cell (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Tesla
 
 Boosts recharge on Tesla
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/powerups/ammo/amcell.md3"
+model="models/powerups/ammo/amfuel.md3"
 */
 	{
 		"ammo_cell",
@@ -2314,12 +1897,12 @@ model="models/powerups/ammo/amcell.md3"
 		WP_TESLA,
 		"",                  // precache
 		"",                  // sounds
-		{100,75,50,50}
+		{150,100,75,50,50}
 	},
 
 
 
-/*QUAKED ammo_fuel (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_fuel (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Flamethrower
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -2340,38 +1923,36 @@ model="models/powerups/ammo/amfuel.md3"
 		WP_FLAMETHROWER,
 		"",                  // precache
 		"",                  // sounds
-		{100,75,50,50}
+		{150,100,75,50,50}
 	},
 
 
-/* ammo_speargun (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_speargun (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Speargun
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/ammo/amspear.md3"
 */
-/*
 	{
 		"ammo_speargun",
 		"sound/misc/am_pkup.wav",
 		{ "models/powerups/ammo/amspear.md3",
-		0, 0, 0,	0 },
-		"icons/icona_spear",	// icon
-		NULL,					// ammo icon
-		"Speargun Bolts",			// pickup
+		  0, 0, 0,    0 },
+		"icons/icona_spear", // icon
+		NULL,                   // ammo icon
+		"Speargun Bolts",            // pickup
 		10,
 		IT_AMMO,
 		WP_SPEARGUN,
 		WP_SPEARGUN,
 		WP_SPEARGUN,
-		"",					// precache
-		"",					// sounds
-		{100,75,50,50}
+		"",                  // precache
+		"",                  // sounds
+		{150,100,75,50,50}
 	},
-*/
 
 
-/* ammo_speargun_co2 (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_speargun_co2 (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 CO2 tipped speargun bolts
 
 used by: Speargun
@@ -2379,25 +1960,23 @@ used by: Speargun
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/ammo/amspear.md3"
 */
-/*
 	{
 		"ammo_speargun_co2",
 		"sound/misc/am_pkup.wav",
 		{ "models/powerups/ammo/amspear.md3",
-		0, 0, 0,	0 },
-		"icons/icona_spear",	// icon
-		NULL,					// ammo icon
-		"C02 Speargun Bolts",	// pickup
+		  0, 0, 0,    0 },
+		"icons/icona_spear", // icon
+		NULL,                   // ammo icon
+		"C02 Speargun Bolts",    // pickup
 		10,
 		IT_AMMO,
 		WP_SPEARGUN_CO2,
 		WP_SPEARGUN_CO2,
 		WP_SPEARGUN_CO2,
-		"",					// precache
-		"",					// sounds
-		{100,75,50,50}
+		"",                  // precache
+		"",                  // sounds
+		{150,100,75,50,50}
 	},
-*/
 
 
 //----(SA)	removed ammo_sniper(_n)
@@ -2405,7 +1984,7 @@ model="models/powerups/ammo/amspear.md3"
 //----(SA)	removed ammo_snooper(_n)
 
 
-/*QUAKED ammo_panzerfaust (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_panzerfaust (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: German Panzerfaust
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
@@ -2426,61 +2005,58 @@ model="models/powerups/ammo/ampf.md3"
 		WP_PANZERFAUST,
 		"",                      // precache
 		"",                      // sounds
-		{4,3,2,2}
+		{10,5,4,3,3}
 	},
 
 
-/* ammo_rockets (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED ammo_rockets (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Allied Rocket Launcher (bazooka)
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/ammo/amrocket.md3"
 */
-/*
 	{
 		"ammo_rockets",
 		"sound/misc/am_pkup.wav",
 		{ "models/powerups/ammo/amrocket.md3",
-		0, 0, 0,	0 },
-		"icons/icona_rocket",	// icon
-		NULL,					// ammo icon
-		"Rockets",				// pickup
+		  0, 0, 0,    0 },
+		"icons/icona_rocket",    // icon
+		NULL,                   // ammo icon
+		"Rockets",               // pickup
 		5,
 		IT_AMMO,
 		WP_ROCKET_LAUNCHER,
 		WP_ROCKET_LAUNCHER,
 		WP_ROCKET_LAUNCHER,
-		"",						// precache
-		"",						// sounds
-		{4,3,2,2}
+		"",                      // precache
+		"",                      // sounds
+		{10,5,4,3,3}
 	},
-*/
 
-/* ammo_charges (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+
+/*QUAKED ammo_charges (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 used by: Cross of Coronado
 
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/ammo/amcharges.md3"
 */
-/*
 	{
 		"ammo_charges",
 		"sound/misc/am_pkup.wav",
 		{ "models/powerups/ammo/amcharges.md3",
-		0, 0, 0,	0 },
-		"icons/icona_charges",	// icon
-		NULL,					// ammo icon
-		"Charges",				// pickup
+		  0, 0, 0,    0 },
+		"icons/icona_charges",   // icon
+		NULL,                   // ammo icon
+		"Charges",               // pickup
 		2,
 		IT_AMMO,
 		WP_CROSS,
 		WP_CROSS,
 		WP_CROSS,
-		"",						// precache
-		"",						// sounds
-		{4,2,2,1}
+		"",                      // precache
+		"",                      // sounds
+		{4,2,2,1,1}
 	},
-*/
 
 //----(SA)	hopefully it doesn't need to be a quaked thing.
 //			apologies if it does and I'll put it back.
@@ -2503,7 +2079,7 @@ used by: Monster Attack 1 (specific to each monster)
 		WP_MONSTER_ATTACK1,
 		"",
 		"",
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 
@@ -2513,36 +2089,36 @@ used by: Monster Attack 1 (specific to each monster)
 
 //----(SA)	updated a number of powerup items (11/6/00)
 
-/* holdable_medkit (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
+/*QUAKED holdable_medkit (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 
 pickup sound : "sound/pickup/holdable/get_medkit.wav"
 use sound : "sound/pickup/holdable/get_medkit.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/holdable/medkit.md3"
 */
-/*
 	{
 		"holdable_medkit",
 		"sound/pickup/holdable/get_medkit.wav",
 		{
-		"models/powerups/holdable/medkit.md3",
-		"models/powerups/holdable/medkit_sphere.md3",
-		0, 0,	0 },
-		"icons/medkit",	// icon
-		NULL,			// ammo icon
-		"Medkit",		// pickup
+			"models/powerups/holdable/medkit.md3",
+			"models/powerups/holdable/medkit_sphere.md3",
+			0, 0,   0
+		},
+		"icons/medkit",  // icon
+		NULL,           // ammo icon
+		"Medkit",        // pickup
 		1,
 		IT_HOLDABLE,
 		HI_MEDKIT,
 		0,
 		0,
-		"",				// precache
-		"sound/pickup/holdable/use_medkit.wav",	// sounds
-		{0,0,0,0}
+		"",              // precache
+		"sound/pickup/holdable/use_medkit.wav",  // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/*QUAKED holdable_wine (.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+
+/*QUAKED holdable_wine (.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 
 pickup sound : "sound/pickup/holdable/get_wine.wav"
 use sound : "sound/pickup/holdable/use_wine.wav"
@@ -2566,11 +2142,11 @@ model="models/powerups/holdable/wine.md3"
 		0,
 		"",                              // precache
 		"sound/pickup/holdable/use_wine.wav",        // sounds
-		{3,0,0,0}
+		{3,0,0,0,0}
 	},
 
 
-/* holdable_skull (.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED holdable_skull (.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 Skull of Invulnerability
 Protection from all attacks
 
@@ -2579,30 +2155,30 @@ use sound : "sound/pickup/holdable/use_skull.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/holdable/skull.md3"
 */
-/*
 	{
 		"holdable_skull",
 		"sound/pickup/holdable/get_skull.wav",
 		{
 			"models/powerups/holdable/skull.md3",
 			0, 0, 0
-		,	0 },
-		"icons/skull",					// icon
-		NULL,							// ammo icon
-		"Skull of Invulnerability",		// pickup
+			,   0
+		},
+		"icons/skull",                   // icon
+		NULL,                           // ammo icon
+		"Skull of Invulnerability",      // pickup
 		1,
 		IT_HOLDABLE,
 		HI_SKULL,
 		0,
 		0,
-		"",								// precache
-		"sound/pickup/holdable/use_skull.wav",	// sounds
-		{0,0,0,0}
+		"",                              // precache
+		"sound/pickup/holdable/use_skull.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
 
-/* holdable_p_water (.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+
+/*QUAKED holdable_p_water (.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 Protection from drowning for n seconds
 "time" (in seconds)  How much extra underwater time is given
 
@@ -2611,29 +2187,29 @@ use sound : "sound/pickup/holdable/use_water.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/holdable/water.md3"
 */
-/*
 	{
 		"holdable_p_water",
 		"sound/pickup/holdable/get_water.wav",
 		{
 			"models/powerups/holdable/water.md3",
 			0, 0, 0
-		,	0 },
-		"icons/water",					// icon
-		NULL,							// ammo icon
-		"Breather",					// pickup
+			,   0
+		},
+		"icons/water",                   // icon
+		NULL,                           // ammo icon
+		"Breather",                  // pickup
 		1,
 		IT_HOLDABLE,
 		HI_WATER,
 		0,
 		0,
-		"",								// precache
-		"sound/pickup/holdable/use_water.wav",	// sounds
-		{0,0,0,0}
+		"",                              // precache
+		"sound/pickup/holdable/use_water.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* holdable_p_elec (.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+
+/*QUAKED holdable_p_elec (.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 Protection from electric attacks
 Absorbs "dmg" points of electric damage
 
@@ -2642,29 +2218,29 @@ use sound : "sound/pickup/holdable/use_elec.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/holdable/elec.md3"
 */
-/*
 	{
 		"holdable_p_elec",
 		"sound/pickup/holdable/get_elec.wav",
 		{
 			"models/powerups/holdable/elec.md3",
 			0, 0, 0
-		,	0 },
-		"icons/elec",					// icon
-		NULL,							// ammo icon
-		"Electric Protection",			// pickup
+			,   0
+		},
+		"icons/elec",                    // icon
+		NULL,                           // ammo icon
+		"Electric Protection",           // pickup
 		1,
 		IT_HOLDABLE,
 		HI_ELECTRIC,
 		0,
 		0,
-		"",								// precache
-		"sound/pickup/holdable/use_elec.wav",	// sounds
-		{0,0,0,0}
+		"",                              // precache
+		"sound/pickup/holdable/use_elec.wav",    // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* holdable_p_fire (.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+
+/*QUAKED holdable_p_fire (.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 Protection from fire attacks
 Absorbs "dmg" points of fire damage
 
@@ -2673,29 +2249,29 @@ use sound : "sound/pickup/holdable/use_fire.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/holdable/fire.md3"
 */
-/*
 	{
 		"holdable_p_fire",
 		"sound/pickup/holdable/get_fire.wav",
 		{
 			"models/powerups/holdable/fire.md3",
 			0, 0, 0
-		,	0 },
-		"icons/fire",					// icon
-		NULL,							// ammo icon
-		"Fire Protection",				// pickup
+			,   0
+		},
+		"icons/fire",                    // icon
+		NULL,                           // ammo icon
+		"Fire Protection",               // pickup
 		1,
 		IT_HOLDABLE,
 		HI_FIRE,
 		0,
 		0,
-		"",								// precache
-		"sound/pickup/holdable/use_fire.wav",	// sounds
-		{0,0,0,0}
+		"",                              // precache
+		"sound/pickup/holdable/use_fire.wav",    // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/*QUAKED holdable_stamina(.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+
+/*QUAKED holdable_stamina(.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 Protection from fatigue
 Using the "sprint" key will not fatigue the character
 
@@ -2722,12 +2298,12 @@ model="models/powerups/holdable/stamina.md3"
 		0,
 		"",                              // precache
 		"sound/pickup/holdable/use_stamina.wav", // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 
 
-/*QUAKED holdable_book1(.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED holdable_book1(.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/holdable/venom_book.md3"
 */
@@ -2749,11 +2325,11 @@ model="models/powerups/holdable/venom_book.md3"
 		0,
 		"",                              // precache
 		"sound/pickup/holdable/use_book.wav",    // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 
-/*QUAKED holdable_book2(.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED holdable_book2(.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/holdable/paranormal_book.md3"
 */
@@ -2775,11 +2351,11 @@ model="models/powerups/holdable/paranormal_book.md3"
 		0,
 		"",                              // precache
 		"sound/pickup/holdable/use_book.wav",    // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 
-/*QUAKED holdable_book3(.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED holdable_book3(.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/holdable/zemphr_book.md3"
 */
@@ -2801,117 +2377,113 @@ model="models/powerups/holdable/zemphr_book.md3"
 		0,
 		"",                              // precache
 		"sound/pickup/holdable/use_book.wav",    // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 
 
 
-/* holdable_11(.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED holdable_11(.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/holdable/11.md3"
 */
-/*
 	{
 		"holdable_11",
 		"sound/pickup/holdable/get_11.wav",
 		{
 			"models/powerups/holdable/11.md3",
 			0, 0, 0
-		,	0 },
-		"icons/11",				// icon
-		NULL,							// ammo icon
-		"11",					// pickup
+			,   0
+		},
+		"icons/11",              // icon
+		NULL,                           // ammo icon
+		"11",                    // pickup
 		1,
 		IT_HOLDABLE,
 		HI_11,
 		0,
 		0,
-		"",								// precache
-		"sound/pickup/holdable/use_11.wav",	// sounds
-		{0,0,0,0}
+		"",                              // precache
+		"sound/pickup/holdable/use_11.wav",  // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* holdable_12(.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED holdable_12(.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/holdable/12.md3"
 */
-/*
 	{
 		"holdable_12",
 		"sound/pickup/holdable/get_12.wav",
 		{
 			"models/powerups/holdable/12.md3",
 			0, 0, 0
-		,	0 },
-		"icons/12",				// icon
-		NULL,							// ammo icon
-		"12",					// pickup
+			,   0
+		},
+		"icons/12",              // icon
+		NULL,                           // ammo icon
+		"12",                    // pickup
 		1,
 		IT_HOLDABLE,
 		HI_12,
 		0,
 		0,
-		"",								// precache
-		"sound/pickup/holdable/use_12.wav",	// sounds
-		{0,0,0,0}
+		"",                              // precache
+		"sound/pickup/holdable/use_12.wav",  // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* holdable_13(.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED holdable_13(.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/holdable/13.md3"
 */
-/*
 	{
 		"holdable_13",
 		"sound/pickup/holdable/get_13.wav",
 		{
 			"models/powerups/holdable/13.md3",
 			0, 0, 0
-		,	0 },
-		"icons/13",				// icon
-		NULL,							// ammo icon
-		"13",					// pickup
+			,   0
+		},
+		"icons/13",              // icon
+		NULL,                           // ammo icon
+		"13",                    // pickup
 		1,
 		IT_HOLDABLE,
 		HI_13,
 		0,
 		0,
-		"",								// precache
-		"sound/pickup/holdable/use_13.wav",	// sounds
-		{0,0,0,0}
+		"",                              // precache
+		"sound/pickup/holdable/use_13.wav",  // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* holdable_14(.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED holdable_14(.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/holdable/14.md3"
 */
-/*
 	{
 		"holdable_14",
 		"sound/pickup/holdable/get_14.wav",
 		{
 			"models/powerups/holdable/14.md3",
 			0, 0, 0
-		,	0 },
-		"icons/14",				// icon
-		NULL,							// ammo icon
-		"14",					// pickup
+			,   0
+		},
+		"icons/14",              // icon
+		NULL,                           // ammo icon
+		"14",                    // pickup
 		1,
 		IT_HOLDABLE,
 		HI_14,
 		0,
 		0,
-		"",								// precache
-		"sound/pickup/holdable/use_14.wav",	// sounds
-		{0,0,0,0}
+		"",                              // precache
+		"sound/pickup/holdable/use_14.wav",  // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* holdable_15(.3 .3 1) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED holdable_15(.3 .3 1) (-8 -8 -8) (8 8 8) suspended spin
 /
 	{
 		"holdable_15",
@@ -2929,7 +2501,7 @@ model="models/powerups/holdable/14.md3"
 		0,
 		"",								// precache
 		"sound/pickup/holdable/use_15.wav",	// sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
 */
@@ -2947,20 +2519,20 @@ model="models/flags/r_flag.md3"
 */
 	{
 		"team_CTF_redflag",
-		"sound/teamplay/flagtk_red.wav",
-		{ "models/flags/r_flag.md3",
+		"",
+		{ "models/multiplayer/treasure/treasure.md3",
 		  0, 0, 0,   0 },
 		"icons/iconf_red",   // icon
 		NULL,               // ammo icon
-		"Red Flag",          // pickup
+		"Objective",     // pickup
 		0,
 		IT_TEAM,
 		PW_REDFLAG,
 		0,
 		0,
 		"",                  // precache
-		"sound/teamplay/flagcap_red.wav sound/teamplay/flagtk_red.wav sound/teamplay/flagret_red.wav",   // sounds
-		{0,0,0,0}
+		"sound/multiplayer/axis/g-objective_secure.wav sound/multiplayer/allies/a-objective_taken.wav",  // sounds
+		{0,0,0,0,0}
 	},
 
 /*QUAKED team_CTF_blueflag (0 0 1) (-16 -16 -16) (16 16 16)
@@ -2970,8 +2542,8 @@ model="models/flags/b_flag.md3"
 */
 	{
 		"team_CTF_blueflag",
-		"sound/teamplay/flagtk_blu.wav",
-		{ "models/flags/b_flag.md3",
+		"",
+		{ "models/multiplayer/treasure/treasure.md3",
 		  0, 0, 0,   0 },
 		"icons/iconf_blu",   // icon
 		NULL,               // ammo icon
@@ -2982,159 +2554,154 @@ model="models/flags/b_flag.md3"
 		0,
 		0,
 		"",                  // precache
-		"sound/teamplay/flagcap_blu.wav sound/teamplay/flagtk_blu.wav sound/teamplay/flagret_blu.wav",   // sounds
-		{0,0,0,0}
+		"sound/multiplayer/allies/a-objective_secure.wav sound/multiplayer/axis/g-objective_taken.wav",  // sounds
+		{0,0,0,0,0}
 	},
 
 
 	//---- (SA) Wolf keys
 
-/* key_skull1 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_skull1 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 1
 
 pickup sound : "sound/pickup/keys/skull.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/skull.md3"
 */
-/*
 	{
 		"key_skull1",
 		"sound/pickup/keys/skull.wav",
 		{
 			"models/powerups/keys/skull.md3",
 			0, 0, 0
-		,	0 },
-		"icons/iconk_skull",	// icon
-		NULL,					// ammo icon
-		"Crystal Skull",		// pickup
+			,   0
+		},
+		"icons/iconk_skull", // icon
+		NULL,                   // ammo icon
+		"Crystal Skull",     // pickup
 		0,
 		IT_KEY,
 		KEY_1,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_chalice2 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_chalice2 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 2
 
 pickup sound : "sound/pickup/keys/chalice.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/chalice.md3"
 */
-/*
 	{
 		"key_chalice2",
 		"sound/pickup/keys/chalice.wav",
 		{
 			"models/powerups/keys/chalice.md3",
 			0, 0, 0
-		,	0 },
-		"icons/iconk_chalice",	// icon
-		NULL,					// ammo icon
-		"Chalice",				// pickup
+			,   0
+		},
+		"icons/iconk_chalice",   // icon
+		NULL,                   // ammo icon
+		"Chalice",               // pickup
 		0,
 		IT_KEY,
 		KEY_2,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_eye3 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_eye3 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 3
 
 pickup sound : "sound/pickup/keys/eye.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/eye.md3"
 */
-/*
 	{
 		"key_eye3",
 		"sound/pickup/keys/eye.wav",
 		{
 			"models/powerups/keys/eye.md3",
 			0, 0, 0
-		,	0 },
-		"icons/iconk_eye",		// icon
-		NULL,					// ammo icon
-		"Eye of Isis",			// pickup
+			,   0
+		},
+		"icons/iconk_eye",       // icon
+		NULL,                   // ammo icon
+		"Eye of Isis",           // pickup
 		0,
 		IT_KEY,
 		KEY_3,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_radio4 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_radio4 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 4
 
 pickup sound : "sound/pickup/keys/radio.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/radio_port.md3"
 */
-/*
 	{
 		"key_radio4",
 		"sound/pickup/keys/radio.wav",
 		{
 			"models/powerups/keys/radio_port.md3",
 			0, 0, 0
-		,	0 },
-		"icons/iconk_radio",	// icon
-		NULL,					// ammo icon
-		"Field Radio",			// pickup
+			,   0
+		},
+		"icons/iconk_radio", // icon
+		NULL,                   // ammo icon
+		"Field Radio",           // pickup
 		0,
 		IT_KEY,
 		KEY_4,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_satchelcharge5 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_satchelcharge5 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 5
 
 pickup sound : "sound/pickup/keys/satchelcharge.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/satchel_charge.md3"
 */
-/*
 	{
 		"key_satchelcharge5",
 		"sound/pickup/keys/satchelcharge.wav",
 		{
 			"models/powerups/keys/satchel_charge.md3",
 			0, 0, 0
-		,	0 },
-		"icons/iconk_satchel",	// icon
-		NULL,					// ammo icon
-		"Satchel Charge",		// pickup
+			,   0
+		},
+		"icons/iconk_satchel",   // icon
+		NULL,                   // ammo icon
+		"Satchel Charge",        // pickup
 		0,
 		IT_KEY,
 		KEY_5,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/*QUAKED key_binocs (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_binocs (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 Binoculars.
 
 pickup sound : "sound/pickup/keys/binocs.wav"
@@ -3149,7 +2716,7 @@ model="models/powerups/keys/binoculars.md3"
 			0, 0, 0
 			,   0
 		},
-		"icons/binocs",          // icon
+		"icons/key6",            // icon
 		NULL,                   // ammo icon
 		"Binoculars",            // pickup
 		0,
@@ -3159,298 +2726,290 @@ model="models/powerups/keys/binoculars.md3"
 		0,
 		"",                      // precache
 		"models/keys/key.wav",   // sounds
-		{0,0,0,0}
+		{0,0,0,0,0}
 	},
 
-/* key_7 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
-key 7
+/*QUAKED key_goldbar (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
+//key 7
+Gold bars until we have a "collectables" entity type
 
-pickup sound : "sound/pickup/keys/key7.wav"
+pickup sound : "sound/pickup/keys/goldbar.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/powerups/keys/key7.md3"
+model="models/powerups/keys/goldbar.md3"
 */
-/*
 	{
-		"key_key7",
-		"sound/pickup/keys/key7.wav",
+		"key_goldbar",
+		"sound/pickup/keys/goldbar.wav",
 		{
-			"models/powerups/keys/key7.md3",
+			"models/powerups/keys/goldbar.md3",
 			0, 0, 0
-		,	0 },
-		"icons/key7",			// icon
-		NULL,					// ammo icon
-		"Key 7",				// pickup
+			,   0
+		},
+		"icons/key7",            // icon
+		NULL,                   // ammo icon
+		"Gold Bars",         // pickup
 		0,
 		IT_KEY,
 		KEY_7,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_key8 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_key8 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 8
 
 pickup sound : "sound/pickup/keys/key8.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/key.md3"
 */
-/*
 	{
 		"key_key8",
 		"sound/pickup/keys/key8.wav",
 		{
 			"models/powerups/keys/key.md3",
 			0, 0, 0
-		,	0 },
-		"icons/key8",			// icon
-		NULL,					// ammo icon
-		"Key 8",				// pickup
+			,   0
+		},
+		"icons/key8",            // icon
+		NULL,                   // ammo icon
+		"Key 8",             // pickup
 		0,
 		IT_KEY,
 		KEY_8,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_key9 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_key9 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 9
 
 pickup sound : "sound/pickup/keys/key9.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/key.md3"
 */
-/*
 	{
 		"key_key9",
 		"sound/pickup/keys/key9.wav",
 		{
 			"models/powerups/keys/key.md3",
 			0, 0, 0
-		,	0 },
-		"icons/key9",			// icon
-		NULL,					// ammo icon
-		"Key 9",				// pickup
+			,   0
+		},
+		"icons/key9",            // icon
+		NULL,                   // ammo icon
+		"Key 9",             // pickup
 		0,
 		IT_KEY,
 		KEY_9,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_key10 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_key10 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 10
 
 pickup sound : "sound/pickup/keys/key10.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/key.md3"
 */
-/*
 	{
 		"key_key10",
 		"sound/pickup/keys/key10.wav",
 		{
 			"models/powerups/keys/key.md3",
 			0, 0, 0
-		,	0 },
-		"icons/key10",			// icon
-		NULL,					// ammo icon
-		"Key 10",				// pickup
+			,   0
+		},
+		"icons/key10",           // icon
+		NULL,                   // ammo icon
+		"Key 10",                // pickup
 		0,
 		IT_KEY,
 		KEY_10,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_key11 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_key11 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 11
 
 pickup sound : "sound/pickup/keys/key11.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/key.md3"
 */
-/*
 	{
 		"key_key11",
 		"sound/pickup/keys/key11.wav",
 		{
 			"models/powerups/keys/key.md3",
 			0, 0, 0
-		,	0 },
-		"icons/key11",			// icon
-		NULL,					// ammo icon
-		"Key 11",				// pickup
+			,   0
+		},
+		"icons/key11",           // icon
+		NULL,                   // ammo icon
+		"Key 11",                // pickup
 		0,
 		IT_KEY,
 		KEY_11,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_key12 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_key12 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 12
 
 pickup sound : "sound/pickup/keys/key12.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/key.md3"
 */
-/*
 	{
 		"key_key12",
 		"sound/pickup/keys/key12.wav",
 		{
 			"models/powerups/keys/key.md3",
 			0, 0, 0
-		,	0 },
-		"icons/key12",			// icon
-		NULL,					// ammo icon
-		"Key 12",				// pickup
+			,   0
+		},
+		"icons/key12",           // icon
+		NULL,                   // ammo icon
+		"Key 12",                // pickup
 		0,
 		IT_KEY,
 		KEY_12,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_key13 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_key13 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 13
 
 pickup sound : "sound/pickup/keys/key13.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/key.md3"
 */
-/*
 	{
 		"key_key13",
 		"sound/pickup/keys/key13.wav",
 		{
 			"models/powerups/keys/key.md3",
 			0, 0, 0
-		,	0 },
-		"icons/key13",			// icon
-		NULL,					// ammo icon
-		"Key 13",				// pickup
+			,   0
+		},
+		"icons/key13",           // icon
+		NULL,                   // ammo icon
+		"Key 13",                // pickup
 		0,
 		IT_KEY,
 		KEY_13,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_key14 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_key14 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 14
 
 pickup sound : "sound/pickup/keys/key14.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/key.md3"
 */
-/*
 	{
 		"key_key14",
 		"sound/pickup/keys/key14.wav",
 		{
 			"models/powerups/keys/key.md3",
 			0, 0, 0
-		,	0 },
-		"icons/key14",			// icon
-		NULL,					// ammo icon
-		"Key 14",				// pickup
+			,   0
+		},
+		"icons/key14",           // icon
+		NULL,                   // ammo icon
+		"Key 14",                // pickup
 		0,
 		IT_KEY,
 		KEY_14,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_key15 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_key15 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 15
 
 pickup sound : "sound/pickup/keys/key15.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/key.md3"
 */
-/*
 	{
 		"key_key15",
 		"sound/pickup/keys/key15.wav",
 		{
 			"models/powerups/keys/key.md3",
 			0, 0, 0
-		,	0 },
-		"icons/key15",			// icon
-		NULL,					// ammo icon
-		"Key 15",				// pickup
+			,   0
+		},
+		"icons/key15",           // icon
+		NULL,                   // ammo icon
+		"Key 15",                // pickup
 		0,
 		IT_KEY,
 		KEY_15,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
 
-/* key_key16 (1 1 0) (-8 -8 -8) (8 8 8) SUSPENDED SPIN - RESPAWN
+/*QUAKED key_key16 (1 1 0) (-8 -8 -8) (8 8 8) suspended spin
 key 16
 
 pickup sound : "sound/pickup/keys/key16.wav"
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/powerups/keys/key.md3"
 */
-/*
 	{
 		"key_key16",
 		"sound/pickup/keys/key16.wav",
 		{
 			"models/powerups/keys/key.md3",
 			0, 0, 0
-		,	0 },
-		"icons/key16",			// icon
-		NULL,					// ammo icon
-		"Key 16",				// pickup
+			,   0
+		},
+		"icons/key16",           // icon
+		NULL,                   // ammo icon
+		"Key 16",                // pickup
 		0,
 		IT_KEY,
 		KEY_16,
 		0,
 		0,
-		"",						// precache
-		"models/keys/key.wav",	// sounds
-		{0,0,0,0}
+		"",                      // precache
+		"models/keys/key.wav",   // sounds
+		{0,0,0,0,0}
 	},
-*/
+
 
 
 
@@ -3459,8 +3018,7 @@ model="models/powerups/keys/key.md3"
 };
 // END JOSEPH
 
-int	bg_numItems = ARRAY_LEN( bg_itemlist ) - 1;
-
+int bg_numItems = ARRAY_LEN( bg_itemlist ) - 1;
 
 /*
 ==============
@@ -3510,34 +3068,15 @@ BG_FindItemForWeapon
 */
 gitem_t *BG_FindItemForWeapon( weapon_t weapon ) {
 	gitem_t *it;
-	int i;
-	const int NUM_TABLE_ELEMENTS = WP_NUM_WEAPONS;
-	static gitem_t  *lookupTable[WP_NUM_WEAPONS];
-	static qboolean lookupTableInit = qtrue;
 
-	if ( lookupTableInit ) {
-		for ( i = 0; i < NUM_TABLE_ELEMENTS; i++ ) {
-			lookupTable[i] = 0; // default value for no match found
-			for ( it = bg_itemlist + 1 ; it->classname ; it++ ) {
-				if ( it->giType == IT_WEAPON && it->giTag == i ) {
-					lookupTable[i] = it;
-				}
-			}
+	for ( it = bg_itemlist + 1 ; it->classname ; it++ ) {
+		if ( it->giType == IT_WEAPON && it->giTag == weapon ) {
+			return it;
 		}
-		// table is created
-		lookupTableInit = qfalse;
 	}
 
-	if ( weapon > NUM_TABLE_ELEMENTS ) {
-		Com_Error( ERR_DROP, "BG_FindItemForWeapon: weapon out of range %i", weapon );
-	}
-
-	if ( !lookupTable[weapon] ) {
-		Com_Error( ERR_DROP, "Couldn't find item for weapon %i", weapon );
-	}
-
-	// get the weapon from the lookup table
-	return lookupTable[weapon];
+	Com_Error( ERR_DROP, "Couldn't find item for weapon %i", weapon );
+	return NULL;
 }
 
 //----(SA) added
@@ -3552,30 +3091,14 @@ BG_FindClipForWeapon
 */
 weapon_t BG_FindClipForWeapon( weapon_t weapon ) {
 	gitem_t *it;
-	int i;
-	const int NUM_TABLE_ELEMENTS = WP_NUM_WEAPONS;
-	static weapon_t lookupTable[WP_NUM_WEAPONS];
-	static qboolean lookupTableInit = qtrue;
 
-	if ( lookupTableInit ) {
-		for ( i = 0; i < NUM_TABLE_ELEMENTS; i++ ) {
-			lookupTable[i] = 0; // default value for no match found
-			for ( it = bg_itemlist + 1 ; it->classname ; it++ ) {
-				if ( it->giType == IT_WEAPON && it->giTag == i ) {
-					lookupTable[i] = it->giClipIndex;
-				}
-			}
+	for ( it = bg_itemlist + 1 ; it->classname ; it++ ) {
+		if ( it->giType == IT_WEAPON && it->giTag == weapon ) {
+			return it->giClipIndex;
 		}
-		// table is created
-		lookupTableInit = qfalse;
 	}
 
-	if ( weapon > NUM_TABLE_ELEMENTS ) {
-		Com_Error( ERR_DROP, "BG_FindClipForWeapon: weapon out of range %i", weapon );
-	}
-
-	// get the weapon from the lookup table
-	return lookupTable[weapon];
+	return 0;
 }
 
 
@@ -3587,63 +3110,63 @@ BG_FindAmmoForWeapon
 */
 weapon_t BG_FindAmmoForWeapon( weapon_t weapon ) {
 	gitem_t *it;
-	int i;
-	const int NUM_TABLE_ELEMENTS = WP_NUM_WEAPONS;
-	static weapon_t lookupTable[WP_NUM_WEAPONS];
-	static qboolean lookupTableInit = qtrue;
+	int DMAmmo = 0;
 
-	if ( lookupTableInit ) {
-		for ( i = 0; i < NUM_TABLE_ELEMENTS; i++ ) {
-			lookupTable[i] = 0; // default value for no match found
-			for ( it = bg_itemlist + 1 ; it->classname ; it++ ) {
-				if ( it->giType == IT_WEAPON && it->giTag == i ) {
-					lookupTable[i] = it->giAmmoIndex;
+	for ( it = bg_itemlist + 1 ; it->classname ; it++ ) {
+		if ( it->giType == IT_WEAPON && it->giTag == weapon ) {
+//			if(g_gametype.integer != GT_SINGLE_PLAYER)
+			if ( 0 ) {
+				if ( DEATHMATCH_SHARED_AMMO ) { // this would be a !single_player server cvar that lets Allied and Axis like-weapons share like-ammo for dm
+					switch ( it->giAmmoIndex )
+					{
+					case WP_AKIMBO:     //----(SA)	added
+					case WP_COLT:
+						DMAmmo = WP_LUGER;
+						break;
+					case WP_THOMPSON:
+						DMAmmo = WP_MP40;
+						break;
+					case WP_GARAND:
+						DMAmmo = WP_MAUSER;
+						break;
+					case WP_GRENADE_PINEAPPLE:
+						DMAmmo = WP_GRENADE_LAUNCHER;
+						break;
+					default:
+						break;
+					}
+					if ( DMAmmo ) {
+						return DMAmmo;
+					}
 				}
 			}
+			return it->giAmmoIndex;
 		}
-		// table is created
-		lookupTableInit = qfalse;
 	}
-
-	if ( weapon > NUM_TABLE_ELEMENTS ) {
-		Com_Error( ERR_DROP, "BG_FindAmmoForWeapon: weapon out of range %i", weapon );
-	}
-
-	// get the weapon from the lookup table
-	return lookupTable[weapon];
+	return 0;
 }
 
 /*
 ==============
 BG_AkimboFireSequence
-	returns 'true' if it's the left hand's turn to fire, 'false' if it's the right hand's turn
 ==============
 */
-//qboolean BG_AkimboFireSequence( playerState_t *ps ) {
-qboolean BG_AkimboFireSequence( int weapon, int akimboClip, int coltClip ) {
-	// NOTE: this doesn't work when clips are turned off (dmflags 64)
+qboolean BG_AkimboFireSequence( playerState_t *ps ) {
 
-	if ( weapon != WP_AKIMBO ) {
+	if ( ps->weapon != WP_AKIMBO ) {
 		return qfalse;
 	}
 
-	if ( !akimboClip ) {
-		return qfalse;
+	if ( ( ps->ammoclip[WP_AKIMBO] + ps->ammoclip[WP_COLT] ) & 1 ) {
+		if ( ps->ammoclip[WP_AKIMBO] > ps->ammoclip[WP_COLT] ) {
+			return qtrue;
+		}
+	} else {
+		if ( ps->ammoclip[WP_AKIMBO] <= ps->ammoclip[WP_COLT] ) {
+			return qtrue;
+		}
 	}
-
-	// no ammo in colt, must be akimbo turn
-	if ( !coltClip ) {
-		return qtrue;
-	}
-
-	// at this point, both have ammo
-
-	// now check 'cycle'   // (removed old method 11/5/2001)
-	if ( ( akimboClip + coltClip ) & 1 ) {
-		return qfalse;
-	}
-
-	return qtrue;
+	return qfalse;
 }
 
 //----(SA) end
@@ -3713,32 +3236,6 @@ gitem_t *BG_FindItem( const char *pickupName ) {
 	return NULL;
 }
 
-/*
-==============
-BG_FindItem2
-	also check classname
-==============
-*/
-gitem_t *BG_FindItem2( const char *name ) {
-	gitem_t *it;
-	char *name2;
-
-	name2 = (char*)name;
-
-	for ( it = bg_itemlist + 1 ; it->classname ; it++ ) {
-		if ( !Q_stricmp( it->pickup_name, name ) ) {
-			return it;
-		}
-
-		if ( !Q_strcasecmp( it->classname, name2 ) ) {
-			return it;
-		}
-	}
-
-	Com_Printf( "BG_FindItem2(): unable to locate item '%s'\n", name );
-
-	return NULL;
-}
 
 //----(SA)	added
 /*
@@ -3790,6 +3287,36 @@ qboolean BG_PlayerSeesItem(playerState_t *ps, entityState_t *item, int atTime)
 */
 //----(SA)	end
 
+// DHM - Nerve :: returns qtrue if a weapon is indeed used in multiplayer
+qboolean BG_WeaponInWolfMP( int weapon ) {
+
+	switch ( weapon ) {
+	case WP_KNIFE:
+	case WP_LUGER:
+	case WP_COLT:
+	case WP_MP40:
+	case WP_THOMPSON:
+	case WP_STEN:
+	case WP_MAUSER:
+	case WP_SNIPERRIFLE:
+	case WP_GRENADE_LAUNCHER:
+	case WP_GRENADE_PINEAPPLE:
+	case WP_PANZERFAUST:
+	case WP_VENOM:
+	case WP_FLAMETHROWER:
+	case WP_AMMO:
+	case WP_ARTY:
+	case WP_SMOKETRAIL:
+	case WP_MEDKIT:
+	case WP_PLIERS:
+	case WP_SMOKE_GRENADE:
+	case WP_DYNAMITE:
+	case WP_MEDIC_SYRINGE:
+		return qtrue;
+	default:
+		return qfalse;
+	}
+}
 
 /*
 ============
@@ -3808,8 +3335,8 @@ qboolean    BG_PlayerTouchesItem( playerState_t *ps, entityState_t *item, int at
 	BG_EvaluateTrajectory( &item->pos, atTime, origin );
 
 	// we are ignoring ducked differences here
-	if ( ps->origin[0] - origin[0] > 44
-		 || ps->origin[0] - origin[0] < -50
+	if ( ps->origin[0] - origin[0] > 36
+		 || ps->origin[0] - origin[0] < -36
 		 || ps->origin[1] - origin[1] > 36
 		 || ps->origin[1] - origin[1] < -36
 		 || ps->origin[2] - origin[2] > 36
@@ -3831,75 +3358,62 @@ Returns false if the item should not be picked up.
 This needs to be the same for client side prediction and server use.
 ================
 */
-
-qboolean isClipOnly( int weap ) {
-	switch ( weap ) {
-	case WP_GRENADE_LAUNCHER:
-	case WP_GRENADE_PINEAPPLE:
-	case WP_DYNAMITE:
-	case WP_TESLA:
-	case WP_FLAMETHROWER:
-		return qtrue;
-	}
-	return qfalse;
-}
-
-
 qboolean    BG_CanItemBeGrabbed( const entityState_t *ent, const playerState_t *ps ) {
 	gitem_t *item;
-	int ammoweap;
-	qboolean multiplayer = qfalse;
+	int ammoweap,weapbank;     // JPW NERVE
+
 
 	if ( ent->modelindex < 1 || ent->modelindex >= bg_numItems ) {
 		Com_Error( ERR_DROP, "BG_CanItemBeGrabbed: index out of range" );
 	}
 
-//----(SA)	check for mp
-#ifdef GAMEDLL
-	if ( g_gametype.integer == GT_WOLF )
-#endif
-#ifdef CGAMEDLL
-	if ( cg_gameType.integer == GT_WOLF )
-#endif
-	multiplayer = qtrue;
-//----(SA)	end
-
 	item = &bg_itemlist[ent->modelindex];
 
 	switch ( item->giType ) {
-
 	case IT_WEAPON:
-		// JPW NERVE -- medics & engineers can only pick up same weapon type
-		if ( multiplayer ) {
-			if ( ( ps->stats[STAT_PLAYER_CLASS] == PC_MEDIC ) || ( ps->stats[STAT_PLAYER_CLASS] == PC_ENGINEER ) ) {
-				if ( !COM_BitCheck( ps->weapons, item->giTag ) ) {
-					return qfalse;
-				}
-			}
-		} else {
-			if ( COM_BitCheck( ps->weapons, item->giTag ) ) {               // you have the weap
-				if ( isClipOnly( item->giTag ) ) {
-					if ( ps->ammoclip[item->giAmmoIndex] >= ammoTable[item->giAmmoIndex].maxclip ) {
-						return qfalse;
-					}
-				} else {
-					if ( ps->ammo[item->giAmmoIndex] >= ammoTable[item->giAmmoIndex].maxammo ) { // you are loaded with the ammo
-						return qfalse;
-					}
-				}
+// JPW NERVE -- medics & engineers can only pick up same weapon type
+		if ( item->giTag == WP_AMMO ) { // magic ammo for any two-handed weapon
+			return qtrue;
+		}
+		if ( ( ps->stats[STAT_PLAYER_CLASS] == PC_MEDIC ) || ( ps->stats[STAT_PLAYER_CLASS] == PC_ENGINEER ) ) {
+			if ( !COM_BitCheck( ps->weapons, item->giTag ) ) {
+				return qfalse;
+			} else {
+				return qtrue;
 			}
 		}
-		// JPW
-		return qtrue;
 
-	case IT_AMMO:
-		ammoweap = BG_FindAmmoForWeapon( item->giTag );
-
-		if ( isClipOnly( ammoweap ) ) {
-			if ( ps->ammoclip[ammoweap] >= ammoTable[ammoweap].maxclip ) {
+		if ( ps->stats[STAT_PLAYER_CLASS] == PC_LT ) {
+			if ( ( item->giTag != WP_MP40 ) && ( item->giTag != WP_THOMPSON ) && ( item->giTag != WP_STEN ) ) {
 				return qfalse;
 			}
 		}
+
+// JPW NERVE wolf multiplayer: other classes can only pick up weapon if weapon's bank is empty
+#ifdef GAMEDLL
+		if ( g_gametype.integer >= GT_WOLF )
+#endif
+#ifdef CGAMEDLL
+		if ( cg_gameType.integer >= GT_WOLF )
+#endif
+		{
+			weapbank = 0;
+			for ( ammoweap = 0; ammoweap < MAX_WEAPS_IN_BANK_MP; ammoweap++ )
+				if ( item->giTag == weapBanksMultiPlayer[3][ammoweap] ) {
+					weapbank = 1;
+				}
+			if ( !weapbank ) {
+				return qfalse;
+			}
+			for ( ammoweap = 0; ammoweap < MAX_WEAPS_IN_BANK_MP; ammoweap++ )
+				if ( COM_BitCheck( ps->weapons,weapBanksMultiPlayer[3][ammoweap] ) ) {
+					return qfalse;
+				}
+		}
+		return qtrue;
+// jpw
+	case IT_AMMO:
+		ammoweap = BG_FindAmmoForWeapon( item->giTag );
 
 		if ( ps->ammo[ammoweap] >= ammoTable[ammoweap].maxammo ) {
 			return qfalse;
@@ -3909,8 +3423,7 @@ qboolean    BG_CanItemBeGrabbed( const entityState_t *ent, const playerState_t *
 
 	case IT_ARMOR:
 		// we also clamp armor to the maxhealth for handicapping
-//			if ( ps->stats[STAT_ARMOR] >= ps->stats[STAT_MAX_HEALTH] * 2 ) {
-		if ( ps->stats[STAT_ARMOR] >= 100 ) {
+		if ( ps->stats[STAT_ARMOR] >= ps->stats[STAT_MAX_HEALTH] * 2 ) {
 			return qfalse;
 		}
 		return qtrue;
@@ -3918,6 +3431,15 @@ qboolean    BG_CanItemBeGrabbed( const entityState_t *ent, const playerState_t *
 	case IT_HEALTH:
 		if ( ent->density == ( 1 << 9 ) ) { // density tracks how many uses left
 			return qfalse;
+		}
+
+		// small and mega healths will go over the max, otherwise
+		// don't pick up if already at max
+		if ( item->quantity == 5 || item->quantity == 100 ) {   // (SA) this is /totally/ a Q3 check.  TODO: adapt for Wolf
+			if ( ps->stats[STAT_HEALTH] >= ps->stats[STAT_MAX_HEALTH] * 2 ) {
+				return qfalse;
+			}
+			return qtrue;
 		}
 
 		if ( ps->stats[STAT_HEALTH] >= ps->stats[STAT_MAX_HEALTH] ) {
@@ -3929,14 +3451,9 @@ qboolean    BG_CanItemBeGrabbed( const entityState_t *ent, const playerState_t *
 		if ( ent->density == ( 1 << 9 ) ) { // density tracks how many uses left
 			return qfalse;
 		}
-
-		if ( ps->powerups[PW_NOFATIGUE] == 60000 ) { // full
-			return qfalse;
-		}
-
 		return qtrue;
 
-	case IT_TEAM:     // team items, such as flags
+	case IT_TEAM: // team items, such as flags
 
 		// DHM - Nerve :: otherEntity2 is now used instead of modelindex2
 		// ent->modelindex2 is non-zero on items if they are dropped
@@ -3961,15 +3478,15 @@ qboolean    BG_CanItemBeGrabbed( const entityState_t *ent, const playerState_t *
 	case IT_HOLDABLE:
 		return qtrue;
 
-	case IT_TREASURE:       // treasure always picked up
+	case IT_TREASURE:   // treasure always picked up
 		return qtrue;
 
-	case IT_CLIPBOARD:      // clipboards always picked up
+	case IT_CLIPBOARD:  // clipboards always picked up
 		return qtrue;
 
 		//---- (SA) Wolf keys
 	case IT_KEY:
-		return qtrue;       // keys are always picked up
+		return qtrue;   // keys are always picked up
 
 	case IT_BAD:
 		Com_Error( ERR_DROP, "BG_CanItemBeGrabbed: IT_BAD" );
@@ -3981,7 +3498,6 @@ qboolean    BG_CanItemBeGrabbed( const entityState_t *ent, const playerState_t *
 #endif
          break;
 	}
-
 	return qfalse;
 }
 
@@ -4224,6 +3740,7 @@ char *eventnames[] = {
 	"EV_NOAMMO",
 	"EV_EMPTYCLIP",
 	"EV_FILL_CLIP",
+	"EV_MG42_FIXED", // JPW NERVE
 	"EV_WEAP_OVERHEAT",
 	"EV_CHANGE_WEAPON",
 	"EV_FIRE_WEAPON",
@@ -4232,8 +3749,6 @@ char *eventnames[] = {
 	"EV_FIRE_QUICKGREN", // "Quickgrenade"
 	"EV_NOFIRE_UNDERWATER",
 	"EV_FIRE_WEAPON_MG42",
-	"EV_SUGGESTWEAP",        //----(SA)	added
-	"EV_GRENADE_SUICIDE",    //----(SA)	added
 	"EV_USE_ITEM0",
 	"EV_USE_ITEM1",
 	"EV_USE_ITEM2",
@@ -4272,15 +3787,14 @@ char *eventnames[] = {
 	"EV_DEATH1",
 	"EV_DEATH2",
 	"EV_DEATH3",
-	"EV_ENTDEATH",           //----(SA)	added
 	"EV_OBITUARY",
+	"EV_STOPSTREAMINGSOUND", // JPW NERVE swiped from Sherman
 	"EV_POWERUP_QUAD",
 	"EV_POWERUP_BATTLESUIT",
 	"EV_POWERUP_REGEN",
 	"EV_GIB_PLAYER",         // gib a previously living player
 	"EV_DEBUG_LINE",
 	"EV_STOPLOOPINGSOUND",
-	"EV_STOPSTREAMINGSOUND", //----(SA)	added
 	"EV_TAUNT",
 	"EV_SMOKE",
 	"EV_SPARKS",
@@ -4326,7 +3840,8 @@ char *eventnames[] = {
 	"EV_POPUP",
 	"EV_POPUPBOOK",
 	"EV_GIVEPAGE",
-	"EV_CLOSEMENU",
+	"EV_MG42BULLET_HIT_FLESH",
+	"EV_MG42BULLET_HIT_WALL",
 
 	"EV_MAX_EVENTS"
 };
@@ -4343,12 +3858,12 @@ void    trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int 
 
 void BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerState_t *ps ) {
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 	{
 		char buf[256];
 		trap_Cvar_VariableStringBuffer( "showevents", buf, sizeof( buf ) );
 		if ( atof( buf ) != 0 ) {
-#ifdef QAGAME
+#ifdef GAMEDLL
 			Com_Printf( " game event svt %5d -> %5d: num = %20s parm %d\n", ps->pmove_framecount /*ps->commandTime*/, ps->eventSequence, eventnames[newEvent], eventParm );
 #else
 			Com_Printf( "Cgame event svt %5d -> %5d: num = %20s parm %d\n", ps->pmove_framecount /*ps->commandTime*/, ps->eventSequence, eventnames[newEvent], eventParm );
@@ -4513,6 +4028,14 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	s->torsoAnim = ps->torsoAnim;
 	s->clientNum = ps->clientNum;       // ET_PLAYER looks here instead of at number
 										// so corpses can also reference the proper config
+
+	if ( ps->persistant[PERS_HWEAPON_USE] ) {
+		ps->eFlags |= EF_MG42_ACTIVE;
+	} else {
+		ps->eFlags &= ~EF_MG42_ACTIVE;
+	}
+
+
 	s->eFlags = ps->eFlags;
 	if ( ps->stats[STAT_HEALTH] <= 0 ) {
 		s->eFlags |= EF_DEAD;
@@ -4538,9 +4061,6 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	// Ridah, now using a circular list of events for all entities
 	// add any new events that have been added to the playerState_t
 	// (possibly overwriting entityState_t events)
-	if ( ps->oldEventSequence > ps->eventSequence ) {
-		ps->oldEventSequence = ps->eventSequence;
-	}
 	for ( i = ps->oldEventSequence; i != ps->eventSequence; i++ ) {
 		s->events[s->eventSequence & ( MAX_EVENTS - 1 )] = ps->events[i & ( MAX_EVENTS - 1 )];
 		s->eventParms[s->eventSequence & ( MAX_EVENTS - 1 )] = ps->eventParms[i & ( MAX_EVENTS - 1 )];

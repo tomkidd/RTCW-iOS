@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -346,13 +346,8 @@ CG_AddEmitter
 */
 void CG_AddEmitter( localEntity_t *le ) {
 	vec3_t dir;
-	int nextTime = 50;
 
 	if ( le->breakCount > cg.time ) {  // using 'breakCount' for 'wait'
-		return;
-	}
-
-	if ( cg_paused.integer ) { // don't add while paused
 		return;
 	}
 
@@ -361,41 +356,10 @@ void CG_AddEmitter( localEntity_t *le ) {
 	//else if(oil) {}
 	//else if(steam) {}
 	//else if(wine) {}
+	VectorScale( le->angles.trBase, 30, dir );
+	CG_Particle_OilParticle( cgs.media.oilParticle, le->pos.trBase, dir,  15000, le->ownerNum );
 
-	switch ( le->headJuncIndex ) {
-	case 1:     // oil
-		VectorScale( le->angles.trBase, le->radius, dir );
-		CG_Particle_OilParticle( cgs.media.oilParticle, le->pos.trBase, dir,  10000, le->ownerNum );
-		break;
-	case 2:     // water
-		VectorScale( le->angles.trBase, le->radius, dir );
-		CG_Particle_OilParticle( cgs.media.oilParticle, le->pos.trBase, dir,  10000, le->ownerNum );
-		break;
-	case 3:     // steam
-		nextTime = 100;
-		CG_ParticleImpactSmokePuffExtended( cgs.media.smokeParticleShader, le->pos.trBase, le->angles.trBase, 8, 1000, 8, le->radius, 20, 0.25f );
-		break;
-	case 4:     // wine
-		VectorScale( le->angles.trBase, le->radius, dir );
-		CG_Particle_OilParticle( cgs.media.oilParticle, le->pos.trBase, dir,  10000, le->ownerNum );
-		break;
-	case 5:     // smoke
-		nextTime = 100;
-		CG_ParticleImpactSmokePuffExtended( cgs.media.smokeParticleShader, le->pos.trBase, dir, 8, 1000, 8, 20, 20, 0.25f );
-		break;
-	case 6:     // electrical
-		nextTime = 100;
-		CG_AddBulletParticles( le->pos.trBase, dir, 2, 800, 4, 16.0f );
-		break;
-
-	case 0:
-	default:
-		nextTime = 100;
-		CG_ParticleImpactSmokePuffExtended( cgs.media.smokeParticleShader, le->pos.trBase, dir, 8, 1000, 8, 20, 20, 0.25f );
-		break;
-	}
-
-	le->breakCount = cg.time + nextTime;
+	le->breakCount = cg.time + 50;
 }
 
 //----(SA)	end
@@ -414,7 +378,6 @@ void CG_AddFragment( localEntity_t *le ) {
 	vec3_t flameDir;
 	qboolean hasFlame = qfalse;
 	int i;
-	int contents;
 
 	// Ridah
 	re = &le->refEntity;
@@ -438,7 +401,7 @@ void CG_AddFragment( localEntity_t *le ) {
 		if ( flameAlpha > 1.0 ) {
 			flameAlpha = 1.0;
 		}
-		CG_S_AddLoopingSound( -1, le->refEntity.origin, vec3_origin, cgs.media.flameCrackSound, (int)( 5.0 * flameAlpha ) );
+		CG_S_AddLoopingSound( -1, le->refEntity.origin, vec3_origin, cgs.media.flameCrackSound, (int)( 20.0 * flameAlpha ) );
 	}
 
 //----(SA)	added
@@ -450,14 +413,12 @@ void CG_AddFragment( localEntity_t *le ) {
 
 		//	TODO: FIXME: this is not quite right, because it'll become fps dependant - in a bad way.
 		//		the slower the fps, the /more/ smoke there'll be, probably driving the fps lower.
-		if ( !cg_paused.integer ) {    // don't add while paused
-			if ( !( rand() % 5 ) ) {
-				alpha = 1.0 - ( (float)( cg.time - le->startTime ) / (float)( le->endTime - le->startTime ) );
-				alpha *= 0.25f;
-				memset( &flash, 0, sizeof( flash ) );
-				CG_PositionEntityOnTag( &flash, &le->refEntity, "tag_flash", 0, NULL );
-				CG_ParticleImpactSmokePuffExtended( cgs.media.smokeParticleShader, flash.origin, tv( 0,0,1 ), 8, 1000, 8, 20, 20, alpha );
-			}
+		if ( !( rand() % 5 ) ) {
+			alpha = 1.0 - ( (float)( cg.time - le->startTime ) / (float)( le->endTime - le->startTime ) );
+			alpha *= 0.25f;
+			memset( &flash, 0, sizeof( flash ) );
+			CG_PositionEntityOnTag( &flash, &le->refEntity, "tag_flash", 0, NULL );
+			CG_ParticleImpactSmokePuffExtended( cgs.media.smokeParticleShader, flash.origin, 1000, 8, 20, 20, alpha );
 		}
 	}
 //----(SA)	end
@@ -541,42 +502,9 @@ void CG_AddFragment( localEntity_t *le ) {
 		}
 	}
 
-	contents = CONTENTS_SOLID;
 
 	// trace a line from previous position to new position
-	if ( ( le->leFlags & LEF_NOTOUCHPARENT ) && le->ownerNum ) {
-		CG_Trace( &trace, le->refEntity.origin, NULL, NULL, newOrigin, le->ownerNum, contents );
-	} else {
-		CG_Trace( &trace, le->refEntity.origin, NULL, NULL, newOrigin, -1, contents );
-	}
-
-	// did we hit someone?
-	if ( le->leFlags & LEF_PLAYER_DAMAGE ) {
-		// only do damage if travelling at a fast enough velocity
-		if ( newOrigin[2] < le->refEntity.origin[2] ) {
-			vec3_t pmin, pmax, dmin = {-12,-12,-12}, dmax = {12,12,12};
-			// debris bounds
-			VectorAdd( dmin, newOrigin, dmin );
-			VectorAdd( dmax, newOrigin, dmax );
-			dmax[2] += le->refEntity.origin[2] - newOrigin[2];  // add falling distance to box
-			// are we touching the player?
-			VectorAdd( cg.snap->ps.mins, cg.snap->ps.origin, pmin );
-			VectorAdd( cg.snap->ps.maxs, cg.snap->ps.origin, pmax );
-			pmin[2] = pmax[2] - 32; // only hit on the head
-			for ( i = 0; i < 3; i++ ) {
-				if ( ( dmax[i] < pmin[i] ) || ( dmin[i] > pmax[i] ) ) {
-					break;
-				}
-			}
-			if ( i == 3 ) {
-				trap_S_StartSound( cg.snap->ps.origin, cg.snap->ps.clientNum, CHAN_VOICE, cgs.media.debrisHitSound );
-				CG_ClientDamage( cg.snap->ps.clientNum, ENTITYNUM_WORLD, CLDMG_DEBRIS );
-				// disable damage now for this debris
-				le->leFlags &= ~LEF_PLAYER_DAMAGE;
-			}
-		}
-	}
-
+	CG_Trace( &trace, le->refEntity.origin, NULL, NULL, newOrigin, -1, CONTENTS_SOLID );
 	if ( trace.fraction == 1.0 ) {
 		// still in free fall
 		VectorCopy( newOrigin, le->refEntity.origin );
@@ -654,7 +582,7 @@ void CG_AddFragment( localEntity_t *le ) {
 				nle->refEntity.hModel = ci->gibModels[rand() % 4];
 			}
 			// make it smaller
-			nle->endTime = le->endTime + ( cg.time - le->startTime );
+			nle->endTime = cg.time + 5000 + rand() % 2000;
 			nle->sizeScale *= 0.8;
 			if ( nle->sizeScale < 0.7 ) {
 				nle->sizeScale = 0.7;
@@ -896,41 +824,6 @@ void CG_AddBloodElements( localEntity_t *le ) {
 }
 
 /*
-===================
-CG_AddSpiritViewflash
-===================
-*/
-void CG_AddSpiritViewflash( localEntity_t *le ) {
-	float alpha;
-#define SPIRIT_FLASH_FADEIN     50
-#define SPIRIT_FLASH_DURATION   400
-#define SPIRIT_FLASH_FADEOUT    2000
-
-	if ( cg.viewFade > 1.0 ) {
-		return;
-	}
-
-	if ( cg.time < le->startTime + SPIRIT_FLASH_FADEIN ) {
-		alpha = (float)( cg.time - le->startTime ) / (float)SPIRIT_FLASH_FADEIN;
-	} else if ( cg.time < le->startTime + SPIRIT_FLASH_FADEIN + SPIRIT_FLASH_DURATION )     {
-		alpha = 1.0;
-	} else if ( cg.time < le->startTime + SPIRIT_FLASH_FADEIN + SPIRIT_FLASH_DURATION + SPIRIT_FLASH_FADEOUT )     {
-		alpha = 1.0 - (float)( cg.time - ( le->startTime + SPIRIT_FLASH_FADEIN + SPIRIT_FLASH_DURATION ) ) / (float)SPIRIT_FLASH_FADEOUT;
-	} else {
-		return;
-	}
-
-	if ( alpha < 0 ) {
-		return;
-	}
-
-	// only ever use the highest fade
-	if ( cg.viewFade < alpha ) {
-		cg.viewFade = alpha;
-	}
-}
-
-/*
 ================
 CG_AddClientCritter
 ================
@@ -943,7 +836,7 @@ void CG_AddClientCritter( localEntity_t *le ) {
 	localEntity_t backup;
 	float oldSpeed, enemyDist, of;
 	vec3_t enemyPos;
-	float alpha = 0.0f, fadeRatio; // TTimo: init
+	float alpha;
 
 	if ( cg_entities[le->ownerNum].currentState.otherEntityNum2 == cg.snap->ps.clientNum ) {
 		VectorCopy( cg.snap->ps.origin, enemyPos );
@@ -962,14 +855,6 @@ void CG_AddClientCritter( localEntity_t *le ) {
 
 	time = le->lastTrailTime + step;
 
-	fadeRatio = (float)( cg.time - le->startTime ) / 2000.0;
-	if ( fadeRatio < 0.0 ) {
-		fadeRatio = 0.0;
-	}
-	if ( fadeRatio > 1.0 ) {
-		fadeRatio = 1.0;
-	}
-
 	while ( time <= cg.time ) {
 		if ( time > le->refEntity.fadeStartTime ) {
 			alpha = (float)( time - le->refEntity.fadeStartTime ) / (float)( le->refEntity.fadeEndTime - le->refEntity.fadeStartTime );
@@ -979,7 +864,7 @@ void CG_AddClientCritter( localEntity_t *le ) {
 				alpha = 1;
 			}
 		} else {
-			alpha = fadeRatio;
+			alpha = 1.0;
 		}
 
 		// calculate new position
@@ -990,46 +875,17 @@ void CG_AddClientCritter( localEntity_t *le ) {
 
 		// if stuck, kill it
 		if ( trace.startsolid || ( trace.fraction < 1.0 ) ) {
-			// let heinrich spirits pass through geometry
-			if ( !( le->leType == LE_HELGA_SPIRIT && ( le->refEntity.hModel == cgs.media.ssSpiritSkullModel ) ) ) {
-				// kill it
-				CG_FreeLocalEntity( le );
-				return;
-			} else {
-				VectorCopy( newOrigin, trace.endpos );
-			}
+			// kill it
+			CG_FreeLocalEntity( le );
+			return;
 		}
 
 		// moved some distance
 		VectorCopy( trace.endpos, le->refEntity.origin );
 
-		// record this pos
-		le->validOldPos[le->oldPosHead] = 1;
-		VectorCopy( le->refEntity.origin, le->oldPos[le->oldPosHead] );
-		if ( ++le->oldPosHead >= MAX_OLD_POS ) {
-			le->oldPosHead = 0;
-		}
-
 		if ( le->leType == LE_ZOMBIE_SPIRIT ) {
 			le->headJuncIndex = CG_AddTrailJunc( le->headJuncIndex,
 												 cgs.media.zombieSpiritTrailShader,
-												 time,
-												 STYPE_STRETCH,
-												 le->refEntity.origin,
-												 (int)le->effectWidth,  // trail life
-												 0.3 * alpha,
-												 0.0,
-												 le->radius,
-												 0,
-												 0, //TJFL_FIXDISTORT,
-												 colorWhite,
-												 colorWhite,
-												 1.0, 1 );
-		}
-
-		if ( le->leType == LE_HELGA_SPIRIT && le->refEntity.hModel != cgs.media.ssSpiritSkullModel ) {
-			le->headJuncIndex = CG_AddTrailJunc( le->headJuncIndex,
-												 cgs.media.helgaSpiritTrailShader,
 												 time,
 												 STYPE_STRETCH,
 												 le->refEntity.origin,
@@ -1057,24 +913,9 @@ void CG_AddClientCritter( localEntity_t *le ) {
 		enemyDist = VectorNormalize( v );
 
 		if ( alpha > 0.5 && ( le->lastSpiritDmgTime < time - 100 ) && enemyDist < 24 ) {
-			localEntity_t *fb;
-
-			// if dead, ignore
-			if ( !( le->ownerNum != cg.snap->ps.clientNum ? cg_entities[le->ownerNum].currentState.eFlags & EF_DEAD : cg.snap->ps.pm_type == PM_DEAD ) ) {
-				// inflict the damage!
-				CG_ClientDamage( cg_entities[le->ownerNum].currentState.otherEntityNum2, le->ownerNum, CLDMG_SPIRIT );
-				le->lastSpiritDmgTime = time;
-
-				if ( le->leType == LE_HELGA_SPIRIT ) {
-					// spawn a "flashbang" thinker
-					fb = CG_AllocLocalEntity();
-					fb->leType = LE_SPIRIT_VIEWFLASH;
-					fb->startTime = cg.time + 50;
-					fb->endTime = fb->startTime + SPIRIT_FLASH_FADEIN + SPIRIT_FLASH_DURATION + SPIRIT_FLASH_FADEOUT;
-					// gasp!
-					CG_SoundPlayIndexedScript( cgs.media.helgaGaspSound, NULL, cg_entities[le->ownerNum].currentState.otherEntityNum2 );
-				}
-			}
+			// inflict the damage!
+			CG_ClientDamage( cg_entities[le->ownerNum].currentState.otherEntityNum2, le->ownerNum, CLDMG_SPIRIT );
+			le->lastSpiritDmgTime = time;
 		}
 
 		VectorMA( le->pos.trDelta, le->bounceFactor * oldSpeed, v, le->pos.trDelta );
@@ -1134,7 +975,7 @@ void CG_AddClientCritter( localEntity_t *le ) {
 		}
 
 		// set the angles
-		VectorNormalize2( oDelta, v );
+		VectorNormalize2( le->pos.trDelta, v );
 		// HACK!!! skull model is back-to-front, need to fix
 		if ( le->leType == LE_ZOMBIE_SPIRIT ) {
 			VectorInverse( v );
@@ -1142,25 +983,16 @@ void CG_AddClientCritter( localEntity_t *le ) {
 		vectoangles( v, ang );
 		AnglesToAxis( ang, le->refEntity.axis );
 		// lean when turning
-		if ( le->leType == LE_ZOMBIE_BAT || le->leType == LE_HELGA_SPIRIT ) {
+		if ( le->leType == LE_ZOMBIE_BAT ) {
 			VectorSubtract( le->pos.trDelta, oDelta, v2 );
-			ang[ROLL] = -0.5 * DotProduct( le->refEntity.axis[1], v2 );
-			if ( fabs( ang[ROLL] ) < 20 ) {
-				ang[ROLL] = 0;
-			} else {
-				if ( ang[ROLL] < 0 ) {
-					ang[ROLL] += 20;
-				} else {
-					ang[ROLL] -= 20;
-				}
-			}
+			ang[ROLL] = -5.0 * DotProduct( le->refEntity.axis[1], v2 );
 			if ( fabs( ang[ROLL] ) > 80 ) {
 				if ( ang[ROLL] > 80 ) {
 					ang[ROLL] = 80;
 				} else { ang[ROLL] = -80;}
 			}
-			AnglesToAxis( ang, le->refEntity.axis );
 		}
+		AnglesToAxis( ang, le->refEntity.axis );
 
 		// HACK: the skull is slightly higher than the origin
 		if ( le->leType == LE_ZOMBIE_SPIRIT ) {
@@ -1186,8 +1018,10 @@ void CG_AddClientCritter( localEntity_t *le ) {
 	if ( le->loopingSound ) {
 		if ( cg.time > le->refEntity.fadeStartTime ) {
 			CG_S_AddLoopingSound( 0, le->refEntity.origin, vec3_origin, le->loopingSound, 255 - (int)( 255.0 * (float)( cg.time - le->refEntity.fadeStartTime ) / (float)( le->refEntity.fadeEndTime - le->refEntity.fadeStartTime ) ) );
+		} else if ( le->startTime + 1000 > cg.time ) {
+			CG_S_AddLoopingSound( 0, le->refEntity.origin, vec3_origin, le->loopingSound, (int)( 255.0 * (float)( cg.time - le->startTime ) / 1000.0 ) );
 		} else {
-			CG_S_AddLoopingSound( 0, le->refEntity.origin, vec3_origin, le->loopingSound, 255 - (int)( 255.0 * ( 1.0 - alpha ) ) );
+			CG_S_AddLoopingSound( 0, le->refEntity.origin, vec3_origin, le->loopingSound, 255 );
 		}
 	}
 
@@ -1642,8 +1476,6 @@ CG_AddLocalEntities
 void CG_AddLocalEntities( void ) {
 	localEntity_t   *le, *next;
 
-	cg.viewFade = 0.0;
-
 	// walk the list backwards, so any new local entities generated
 	// (trails, marks, etc) will be present this frame
 	le = cg_activeLocalEntities.prev;
@@ -1677,13 +1509,10 @@ void CG_AddLocalEntities( void ) {
 		case LE_BLOOD:
 			CG_AddBloodElements( le );
 			break;
-		case LE_HELGA_SPIRIT:
 		case LE_ZOMBIE_SPIRIT:
 		case LE_ZOMBIE_BAT:
 			CG_AddClientCritter( le );
 			break;
-		case LE_SPIRIT_VIEWFLASH:
-			CG_AddSpiritViewflash( le );
 			// done.
 
 		case LE_MARK:

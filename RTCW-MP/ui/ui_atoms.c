@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -39,6 +39,7 @@ uiStatic_t uis;
 qboolean m_entersound;              // after a frame, so caching won't disrupt the sound
 
 void QDECL Com_DPrintf( const char *fmt, ... ) __attribute__ ( ( format ( printf, 1, 2 ) ) );
+
 
 // JPW NERVE added Com_DPrintf
 #define MAXPRINTMSG 4096
@@ -65,7 +66,7 @@ void QDECL Com_Error( int level, const char *error, ... ) {
 	char text[1024];
 
 	va_start( argptr, error );
-	Q_vsnprintf( text, sizeof ( text ), error, argptr );
+	Q_vsnprintf( text, sizeof( text ), error, argptr );
 	va_end( argptr );
 
 	trap_Error( text );
@@ -76,7 +77,7 @@ void QDECL Com_Printf( const char *msg, ... ) {
 	char text[1024];
 
 	va_start( argptr, msg );
-	Q_vsnprintf( text, sizeof ( text ), msg, argptr );
+	Q_vsnprintf( text, sizeof( text ), msg, argptr );
 	va_end( argptr );
 
 	trap_Print( text );
@@ -106,8 +107,8 @@ void UI_StartDemoLoop( void ) {
 	trap_Cmd_ExecuteText( EXEC_APPEND, "d1\n" );
 }
 
-// TTimo: unused
 /*
+// TTimo: unused
 static void NeedCDAction( qboolean result ) {
 	if ( !result ) {
 		trap_Cmd_ExecuteText( EXEC_APPEND, "quit\n" );
@@ -131,11 +132,14 @@ char *UI_Argv( int arg ) {
 
 
 char *UI_Cvar_VariableString( const char *var_name ) {
-	static char buffer[MAX_STRING_CHARS];
+	static char buffer[2][MAX_STRING_CHARS];
+	static int toggle;
 
-	trap_Cvar_VariableStringBuffer( var_name, buffer, sizeof( buffer ) );
+	toggle ^= 1;        // flip-flop to allow two returns without clash
 
-	return buffer;
+	trap_Cvar_VariableStringBuffer( var_name, buffer[toggle], sizeof( buffer[0] ) );
+
+	return buffer[toggle];
 }
 
 
@@ -196,7 +200,7 @@ void UI_LoadBestScores( const char *map, int game ) {
 	UI_SetBestScores( &newInfo, qfalse );
 
 	uiInfo.demoAvailable = qfalse;
-
+	
 	protocolLegacy = trap_Cvar_VariableValue("com_legacyprotocol");
 	protocol = trap_Cvar_VariableValue("com_protocol");
 
@@ -228,7 +232,7 @@ void UI_LoadBestScores( const char *map, int game ) {
 UI_ClearScores
 ===============
 */
-void UI_ClearScores( void ) {
+void UI_ClearScores(void) {
 #ifdef MISSIONPACK
 	char gameList[4096];
 	char *gameFile;
@@ -261,7 +265,7 @@ void UI_ClearScores( void ) {
 
 
 
-static void UI_Cache_f( void ) {
+static void UI_Cache_f(void) {
 	Display_CacheAll();
 }
 
@@ -270,7 +274,7 @@ static void UI_Cache_f( void ) {
 UI_CalcPostGameStats
 =======================
 */
-static void UI_CalcPostGameStats( void ) {
+static void UI_CalcPostGameStats(void) {
 #ifdef MISSIONPACK
 	char map[MAX_QPATH];
 	char fileName[MAX_QPATH];

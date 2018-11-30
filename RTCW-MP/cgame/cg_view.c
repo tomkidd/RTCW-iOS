@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -198,9 +198,8 @@ Sets the coordinates of the rendered window
 
 static void CG_CalcVrect( void ) {
 	int xsize, ysize;
-	float lbheight;
+	float lbheight;//, lbdiff;
 
-/*
 	// NERVE - SMF
 	if ( cg.limboMenu ) {
 		float x, y, w, h;
@@ -208,6 +207,10 @@ static void CG_CalcVrect( void ) {
 		y = LIMBO_3D_Y;
 		w = LIMBO_3D_W;
 		h = LIMBO_3D_H;
+
+		if ( cg_fixedAspect.integer ) {
+			CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
+		}
 
 		cg.refdef.width = 0;
 		CG_AdjustFrom640( &x, &y, &w, &h );
@@ -219,7 +222,6 @@ static void CG_CalcVrect( void ) {
 		return;
 	}
 	// -NERVE - SMF
-*/
 
 	// the intermission should allways be full screen
 	if ( cg.snap->ps.pm_type == PM_INTERMISSION ) {
@@ -242,9 +244,23 @@ static void CG_CalcVrect( void ) {
 // letterbox is yy:yy  (85% of 'normal' height)
 
 	lbheight = ysize * 0.85;
+//	lbdiff = ysize - lbheight;
 
 	if ( cg_letterbox.integer ) {
 		ysize = lbheight;
+//		if(letterbox_frac != 0) {
+//			letterbox_frac -= 0.01f;	// (SA) TODO: make non fps dependant
+//			if(letterbox_frac < 0)
+//				letterbox_frac = 0;
+//			ysize += (lbdiff * letterbox_frac);
+//		}
+//	} else {
+//		if(letterbox_frac != 1) {
+//			letterbox_frac += 0.01f;	// (SA) TODO: make non fps dependant
+//			if(letterbox_frac > 1)
+//				letterbox_frac = 1;
+//			ysize = lbheight + (lbdiff * letterbox_frac);
+//		}
 	}
 //----(SA)	end
 
@@ -370,6 +386,7 @@ void CG_KickAngles( void ) {
 	int i, frametime, t;
 	float ft;
 	#define STEP 20
+	char buf[32];               // NERVE - SMF
 
 	// this code is frametime-dependant, so split it up into small chunks
 	//cg.kickAngles[PITCH] = 0;
@@ -440,9 +457,14 @@ void CG_KickAngles( void ) {
 			cg.recoilPitchAngle += cg.recoilPitch * ft;
 		}
 	}
-	// encode the kick angles into a 24bit number, for sending to the client exe
-//----(SA)	commented out since it doesn't appear to be used, and it spams the console when in "developer 1"
-//	trap_Cvar_Set( "cg_recoilPitch", va("%f", cg.recoilPitchAngle) );
+
+	// NERVE - SMF - only change cg_recoilPitch cvar when we need to
+	trap_Cvar_VariableStringBuffer( "cg_recoilPitch", buf, sizeof( buf ) );
+
+	if ( atof( buf ) != cg.recoilPitchAngle ) {
+		// encode the kick angles into a 24bit number, for sending to the client exe
+		trap_Cvar_Set( "cg_recoilPitch", va( "%f", cg.recoilPitchAngle ) );
+	}
 }
 
 
@@ -552,7 +574,7 @@ static void CG_OffsetFirstPersonView( void ) {
 	angles = cg.refdefViewAngles;
 
 	// if dead, fix the angle and don't add any kick
-	if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 ) {
+	if ( !( cg.snap->ps.pm_flags & PMF_LIMBO ) && cg.snap->ps.stats[STAT_HEALTH] <= 0 ) {
 		angles[ROLL] = 40;
 		angles[PITCH] = -15;
 		angles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
@@ -718,11 +740,9 @@ void CG_ZoomIn_f( void ) {
 	if ( cg_entities[cg.snap->ps.clientNum].currentState.weapon == WP_SNIPERRIFLE ) {
 		CG_AdjustZoomVal( -( cg_zoomStepSniper.value ), ZOOM_SNIPER );
 	} else if ( cg_entities[cg.snap->ps.clientNum].currentState.weapon == WP_SNOOPERSCOPE )      {
-		CG_AdjustZoomVal( -( cg_zoomStepSnooper.value ), ZOOM_SNOOPER );
-	} else if ( cg_entities[cg.snap->ps.clientNum].currentState.weapon == WP_FG42SCOPE )      {
-		CG_AdjustZoomVal( -( cg_zoomStepSnooper.value ), ZOOM_FG42SCOPE );
+		CG_AdjustZoomVal( -( cg_zoomStepSniper.value ), ZOOM_SNIPER ); // JPW NERVE per atvi request ZOOM_SNOOPER);
 	} else if ( cg.zoomedBinoc )      {
-		CG_AdjustZoomVal( -( cg_zoomStepBinoc.value ), ZOOM_BINOC );
+		CG_AdjustZoomVal( -( cg_zoomStepSniper.value ), ZOOM_SNIPER ); // JPW NERVE per atvi request all use same vals to match menu (was zoomStepBinoc, ZOOM_BINOC);
 	}
 }
 
@@ -730,11 +750,9 @@ void CG_ZoomOut_f( void ) {
 	if ( cg_entities[cg.snap->ps.clientNum].currentState.weapon == WP_SNIPERRIFLE ) {
 		CG_AdjustZoomVal( cg_zoomStepSniper.value, ZOOM_SNIPER );
 	} else if ( cg_entities[cg.snap->ps.clientNum].currentState.weapon == WP_SNOOPERSCOPE )      {
-		CG_AdjustZoomVal( cg_zoomStepSnooper.value, ZOOM_SNOOPER );
-	} else if ( cg_entities[cg.snap->ps.clientNum].currentState.weapon == WP_FG42SCOPE )      {
-		CG_AdjustZoomVal( cg_zoomStepSnooper.value, ZOOM_FG42SCOPE );
+		CG_AdjustZoomVal( cg_zoomStepSniper.value, ZOOM_SNIPER ); // JPW NERVE per atvi requestSNOOPER);
 	} else if ( cg.zoomedBinoc )      {
-		CG_AdjustZoomVal( cg_zoomStepBinoc.value, ZOOM_BINOC );
+		CG_AdjustZoomVal( cg_zoomStepSniper.value, ZOOM_SNIPER ); // JPW NERVE per atvi request BINOC);
 	}
 }
 
@@ -745,13 +763,28 @@ CG_Zoom
 ==============
 */
 void CG_Zoom( void ) {
+	if ( cgs.gametype >= GT_WOLF && ( ( cg.snap->ps.pm_flags & PMF_FOLLOW ) || cg.demoPlayback ) ) {
+		cg.predictedPlayerState.eFlags = cg.snap->ps.eFlags;
+		cg.predictedPlayerState.weapon = cg.snap->ps.weapon;
+
+		// check for scope wepon in use, and switch to if necessary
+		if ( cg.predictedPlayerState.weapon == WP_SNOOPERSCOPE ) {
+			cg.zoomval = cg_zoomDefaultSniper.value; // JPW NERVE was DefaultSnooper, changed per atvi req
+		} else if ( cg.predictedPlayerState.weapon == WP_SNIPERRIFLE )                                                     {
+			cg.zoomval = cg_zoomDefaultSniper.value;
+		} else if ( cg.predictedPlayerState.weapon == WP_FG42SCOPE ) {
+			cg.zoomval = cg_zoomDefaultSniper.value; // JPW NERVE was DefaultFG, changed per atvi req
+		} else if ( !( cg.predictedPlayerState.eFlags & EF_ZOOMING ) )                                                       {
+			cg.zoomval = 0;
+		}
+	}
 	if ( cg.predictedPlayerState.eFlags & EF_ZOOMING ) {
 		if ( cg.zoomedBinoc ) {
 			return;
 		}
 		cg.zoomedBinoc  = qtrue;
 		cg.zoomTime = cg.time;
-		cg.zoomval = cg_zoomDefaultBinoc.value;
+		cg.zoomval = cg_zoomDefaultSniper.value; // JPW NERVE was DefaultBinoc, changed per atvi req
 	} else {
 		if ( !cg.zoomedBinoc ) {
 			return;
@@ -761,11 +794,11 @@ void CG_Zoom( void ) {
 
 		// check for scope wepon in use, and switch to if necessary
 		if ( cg.predictedPlayerState.weapon == WP_SNOOPERSCOPE ) {
-			cg.zoomval = cg_zoomDefaultSnooper.value;
-		} else if ( cg.predictedPlayerState.weapon == WP_SNIPERRIFLE ) {
+			cg.zoomval = cg_zoomDefaultSniper.value; // JPW NERVE was DefaultSnooper, changed per atvi req
+		} else if ( cg.predictedPlayerState.weapon == WP_SNIPERRIFLE )                                                     {
 			cg.zoomval = cg_zoomDefaultSniper.value;
 		} else if ( cg.predictedPlayerState.weapon == WP_FG42SCOPE ) {
-			cg.zoomval = cg_zoomDefaultFG.value;
+			cg.zoomval = cg_zoomDefaultSniper.value; // JPW NERVE was DefaultFG, changed per atvi req
 		} else {
 			cg.zoomval = 0;
 		}
@@ -793,17 +826,13 @@ static int CG_CalcFov( void ) {
 	float zoomFov;
 	float f;
 	int inwater;
-	qboolean dead;
 
 	CG_Zoom();
 
-	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
-		dead = qtrue;
+	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 && !( cgs.gametype >= GT_WOLF && cg.snap->ps.pm_flags & PMF_FOLLOW ) ) {
 		cg.zoomedBinoc = qfalse;
 		cg.zoomTime = 0;
 		cg.zoomval = 0;
-	} else {
-		dead = qfalse;
 	}
 
 	if ( cg.predictedPlayerState.pm_type == PM_INTERMISSION ) {
@@ -816,10 +845,18 @@ static int CG_CalcFov( void ) {
 			fov_x = 90;
 		} else {
 			fov_x = cg_fov.value;
-			if ( fov_x < 1 ) {
-				fov_x = 1;
-			} else if ( fov_x > 160 ) {
-				fov_x = 160;
+			if ( cgs.gametype == GT_SINGLE_PLAYER ) {
+				if ( fov_x < 1 ) {
+					fov_x = 1;
+				} else if ( fov_x > 160 ) {
+					fov_x = 160;
+				}
+			} else {
+				if ( fov_x < 90 ) {
+					fov_x = 90;
+				} else if ( fov_x > 160 ) {
+					fov_x = 160;
+				}
 			}
 		}
 
@@ -858,15 +895,7 @@ static int CG_CalcFov( void ) {
 		}
 	}
 
-	// DHM - Nerve :: zoom in for Limbo or Spectator
-	if ( cgs.gametype == GT_WOLF ) {
-		if ( cg.snap->ps.pm_flags & PMF_FOLLOW && cg.snap->ps.weapon == WP_SNIPERRIFLE ) {
-			fov_x = cg_zoomDefaultSniper.value;
-		}
-	}
-	// dhm - end
-
-	if ( !dead && ( cg.weaponSelect == WP_SNOOPERSCOPE ) ) {
+	if ( cg.weaponSelect == WP_SNOOPERSCOPE ) {
 		cg.refdef.rdflags |= RDF_SNOOPERVIEW;
 	} else {
 		cg.refdef.rdflags &= ~RDF_SNOOPERVIEW;
@@ -1042,6 +1071,50 @@ static void CG_DamageBlendBlob( void ) {
 
 /*
 ===============
+CG_DrawScreenFade
+===============
+*/
+static void CG_DrawScreenFade( void ) {
+/* moved over to cg_draw.c
+	static int lastTime;
+	int elapsed, time;
+	refEntity_t		ent;
+
+	if (cgs.fadeStartTime + cgs.fadeDuration < cg.time) {
+		cgs.fadeAlphaCurrent = cgs.fadeAlpha;
+	} else if (cgs.fadeAlphaCurrent != cgs.fadeAlpha) {
+		elapsed = (time = trap_Milliseconds()) - lastTime;	// we need to use trap_Milliseconds() here since the cg.time gets modified upon reloading
+		lastTime = time;
+		if (elapsed < 500 && elapsed > 0) {
+			if (cgs.fadeAlphaCurrent > cgs.fadeAlpha) {
+				cgs.fadeAlphaCurrent -= ((float)elapsed/(float)cgs.fadeDuration);
+				if (cgs.fadeAlphaCurrent < cgs.fadeAlpha)
+					cgs.fadeAlphaCurrent = cgs.fadeAlpha;
+			} else {
+				cgs.fadeAlphaCurrent += ((float)elapsed/(float)cgs.fadeDuration);
+				if (cgs.fadeAlphaCurrent > cgs.fadeAlpha)
+					cgs.fadeAlphaCurrent = cgs.fadeAlpha;
+			}
+		}
+	}
+	// now draw the fade
+	if (cgs.fadeAlphaCurrent > 0.0) {
+		memset( &ent, 0, sizeof( ent ) );
+		ent.reType = RT_SPRITE;
+		ent.renderfx = RF_FIRST_PERSON;
+
+		VectorMA( cg.refdef.vieworg, 8, cg.refdef.viewaxis[0], ent.origin );
+		ent.radius = 80;	// occupy entire screen
+		ent.customShader = cgs.media.viewFadeBlack;
+		ent.shaderRGBA[3] = (int)(255.0 * cgs.fadeAlphaCurrent);
+
+		trap_R_AddRefEntityToScene( &ent );
+	}
+*/
+}
+
+/*
+===============
 CG_CalcViewValues
 
 Sets cg.refdef view values
@@ -1088,13 +1161,11 @@ static int CG_CalcViewValues( void ) {
 			return 0;
 
 		} else {
-			cg.cameraMode = qfalse;                 // camera off in cgame
+			cg.cameraMode = qfalse;
 			trap_Cvar_Set( "cg_letterbox", "0" );
-			trap_SendClientCommand( "stopCamera" );    // camera off in game
-			trap_stopCamera( CAM_PRIMARY );           // camera off in client
-
-			CG_Fade( 0, 0, 0, 255, 0, 0 );                // go black
-			CG_Fade( 0, 0, 0, 0, cg.time + 200, 1500 );   // then fadeup
+			trap_SendClientCommand( "stopCamera" );
+			CG_Fade( 0, 0, 0, 255, 0 );   // go black
+			CG_Fade( 0, 0, 0, 0, 1500 );  // then fadeup
 		}
 	}
 
@@ -1112,7 +1183,18 @@ static int CG_CalcViewValues( void ) {
 					   ps->velocity[1] * ps->velocity[1] );
 
 
-	VectorCopy( ps->origin, cg.refdef.vieworg );
+//	VectorCopy( ps->origin, cg.refdef.vieworg );
+	// Arnout: see if we're attached to a gun
+	if ( cg.renderingThirdPerson && ps->eFlags & EF_MG42_ACTIVE ) {
+		centity_t *mg42 = &cg_entities[ps->viewlocked_entNum];
+		vec3_t forward, right, up;
+
+		AngleVectors( ps->viewangles, forward, right, up );
+		VectorMA( mg42->currentState.pos.trBase, -36, forward, cg.refdef.vieworg );
+		cg.refdef.vieworg[2] = ps->origin[2];
+	} else {
+		VectorCopy( ps->origin, cg.refdef.vieworg );
+	}
 	VectorCopy( ps->viewangles, cg.refdefViewAngles );
 
 	// add error decay
@@ -1141,7 +1223,10 @@ static int CG_CalcViewValues( void ) {
 		}
 		else
 		*/
-		BG_EvaluateTrajectory( &cg_entities[ps->viewlocked_entNum].currentState.apos, cg.time, cg.refdefViewAngles );
+		// DHM - Nerve :: don't bother evaluating if set to 7 (look at medic)
+		if ( ps->viewlocked != 7 && ps->viewlocked != 3 && ps->viewlocked != 2 ) {
+			BG_EvaluateTrajectory( &cg_entities[ps->viewlocked_entNum].currentState.apos, cg.time, cg.refdefViewAngles );
+		}
 
 		if ( ps->viewlocked == 2 ) {
 			cg.refdefViewAngles[0] += crandom();
@@ -1158,7 +1243,15 @@ static int CG_CalcViewValues( void ) {
 		CG_OffsetFirstPersonView();
 
 		// Ridah, lock the viewangles if the game has told us to
-		if ( ps->viewlocked == 4 ) {
+		if ( ps->viewlocked == 7 ) {
+			centity_t   *tent;
+			vec3_t vec;
+
+			tent = &cg_entities[ps->viewlocked_entNum];
+			VectorCopy( tent->lerpOrigin, vec );
+			VectorSubtract( vec, cg.refdef.vieworg, vec );
+			vectoangles( vec, cg.refdefViewAngles );
+		} else if ( ps->viewlocked == 4 )     {
 			vec3_t fwd;
 			AngleVectors( cg.refdefViewAngles, fwd, NULL, NULL );
 			VectorMA( cg_entities[ps->viewlocked_entNum].currentState.pos.trBase, 16, fwd, cg.refdef.vieworg );
@@ -1170,6 +1263,10 @@ static int CG_CalcViewValues( void ) {
 			AngleVectors( cg.refdefViewAngles, fwd, NULL, NULL );
 			VectorMA( cg_entities[ps->viewlocked_entNum].currentState.pos.trBase, -34, fwd, cg.refdef.vieworg );
 			cg.refdef.vieworg[2] = oldZ;
+
+//			CG_Printf( "ps->origin[2]: %f\n", ps->origin[2] );
+//			CG_Printf( "fwd: %f %f %f\n", fwd[0], fwd[1], fwd[2] );
+//			CG_Printf( "base: %f %f %f\n", cg_entities[ps->viewlocked_entNum].currentState.pos.trBase[0], cg_entities[ps->viewlocked_entNum].currentState.pos.trBase[1], cg_entities[ps->viewlocked_entNum].currentState.pos.trBase[2] );
 		}
 		// done.
 	}
@@ -1191,9 +1288,10 @@ static int CG_CalcViewValues( void ) {
 CG_PowerupTimerSounds
 =====================
 */
+/*
 static void CG_PowerupTimerSounds( void ) {
-	int i;
-	int t;
+	int	i;
+	int	t;
 
 	// powerup timers going away
 	for ( i = 0 ; i < MAX_POWERUPS ; i++ ) {
@@ -1209,6 +1307,7 @@ static void CG_PowerupTimerSounds( void ) {
 		}
 	}
 }
+*/
 
 //=========================================================================
 
@@ -1399,16 +1498,9 @@ void CG_DrawSkyBoxPortal( void ) {
 
 		cg.refdef.fov_x = fov_x;
 		cg.refdef.fov_y = fov_y;
-
-		cg.refdef.rdflags |= RDF_SKYBOXPORTAL;
-		cg.refdef.rdflags |= RDF_DRAWSKYBOX;
-
-	} else {    // end if(cg_skybox.integer)
-
-		cg.refdef.rdflags |= RDF_SKYBOXPORTAL;
-		cg.refdef.rdflags &= ~RDF_DRAWSKYBOX;
 	}
 
+	cg.refdef.rdflags |= RDF_SKYBOXPORTAL;
 
 	cg.refdef.time = cg.time;
 
@@ -1420,10 +1512,32 @@ void CG_DrawSkyBoxPortal( void ) {
 
 /*
 =========================
-removed CG_DrawNotebook
+CG_GetMPSetupValue
+
+Pack multiplayer options into a bitfield.
+
+This is necessary for all options in the limbo menu
+as this is the only way to maintain accurate sync with the game.
 =========================
 */
+int CG_GetMPSetupValue( void ) {
+	int value = 0;
 
+	value |= 1 << MP_TEAM_OFFSET;
+	value |= mp_playerType.integer << MP_CLASS_OFFSET;
+	value |= mp_team.integer << MP_TEAM_OFFSET;
+	value |= mp_weapon.integer << MP_WEAPON_OFFSET;
+
+	return value;
+}
+
+/*
+=========================
+CG_DrawNotebook
+=========================
+*/
+void CG_DrawNotebook( void ) {
+}
 
 //=========================================================================
 
@@ -1446,8 +1560,7 @@ Generates and draws a game scene and status information at the given time.
 */
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback ) {
 	int inwater;
-
-	cg.cld = 0;         // NERVE - SMF - reset clientDamage
+	int mpSetup;                // NERVE - SMF
 
 #ifdef DEBUGTIME_ENABLED
 	int dbgTime = trap_Milliseconds(),elapsed;
@@ -1459,16 +1572,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// update cvars
 	CG_UpdateCvars();
-/*
-	// RF, if we should force a weapon, then do so
-	if( !cg.weaponSelect ) {
-		if (cg_loadWeaponSelect.integer > 0) {
-			cg.weaponSelect = cg_loadWeaponSelect.integer;
-			cg.weaponSelectTime = cg.time;
-			trap_Cvar_Set( "cg_loadWeaponSelect", "0" );	// turn it off
-		}
-	}
-*/
+
 #ifdef DEBUGTIME_ENABLED
 	CG_Printf( "\n" );
 #endif
@@ -1504,21 +1608,21 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		return;
 	}
 
-	if ( cg.weaponSelect == WP_FG42SCOPE || cg.weaponSelect == WP_SNOOPERSCOPE || cg.weaponSelect == WP_SNIPERRIFLE ) {
+	// check for server set weapons we might not know about
+	// (FIXME: this is a hack for the time being since a scripted "selectweapon" does
+	// not hit the first snap, the server weapon set in cg_playerstate.c line 219 doesn't
+	// do the trick)
+	if ( !cg.weaponSelect && cg.snap->ps.weapon ) {
+		cg.weaponSelect = cg.snap->ps.weapon;
+		cg.weaponSelectTime = cg.time;
+	}
+
+//----(SA)	nerve uses this for snooper/sniper
+	if ( cg.weaponSelect == WP_FG42SCOPE ) {
 		float spd;
 		spd = VectorLength( cg.snap->ps.velocity );
 		if ( spd > 180.0f ) {
-			switch ( cg.weaponSelect ) {
-			case WP_FG42SCOPE:
-				CG_FinishWeaponChange( cg.weaponSelect, WP_FG42 );
-				break;
-			case WP_SNOOPERSCOPE:
-				CG_FinishWeaponChange( cg.weaponSelect, WP_GARAND );
-				break;
-			case WP_SNIPERRIFLE:
-				CG_FinishWeaponChange( cg.weaponSelect, WP_MAUSER );
-				break;
-			}
+			CG_FinishWeaponChange( WP_FG42SCOPE, WP_FG42 );
 		}
 	}
 
@@ -1549,9 +1653,6 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// build cg.refdef
 	inwater = CG_CalcViewValues();
-
-	CG_CalcShakeCamera();
-	CG_ApplyShakeCamera();
 
 	DEBUGTIME
 
@@ -1590,11 +1691,21 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 		DEBUGTIME
 	}
+	// Rafael mg42
+	if ( !( cg.snap->ps.persistant[PERS_HWEAPON_USE] ) ) {
+		CG_AddViewWeapon( &cg.predictedPlayerState );
+	}
 
+	// NERVE - SMF - play buffered voice chats
+	CG_PlayBufferedVoiceChats();
 
-	CG_AddViewWeapon( &cg.predictedPlayerState );
-
-
+	DEBUGTIME
+/*
+	if (cg_notebook.integer)
+	{
+		CG_DrawNotebook ();
+	}
+*/
 	DEBUGTIME
 
 	// Ridah, trails
@@ -1616,7 +1727,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	DEBUGTIME
 
 	// warning sounds when powerup is wearing off
-	CG_PowerupTimerSounds();
+//	CG_PowerupTimerSounds();
 
 	// make sure the lagometerSample and frame timing isn't done twice when in stereo
 	if ( stereoView != STEREO_RIGHT ) {
@@ -1630,8 +1741,18 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	DEBUGTIME
 
+	// Ridah, fade the screen
+	CG_DrawScreenFade();
+
+	DEBUGTIME
+
+	mpSetup = CG_GetMPSetupValue();     // NERVE - SMF - setup mpSetup values
+
 	// let the client system know what our weapon, holdable item and zoom settings are
-	trap_SetUserCmdValue( cg.weaponSelect, cg.holdableSelect, cg.zoomSensitivity, cg.cld );
+	trap_SetUserCmdValue( cg.weaponSelect, cg.holdableSelect, cg.zoomSensitivity, mpSetup, cg.identifyClientRequest );
+
+	// DHM - Nerve :: let client system know our predicted origin
+	trap_SetClientLerpOrigin( cg.refdef.vieworg[0], cg.refdef.vieworg[1], cg.refdef.vieworg[2] );
 
 	// actually issue the rendering calls
 	CG_DrawActive( stereoView );

@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -50,18 +50,22 @@ void G_WriteClientSessionData( gclient_t *client ) {
 	const char  *s;
 	const char  *var;
 
-	s = va( "%i %i %i %i %i %i %i %i %i %i %i",       // DHM - Nerve
+	s = va( "%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",       // DHM - Nerve
 			client->sess.sessionTeam,
 			client->sess.spectatorNum,
 			client->sess.spectatorState,
 			client->sess.spectatorClient,
 			client->sess.wins,
 			client->sess.losses,
-			client->sess.playerType,    // DHM - Nerve
-			client->sess.playerWeapon,  // DHM - Nerve
-			client->sess.playerPistol,  // DHM - Nerve
-			client->sess.playerItem,    // DHM - Nerve
-			client->sess.playerSkin     // DHM - Nerve
+			client->sess.playerType,        // DHM - Nerve
+			client->sess.playerWeapon,      // DHM - Nerve
+			client->sess.playerItem,        // DHM - Nerve
+			client->sess.playerSkin,        // DHM - Nerve
+			client->sess.spawnObjectiveIndex, // DHM - Nerve
+			client->sess.latchPlayerType,   // DHM - Nerve
+			client->sess.latchPlayerWeapon, // DHM - Nerve
+			client->sess.latchPlayerItem,   // DHM - Nerve
+			client->sess.latchPlayerSkin    // DHM - Nerve
 			);
 
 	var = va( "session%i", (int)(client - level.clients) );
@@ -79,11 +83,12 @@ Called on a reconnect
 void G_ReadSessionData( gclient_t *client ) {
 	char s[MAX_STRING_CHARS];
 	const char  *var;
+	qboolean test;
 
 	var = va( "session%i", (int)(client - level.clients) );
 	trap_Cvar_VariableStringBuffer( var, s, sizeof( s ) );
 
-	sscanf( s, "%i %i %i %i %i %i %i %i %i %i %i",       // DHM - Nerve
+	sscanf( s, "%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",       // DHM - Nerve
 			(int *)&client->sess.sessionTeam,
 			&client->sess.spectatorNum,
 			(int *)&client->sess.spectatorState,
@@ -92,10 +97,39 @@ void G_ReadSessionData( gclient_t *client ) {
 			&client->sess.losses,
 			&client->sess.playerType,       // DHM - Nerve
 			&client->sess.playerWeapon,     // DHM - Nerve
-			&client->sess.playerPistol,     // DHM - Nerve
 			&client->sess.playerItem,       // DHM - Nerve
-			&client->sess.playerSkin        // DHM - Nerve
+			&client->sess.playerSkin,       // DHM - Nerve
+			&client->sess.spawnObjectiveIndex, // DHM - Nerve
+			&client->sess.latchPlayerType,  // DHM - Nerve
+			&client->sess.latchPlayerWeapon, // DHM - Nerve
+			&client->sess.latchPlayerItem,  // DHM - Nerve
+			&client->sess.latchPlayerSkin   // DHM - Nerve
 			);
+
+	// NERVE - SMF
+	if ( g_altStopwatchMode.integer ) {
+		test = qtrue;
+	} else {
+		test = g_currentRound.integer == 1;
+	}
+
+	if ( g_gametype.integer == GT_WOLF_STOPWATCH && level.warmupTime > 0 && test ) {
+		if ( client->sess.sessionTeam == TEAM_RED ) {
+			client->sess.sessionTeam = TEAM_BLUE;
+		} else if ( client->sess.sessionTeam == TEAM_BLUE )   {
+			client->sess.sessionTeam = TEAM_RED;
+		}
+	}
+
+	if ( g_swapteams.integer ) {
+		trap_Cvar_Set( "g_swapteams", "0" );
+
+		if ( client->sess.sessionTeam == TEAM_RED ) {
+			client->sess.sessionTeam = TEAM_BLUE;
+		} else if ( client->sess.sessionTeam == TEAM_BLUE )   {
+			client->sess.sessionTeam = TEAM_RED;
+		}
+	}
 }
 
 
@@ -131,7 +165,7 @@ void G_InitSessionData( gclient_t *client, char *userinfo ) {
 
 		if ( value[0] || g_teamAutoJoin.integer ) {
 			SetTeam( &g_entities[client - level.clients], value );
- 		}
+		}
 	} else {
 		if ( value[0] == 's' ) {
 			// a willing spectator, not a waiting-in-line
@@ -165,11 +199,12 @@ void G_InitSessionData( gclient_t *client, char *userinfo ) {
 	AddTournamentQueue(client);
 
 	// DHM - Nerve
-	sess->playerType = 0;
-	sess->playerWeapon = 0;
-	sess->playerPistol = 0;
-	sess->playerItem = 0;
-	sess->playerSkin = 0;
+	sess->latchPlayerType = sess->playerType = 0;
+	sess->latchPlayerWeapon = sess->playerWeapon = 0;
+	sess->latchPlayerItem = sess->playerItem = 0;
+	sess->latchPlayerSkin = sess->playerSkin = 0;
+
+	sess->spawnObjectiveIndex = 0;
 	// dhm - end
 
 	G_WriteClientSessionData( client );

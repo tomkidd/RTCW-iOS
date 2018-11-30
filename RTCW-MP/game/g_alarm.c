@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -28,6 +28,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "g_local.h"
 
+
 /*
 ==============
 alarmExplosion
@@ -35,20 +36,9 @@ alarmExplosion
 ==============
 */
 void alarmExplosion( gentity_t *ent ) {
-
-	// death sound
-	G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
-
-	G_AddEvent( ent, EV_ENTDEATH, ent->s.eType );
-
-	G_RadiusDamage( ent->s.origin, ent, ent->damage, ent->damage, ent, MOD_EXPLOSIVE );
-	// return
-
-	// old way.  (using grenade)
-/*
 	gentity_t *bolt;
 
-	extern void G_ExplodeMissile( gentity_t *ent );
+	extern void G_ExplodeMissile( gentity_t * ent );
 	bolt = G_Spawn();
 	bolt->classname = "props_explosion";
 	bolt->nextthink = level.time + FRAMETIME;
@@ -68,9 +58,8 @@ void alarmExplosion( gentity_t *ent ) {
 	bolt->splashMethodOfDeath = MOD_GRENADE_SPLASH;
 	bolt->clipmask = MASK_SHOT;
 
-	VectorCopy (ent->r.currentOrigin, bolt->s.pos.trBase );
-	VectorCopy (ent->r.currentOrigin, bolt->r.currentOrigin);
-*/
+	VectorCopy( ent->r.currentOrigin, bolt->s.pos.trBase );
+	VectorCopy( ent->r.currentOrigin, bolt->r.currentOrigin );
 }
 
 
@@ -126,7 +115,6 @@ void alarmbox_updateparts( gentity_t *ent, qboolean matestoo ) {
 			// give the dlight the sound
 			if ( !Q_stricmp( t->classname, "dlight" ) ) {
 				t->soundLoop = ent->soundLoop;
-				t->r.svFlags |= SVF_BROADCAST;  // no pvs
 
 				if ( alarming ) {
 					if ( !( t->r.linked ) ) {
@@ -142,7 +130,7 @@ void alarmbox_updateparts( gentity_t *ent, qboolean matestoo ) {
 			// alarmbox can tell script_trigger about activation
 			// (but don't trigger if dying, only activation)
 			else if ( !Q_stricmp( t->classname, "target_script_trigger" ) ) {
-				if ( ent->active && matestoo ) { // not dead (and this is the box that was used)
+				if ( ent->active ) { // not dead
 					t->use( t, ent, 0 );
 				}
 			}
@@ -181,28 +169,11 @@ alarmbox_die
 ==============
 */
 void alarmbox_die( gentity_t *ent, gentity_t *inflictor, gentity_t *attacker, int damage, int mod ) {
-	gentity_t *t;
-
 	alarmExplosion( ent );
 	ent->s.frame    = 2;
 	ent->active     = qfalse;
 	ent->takedamage = qfalse;
 	alarmbox_updateparts( ent, qtrue );
-
-	// fire 'death' targets
-	if ( ent->targetdeath ) {
-		t = NULL;
-		while ( ( t = G_Find( t, FOFS( targetname ), ent->targetdeath ) ) != NULL )
-		{
-			if ( t == ent ) {
-				G_Printf( "WARNING: Entity used itself.\n" );
-			} else {
-				// fire target
-				t->use( t, ent, attacker );
-			}
-		}
-	}
-
 }
 
 
@@ -228,9 +199,9 @@ void alarmbox_finishspawning( gentity_t *ent ) {
 /*QUAKED alarm_box (1 0 1) START_ON
 You need to have an origin brush as part of this entity
 current alarm box model is (8 x 16 x 28)
-"health" - defaults to 10
-"dmg" - damage and radius value when it dies
-"noise" - the sound to play over the system (this would be the siren sound)
+"health" defaults to 10
+
+"noise" the sound to play over the system (this would be the siren sound)
 
 START_ON means the button is pushed in, any dlights are cycling, and alarms are sounding
 
@@ -258,11 +229,7 @@ void SP_alarm_box( gentity_t *ent ) {
 		ent->soundLoop = G_SoundIndex( s );
 	}
 
-	// activation sound
 	ent->soundPos3 = G_SoundIndex( "sound/world/alarmswitch.wav" );
-
-	// death sound
-	ent->sound1to2 = G_SoundIndex( "sound/world/alarmdeath.wav" );
 
 
 	G_SetOrigin( ent, ent->s.origin );

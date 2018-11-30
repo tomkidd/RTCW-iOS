@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -46,11 +46,7 @@ static void CG_ResetEntity( centity_t *cent ) {
 	// RF, not needed for wolf
 	// DHM - Nerve :: Wolf is now using this.
 	cent->previousEvent = 0;
-	// RF, disabled this, since we clear events out now in g_main.c, this is redundant, and actually
-	// causes "double-door-sound" syndrome if a door is triggered and heard, and then comes into view before
-	// it has timed out in g_main.c, therefore playing the sound again, since it thinks it hasn't processed this
-	// event yet.
-//	cent->previousEventSequence = 0;
+	cent->previousEventSequence = cent->currentState.eventSequence;
 
 	cent->trailTime = cg.snap->serverTime;
 
@@ -132,7 +128,6 @@ All other times will use CG_TransitionSnapshot instead.
 ==================
 */
 void CG_SetInitialSnapshot( snapshot_t *snap ) {
-	char buf[64];
 	int i;
 	centity_t       *cent;
 	entityState_t   *state;
@@ -145,21 +140,6 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 	CG_BuildSolidList();
 
 	CG_ExecuteNewServerCommands( snap->serverCommandSequence );
-
-	trap_SendClientCommand( "fogswitch 0" );   // clear it out so the set below will take
-
-	trap_Cvar_VariableStringBuffer( "r_savegameFogColor", buf, sizeof( buf ) );
-	trap_Cvar_Set( "r_savegameFogColor", "0" );
-	if ( strlen( buf ) > 1 ) {
-		if ( !Q_stricmp( buf, "none" ) ) {
-			trap_SendClientCommand( "fogswitch 0" );   // 'off'
-		} else {
-			trap_SendClientCommand( va( "fogswitch %s", buf ) );
-		}
-	} else {
-		trap_Cvar_VariableStringBuffer( "r_mapFogColor", buf, sizeof( buf ) );
-		trap_SendClientCommand( va( "fogswitch %s", buf ) );
-	}
 
 	// set our local weapon selection pointer to
 	// what the server has indicated the current weapon is
@@ -180,8 +160,13 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 		CG_CheckEvents( cent );
 	}
 
+// JPW NERVE -- make sure we didn't break anything
+	cg_fxflags = 0;
+// jpw
+
 	// DHM - Nerve :: Set cg.clientNum so that it may be used elsewhere
-	cg.clientNum = snap->ps.clientNum;
+	// NERVE - SMF - commented out, TA merge, this has been moved to CG_Init
+//	cg.clientNum = snap->ps.clientNum;
 
 	// NERVE - SMF
 	{
@@ -190,7 +175,7 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 
 		trap_Cvar_VariableStringBuffer( "mapname", curmap, 64 );
 
-		if ( cgs.gametype == GT_WOLF && Q_stricmp( curmap, prevmap ) ) {
+		if ( cgs.gametype >= GT_WOLF && Q_stricmp( curmap, prevmap ) ) {
 			strcpy( prevmap, curmap );
 			trap_SendConsoleCommand( "openLimboMenu\n" );
 		}
@@ -222,7 +207,7 @@ static void CG_TransitionSnapshot( void ) {
 	CG_ExecuteNewServerCommands( cg.nextSnap->serverCommandSequence );
 
 	// if we had a map_restart, set everything with initial
-	if ( cg.mapRestart ) {	
+	if ( cg.mapRestart ) {
 	}
 
 	// clear the currentValid flag for all entities in the existing snapshot
@@ -339,7 +324,7 @@ static snapshot_t *CG_ReadNextSnapshot( void ) {
 	snapshot_t  *dest;
 
 	if ( cg.latestSnapshotNum > cgs.processedSnapshotNum + 1000 ) {
-		CG_Printf( "WARNING: CG_ReadNextSnapshot: way out of range, %i > %i\n",
+		CG_Printf( "[skipnotify]WARNING: CG_ReadNextSnapshot: way out of range, %i > %i\n",
 				   cg.latestSnapshotNum, cgs.processedSnapshotNum );
 	}
 
@@ -363,30 +348,20 @@ static snapshot_t *CG_ReadNextSnapshot( void ) {
 		// if it succeeded, return
 		if ( r ) {
 			CG_AddLagometerSnapshotInfo( dest );
-
-			// RF, if we have no weapon selected, and this snapshots says we have a weapon, then switch to that
-			if ( cg.snap && !cg.weaponSelect && cg.snap->ps.weapon ) {
-				cg.weaponSelect = cg.snap->ps.weapon;
-				cg.weaponSelectTime = cg.time;
-			}
-
+// JPW NERVE pulled for MP, maybe this was the code that was causing crashes.  Shouldn't need it for savegame stuff
 			// Ridah, savegame: we should use this as our new base snapshot
 			// server has been restarted
 			if ( cg.snap && ( dest->snapFlags ^ cg.snap->snapFlags ) & SNAPFLAG_SERVERCOUNT ) {
-				int i;
-				centity_t backupCent;
-				CG_SetInitialSnapshot( dest );
-				cg.nextFrameTeleport = qtrue;
+//				int i;
+//				centity_t backupCent;
+//				CG_SetInitialSnapshot( dest );
+//				cg.nextFrameTeleport = qtrue;
 				cg.damageTime = 0;
 				cg.duckTime = -1;
 				cg.landTime = -1;
 				cg.stepTime = -1;
-				// RF, loadgame hasn't occured yet, so this is likely wrong
-				//cg.weaponSelect = cg.snap->ps.weapon;
-				cg.weaponSelectTime = cg.time;
-				memset( cg.viewDamage, 0, sizeof( cg.viewDamage ) );
-				memset( cg.cameraShake, 0, sizeof( cg.cameraShake ) );
 				// go through an reset the cent's
+/* // JPW NERVE -- return NULL mighta been bad, q3ta doesn't include this stuff
 				for ( i = 0; i < MAX_GENTITIES; i++ ) {
 					backupCent = cg_entities[i];
 					memset( &cg_entities[i], 0, sizeof( centity_t ) );
@@ -396,12 +371,14 @@ static snapshot_t *CG_ReadNextSnapshot( void ) {
 					cg_entities[i].interpolate = backupCent.interpolate;
 				}
 				// reset the predicted cent
+				backupCent = cg.predictedPlayerEntity;				// NERVE - SMF
 				memset( &cg.predictedPlayerEntity, 0, sizeof( centity_t ) );
 				cg.predictedPlayerEntity.currentState = backupCent.currentState;
 				cg.predictedPlayerEntity.nextState = backupCent.nextState;
 				cg.predictedPlayerEntity.currentValid = backupCent.currentValid;
 				cg.predictedPlayerEntity.interpolate = backupCent.interpolate;
 				return NULL;
+// jpw */
 			}
 
 			return dest;

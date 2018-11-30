@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -30,13 +30,41 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "cg_local.h"
 
+typedef struct soundScriptSound_s
+{
+	char filename[MAX_QPATH];
+	sfxHandle_t sfxHandle;
+	int lastPlayed;
+
+	struct soundScriptSound_s   *next;
+} soundScriptSound_t;
+
+typedef struct soundScript_s
+{
+	int index;
+	char name[MAX_QPATH];
+	int channel;
+	int attenuation;
+	qboolean streaming;
+	qboolean looping;
+	qboolean random;    // TODO
+	int numSounds;
+	soundScriptSound_t  *soundList;         // pointer into the global list of soundScriptSounds (defined below)
+
+	struct soundScript_s    *nextHash;      // next soundScript in our hashTable list position
+} soundScript_t;
 
 // we have to define these static lists, since we can't alloc memory within the cgame
 
-soundScript_t*      hashTable[FILE_HASH_SIZE];
-soundScript_t soundScripts[MAX_SOUND_SCRIPTS];
+#define FILE_HASH_SIZE          1024
+static soundScript_t*      hashTable[FILE_HASH_SIZE];
+
+#define MAX_SOUND_SCRIPTS       4096
+static soundScript_t soundScripts[MAX_SOUND_SCRIPTS];
 int numSoundScripts = 0;
-soundScriptSound_t soundScriptSounds[MAX_SOUND_SCRIPT_SOUNDS];
+
+#define MAX_SOUND_SCRIPT_SOUNDS 8192
+static soundScriptSound_t soundScriptSounds[MAX_SOUND_SCRIPT_SOUNDS];
 int numSoundScriptSounds = 0;
 
 /*
@@ -78,7 +106,6 @@ int CG_SoundScriptPrecache( const char *name ) {
 	long hash;
 	char *s;
 	soundScript_t   *sound;
-	byte buf[1024];
 
 	if ( !name || !name[0] ) {
 		return 0;
@@ -97,13 +124,11 @@ int CG_SoundScriptPrecache( const char *name ) {
 					scriptSound->sfxHandle = trap_S_RegisterSound( scriptSound->filename );
 					scriptSound = scriptSound->next;
 				}
-			} else /*if (cg_buildScript.integer)*/ {    // RF, 11/6/01 enabled this permanently so that streaming sounds get touched within file system on startup
+			} else if ( cg_buildScript.integer ) {
 				while ( scriptSound ) {
 					// just open the file so it gets copied to the build dir
 					fileHandle_t f;
 					trap_FS_FOpenFile( scriptSound->filename, &f, FS_READ );
-					// read a few bytes so the operating system does a better job of caching it for us
-					trap_FS_Read( buf, sizeof( buf ), f );
 					trap_FS_FCloseFile( f );
 					scriptSound = scriptSound->next;
 				}
@@ -125,7 +150,6 @@ void CG_SoundPickOldestRandomSound( soundScript_t *sound, vec3_t org, int entnum
 	int oldestTime = 0; // TTimo: init
 	soundScriptSound_t *oldestSound;
 	soundScriptSound_t *scriptSound;
-	vec3_t eOrg;
 
 	oldestSound = NULL;
 	scriptSound = sound->soundList;
@@ -139,28 +163,15 @@ void CG_SoundPickOldestRandomSound( soundScript_t *sound, vec3_t org, int entnum
 
 	if ( oldestSound ) {
 		// play this sound
-		if ( !oldestSound->sfxHandle ) {
-			oldestSound->sfxHandle = trap_S_RegisterSound( oldestSound->filename );
-		}
-		if ( sound->attenuation ) {
+		if ( !sound->streaming ) {
+			if ( !oldestSound->sfxHandle ) {
+				oldestSound->sfxHandle = trap_S_RegisterSound( oldestSound->filename );
+			}
 			trap_S_StartSound( org, entnum, sound->channel, oldestSound->sfxHandle );
 		} else {
-			trap_S_StartLocalSound( oldestSound->sfxHandle, sound->channel );
+			trap_S_StartStreamingSound( oldestSound->filename, sound->looping ? oldestSound->filename : NULL, entnum, sound->channel, sound->attenuation );
 		}
 		oldestSound->lastPlayed = cg.time;
-		//
-		// shake the view?
-		if ( sound->shakeScale ) {
-			// get the origin
-			if ( org ) {
-				VectorCopy( org, eOrg );
-			} else {
-				VectorCopy( cg_entities[entnum].lerpOrigin, eOrg );
-			}
-			//
-			// start the shaker
-			CG_StartShakeCamera( sound->shakeScale, sound->shakeDuration, eOrg, sound->shakeRadius );
-		}
 	} else {
 		CG_Error( "Unable to locate a valid sound for soundScript: %s\n", sound->name );
 	}
@@ -330,18 +341,6 @@ static void CG_SoundParseSounds( char *filename, char *buffer ) {
 		if ( !Q_strcasecmp( token, "looping" ) ) {
 			sound.looping = qtrue;
 			continue;
-		}
-		if ( !Q_strcasecmp( token, "shake" ) ) {
-			token = COM_ParseExt( text, qfalse );
-			sound.shakeScale = atof( token );
-			token = COM_ParseExt( text, qfalse );
-			sound.shakeRadius = atof( token );
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] ) {
-				sound.shakeDuration = 350 + 900 * ( sound.shakeScale * sound.shakeScale );
-			} else {
-				sound.shakeDuration = atoi( token );
-			}
 		}
 		if ( !Q_strcasecmp( token, "sound" ) ) {
 			// grab a free scriptSound

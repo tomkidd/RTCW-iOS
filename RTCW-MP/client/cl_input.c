@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -275,20 +275,34 @@ void IN_LeanLeftUp( void )    { IN_KeyUp( &kb[KB_WBUTTONS4] );  }
 void IN_LeanRightDown( void ) { IN_KeyDown( &kb[KB_WBUTTONS5] );    }   //----(SA)	lean right
 void IN_LeanRightUp( void )   { IN_KeyUp( &kb[KB_WBUTTONS5] );  }
 
+// JPW NERVE
+void IN_MP_DropWeaponDown( void ) {IN_KeyDown( &kb[KB_WBUTTONS6] );}
+void IN_MP_DropWeaponUp( void ) {IN_KeyUp( &kb[KB_WBUTTONS6] );}
+// jpw
+
 // unused
-void IN_Wbutton6Down( void )  { IN_KeyDown( &kb[KB_WBUTTONS6] );    }
-void IN_Wbutton6Up( void )    { IN_KeyUp( &kb[KB_WBUTTONS6] );  }
 void IN_Wbutton7Down( void )  { IN_KeyDown( &kb[KB_WBUTTONS7] );    }
 void IN_Wbutton7Up( void )    { IN_KeyUp( &kb[KB_WBUTTONS7] );  }
 
 void IN_CenterView( void ) {
-	cl.viewangles[PITCH] = -SHORT2ANGLE( cl.snap.ps.delta_angles[PITCH] );
+	qboolean ok = qtrue;
+	if ( cgvm ) {
+		ok = VM_Call( cgvm, CG_CHECKCENTERVIEW );
+	}
+	if ( ok ) {
+		cl.viewangles[PITCH] = -SHORT2ANGLE( cl.snap.ps.delta_angles[PITCH] );
+	}
 }
 
 void IN_Notebook( void ) {
+	//if ( cls.state == CA_ACTIVE && !clc.demoplaying ) {
+	//VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_NOTEBOOK);	// startup notebook
+	//}
+}
+
+void IN_Help( void ) {
 	if ( clc.state == CA_ACTIVE && !clc.demoplaying ) {
-		Cvar_Set( "cg_youGotMail", "0" ); // clear icon	//----(SA)	added
-		VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_NOTEBOOK );    // startup notebook
+		VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_HELP );        // startup help system
 	}
 }
 
@@ -303,6 +317,8 @@ cvar_t  *cl_run;
 cvar_t  *cl_anglespeedkey;
 
 cvar_t  *cl_recoilPitch;
+
+cvar_t  *cl_bypassMouseInput;       // NERVE - SMF
 
 /*
 ================
@@ -359,23 +375,7 @@ void CL_KeyMove( usercmd_t *cmd ) {
 	forward = 0;
 	side = 0;
 	up = 0;
-#ifdef IOS
-    if ( kb[KB_STRAFE].active ) {
-        side += movespeed * CL_KeyState (&kb[KB_RIGHT]);
-        side -= movespeed * CL_KeyState (&kb[KB_LEFT]);
-    }
-    
-    side += cl_joyscale_x[0] * 4.0f * CL_KeyState (&kb[KB_RIGHT]);
-    side -= cl_joyscale_x[1] * 4.0f * CL_KeyState (&kb[KB_LEFT]);
-    
-    
-    up = movespeed * CL_KeyState (&kb[KB_UP]);
-    up -= movespeed * CL_KeyState (&kb[KB_DOWN]);
-    
-    forward += cl_joyscale_y[0] * 4.0f * CL_KeyState (&kb[KB_FORWARD]);
-    forward -= cl_joyscale_y[1] * 4.0f * CL_KeyState (&kb[KB_BACK]);
-#else
-    if ( kb[KB_STRAFE].active ) {
+	if ( kb[KB_STRAFE].active ) {
 		side += movespeed * CL_KeyState( &kb[KB_RIGHT] );
 		side -= movespeed * CL_KeyState( &kb[KB_LEFT] );
 	}
@@ -400,7 +400,6 @@ void CL_KeyMove( usercmd_t *cmd ) {
 
 	forward += movespeed * CL_KeyState( &kb[KB_FORWARD] );
 	forward -= movespeed * CL_KeyState( &kb[KB_BACK] );
-#endif
 
 	// Rafael Kick
 	kick = CL_KeyState( &kb[KB_KICK] );
@@ -423,9 +422,16 @@ void CL_KeyMove( usercmd_t *cmd ) {
 CL_MouseEvent
 =================
 */
-void CL_MouseEvent( int dx, int dy, int time, qboolean absolute ) {
+void CL_MouseEvent( int dx, int dy, int time ) {
 	if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
-        VM_Call( uivm, UI_MOUSE_EVENT, dx, dy, absolute );
+		// NERVE - SMF - if we just want to pass it along to game
+		if ( cl_bypassMouseInput->integer == 1 ) {
+			cl.mouseDx[cl.mouseIndex] += dx;
+			cl.mouseDy[cl.mouseIndex] += dy;
+		} else {
+			VM_Call( uivm, UI_MOUSE_EVENT, dx, dy );
+		}
+
 	} else if (Key_GetCatcher( ) & KEYCATCH_CGAME) {
 		VM_Call( cgvm, CG_MOUSE_EVENT, dx, dy );
 	} else {
@@ -610,13 +616,13 @@ void CL_CmdButtons( usercmd_t *cmd ) {
 		kb[KB_WBUTTONS0 + i].wasPressed = qfalse;
 	}
 
-	if ( Key_GetCatcher( ) ) {
+	if ( Key_GetCatcher( ) && !cl_bypassMouseInput->integer ) {
 		cmd->buttons |= BUTTON_TALK;
 	}
 
 	// allow the game to know if any key at all is
 	// currently pressed, even if it isn't bound to anything
-	if ( anykeydown && Key_GetCatcher( ) == 0 ) {
+	if ( anykeydown && ( Key_GetCatcher( ) == 0 || cl_bypassMouseInput->integer ) ) {
 		cmd->buttons |= BUTTON_ANY;
 	}
 }
@@ -634,6 +640,9 @@ void CL_FinishMove( usercmd_t *cmd ) {
 	cmd->weapon = cl.cgameUserCmdValue;
 
 	cmd->holdable = cl.cgameUserHoldableValue;  //----(SA)	modified
+
+	cmd->mpSetup = cl.cgameMpSetup;             // NERVE - SMF
+	cmd->identClient = cl.cgameMpIdentClient;   // NERVE - SMF
 
 	// send the current server time so the amount of movement
 	// can be determined without allowing cheating
@@ -700,8 +709,6 @@ usercmd_t CL_CreateCmd( void ) {
 			SCR_DebugGraph( fabs(cl.viewangles[PITCH] - oldAngles[PITCH]) );
 		}
 	}
-
-	cmd.cld = cl.cgameCld;          // NERVE - SMF
 
 	return cmd;
 }
@@ -1087,8 +1094,10 @@ void CL_InitInput( void ) {
 	Cmd_AddCommand( "-leanleft", IN_LeanLeftUp );
 	Cmd_AddCommand( "+leanright",    IN_LeanRightDown );
 	Cmd_AddCommand( "-leanright",    IN_LeanRightUp );
-	Cmd_AddCommand( "+wbutton6", IN_Wbutton6Down );   //
-	Cmd_AddCommand( "-wbutton6", IN_Wbutton6Up );
+// JPW NERVE multiplayer buttons
+	Cmd_AddCommand( "+dropweapon",   IN_MP_DropWeaponDown );  // JPW NERVE drop two-handed weapon
+	Cmd_AddCommand( "-dropweapon",   IN_MP_DropWeaponUp );
+// jpw
 	Cmd_AddCommand( "+wbutton7", IN_Wbutton7Down );   //
 	Cmd_AddCommand( "-wbutton7", IN_Wbutton7Up );
 //----(SA) end
@@ -1101,13 +1110,11 @@ void CL_InitInput( void ) {
 	Cmd_AddCommand( "-voiprecord", IN_VoipRecordUp );
 #endif
 
-	Cmd_AddCommand( "notebook", IN_Notebook );
+//	Cmd_AddCommand( "notebook", IN_Notebook );
+	Cmd_AddCommand( "help",IN_Help );
 
 	cl_nodelta = Cvar_Get( "cl_nodelta", "0", 0 );
 	cl_debugMove = Cvar_Get( "cl_debugMove", "0", 0 );
-    
-    // DEBUG
-    kb[KB_STRAFE].active = qtrue;
 }
 
 /*
@@ -1180,8 +1187,8 @@ void CL_ShutdownInput(void)
 	Cmd_RemoveCommand("-leanleft");
 	Cmd_RemoveCommand("+leanright");
 	Cmd_RemoveCommand("-leanright");
-	Cmd_RemoveCommand("+wbutton6");
-	Cmd_RemoveCommand("-wbutton6");
+	Cmd_RemoveCommand("+dropweapon");
+	Cmd_RemoveCommand("-dropweapon");
 	Cmd_RemoveCommand("+wbutton7");
 	Cmd_RemoveCommand("-wbutton7");
 
@@ -1193,8 +1200,7 @@ void CL_ShutdownInput(void)
 	Cmd_RemoveCommand("-voiprecord");
 #endif
 
-	Cmd_RemoveCommand( "notebook" );
-
+	Cmd_RemoveCommand("help");
 }
 
 /*

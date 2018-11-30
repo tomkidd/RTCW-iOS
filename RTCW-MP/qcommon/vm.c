@@ -71,14 +71,14 @@ VM_Init
 ==============
 */
 void VM_Init( void ) {
-	Cvar_Get( "vm_cgame", "0", CVAR_ARCHIVE );	// !@# SHIP WITH SET TO 0
-	Cvar_Get( "vm_game", "0", CVAR_ARCHIVE );	// !@# SHIP WITH SET TO 0
-	Cvar_Get( "vm_ui", "0", CVAR_ARCHIVE );		// !@# SHIP WITH SET TO 0
+	Cvar_Get( "vm_cgame", "2", CVAR_ARCHIVE );	// !@# SHIP WITH SET TO 2
+	Cvar_Get( "vm_game", "2", CVAR_ARCHIVE );	// !@# SHIP WITH SET TO 2
+	Cvar_Get( "vm_ui", "2", CVAR_ARCHIVE );		// !@# SHIP WITH SET TO 2
 
 	vm_minQvmHunkMegs = Cvar_Get( "vm_minQvmHunkMegs", "2", CVAR_ARCHIVE );
 	Cvar_CheckRange( vm_minQvmHunkMegs, 0, 1024, qtrue );
 
-	Cmd_AddCommand ("vmprofile", VM_VmProfile_f );
+	Cmd_AddCommand("vmprofile", VM_VmProfile_f); // FIXME: doesn't print anything with +set developer 1
 	Cmd_AddCommand ("vminfo", VM_VmInfo_f );
 
 	Com_Memset( vmTable, 0, sizeof( vmTable ) );
@@ -93,10 +93,9 @@ Assumes a program counter value
 ===============
 */
 const char *VM_ValueToSymbol( vm_t *vm, int value ) {
-	vmSymbol_t	*sym;
+	vmSymbol_t	*sym = vm->symbols;
 	static char		text[MAX_TOKEN_CHARS];
-
-	sym = vm->symbols;
+	
 	if ( !sym ) {
 		return "NO SYMBOLS";
 	}
@@ -123,10 +122,9 @@ For profiling, find the symbol behind this value
 ===============
 */
 vmSymbol_t *VM_ValueToFunctionSymbol( vm_t *vm, int value ) {
-	vmSymbol_t	*sym;
+	vmSymbol_t	*sym = vm->symbols;
 	static vmSymbol_t	nullSym;
 
-	sym = vm->symbols;
 	if ( !sym ) {
 		return &nullSym;
 	}
@@ -193,10 +191,9 @@ ParseHex
 ===============
 */
 int	ParseHex( const char *text ) {
-	int		value;
+	int		value = 0;
 	int		c;
 
-	value = 0;
 	while ( ( c = *text++ ) != 0 ) {
 		if ( c >= '0' && c <= '9' ) {
 			value = value * 16 + c - '0';
@@ -340,7 +337,7 @@ Dlls will call this directly
 ============
 */
 intptr_t QDECL VM_DllSyscall( intptr_t arg, ... ) {
-#if !id386 || defined __clang__ || defined IOS
+#if !id386 || defined __clang__
   // rcg010206 - see commentary above
   intptr_t args[MAX_VMSYSCALL_ARGS];
   int i;
@@ -378,7 +375,7 @@ vmHeader_t *VM_LoadQVM( vm_t *vm, qboolean alloc, qboolean unpure)
 	} header;
 
 	// load the image
-	Com_sprintf( filename, sizeof(filename), "vm/%s.sp.qvm", vm->name );
+	Com_sprintf( filename, sizeof(filename), "vm/%s.mp.qvm", vm->name );
 	Com_Printf( "Loading vm file %s...\n", filename );
 
 	FS_ReadFileDir(filename, vm->searchPath, unpure, &header.v);
@@ -574,6 +571,10 @@ vm_t *VM_Restart(vm_t *vm, qboolean unpure)
 	return vm;
 }
 
+#ifndef DEDICATED
+extern int cl_connectedToPureServer;
+#endif
+
 /*
 ================
 VM_Create
@@ -589,6 +590,7 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 	int			i, remaining, retval;
 	char filename[MAX_OSPATH];
 	void *startSearch = NULL;
+	qboolean pureServer, pureVM;
 
 	if ( !module || !module[0] || !systemCalls ) {
 		Com_Error( ERR_FATAL, "VM_Create: bad parms" );
@@ -619,14 +621,31 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 
 	Q_strncpyz(vm->name, module, sizeof(vm->name));
 
+#ifdef DEDICATED
+	pureServer = qfalse;
+#else
+	pureServer = (cl_connectedToPureServer) ? qtrue : qfalse;
+#endif
+
+	pureVM = pureServer;
+
 	do
 	{
-		retval = FS_FindVM(&startSearch, filename, sizeof(filename), module, (interpret == VMI_NATIVE));
+		retval = FS_FindVM(&startSearch, filename, sizeof(filename), module, !pureVM, (interpret != VMI_NATIVE));
 		
-		if(retval == VMI_NATIVE)
+		if(retval == VMI_COMPILED)
 		{
-			Com_DPrintf("Try loading dll file %s\n", filename);
-#ifndef IOS
+			vm->searchPath = startSearch;
+			if((header = VM_LoadQVM(vm, qtrue, !pureVM)))
+				break;
+
+			// VM_Free overwrites the name on failed load
+			Q_strncpyz(vm->name, module, sizeof(vm->name));
+		}
+		else if(retval == VMI_NATIVE)
+		{
+			Com_Printf("Try loading dll file %s\n", filename);
+
 			vm->dllHandle = Sys_LoadGameDll(filename, &vm->entryPoint, VM_DllSyscall);
 			
 			if(vm->dllHandle)
@@ -634,17 +653,15 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 				vm->systemCall = systemCalls;
 				return vm;
 			}
-#endif
-			Com_DPrintf("Failed loading dll, trying next\n");
+			
+			Com_Printf("Failed loading dll, trying next\n");
 		}
-		else if(retval == VMI_COMPILED)
+		else if ( pureServer && pureVM )
 		{
-			vm->searchPath = startSearch;
-			if((header = VM_LoadQVM(vm, qtrue, qfalse)))
-				break;
-
-			// VM_Free overwrites the name on failed load
-			Q_strncpyz(vm->name, module, sizeof(vm->name));
+			Com_Printf( "Failed to find pure %s VM, trying unpure\n", module );
+			startSearch = NULL;
+			pureVM = qfalse;
+			retval = 1; // don't exit loop
 		}
 	} while(retval >= 0);
 	
@@ -795,6 +812,7 @@ qboolean VM_IsNative( vm_t *vm ) {
 	return ( vm && vm->dllHandle );
 }
 
+
 /*
 ==============
 VM_Call
@@ -824,6 +842,11 @@ intptr_t QDECL VM_Call( vm_t *vm, intptr_t callnum, ... )
 	vm_t	*oldVM;
 	intptr_t r;
 	int i;
+
+	// DHM - Nerve
+#ifdef UPDATE_SERVER
+	return 0;
+#endif
 
 	if(!vm || !vm->name[0])
 		Com_Error(ERR_FATAL, "VM_Call with NULL vm");
@@ -923,6 +946,7 @@ void VM_VmProfile_f( void ) {
 	vm = lastVM;
 
 	if ( !vm->numSymbols ) {
+		Com_Printf("VM symbols not available\n");
 		return;
 	}
 
@@ -1091,6 +1115,7 @@ void VM_FreeTempMemory( vm_t *vm, unsigned qvmPointer, int size, void *outData )
 	vm->heapAllocTop += allocSize;
 }
 
+#if 0 // ZTM: new unused code for allocating unfreeable memory in dlls and qvms.
 /*
 =================
 QVM_Alloc
@@ -1144,4 +1169,5 @@ VM_Alloc
 intptr_t VM_Alloc( int size ) {
 	return VM_ExplicitAlloc( currentVM, size );
 }
+#endif
 

@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -123,8 +123,6 @@ typedef enum {
 	CG_S_RESPATIALIZE,
 	CG_S_REGISTERSOUND,
 	CG_S_STARTBACKGROUNDTRACK,
-	CG_S_FADESTREAMINGSOUND,    //----(SA)	modified
-	CG_S_FADEALLSOUNDS,         //----(SA)	added for fading out everything
 	CG_S_STARTSTREAMINGSOUND,
 	CG_R_LOADWORLDMAP,
 	CG_R_REGISTERMODEL,
@@ -141,7 +139,6 @@ typedef enum {
 	CG_R_ADDPOLYTOSCENE,
 // Ridah
 	CG_R_ADDPOLYSTOSCENE,
-	CG_RB_ZOMBIEFXADDNEWHIT,
 // done.
 	CG_R_ADDLIGHTTOSCENE,
 
@@ -162,6 +159,7 @@ typedef enum {
 	CG_GETCURRENTCMDNUMBER,
 	CG_GETUSERCMD,
 	CG_SETUSERCMDVALUE,
+	CG_SETCLIENTLERPORIGIN,         // DHM - Nerve
 	CG_R_REGISTERSHADERNOMIP,
 	CG_MEMORY_REMAINING,
 
@@ -179,7 +177,7 @@ typedef enum {
 	CG_REAL_TIME,
 	CG_SNAPVECTOR,
 	CG_REMOVECOMMAND,
-//	CG_R_LIGHTFORPOINT,	// not currently used (sorry, trying to keep CG_MEMSET @ 100)
+	CG_R_LIGHTFORPOINT,
 
 	CG_SENDMOVESPEEDSTOGAME,
 
@@ -189,16 +187,14 @@ typedef enum {
 	CG_CIN_DRAWCINEMATIC,
 	CG_CIN_SETEXTENTS,
 	CG_R_REMAP_SHADER,
-//	CG_S_ADDREALLOOPINGSOUND,	// not currently used (sorry, trying to keep CG_MEMSET @ 100)
+	CG_S_ADDREALLOOPINGSOUND,
 	CG_S_STOPLOOPINGSOUND,
-	CG_S_STOPSTREAMINGSOUND,    //----(SA)	added
 
 	CG_LOADCAMERA,
 	CG_STARTCAMERA,
-	CG_STOPCAMERA,  //----(SA)	added
 	CG_GETCAMERAINFO,
 
-	CG_MEMSET = 110,
+	CG_MEMSET = 100,
 	CG_MEMCPY,
 	CG_STRNCPY,
 	CG_SIN,
@@ -213,14 +209,19 @@ typedef enum {
 	CG_ACOS,
 
 	CG_INGAME_POPUP,        //----(SA)	added
-	CG_INGAME_CLOSEPOPUP,   // NERVE - SMF
-	CG_LIMBOCHAT,           // NERVE - SMF
 
-	CG_GETMODELINFO,
+	// NERVE - SMF
+	CG_INGAME_CLOSEPOPUP,
+	CG_LIMBOCHAT,
 
-	// New in IORTCW
-	CG_ALLOC = 900
+	CG_R_DRAWROTATEDPIC,
 
+	CG_KEY_GETBINDINGBUF,
+	CG_KEY_SETBINDING,
+	CG_KEY_KEYNUMTOSTRINGBUF,
+
+	CG_TRANSLATE_STRING
+	// -NERVE - SMF
 } cgameImport_t;
 
 
@@ -275,7 +276,8 @@ typedef enum {
 	CG_GET_TAG,
 //	qboolean CG_GetTag( int clientNum, char *tagname, orientation_t *or );
 
-	MAX_CGAME_EXPORT
+	CG_CHECKCENTERVIEW,
+//	qboolean CG_CheckCenterView();
 
 } cgameExport_t;
 

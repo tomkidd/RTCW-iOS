@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -284,15 +284,15 @@ int BotFuzzyPointReachabilityArea( vec3_t origin ) {
 	bestareanum = 0;
 	for ( z = 1; z >= -1; z -= 1 )
 	{
-		for ( x = 1; x >= -1; x -= 2 )
+		for ( x = 1; x >= -1; x -= 1 )
 		{
-			for ( y = 1; y >= -1; y -= 2 )
+			for ( y = 1; y >= -1; y -= 1 )
 			{
 				VectorCopy( origin, end );
 				// Ridah, increased this for Wolf larger bounding boxes
-				end[0] += x * 256; //8;
-				end[1] += y * 256; //8;
-				end[2] += z * 200; //12;
+				end[0] += x * 16; //8;
+				end[1] += y * 16; //8;
+				end[2] += z * 24; //12;
 				numareas = AAS_TraceAreas( origin, end, areas, points, 10 );
 				for ( j = 0; j < numareas; j++ )
 				{
@@ -635,7 +635,7 @@ void BotAddToAvoidReach( bot_movestate_t *ms, int number, float avoidtime ) {
 int BotGetReachabilityToGoal( vec3_t origin, int areanum, int entnum,
 							  int lastgoalareanum, int lastareanum,
 							  int *avoidreach, float *avoidreachtimes, int *avoidreachtries,
-							  bot_goal_t *goal, int travelflags ) {
+							  bot_goal_t *goal, int travelflags, int movetravelflags ) {
 	int t, besttime, bestreachnum, reachnum;
 	aas_reachability_t reach;
 
@@ -646,9 +646,11 @@ int BotGetReachabilityToGoal( vec3_t origin, int areanum, int entnum,
 	//
 	if ( AAS_AreaDoNotEnter( areanum ) || AAS_AreaDoNotEnter( goal->areanum ) ) {
 		travelflags |= TFL_DONOTENTER;
+		movetravelflags |= TFL_DONOTENTER;
 	} //end if
 	if ( AAS_AreaDoNotEnterLarge( areanum ) || AAS_AreaDoNotEnterLarge( goal->areanum ) ) {
 		travelflags |= TFL_DONOTENTER_LARGE;
+		movetravelflags |= TFL_DONOTENTER_LARGE;
 	} //end if
 	  //use the routing to find the next area to go to
 	besttime = 0;
@@ -684,29 +686,24 @@ int BotGetReachabilityToGoal( vec3_t origin, int areanum, int entnum,
 		}
 		//if (AAS_AreaContentsTravelFlag(reach.areanum) & ~travelflags) continue;
 		//if the travel isn't valid
-		if ( !BotValidTravel( origin, &reach, travelflags ) ) {
+		if ( !BotValidTravel( origin, &reach, movetravelflags ) ) {
 			continue;
 		}
-		//RF, ignore disabled areas
-		if ( !AAS_AreaReachability( reach.areanum ) ) {
-			continue;
-		}
-		//get the travel time (ignore routes that leads us back our current area)
-		t = AAS_AreaTravelTimeToGoalAreaCheckLoop( reach.areanum, reach.end, goal->areanum, travelflags, areanum );
+		//get the travel time
+		t = AAS_AreaTravelTimeToGoalArea( reach.areanum, reach.end, goal->areanum, travelflags );
 		//if the goal area isn't reachable from the reachable area
 		if ( !t ) {
 			continue;
 		}
 
 		// Ridah, if this sends us to a looped route, ignore it
-		//if (AAS_AreaTravelTimeToGoalArea(areanum, reach.start, goal->areanum, travelflags) + reach.traveltime < t)
+		//if (AAS_AreaTravelTimeToGoalArea(areanum, reach.start, goal->areanum, travelflags) + reach.traveltime == t)
 		//	continue;
 
 		//add the travel time towards the area
 		// Ridah, not sure why this was disabled, but it causes looped links in the route-cache
-		// RF, update.. seems to work better like this....
-		t += reach.traveltime; // + AAS_AreaTravelTime( areanum, origin, reach.start );
-		//t += reach.traveltime + AAS_AreaTravelTime( areanum, origin, reach.start );
+		//t += reach.traveltime; // + AAS_AreaTravelTime( areanum, origin, reach.start );
+		t += reach.traveltime + AAS_AreaTravelTime( areanum, origin, reach.start );
 
 		// Ridah, if there exists other entities in this area, avoid it
 //		if (reach.areanum != goal->areanum && AAS_IsEntityInArea( entnum, goal->entitynum, reach.areanum )) {
@@ -788,7 +785,7 @@ int BotMovementViewTarget( int movestate, bot_goal_t *goal, int travelflags, flo
 		reachnum = BotGetReachabilityToGoal( reach.end, reach.areanum, -1,
 											 ms->lastgoalareanum, lastareanum,
 											 ms->avoidreach, ms->avoidreachtimes, ms->avoidreachtries,
-											 goal, travelflags );
+											 goal, travelflags, travelflags );
 		VectorCopy( reach.end, end );
 		lastareanum = reach.areanum;
 		if ( lastareanum == goal->areanum ) {
@@ -852,7 +849,7 @@ int BotPredictVisiblePosition( vec3_t origin, int areanum, bot_goal_t *goal, int
 		reachnum = BotGetReachabilityToGoal( end, areanum, -1,
 											 lastgoalareanum, lastareanum,
 											 avoidreach, avoidreachtimes, avoidreachtries,
-											 goal, travelflags );
+											 goal, travelflags, travelflags );
 		if ( !reachnum ) {
 			return qfalse;
 		}
@@ -1210,9 +1207,6 @@ int Intersection( vec2_t p1, vec2_t p2, vec2_t p3, vec2_t p4, vec2_t out ) {
 // Changes Globals:		-
 //===========================================================================
 void BotCheckBlocked( bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_moveresult_t *result ) {
-	// RF, not required for Wolf AI
-	return;
-#if 0
 	vec3_t mins, maxs, end, up = {0, 0, 1};
 	bsp_trace_t trace;
 
@@ -1248,7 +1242,6 @@ void BotCheckBlocked( bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_move
 #endif //DEBUG
 		} //end if
 	} //end else
-#endif
 } //end of the function BotCheckBlocked
 //===========================================================================
 //
@@ -1601,7 +1594,7 @@ bot_moveresult_t BotTravel_WalkOffLedge( bot_movestate_t *ms, aas_reachability_t
 		VectorNormalize( hordir );
 		//
 		if ( reachhordist < 20 ) {
-			speed = 200;	// RF, increased this to speed up travel speed down steps
+			speed = 100;
 		} //end if
 		else if ( !AAS_HorizontalVelocityForJump( 0, reach->start, reach->end, &speed ) ) {
 			speed = 400;
@@ -1615,14 +1608,14 @@ bot_moveresult_t BotTravel_WalkOffLedge( bot_movestate_t *ms, aas_reachability_t
 			if ( dist > 64 ) {
 				dist = 64;
 			}
-			speed = 400 - ( 256 - 4 * dist ) * 0.5;   // RF changed this for steps
+			speed = 400 - ( 256 - 4 * dist );
 		} //end if
 		else
 		{
 			speed = 400;
 			// Ridah, tweaked this
 			if ( dist < 128 ) {
-				speed *= 0.5 + 0.5 * ( dist / 128 );
+				speed *= ( dist / 128 );
 			}
 		} //end else
 	} //end else
@@ -1952,7 +1945,7 @@ bot_moveresult_t BotFinishTravel_Jump( bot_movestate_t *ms, aas_reachability_t *
 //===========================================================================
 bot_moveresult_t BotTravel_Ladder( bot_movestate_t *ms, aas_reachability_t *reach ) {
 	//float dist, speed;
-	vec3_t dir, viewdir, hordir, pos, p, v1, v2, vec, right;
+	vec3_t dir, viewdir, hordir, pos;
 	vec3_t origin = {0, 0, 0};
 //	vec3_t up = {0, 0, 1};
 	bot_moveresult_t_cleared( result );
@@ -1974,37 +1967,13 @@ bot_moveresult_t BotTravel_Ladder( bot_movestate_t *ms, aas_reachability_t *reac
 		viewdir[2] = dir[2];
 		if ( dir[2] < 0 ) {   // going down, so face the other way (towards ladder)
 			VectorInverse( viewdir );
+		} else {
+			viewdir[2] = 0; // straight forward goes up
 		}
-		viewdir[2] = 0; // straight forward goes up
-		VectorNormalize( viewdir );
 		Vector2Angles( viewdir, result.ideal_viewangles );
 		//elemantary action
 		EA_Move( ms->client, origin, 0 );
-		if ( dir[2] < 0 ) {   // going down, so face the other way
-			EA_MoveBack( ms->client );
-		} else {
-			EA_MoveForward( ms->client );
-		}
-		// check for sideways adjustments to stay on the center of the ladder
-		VectorMA( ms->origin, 18, viewdir, p );
-		VectorCopy( reach->start, v1 );
-		v1[2] = ms->origin[2];
-		VectorCopy( reach->end, v2 );
-		v2[2] = ms->origin[2];
-		VectorSubtract( v2, v1, vec );
-		VectorNormalize( vec );
-		VectorMA( v1, -32, vec, v1 );
-		VectorMA( v2,  32, vec, v2 );
-		ProjectPointOntoVector( p, v1, v2, pos );
-		VectorSubtract( pos, p, vec );
-		if ( VectorLength( vec ) > 2 ) {
-			AngleVectors( result.ideal_viewangles, NULL, right, NULL );
-			if ( DotProduct( vec, right ) > 0 ) {
-				EA_MoveRight( ms->client );
-			} else {
-				EA_MoveLeft( ms->client );
-			}
-		}
+		EA_MoveForward( ms->client );
 		//set movement view flag so the AI can see the view is focussed
 		result.flags |= MOVERESULT_MOVEMENTVIEW;
 	} //end if
@@ -2016,31 +1985,18 @@ bot_moveresult_t BotTravel_Ladder( bot_movestate_t *ms, aas_reachability_t *reac
 		hordir[2] = 0;
 		VectorNormalize( hordir );
 		VectorMA( reach->start, -24, hordir, pos );
-		// project our position onto the vector
-		ProjectPointOntoVector( ms->origin, pos, reach->start, p );
-		VectorSubtract( p, ms->origin, dir );
+		VectorSubtract( pos, ms->origin, dir );
 		//make sure the horizontal movement is large enough
 		VectorCopy( dir, hordir );
 		hordir[2] = 0;
 		dist = VectorNormalize( hordir );
-		if ( dist < 8 ) { // within range, go for the end
+		if ( dist < 32 ) {    // within range, go for the end
 			//botimport.Print(PRT_MESSAGE, "found base, moving towards ladder top\n");
 			VectorSubtract( reach->end, ms->origin, dir );
 			//make sure the horizontal movement is large enough
 			VectorCopy( dir, hordir );
 			hordir[2] = 0;
 			dist = VectorNormalize( hordir );
-			//set the ideal view angles, facing the ladder up or down
-			viewdir[0] = dir[0];
-			viewdir[1] = dir[1];
-			viewdir[2] = dir[2];
-			if ( dir[2] < 0 ) {   // going down, so face the other way
-				VectorInverse( viewdir );
-			}
-			viewdir[2] = 0;
-			VectorNormalize( viewdir );
-			Vector2Angles( viewdir, result.ideal_viewangles );
-			result.flags |= MOVERESULT_MOVEMENTVIEW;
 		}
 		//
 		dir[0] = hordir[0];
@@ -2054,7 +2010,7 @@ bot_moveresult_t BotTravel_Ladder( bot_movestate_t *ms, aas_reachability_t *reac
 		if ( dist > 50 ) {
 			dist = 50;
 		}
-		speed = 400 - ( 300 - 6 * dist );
+		speed = 400 - ( 200 - 4 * dist );
 		EA_Move( ms->client, dir, speed );
 	} //end else
 	  //save the movement direction
@@ -3313,7 +3269,7 @@ void BotMoveToGoal( bot_moveresult_t *result, int movestate, bot_goal_t *goal, i
 			reachnum = BotGetReachabilityToGoal( ms->origin, ms->areanum, ms->entitynum,
 												 ms->lastgoalareanum, ms->lastareanum,
 												 ms->avoidreach, ms->avoidreachtimes, ms->avoidreachtries,
-												 goal, travelflags );
+												 goal, travelflags, travelflags );
 			//the area number the reachability starts in
 			ms->reachareanum = ms->areanum;
 			//reset some state variables
@@ -3423,7 +3379,7 @@ void BotMoveToGoal( bot_moveresult_t *result, int movestate, bot_goal_t *goal, i
 				lastreachnum = BotGetReachabilityToGoal( end, areas[i], ms->entitynum,
 														 ms->lastgoalareanum, ms->lastareanum,
 														 ms->avoidreach, ms->avoidreachtimes, ms->avoidreachtries,
-														 goal, travelflags );
+														 goal, travelflags, TFL_JUMPPAD );
 				if ( lastreachnum ) {
 					ms->lastreachnum = lastreachnum;
 					ms->lastareanum = areas[i];
@@ -3511,35 +3467,16 @@ void BotMoveToGoal( bot_moveresult_t *result, int movestate, bot_goal_t *goal, i
 	// RF, try to look in the direction we will be moving ahead of time
 	if ( reachnum > 0 && !( result->flags & ( MOVERESULT_MOVEMENTVIEW | MOVERESULT_SWIMVIEW ) ) ) {
 		vec3_t dir;
-		int ftraveltime, freachnum, straveltime, ltraveltime;
+		int ftraveltime, freachnum;
 
 		AAS_ReachabilityFromNum( reachnum, &reach );
 		if ( reach.areanum != goal->areanum ) {
-			if ( AAS_AreaRouteToGoalArea( reach.areanum, reach.end, goal->areanum, travelflags, &straveltime, &freachnum ) ) {
-				ltraveltime = 999999;
-				while ( AAS_AreaRouteToGoalArea( reach.areanum, reach.end, goal->areanum, travelflags, &ftraveltime, &freachnum ) ) {
-					// make sure we are not in a loop
-					if ( ftraveltime > ltraveltime ) {
-						break;
-					}
-					ltraveltime = ftraveltime;
-					//
-					AAS_ReachabilityFromNum( freachnum, &reach );
-					if ( reach.areanum == goal->areanum ) {
-						VectorSubtract( goal->origin, ms->origin, dir );
-						VectorNormalize( dir );
-						vectoangles( dir, result->ideal_viewangles );
-						result->flags |= MOVERESULT_FUTUREVIEW;
-						break;
-					}
-					if ( straveltime - ftraveltime > 120 ) {
-						VectorSubtract( reach.end, ms->origin, dir );
-						VectorNormalize( dir );
-						vectoangles( dir, result->ideal_viewangles );
-						result->flags |= MOVERESULT_FUTUREVIEW;
-						break;
-					}
-				}
+			if ( AAS_AreaRouteToGoalArea( reach.areanum, reach.end, goal->areanum, travelflags, &ftraveltime, &freachnum ) ) {
+				AAS_ReachabilityFromNum( freachnum, &reach );
+				VectorSubtract( reach.end, ms->origin, dir );
+				VectorNormalize( dir );
+				vectoangles( dir, result->ideal_viewangles );
+				result->flags |= MOVERESULT_FUTUREVIEW;
 			}
 		} else {
 			VectorSubtract( goal->origin, ms->origin, dir );

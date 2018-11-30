@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -100,6 +100,7 @@ void Netchan_Setup(netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, int 
 	chan->incomingSequence = 0;
 	chan->outgoingSequence = 1;
 	chan->challenge = challenge;
+
 #ifdef LEGACY_PROTOCOL
 	chan->compat = compat;
 #endif
@@ -144,9 +145,6 @@ void Netchan_TransmitNextFragment( netchan_t *chan ) {
 	MSG_WriteShort( &send, fragmentLength );
 	MSG_WriteData( &send, chan->unsentBuffer + chan->unsentFragmentStart, fragmentLength );
 
-	// XOR scramble all data in the packet after the header
-//	Netchan_ScramblePacket( &send );
-
 	// send the datagram
 	NET_SendPacket(chan->sock, send.cursize, send.data, chan->remoteAddress);
 	
@@ -158,7 +156,7 @@ void Netchan_TransmitNextFragment( netchan_t *chan ) {
 		Com_Printf( "%s send %4i : s=%i fragment=%i,%i\n"
 					, netsrcString[ chan->sock ]
 					, send.cursize
-					, chan->outgoingSequence - 1
+					, chan->outgoingSequence
 					, chan->unsentFragmentStart, fragmentLength );
 	}
 
@@ -222,9 +220,6 @@ void Netchan_Transmit( netchan_t *chan, int length, const byte *data ) {
 
 	MSG_WriteData( &send, data, length );
 
-	// XOR scramble all data in the packet after the header
-//	Netchan_ScramblePacket( &send );
-
 	// send the datagram
 	NET_SendPacket( chan->sock, send.cursize, send.data, chan->remoteAddress );
 
@@ -258,9 +253,6 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 	int fragmentStart, fragmentLength;
 	qboolean fragmented;
 
-	// XOR unscramble all data in the packet after the header
-//	Netchan_UnScramblePacket( msg );
-
 	// get sequence numbers
 	MSG_BeginReadingOOB( msg );
 	sequence = MSG_ReadLong( msg );
@@ -287,7 +279,7 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 		// UDP spoofing protection
 		if(NETCHAN_GENCHECKSUM(chan->challenge, sequence) != checksum)
 			return qfalse;
-	}
+ 	}
 
 	// read the fragment information
 	if ( fragmented ) {
@@ -345,7 +337,11 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 	// bump incoming_reliable_sequence
 	//
 	if ( fragmented ) {
-		// make sure we
+		// TTimo
+		// make sure we add the fragments in correct order
+		// either a packet was dropped, or we received this one too soon
+		// we don't reconstruct the fragments. we will wait till this fragment gets to us again
+		// (NOTE: we could probably try to rebuild by out of order chunks if needed)
 		if ( sequence != chan->fragmentSequence ) {
 			chan->fragmentSequence = sequence;
 			chan->fragmentLength = 0;
@@ -400,6 +396,11 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 		msg->readcount = 4; // past the sequence number
 		msg->bit = 32;  // past the sequence number
 
+
+		// TTimo
+		// clients were not acking fragmented messages
+		chan->incomingSequence = sequence;
+
 		return qtrue;
 	}
 
@@ -413,6 +414,7 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 
 
 //==============================================================================
+
 
 /*
 =============================================================================
@@ -498,8 +500,8 @@ static void NET_QueuePacket( int length, const void *data, netadr_t to,
 	if(offset > 999)
 		offset = 999;
 
-	new = Z_Malloc(sizeof(packetQueue_t));
-	new->data = Z_Malloc(length);
+	new = S_Malloc(sizeof(packetQueue_t));
+	new->data = S_Malloc(length);
 	Com_Memcpy(new->data, data, length);
 	new->length = length;
 	new->to = to;
@@ -584,24 +586,26 @@ void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, 
 	string[3] = -1;
 
 	va_start( argptr, format );
-	Q_vsnprintf( string+4, sizeof(string)-4, format, argptr );
+	Q_vsnprintf( string + 4, sizeof( string ) - 4, format, argptr );
 	va_end( argptr );
 
 	// send the datagram
 	NET_SendPacket( sock, strlen( string ), string, adr );
 }
 
+
+
 /*
 ===============
-NET_OutOfBandData
+NET_OutOfBandPrint
 
 Sends a data message in an out-of-band datagram (only used for "connect")
 ================
 */
 void QDECL NET_OutOfBandData( netsrc_t sock, netadr_t adr, byte *format, int len ) {
-	byte		string[MAX_MSGLEN*2];
-	int			i;
-	msg_t		mbuf;
+	byte string[MAX_MSGLEN * 2];
+	int i;
+	msg_t mbuf;
 
 	// set the header
 	string[0] = 0xff;
@@ -609,16 +613,17 @@ void QDECL NET_OutOfBandData( netsrc_t sock, netadr_t adr, byte *format, int len
 	string[2] = 0xff;
 	string[3] = 0xff;
 
-	for(i=0;i<len;i++) {
-		string[i+4] = format[i];
+	for ( i = 0; i < len; i++ ) {
+		string[i + 4] = format[i];
 	}
 
 	mbuf.data = string;
-	mbuf.cursize = len+4;
-	Huff_Compress( &mbuf, 12);
+	mbuf.cursize = len + 4;
+	Huff_Compress( &mbuf, 12 );
 	// send the datagram
 	NET_SendPacket( sock, mbuf.cursize, mbuf.data, adr );
 }
+
 
 /*
 =============

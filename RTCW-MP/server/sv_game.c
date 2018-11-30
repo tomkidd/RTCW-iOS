@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -284,6 +284,16 @@ void SV_GetUsercmd( int clientNum, usercmd_t *cmd ) {
 
 //==============================================
 
+/*
+static int  FloatAsInt( float f ) {
+	int temp;
+
+	*(float *)&temp = f;
+
+	return temp;
+}
+*/
+
 static int  FloatAsInt( float f ) {
 	floatint_t fi;
 	fi.f = f;
@@ -304,9 +314,6 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		return 0;
 	case G_ERROR:
 		Com_Error( ERR_DROP, "%s", (const char*)VMA(1) );
-		return 0;
-	case G_ENDGAME:
-		Com_Error( ERR_ENDGAME, "endgame" );  // no message, no error print
 		return 0;
 	case G_MILLISECONDS:
 		return Sys_Milliseconds();
@@ -345,9 +352,6 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		return 0;
 	case G_FS_FCLOSE_FILE:
 		FS_FCloseFile( args[1] );
-		return 0;
-	case G_FS_COPY_FILE:
-		FS_CopyFileOS( VMA( 1 ), VMA( 2 ) );    //DAJ
 		return 0;
 	case G_FS_GETFILELIST:
 		return FS_GetFileList( VMA( 1 ), VMA( 2 ), VMA( 3 ), args[4] );
@@ -548,9 +552,6 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 
 	case BOTLIB_AAS_FINDATTACKSPOTWITHINRANGE:
 		return botlib_export->aas.AAS_FindAttackSpotWithinRange( args[1], args[2], args[3], VMF( 4 ), args[5], VMA( 6 ) );
-
-	case BOTLIB_AAS_GETROUTEFIRSTVISPOS:
-		return botlib_export->aas.AAS_GetRouteFirstVisPos( VMA( 1 ), VMA( 2 ), args[3], VMA( 4 ) );
 
 	case BOTLIB_AAS_SETAASBLOCKINGENTITY:
 		botlib_export->aas.AAS_SetAASBlockingEntity( VMA( 1 ), VMA( 2 ), args[3] );
@@ -882,16 +883,9 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		return FloatAsInt( ceil( VMF( 1 ) ) );
 
 
-	// New in IORTCW
-	case G_ALLOC:
-		return VM_Alloc( args[1] );
-
-
 	default:
 		Com_Error( ERR_DROP, "Bad game system trap: %ld", (long int) args[0] );
-
 	}
-
 	return 0;
 }
 
@@ -924,15 +918,15 @@ static void SV_InitGameVM( qboolean restart ) {
 	// start the entity parsing at the beginning
 	sv.entityParsePoint = CM_EntityString();
 
-	// use the current msec count for a random seed
-	// init for this gamestate
-	VM_Call (gvm, GAME_INIT, sv.time, Com_Milliseconds(), restart);
-
 	// clear all gentity pointers that might still be set from
 	// a previous level
 	for ( i = 0 ; i < sv_maxclients->integer ; i++ ) {
 		svs.clients[i].gentity = NULL;
 	}
+
+	// use the current msec count for a random seed
+	// init for this gamestate
+	VM_Call (gvm, GAME_INIT, sv.time, Com_Milliseconds(), restart);
 }
 
 
@@ -968,23 +962,9 @@ Called on a normal map change, not on a map_restart
 ===============
 */
 void SV_InitGameProgs( void ) {
-	cvar_t  *var;
-	//FIXME these are temp while I make bots run in vm
-	extern int bot_enable;
-
-	var = Cvar_Get( "bot_enable", "1", CVAR_LATCH );
-	if ( var ) {
-		bot_enable = var->integer;
-	} else {
-		bot_enable = 0;
-	}
 
 	// load the dll or bytecode
-#ifdef IOS
-    gvm = VM_Create( "qagame", SV_GameSystemCalls, VMI_BYTECODE );
-#else
-    gvm = VM_Create( "qagame", SV_GameSystemCalls, Cvar_VariableValue( "vm_game" ) );
-#endif
+	gvm = VM_Create( "qagame", SV_GameSystemCalls, Cvar_VariableValue( "vm_game" ) );
 	if ( !gvm ) {
 		Com_Error( ERR_FATAL, "VM_Create on game failed" );
 	}
@@ -1053,7 +1033,7 @@ SV_GetTag
   return qfalse if unable to retrieve tag information for this client
 ====================
 */
-extern qboolean CL_GetTag( int clientNum, char *tagname, orientation_t *or );
+extern qboolean CL_GetTag( int clientNum, char *tagname, orientation_t * or );
 
 qboolean SV_GetTag( int clientNum, char *tagname, orientation_t *or ) {
 #ifndef DEDICATED // TTimo: dedicated only binary defines DEDICATED
@@ -1065,37 +1045,4 @@ qboolean SV_GetTag( int clientNum, char *tagname, orientation_t *or ) {
 #else
 	return qfalse;
 #endif
-}
-
-/*
-===================
-SV_GetModelInfo
-
-  request this modelinfo from the game
-===================
-*/
-qboolean SV_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **modelInfo ) {
-	if ( !gvm ) {
-		return qfalse;
-	}
-
-	if ( VM_IsNative( gvm ) ) {
-		return VM_Call( gvm, GAME_GETMODELINFO, clientNum, modelName, modelInfo );
-	} else {
-		// Setting a pointer to Game QVM animModelInfo_t struct won't work
-		// as it contains pointers (offset in QVM memory block) that will
-		// have to be converted to a real pointers for CGame DLL to use it.
-		// Additionally, there may be different struct alignment.
-		//
-		// That would require making a copy for CGame using VM_Alloc()
-		// (and tracking modelinfo to reuse?) to fix pointers and alignment
-		// issues. That would need means having to hard code animModelInfo_t.
-		// Which is a lot of weird hard coding work and iortcw already added
-		// a fall back for trap_GetModelInfo() in CGame to allow demo playback
-		// so this is unnecessary.
-		//
-		// FIXME: It would be necessary for using Game QVM with vanilla CGame DLL.
-		// --zturtleman
-		return qfalse;
-	}
 }

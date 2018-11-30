@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -81,9 +81,13 @@ void R_PerformanceCounters( void ) {
 R_IssueRenderCommands
 ====================
 */
+
 void R_IssueRenderCommands( qboolean runPerformanceCounters ) {
 	renderCommandList_t *cmdList;
 
+	if ( !tr.registered ) {  //DAJ BUGFIX
+		return;
+	}
 	cmdList = &backEndData->commands;
 	assert( cmdList );
 	// add an end-of-list command
@@ -115,7 +119,6 @@ void R_IssuePendingRenderCommands( void ) {
 	if ( !tr.registered ) {
 		return;
 	}
-
 	R_IssueRenderCommands( qfalse );
 }
 
@@ -129,6 +132,9 @@ make sure there is enough command space
 void *R_GetCommandBufferReserved( int bytes, int reservedBytes ) {
 	renderCommandList_t *cmdList;
 
+	if ( !tr.registered ) {  //DAJ BUGFIX
+		return NULL;
+	}
 	cmdList = &backEndData->commands;
 	bytes = PAD(bytes, sizeof(void *));
 
@@ -180,7 +186,6 @@ void    R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	cmd->refdef = tr.refdef;
 	cmd->viewParms = tr.viewParms;
 }
-
 
 /*
 =============
@@ -278,6 +283,41 @@ void R_SetColorMode(GLboolean *rgba, stereoFrame_t stereoFrame, int colormode)
 	}
 }
 
+/*
+=============
+RE_RotatedPic
+=============
+*/
+void RE_RotatedPic( float x, float y, float w, float h,
+					float s1, float t1, float s2, float t2, qhandle_t hShader, float angle ) {
+	stretchPicCommand_t *cmd;
+
+	cmd = R_GetCommandBuffer( sizeof( *cmd ) );
+	if ( !cmd ) {
+		return;
+	}
+	cmd->commandId = RC_ROTATED_PIC;
+	cmd->shader = R_GetShaderByHandle( hShader );
+	cmd->x = x;
+	cmd->y = y;
+	cmd->w = w;
+	cmd->h = h;
+
+	// fixup
+	cmd->w /= 2;
+	cmd->h /= 2;
+	cmd->x += cmd->w;
+	cmd->y += cmd->h;
+	cmd->w = sqrt( ( cmd->w * cmd->w ) + ( cmd->h * cmd->h ) );
+	cmd->h = cmd->w;
+
+	cmd->angle = angle;
+	cmd->s1 = s1;
+	cmd->t1 = t1;
+	cmd->s2 = s2;
+	cmd->t2 = t2;
+}
+
 //----(SA)	added
 /*
 ==============
@@ -340,10 +380,6 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	tr.frameCount++;
 	tr.frameSceneNum = 0;
 
-#ifdef IOS
-    GLimp_AcquireGL();
-#endif
-    
 	//
 	// do overdraw measurement
 	//
@@ -388,63 +424,10 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	}
 
 	//
-	// ATI stuff
-	//
-
-#if !defined(USE_OPENGLES) && !defined(IOS)
-	// TRUFORM
-	if ( qglPNTrianglesiATI ) {
-
-		// tess
-		if ( r_ati_truform_tess->modified ) {
-			r_ati_truform_tess->modified = qfalse;
-			// cap if necessary
-			if ( r_ati_truform_tess->value > glConfig.ATIMaxTruformTess ) {
-				ri.Cvar_Set( "r_ati_truform_tess", va( "%d",glConfig.ATIMaxTruformTess ) );
-			}
-
-			qglPNTrianglesiATI( GL_PN_TRIANGLES_TESSELATION_LEVEL_ATI, r_ati_truform_tess->value );
-		}
-
-		// point mode
-		if ( r_ati_truform_pointmode->modified ) {
-			r_ati_truform_pointmode->modified = qfalse;
-			// GR - shorten the mode name
-			if ( !Q_stricmp( r_ati_truform_pointmode->string, "LINEAR" ) ) {
-				glConfig.ATIPointMode = (int)GL_PN_TRIANGLES_POINT_MODE_LINEAR_ATI;
-				// GR - fix point mode change
-			} else if ( !Q_stricmp( r_ati_truform_pointmode->string, "CUBIC" ) ) {
-				glConfig.ATIPointMode = (int)GL_PN_TRIANGLES_POINT_MODE_CUBIC_ATI;
-			} else {
-				// bogus value, set to valid
-				glConfig.ATIPointMode = (int)GL_PN_TRIANGLES_POINT_MODE_CUBIC_ATI;
-				ri.Cvar_Set( "r_ati_truform_pointmode", "LINEAR" );
-			}
-			qglPNTrianglesiATI( GL_PN_TRIANGLES_POINT_MODE_ATI, glConfig.ATIPointMode );
-		}
-
-		// normal mode
-		if ( r_ati_truform_normalmode->modified ) {
-			r_ati_truform_normalmode->modified = qfalse;
-			// GR - shorten the mode name
-			if ( !Q_stricmp( r_ati_truform_normalmode->string, "LINEAR" ) ) {
-				glConfig.ATINormalMode = (int)GL_PN_TRIANGLES_NORMAL_MODE_LINEAR_ATI;
-				// GR - fix normal mode change
-			} else if ( !Q_stricmp( r_ati_truform_normalmode->string, "QUADRATIC" ) ) {
-				glConfig.ATINormalMode = (int)GL_PN_TRIANGLES_NORMAL_MODE_QUADRATIC_ATI;
-			} else {
-				// bogus value, set to valid
-				glConfig.ATINormalMode = (int)GL_PN_TRIANGLES_NORMAL_MODE_LINEAR_ATI;
-				ri.Cvar_Set( "r_ati_truform_normalmode", "LINEAR" );
-			}
-			qglPNTrianglesiATI( GL_PN_TRIANGLES_NORMAL_MODE_ATI, glConfig.ATINormalMode );
-		}
-	}
-
-	//
 	// NVidia stuff
 	//
 
+#ifndef USE_OPENGLES
 	// fog control
 	if ( glConfig.NVFogAvailable && r_nv_fogdist_mode->modified ) {
 		r_nv_fogdist_mode->modified = qfalse;
@@ -488,6 +471,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 			return;
 			
 		cmd->commandId = RC_DRAW_BUFFER;
+		
 		if ( stereoFrame == STEREO_LEFT ) {
 			cmd->buffer = (int)GL_BACK_LEFT;
 		} else if ( stereoFrame == STEREO_RIGHT ) {
@@ -570,10 +554,9 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 #ifndef USE_OPENGLES
 	}
 #endif
-
+	
 	tr.refdef.stereoFrame = stereoFrame;
 }
-
 
 /*
 =============
@@ -635,4 +618,3 @@ void RE_TakeVideoFrame( int width, int height,
 	cmd->encodeBuffer = encodeBuffer;
 	cmd->motionJpeg = motionJpeg;
 }
-

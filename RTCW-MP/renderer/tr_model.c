@@ -1,32 +1,32 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
 ===========================================================================
 */
 
-// tr_models.c -- model loading and caching
+// tr_models.c -- model loading
 
 #include "tr_local.h"
 
@@ -123,7 +123,7 @@ qhandle_t R_RegisterMD3(const char *name, model_t *mod)
 			loaded = R_LoadMDC( mod, lod, buf.u, name );
 		}
 		// done.
-	
+		
 		ri.FS_FreeFile(buf.v);
 
 		if(loaded)
@@ -299,6 +299,7 @@ static modelExtToLoaderMap_t modelLoaders[ ] =
 
 static int numModelLoaders = ARRAY_LEN(modelLoaders);
 
+
 /*
 ** R_GetModelByHandle
 */
@@ -384,23 +385,16 @@ qhandle_t RE_RegisterModel( const char *name ) {
 	// allocate a new model_t
 
 	if ( ( mod = R_AllocModel() ) == NULL ) {
-		ri.Printf( PRINT_WARNING, "RE_RegisterModel: R_AllocModel() failed for '%s'\n", name );
+		ri.Printf( PRINT_WARNING, "RE_RegisterModel: R_AllocModel() failed for '%s'\n", name);
 		return 0;
 	}
 
 	// only set the name after the model has been successfully loaded
 	Q_strncpyz( mod->name, name, sizeof( mod->name ) );
 
-// GR - by default models are not tessellated
-	mod->ATI_tess = qfalse;
-// GR - check if can be tessellated...
-//		make sure to tessellate model heads
-	if ( strstr( name, "head" ) ) {
-		mod->ATI_tess = qtrue;
-	}
 
 	R_IssuePendingRenderCommands();
- 
+
 	mod->type = MOD_BAD;
 	mod->numLods = 0;
 
@@ -410,6 +404,7 @@ qhandle_t RE_RegisterModel( const char *name ) {
 	Q_strncpyz( localName, name, MAX_QPATH );
 
 	ext = COM_GetExtension( localName );
+
 	if( *ext )
 	{
 		// Look for the correct loader and use it
@@ -422,6 +417,7 @@ qhandle_t RE_RegisterModel( const char *name ) {
 				break;
 			}
 		}
+
 		// A loader was found
 		if( i < numModelLoaders )
 		{
@@ -464,7 +460,7 @@ qhandle_t RE_RegisterModel( const char *name ) {
 			break;
 		}
 	}
-	
+
 	return hModel;
 }
 
@@ -489,7 +485,8 @@ R_MDC_GetAnorm
 =============
 */
 unsigned char R_MDC_GetAnorm( const vec3_t dir ) {
-	int i, best_start_i[3] = { 0 }, next_start, next_end, best = 0;     // TTimo: init
+	int i, best_start_i[3] = { 0 }, next_start, next_end;
+	int best = 0; // TTimo: init
 	float best_diff, group_val, this_val, diff;
 	float   *this_norm;
 
@@ -980,7 +977,7 @@ static qboolean R_LoadMDC( model_t *mod, int lod, void *buffer, const char *mod_
 		}
 		if ( surf->numTriangles*3 >= SHADER_MAX_INDEXES ) {
 			ri.Printf(PRINT_WARNING, "R_LoadMDC: %s has more than %i triangles on %s (%i).\n",
-				mod_name, ( SHADER_MAX_INDEXES / 3 ) - 1, surf->name[0] ? surf->name : "a surface",
+				mod_name, ( SHADER_MAX_INDEXES / 3) - 1, surf->name[0] ? surf->name : "a surface",
 				surf->numTriangles );
 			return qfalse;
 		}
@@ -1615,7 +1612,6 @@ static qboolean R_LoadMDR( model_t *mod, void *buffer, int filesize, const char 
 	return qtrue;
 }
 
-
 /*
 =================
 R_LoadMDS
@@ -1650,7 +1646,7 @@ static qboolean R_LoadMDS( model_t *mod, void *buffer, const char *mod_name ) {
 	mod->dataSize += size;
 	mds = mod->mds = ri.Hunk_Alloc( size, h_low );
 
-	memcpy( mds, buffer, LittleLong( pinmodel->ofsEnd ) );
+	Com_Memcpy( mds, buffer, LittleLong(pinmodel->ofsEnd) );
 
 	LL( mds->ident );
 	LL( mds->version );
@@ -1727,14 +1723,14 @@ static qboolean R_LoadMDS( model_t *mod, void *buffer, const char *mod_name ) {
 
 		if ( surf->numVerts >= SHADER_MAX_VERTEXES ) {
 			ri.Printf(PRINT_WARNING, "R_LoadMDS: %s has more than %i verts on %s (%i).\n",
-				mod_name, SHADER_MAX_VERTEXES - 1, surf->name[0] ? surf->name : "a surface",
-				surf->numVerts );
+					mod_name, SHADER_MAX_VERTEXES - 1, surf->name[0] ? surf->name : "a surface",
+					surf->numVerts );
 			return qfalse;
 		}
-		if ( surf->numTriangles*3 > SHADER_MAX_INDEXES ) {
+		if ( surf->numTriangles * 3 >=  SHADER_MAX_INDEXES ) {
 			ri.Printf(PRINT_WARNING, "R_LoadMDS: %s has more than %i triangles on %s (%i).\n",
-				mod_name, ( SHADER_MAX_INDEXES / 3 ) - 1, surf->name[0] ? surf->name : "a surface",
-				surf->numTriangles );
+					mod_name, ( SHADER_MAX_INDEXES / 3 ) - 1, surf->name[0] ? surf->name : "a surface",
+					surf->numTriangles );
 			return qfalse;
 		}
 
@@ -1779,6 +1775,18 @@ static qboolean R_LoadMDS( model_t *mod, void *buffer, const char *mod_name ) {
 					v->weights[k].offset[2] = LittleFloat( v->weights[k].offset[2] );
 				}
 
+				// find the fixedParent for this vert (if exists)
+				v->fixedParent = -1;
+				if ( v->numWeights == 2 ) {
+					// find the closest parent
+					if ( VectorLength( v->weights[0].offset ) < VectorLength( v->weights[1].offset ) ) {
+						v->fixedParent = 0;
+					} else {
+						v->fixedParent = 1;
+					}
+					v->fixedDist = VectorLength( v->weights[v->fixedParent].offset );
+				}
+
 				v = (mdsVertex_t *)&v->weights[v->numWeights];
 			}
 
@@ -1819,9 +1827,7 @@ void RE_BeginRegistration( glconfig_t *glconfigOut ) {
 	R_IssuePendingRenderCommands();
 
 	tr.viewCluster = -1;        // force markleafs to regenerate
-#ifndef IOS
 	R_ClearFlares();
-#endif // !IOS
 	RE_ClearScene();
 
 	tr.registered = qtrue;
@@ -1966,8 +1972,8 @@ static int R_GetMDCTag( byte *mod, int frame, const char *tagName, int startTagI
 R_GetMDSTag
 ================
 */
-// TTimo: unused
 /*
+// TTimo: unused
 static int R_GetMDSTag( byte *mod, const char *tagName, int startTagIndex, mdsTag_t **outTag ) {
 	mdsTag_t		*tag;
 	int				i;
@@ -1998,7 +2004,6 @@ static int R_GetMDSTag( byte *mod, const char *tagName, int startTagIndex, mdsTa
 	return i;
 }
 */
-
 
 static int R_GetAnimTag( mdrHeader_t *mod, int framenum, const char *tagName, int startTagIndex, md3Tag_t **outTag)
 {
@@ -2050,7 +2055,6 @@ static int R_GetAnimTag( mdrHeader_t *mod, int framenum, const char *tagName, in
 	return -1;
 }
 
-
 /*
 ================
 R_LerpTag
@@ -2059,18 +2063,18 @@ R_LerpTag
 ================
 */
 int R_LerpTag( orientation_t *tag, const refEntity_t *refent, const char *tagNameIn, int startIndex ) {
-	md3Tag_t    *start, *end;
+	md3Tag_t	*start, *end;
 	md3Tag_t	start_space, end_space;
-	md3Tag_t ustart, uend;
-	int i;
-	float frontLerp, backLerp;
-	model_t     *model;
-	vec3_t sangles, eangles;
-	char tagName[MAX_QPATH];       //, *ch;
-	int retval = 0;
-	qhandle_t handle;
-	int startFrame, endFrame;
-	float frac;
+	md3Tag_t	ustart, uend;
+	int		i;
+	float		frontLerp, backLerp;
+	model_t		*model;
+	vec3_t		sangles, eangles;
+	char		tagName[MAX_QPATH];       //, *ch;
+	int		retval = 0;
+	qhandle_t	handle;
+	int		startFrame, endFrame;
+	float		frac;
 
 	handle = refent->hModel;
 	startFrame = refent->oldframe;
@@ -2092,6 +2096,7 @@ int R_LerpTag( orientation_t *tag, const refEntity_t *refent, const char *tagNam
 		{
 			start = &start_space;
 			end = &end_space;
+
 			retval = R_GetAnimTag((mdrHeader_t *) model->modelData, startFrame, tagName, startIndex, &start);
 			R_GetAnimTag((mdrHeader_t *) model->modelData, endFrame, tagName, startIndex, &end);
 		}
@@ -2207,7 +2212,6 @@ void R_TagInfo_f( void ) {
 */
 }
 
-
 /*
 ====================
 R_ModelBounds
@@ -2269,7 +2273,6 @@ void R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs ) {
 	VectorClear( maxs );
 	// done.
 }
-
 
 void *R_Hunk_Begin( void ) {
 	return NULL;

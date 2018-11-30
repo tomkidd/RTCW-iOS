@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -59,26 +59,26 @@ extern gentity_t    *podium1;
 extern gentity_t    *podium2;
 extern gentity_t    *podium3;
 
+// TTimo gcc: defined but not used
+#if 0
 /*
 ===============
 G_LoadArenas
 ===============
 */
-/*
 static void G_LoadArenas( void ) {
 #ifdef QUAKESTUFF
-	int			len;
-	char		*filename;
-	vmCvar_t	arenasFile;
-	fileHandle_t	f;
-	int			n;
-	char		buf[MAX_ARENAS_TEXT];
+	int len;
+	char        *filename;
+	vmCvar_t arenasFile;
+	fileHandle_t f;
+	int n;
+	char buf[MAX_ARENAS_TEXT];
 
-	trap_Cvar_Register( &arenasFile, "g_arenasFile", "", CVAR_INIT|CVAR_ROM );
-	if( *arenasFile.string ) {
+	trap_Cvar_Register( &arenasFile, "g_arenasFile", "", CVAR_INIT | CVAR_ROM );
+	if ( *arenasFile.string ) {
 		filename = arenasFile.string;
-	}
-	else {
+	} else {
 		filename = "scripts/arenas.txt";
 	}
 
@@ -100,13 +100,12 @@ static void G_LoadArenas( void ) {
 	g_numArenas = COM_ParseInfos( buf, MAX_ARENAS, g_arenaInfos );
 	trap_Print( va( "%i arenas parsed\n", g_numArenas ) );
 
-	for( n = 0; n < g_numArenas; n++ ) {
+	for ( n = 0; n < g_numArenas; n++ ) {
 		Info_SetValueForKey( g_arenaInfos[n], "num", va( "%i", n ) );
 	}
 #endif
 }
-*/
-
+#endif
 
 /*
 ===============
@@ -414,7 +413,7 @@ G_CheckBotSpawn
 */
 void G_CheckBotSpawn( void ) {
 	int n;
-	char userinfo[MAX_INFO_VALUE];
+	char userinfo[MAX_INFO_STRING];
 
 	G_CheckMinimumPlayers();
 
@@ -691,39 +690,39 @@ void Svcmd_AddBot_f( void ) {
 	}
 }
 
-
+// TTimo gcc: defined but not used
+#if 0
 /*
 ===============
 G_SpawnBots
 ===============
 */
-/*
 static void G_SpawnBots( char *botList, int baseDelay ) {
-	char		*bot;
-	char		*p;
-	int			skill;
-	int			delay;
-	char		bots[MAX_INFO_VALUE];
+	char        *bot;
+	char        *p;
+	int skill;
+	int delay;
+	char bots[MAX_INFO_VALUE];
 
 	podium1 = NULL;
 	podium2 = NULL;
 	podium3 = NULL;
 
 	skill = trap_Cvar_VariableIntegerValue( "g_spSkill" );
-	if( skill < 1 || skill > 5 ) {
+	if ( skill < 1 || skill > 5 ) {
 		trap_Cvar_Set( "g_spSkill", "2" );
 		skill = 2;
 	}
 
-	Q_strncpyz( bots, botList, sizeof(bots) );
+	Q_strncpyz( bots, botList, sizeof( bots ) );
 	p = &bots[0];
 	delay = baseDelay;
-	while( *p ) {
+	while ( *p ) {
 		//skip spaces
-		while( *p && *p == ' ' ) {
+		while ( *p && *p == ' ' ) {
 			p++;
 		}
-		if( !*p ) {
+		if ( !*p ) {
 			break;
 		}
 
@@ -731,47 +730,45 @@ static void G_SpawnBots( char *botList, int baseDelay ) {
 		bot = p;
 
 		// skip until space of null
-		while( *p && *p != ' ' ) {
+		while ( *p && *p != ' ' ) {
 			p++;
 		}
-		if( *p ) {
+		if ( *p ) {
 			*p++ = 0;
 		}
 
 		// we must add the bot this way, calling G_AddBot directly at this stage
 		// does "Bad Things"
-		trap_SendConsoleCommand( EXEC_INSERT, va("addbot %s %i free %i\n", bot, skill, delay) );
+		trap_SendConsoleCommand( EXEC_INSERT, va( "addbot %s %i free %i\n", bot, skill, delay ) );
 
 		delay += BOT_BEGIN_DELAY_INCREMENT;
 	}
 }
-*/
+#endif
 
-
+// TTimo gcc: defined but not used
+#if 0
 /*
 ===============
 G_LoadBots
 ===============
 */
-// TTimo: unused
-/*
 static void G_LoadBots( void ) {
 #ifdef QUAKESTUFF
-	int			len;
-	char		*filename;
-	vmCvar_t	botsFile;
-	fileHandle_t	f;
-	char		buf[MAX_BOTS_TEXT];
+	int len;
+	char        *filename;
+	vmCvar_t botsFile;
+	fileHandle_t f;
+	char buf[MAX_BOTS_TEXT];
 
 	if ( !trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		return;
 	}
 
-	trap_Cvar_Register( &botsFile, "g_botsFile", "", CVAR_INIT|CVAR_ROM );
-	if( *botsFile.string ) {
+	trap_Cvar_Register( &botsFile, "g_botsFile", "", CVAR_INIT | CVAR_ROM );
+	if ( *botsFile.string ) {
 		filename = botsFile.string;
-	}
-	else {
+	} else {
 		filename = "scripts/bots.txt";
 	}
 
@@ -794,7 +791,7 @@ static void G_LoadBots( void ) {
 	trap_Print( va( "%i bots parsed\n", g_numBots ) );
 #endif
 }
-*/
+#endif
 
 /*
 ===============
@@ -834,12 +831,12 @@ char *G_GetBotInfoByName( const char *name ) {
 G_InitBots
 ===============
 */
-/*
 void G_InitBots( qboolean restart ) {
 
 	// Ridah, we don't need this anymore
 	return;
 	// done.
+/*
 	int			fragLimit;
 	int			timeLimit;
 	const char	*arenainfo;
@@ -894,5 +891,5 @@ void G_InitBots( qboolean restart ) {
 			G_SpawnBots( Info_ValueForKey( arenainfo, "bots" ), basedelay );
 		}
 	}
-}
 */
+}

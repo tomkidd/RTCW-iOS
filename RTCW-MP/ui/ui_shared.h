@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -34,7 +34,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "../renderer/tr_types.h"
 #include "../client/keycodes.h"
 
-#include "../../main/ui/menudef.h"
+// TTimo case sensitivity
+#include "../../MAIN/ui_mp/menudef.h"
 
 #define MAX_MENUNAME 32
 #define MAX_ITEMTEXT 64
@@ -42,9 +43,10 @@ If you have questions concerning this license or the applicable additional terms
 #define MAX_MENUDEFFILE 4096
 #define MAX_MENUFILE 32768
 #define MAX_MENUS 64
-#define MAX_MENUITEMS 256
+//#define MAX_MENUITEMS 256
+#define MAX_MENUITEMS 128 // JPW NERVE q3ta was 96
 #define MAX_COLOR_RANGES 10
-#define MAX_OPEN_MENUS 16
+#define MAX_MODAL_MENUS 16
 
 #define WINDOW_MOUSEOVER        0x00000001  // mouse is over it, non exclusive
 #define WINDOW_HASFOCUS         0x00000002  // has cursor focus, exclusive
@@ -71,6 +73,7 @@ If you have questions concerning this license or the applicable additional terms
 #define WINDOW_BACKCOLORSET     0x00400000  // backcolor was explicitly set
 #define WINDOW_TIMEDVISIBLE     0x00800000  // visibility timing ( NOT implemented )
 #define WINDOW_IGNORE_HUDALPHA  0x01000000  // window will apply cg_hudAlpha value to colors unless this flag is set
+#define WINDOW_MODAL                        0x02000000 // window is modal, the window to go back to is stored in a stack
 
 // CGAME cursor type bits
 #define CURSOR_NONE             0x00000001
@@ -96,15 +99,15 @@ If you have questions concerning this license or the applicable additional terms
 #define ART_FX_WHITE        "menu/art/fx_white"
 #define ART_FX_YELLOW       "menu/art/fx_yel"
 
-#define ASSET_GRADIENTBAR           "ui/assets/gradientbar2.tga"
-#define ASSET_SCROLLBAR             "ui/assets/scrollbar.tga"
-#define ASSET_SCROLLBAR_ARROWDOWN   "ui/assets/scrollbar_arrow_dwn_a.tga"
-#define ASSET_SCROLLBAR_ARROWUP     "ui/assets/scrollbar_arrow_up_a.tga"
-#define ASSET_SCROLLBAR_ARROWLEFT   "ui/assets/scrollbar_arrow_left.tga"
-#define ASSET_SCROLLBAR_ARROWRIGHT  "ui/assets/scrollbar_arrow_right.tga"
-#define ASSET_SCROLL_THUMB          "ui/assets/scrollbar_thumb.tga"
-#define ASSET_SLIDER_BAR            "ui/assets/slider2.tga"
-#define ASSET_SLIDER_THUMB          "ui/assets/sliderbutt_1.tga"
+#define ASSET_GRADIENTBAR           "ui_mp/assets/gradientbar2.tga"
+#define ASSET_SCROLLBAR             "ui_mp/assets/scrollbar.tga"
+#define ASSET_SCROLLBAR_ARROWDOWN   "ui_mp/assets/scrollbar_arrow_dwn_a.tga"
+#define ASSET_SCROLLBAR_ARROWUP     "ui_mp/assets/scrollbar_arrow_up_a.tga"
+#define ASSET_SCROLLBAR_ARROWLEFT   "ui_mp/assets/scrollbar_arrow_left.tga"
+#define ASSET_SCROLLBAR_ARROWRIGHT  "ui_mp/assets/scrollbar_arrow_right.tga"
+#define ASSET_SCROLL_THUMB          "ui_mp/assets/scrollbar_thumb.tga"
+#define ASSET_SLIDER_BAR            "ui_mp/assets/slider2.tga"
+#define ASSET_SLIDER_THUMB          "ui_mp/assets/sliderbutt_1.tga"
 
 #define SCROLLBAR_SIZE      16.0
 #define SLIDER_WIDTH        96.0
@@ -239,6 +242,7 @@ typedef struct modelDef_s {
 #define CVAR_DISABLE    0x00000002
 #define CVAR_SHOW       0x00000004
 #define CVAR_HIDE       0x00000008
+#define CVAR_NOTOGGLE   0x00000010
 
 #define UI_MAX_TEXT_LINES 64
 
@@ -247,14 +251,13 @@ typedef struct itemDef_s {
 	Rectangle textRect;             // rectangle the text ( if any ) consumes
 	int type;                       // text, button, radiobutton, checkbox, textfield, listbox, combo
 	int alignment;                  // left center right
-	int font;                       //		//----(SA)	added
 	int textalignment;              // ( optional ) alignment for text within rect based on text width
 	float textalignx;               // ( optional ) text alignment x coord
 	float textaligny;               // ( optional ) text alignment x coord
 	float textscale;                // scale percentage from 72pts
+	int font;                       // (SA)
 	int textStyle;                  // ( optional ) style, normal and shadowed are it for now
-	const char *text;               // display text
-	qboolean textSavegameInfo;      //----(SA)	added
+	const char *text;   // display text
 	void *parent;                   // menu owner
 	qhandle_t asset;                // handle to asset
 	const char *mouseEnterText;     // mouse enter script
@@ -293,7 +296,6 @@ typedef struct {
 	const char *onESC;              // run when the menu is closed
 	const char *onKey[255];         // NERVE - SMF - execs commands when a key is pressed
 	const char *soundName;          // background loop sound for menu
-	const char *onROQDone;          //----(SA)	added.  callback for roqs played from menus
 
 	vec4_t focusColor;              // focus color for items
 	vec4_t disableColor;            // focus color for items
@@ -301,13 +303,12 @@ typedef struct {
 } menuDef_t;
 
 typedef struct {
-	const char  *fontStr;
-	const char  *cursorStr;
-	const char  *gradientStr;
+	const char *fontStr;
+	const char *cursorStr;
+	const char *gradientStr;
 	fontInfo_t textFont;
 	fontInfo_t smallFont;
 	fontInfo_t bigFont;
-	fontInfo_t handwritingFont;
 	qhandle_t cursor;
 	qhandle_t gradientBar;
 	qhandle_t scrollBarArrowUp;
@@ -351,9 +352,10 @@ typedef struct {
 	void ( *setColor )( const vec4_t v );
 	void ( *drawHandlePic )( float x, float y, float w, float h, qhandle_t asset );
 	void ( *drawStretchPic )( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader );
-	void ( *drawText )( float x, float y, int font, float scale, vec4_t color, const char *text, float adjust, int limit, int style );
-	int ( *textWidth )( const char *text, int font, float scale, int limit );
-	int ( *textHeight )( const char *text, int font, float scale, int limit );
+	void ( *drawText )( float x, float y, float scale, vec4_t color, const char *text, float adjust, int limit, int style );
+	int ( *textWidth )( const char *text, float scale, int limit );
+	int ( *textHeight )( const char *text, float scale, int limit );
+	void ( *textFont )( int font );          // NERVE - SMF
 	qhandle_t ( *registerModel )( const char *p );
 	void ( *modelBounds )( qhandle_t model, vec3_t min, vec3_t max );
 	void ( *fillRect )( float x, float y, float w, float h, const vec4_t color );
@@ -364,7 +366,7 @@ typedef struct {
 	void ( *addRefEntityToScene )( const refEntity_t *re );
 	void ( *renderScene )( const refdef_t *fd );
 	void ( *registerFont )( const char *pFontname, int pointSize, fontInfo_t *font );
-	void ( *ownerDrawItem )( float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, int font, float scale, vec4_t color, qhandle_t shader, int textStyle );
+	void ( *ownerDrawItem )( float x, float y, float w, float h, float text_x, float text_y, int ownerDraw, int ownerDrawFlags, int align, float special, float scale, vec4_t color, qhandle_t shader, int textStyle );
 	float ( *getValue )( int ownerDraw, int type );
 	qboolean ( *ownerDrawVisible )( int flags );
 	void ( *runScript )( char **p );
@@ -372,20 +374,20 @@ typedef struct {
 	void ( *getCVarString )( const char *cvar, char *buffer, int bufsize );
 	float ( *getCVarValue )( const char *cvar );
 	void ( *setCVar )( const char *cvar, const char *value );
-	void ( *drawTextWithCursor )( float x, float y, int font, float scale, vec4_t color, const char *text, int cursorPos, char cursor, int limit, int style );
+	void ( *drawTextWithCursor )( float x, float y, float scale, vec4_t color, const char *text, int cursorPos, char cursor, int limit, int style );
 	void ( *setOverstrikeMode )( qboolean b );
 	qboolean ( *getOverstrikeMode )( void );
 	void ( *startLocalSound )( sfxHandle_t sfx, int channelNum );
 	qboolean ( *ownerDrawHandleKey )( int ownerDraw, int flags, float *special, int key );
 	int ( *feederCount )( float feederID );
 	const char *( *feederItemText )( float feederID, int index, int column, qhandle_t * handle );
-
-	const char *( *fileText )( char *flieName );    //----(SA)	added
-	const char *( *getTranslatedString )( const char *inString );   //----(SA)	added
-
+	const char *( *fileText )( char *flieName );
 	qhandle_t ( *feederItemImage )( float feederID, int index );
 	void ( *feederSelection )( float feederID, int index );
 	void ( *feederAddItem )( float feederID, const char *name, int index );           // NERVE - SMF
+	char* ( *translateString )( const char *string );                                 // NERVE - SMF
+	void ( *checkAutoUpdate )( void );                                         // DHM - Nerve
+	void ( *getAutoUpdate )( void );                                           // DHM - Nerve
 
 	void ( *keynumToStringBuf )( int keynum, char *buf, int buflen );
 	void ( *getBindingBuf )( int keynum, char *buf, int buflen );
@@ -395,10 +397,10 @@ typedef struct {
 	void (*Print)(const char *msg, ...) __attribute__ ((format (printf, 1, 2)));
 	void (*DPrint)(const char *msg, ...) __attribute__ ((format (printf, 1, 2)));
 	void ( *Pause )( qboolean b );
-	int ( *ownerDrawWidth )( int ownerDraw, int font, float scale );
+	int ( *ownerDrawWidth )( int ownerDraw, float scale );
 //	sfxHandle_t (*registerSound)(const char *name, qboolean compressed);
 	sfxHandle_t ( *registerSound )( const char *name );
-	void ( *startBackgroundTrack )( const char *intro, const char *loop, int fadeupTime );
+	void ( *startBackgroundTrack )( const char *intro, const char *loop );
 	void ( *stopBackgroundTrack )( void );
 	int ( *playCinematic )( const char *name, float x, float y, float w, float h );
 	void ( *stopCinematic )( int handle );
@@ -428,20 +430,6 @@ typedef struct {
 
 } displayContextDef_t;
 
-
-//----(SA)	added
-
-typedef struct {
-	char *name;
-	char *localname;
-} translateString_t;
-
-#define MAX_TRANSLATESTRINGS 64
-extern translateString_t translateStrings[MAX_TRANSLATESTRINGS];
-
-//----(SA)	end
-
-
 const char *String_Alloc( const char *p );
 void String_Init( void );
 void String_Report( void );
@@ -470,7 +458,7 @@ qboolean PC_Char_Parse( int handle, char *out );              // NERVE - SMF
 int Menu_Count( void );
 void Menu_New( int handle );
 void Menu_PaintAll( void );
-menuDef_t *Menus_ActivateByName( const char *p );
+menuDef_t *Menus_ActivateByName( const char *p, qboolean modalStack );
 void Menu_Reset( void );
 qboolean Menus_AnyFullScreenVisible( void );
 void  Menus_Activate( menuDef_t *menu );
@@ -492,10 +480,12 @@ void        Menu_Paint( menuDef_t *menu, qboolean forcePaint );
 void        Menu_SetFeederSelection( menuDef_t *menu, int feeder, int index, const char *name );
 void        Display_CacheAll( void );
 
+// TTimo
+void Menu_ShowItemByName( menuDef_t *menu, const char *p, qboolean bShow );
+
 void        *UI_Alloc( int size );
 void        UI_InitMemory( void );
 qboolean    UI_OutOfMemory( void );
-void        UI_RoQDone( void ); // ui callback.  roq is done, allow menu to handle if it wants
 
 void        Controls_GetConfig( void );
 void        Controls_SetConfig( qboolean restart );

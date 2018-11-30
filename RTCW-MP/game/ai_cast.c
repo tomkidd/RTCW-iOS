@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -102,7 +102,6 @@ char *castAttributeStrings[] =
 	"ALERTNESS",     // max = 1.0	(ability to notice enemies at long range)
 	"STARTING_HEALTH",
 	"HEARING_SCALE",
-	"HEARING_SCALE_NOT_PVS",
 	"INNER_DETECTION_RADIUS",
 	"PAIN_THRESHOLD_SCALE",
 
@@ -142,10 +141,6 @@ AICast_GetCastState
 ============
 */
 cast_state_t *AICast_GetCastState( int entitynum ) {
-	if ( entitynum < 0 || entitynum > level.maxclients ) {
-		return NULL;
-	}
-	//
 	return &( caststates[ entitynum ] );
 }
 
@@ -379,7 +374,6 @@ gentity_t *AICast_CreateCharacter( gentity_t *ent, float *attributes, cast_weapo
 	cs = AICast_GetCastState( newent->s.number );
 	//
 	cs->aiCharacter = ent->aiCharacter;
-	client->ps.aiChar = ent->aiCharacter;
 	// setup the attributes
 	memcpy( cs->attributes, attributes, sizeof( cs->attributes ) );
 	ppStr = &ent->aiAttributes;
@@ -387,16 +381,16 @@ gentity_t *AICast_CreateCharacter( gentity_t *ent, float *attributes, cast_weapo
 	//
 	AICast_SetAASIndex( cs );
 	// make sure they face the right direction
-	VectorCopy( ent->s.angles, cs->ideal_viewangles );
+	VectorCopy( ent->s.angles, cs->bs->ideal_viewangles );
 	// factor in the delta_angles
 	for ( j = 0; j < 3; j++ ) {
-		cs->viewangles[j] = AngleMod( newent->s.angles[j] - SHORT2ANGLE( newent->client->ps.delta_angles[j] ) );
+		cs->bs->viewangles[j] = AngleMod( newent->s.angles[j] - SHORT2ANGLE( newent->client->ps.delta_angles[j] ) );
 	}
 	VectorCopy( ent->s.angles, newent->s.angles );
 	VectorCopy( ent->s.origin, cs->startOrigin );
 	//
 	cs->lastEnemy = -1;
-	cs->enemyNum = -1;
+	cs->bs->enemy = -1;
 	cs->leaderNum = -1;
 	cs->castScriptStatus.scriptGotoEnt = -1;
 	//
@@ -415,7 +409,7 @@ gentity_t *AICast_CreateCharacter( gentity_t *ent, float *attributes, cast_weapo
 	// setup bounding boxes
 	//VectorCopy( mins, client->ps.mins );
 	//VectorCopy( maxs, client->ps.maxs );
-	AIChar_SetBBox( newent, cs, qfalse );
+	AIChar_SetBBox( newent, cs );
 	client->ps.friction = cs->attributes[RUNNING_SPEED] / 300.0;
 	//
 	// clear weapons/ammo
@@ -438,11 +432,11 @@ gentity_t *AICast_CreateCharacter( gentity_t *ent, float *attributes, cast_weapo
 	newent->die = AICast_Die;
 	//
 	//update the attack inventory values
-	AICast_UpdateBattleInventory( cs, cs->enemyNum );
+	AICast_UpdateBattleInventory( cs, cs->bs->enemy );
 
 //----(SA)	make sure all clips are loaded so we don't hear everyone loading up
 //			(we don't want to do this inside AICast_UpdateBattleInventory(), only on spawn or giveweapon)
-	for ( j = 0; j < WP_NUM_WEAPONS; j++ ) {
+	for ( j = 0; j < MAX_WEAPONS; j++ ) {
 		Fill_Clip( &client->ps, j );
 	}
 //----(SA)	end
@@ -473,6 +467,7 @@ void AICast_Init( void ) {
 	vmCvar_t cvar;
 	int i;
 
+	numSecrets = 0;
 	numcast = 0;
 	numSpawningCast = 0;
 	saveGamePending = qtrue;
@@ -490,7 +485,7 @@ void AICast_Init( void ) {
 	trap_Cvar_Register( &cvar, "aicast_thinktime", "50", 0 );
 	aicast_thinktime = trap_Cvar_VariableIntegerValue( "aicast_thinktime" );
 
-	trap_Cvar_Register( &cvar, "aicast_maxthink", "4", 0 );
+	trap_Cvar_Register( &cvar, "aicast_maxthink", "12", 0 );
 	aicast_maxthink = trap_Cvar_VariableIntegerValue( "aicast_maxthink" );
 
 	aicast_maxclients = trap_Cvar_VariableIntegerValue( "sv_maxclients" );
@@ -503,14 +498,12 @@ void AICast_Init( void ) {
 		caststates[i].entityNum = i;
 	}
 
-/* RF, this is useless, since the AAS hasnt been loaded yet
 	// try and load in the AAS now, so we can interact with it during spawning of entities
 	i = 0;
 	trap_AAS_SetCurrentWorld( 0 );
 	while ( !trap_AAS_Initialized() && ( i++ < 10 ) ) {
 		trap_BotLibStartFrame( (float) level.time / 1000 );
 	}
-*/
 }
 
 /*
@@ -629,7 +622,7 @@ void AIChar_AIScript_AlertEntity( gentity_t *ent ) {
 	AICast_Think( ent->s.number, (float)FRAMETIME / 1000 );
 	cs->lastThink = level.time;
 	AICast_UpdateInput( cs, FRAMETIME );
-	trap_BotUserCommand( cs->bs->client, &( cs->lastucmd ) );
+	trap_BotUserCommand( cs->bs->client, &( cs->bs->lastucmd ) );
 }
 
 
@@ -639,8 +632,6 @@ AICast_DelayedSpawnCast
 ================
 */
 void AICast_DelayedSpawnCast( gentity_t *ent, int castType ) {
-	int i;
-
 	// ............................
 	// head separation
 	if ( !ent->aiSkin ) {
@@ -652,12 +643,6 @@ void AICast_DelayedSpawnCast( gentity_t *ent, int castType ) {
 	G_SpawnInt( "aiteam", "-1", &ent->aiTeam );
 	// ............................
 
-
-//----(SA)	make sure client registers the default weapons for this char
-	for ( i = 0; aiDefaults[ent->aiCharacter].weapons[i]; i++ ) {
-		RegisterItem( BG_FindItemForWeapon( aiDefaults[ent->aiCharacter].weapons[i] ) );
-	}
-//----(SA)	end
 
 	// we have to wait a bit before spawning it, otherwise the server will just delete it, since it's treated like a client
 	ent->think = AIChar_spawn;
@@ -697,22 +682,8 @@ void AICast_CastScriptThink( void ) {
 		if ( !cs->bs ) {
 			continue;
 		}
-		if ( ent->health <= 0 ) {
-			continue;
-		}
 		AICast_ScriptRun( cs, qfalse );
 	}
-}
-
-/*
-==================
-AICast_EnableRenderingThink
-==================
-*/
-void AICast_EnableRenderingThink( gentity_t *ent ) {
-	trap_Cvar_Set( "cg_norender", "0" );
-//		trap_S_FadeAllSound(1.0f, 1000);	// fade sound up
-	G_FreeEntity( ent );
 }
 
 /*
@@ -726,9 +697,8 @@ AICast_CheckLoadGame
 */
 void AICast_CheckLoadGame( void ) {
 	char loading[4];
-	gentity_t *ent = NULL;
+	gentity_t *ent;
 	qboolean ready;
-	cast_state_t *pcs;
 
 	// have we already done the save or load?
 	if ( !saveGamePending ) {
@@ -740,15 +710,13 @@ void AICast_CheckLoadGame( void ) {
 
 	trap_Cvar_VariableStringBuffer( "savegame_loading", loading, sizeof( loading ) );
 
-	trap_Cvar_Set( "g_reloading", "1" );
+	// screen should be black if we are at this stage
+	trap_SetConfigstring( CS_SCREENFADE, va( "1 %i 1", level.time - 10 ) );
+	reloading = qtrue;
 
 	if ( strlen( loading ) > 0 && atoi( loading ) != 0 ) {
-		// screen should be black if we are at this stage
-		trap_SetConfigstring( CS_SCREENFADE, va( "1 %i 1", level.time - 10 ) );
-
-		if ( !( g_reloading.integer ) && atoi( loading ) == 2 ) {
-			// (SA) hmm, this seems redundant when it sets it above...
-			trap_Cvar_Set( "g_reloading", "1" );
+		if ( !reloading && atoi( loading ) == 2 ) {
+			reloading = qtrue;  // this gets reset at the Map_Restart() since the server unloads the game dll
 		}
 
 		ready = qtrue;
@@ -763,21 +731,13 @@ void AICast_CheckLoadGame( void ) {
 		if ( ready ) {
 			trap_Cvar_Set( "savegame_loading", "0" ); // in-case it aborts
 			saveGamePending = qfalse;
-			G_LoadGame( NULL );		// always load the "current" savegame
-//			trap_Cvar_Set( "cg_norender", "0" );
-
-			// RF, spawn a thinker that will enable rendering after the client has had time to process the entities and setup the display
-			ent = G_Spawn();
-			ent->nextthink = level.time + 200;
-			ent->think = AICast_EnableRenderingThink;
+//			G_LoadGame( NULL );		// always load the "current" savegame
+			trap_Cvar_Set( "cg_norender", "0" );
 
 			// wait for the clients to return from faded screen
 //			trap_SetConfigstring( CS_SCREENFADE, va("0 %i 1500", level.time + 500) );
 			trap_SetConfigstring( CS_SCREENFADE, va( "0 %i 750", level.time + 500 ) );
 			level.reloadPauseTime = level.time + 1100;
-
-			// make sure sound fades up
-			trap_SendServerCommand( -1, va( "snd_fade 1 %d", 2000 ) );  //----(SA)	added
 
 			AICast_CastScriptThink();
 		}
@@ -794,24 +754,14 @@ void AICast_CheckLoadGame( void ) {
 
 		// not loading a game, we must be in a new level, so look for some persistant data to read in, then save the game
 		if ( ready ) {
-			G_LoadPersistant();		// make sure we save the game after we have brought across the items
+//			G_LoadPersistant();		// make sure we save the game after we have brought across the items
 
-			trap_Cvar_Set( "g_totalPlayTime", "0" );  // reset play time
-			trap_Cvar_Set( "g_attempts", "0" );
-			pcs = AICast_GetCastState( ent->s.number );
-			pcs->totalPlayTime = 0;
-			pcs->lastLoadTime = 0;
-			pcs->attempts = 0;
-
+			trap_Cvar_Set( "cg_norender", "0" );
 			saveGamePending = qfalse;
 
 			// wait for the clients to return from faded screen
 //			trap_SetConfigstring( CS_SCREENFADE, va( "0 %i 1500", level.time + 500 ) );
-//			trap_SetConfigstring( CS_SCREENFADE, va( "0 %i 750", level.time + 500 ) );
-
-			// (SA) send a command that will be interpreted for both the screenfade and any other effects (music cues, pregame menu, etc)
-			// briefing menu will handle transition, just set a cvar for it to check for drawing the 'continue' button
-			trap_SendServerCommand( -1, "rockandroll\n" );
+			trap_SetConfigstring( CS_SCREENFADE, va( "0 %i 750", level.time + 500 ) );
 			level.reloadPauseTime = level.time + 1100;
 
 			AICast_CastScriptThink();
@@ -877,32 +827,6 @@ qboolean AICast_NoFlameDamage( int entNum ) {
 }
 
 /*
-================
-AICast_SetFlameDamage
-================
-*/
-void AICast_SetFlameDamage( int entNum, qboolean status ) {
-	cast_state_t *cs;
-
-	if ( entNum >= MAX_CLIENTS ) {
-		return;
-	}
-
-	// DHM - Nerve :: Not in multiplayer
-	if ( g_gametype.integer != GT_SINGLE_PLAYER ) {
-		return;
-	}
-
-	cs = AICast_GetCastState( entNum );
-
-	if ( status ) {
-		cs->aiFlags |= AIFL_NO_FLAME_DAMAGE;
-	} else {
-		cs->aiFlags &= ~AIFL_NO_FLAME_DAMAGE;
-	}
-}
-
-/*
 ===============
 G_SetAASBlockingEntity
 
@@ -922,7 +846,7 @@ AICast_AdjustIdealYawForMover
 void AICast_AdjustIdealYawForMover( int entnum, float yaw ) {
 	cast_state_t *cs = AICast_GetCastState( entnum );
 	//
-	cs->ideal_viewangles[YAW] += yaw;
+	cs->bs->ideal_viewangles[YAW] += yaw;
 }
 
 /*
@@ -933,18 +857,9 @@ AICast_AgePlayTime
 void AICast_AgePlayTime( int entnum ) {
 	cast_state_t *cs = AICast_GetCastState( entnum );
 	//
-	if ( saveGamePending ) {
-		return;
-	}
-
-	if ( g_reloading.integer ) {
-		return;
-	}
-
-	if ( ( level.time - cs->lastLoadTime ) > 1000 ) {
-		if ( /*( level.time - cs->lastLoadTime ) < 2000 &&*/ ( level.time - cs->lastLoadTime ) > 0 ) {
+	if ( ( level.time - cs->lastLoadTime ) > 100 ) {
+		if ( ( level.time - cs->lastLoadTime ) < 1000 ) {
 			cs->totalPlayTime += level.time - cs->lastLoadTime;
-			trap_Cvar_Set( "g_totalPlayTime", va( "%i", cs->totalPlayTime ) );
 		}
 		//
 		cs->lastLoadTime = level.time;
@@ -960,32 +875,4 @@ int AICast_NoReload( int entnum ) {
 	cast_state_t *cs = AICast_GetCastState( entnum );
 	//
 	return ( ( cs->aiFlags & AIFL_NO_RELOAD ) != 0 );
-}
-
-
-/*
-==============
-AICast_PlayTime
-==============
-*/
-int AICast_PlayTime( int entnum ) {
-	cast_state_t *cs = AICast_GetCastState( entnum );
-	return ( cs->totalPlayTime );
-}
-
-/*
-==============
-AICast_NumAttempts
-==============
-*/
-int AICast_NumAttempts( int entnum ) {
-	cast_state_t *cs = AICast_GetCastState( entnum );
-	return ( cs->attempts );
-}
-
-void AICast_RegisterPain( int entnum ) {
-	cast_state_t *cs = AICast_GetCastState( entnum );
-	if ( cs ) {
-		cs->lastPain = level.time;
-	}
 }

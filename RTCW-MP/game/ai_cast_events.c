@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -133,8 +133,6 @@ void AICast_Pain( gentity_t *targ, gentity_t *attacker, int damage, vec3_t point
 		cs->vislist[attacker->s.number].flags |= AIVIS_ENEMY;
 	}
 
-	AICast_ScriptEvent( cs, "painenemy", attacker->aiName );
-
 	AICast_ScriptEvent( cs, "pain", va( "%d %d", targ->health, targ->health + damage ) );
 
 	if ( cs->aiFlags & AIFL_DENYACTION ) {
@@ -160,7 +158,6 @@ void AICast_Die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	int killer;
 	cast_state_t    *cs;
 	qboolean nogib = qtrue;
-	char mapname[MAX_QPATH];
 
 	// print debugging message
 	if ( aicast_debug.integer == 2 && attacker->s.number == 0 ) {
@@ -178,12 +175,6 @@ void AICast_Die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	// record the sighting (FIXME: silent weapons shouldn't do this, but the AI should react in some way)
 	if ( attacker && attacker->client ) {
 		AICast_UpdateVisibility( self, attacker, qtrue, qtrue );
-	}
-
-	if ( self->aiCharacter == AICHAR_HEINRICH || self->aiCharacter == AICHAR_HELGA || self->aiCharacter == AICHAR_SUPERSOLDIER || self->aiCharacter == AICHAR_PROTOSOLDIER ) {
-		if ( self->health <= GIB_HEALTH ) {
-			self->health = -1;
-		}
 	}
 
 	// the zombie should show special effect instead of gibbing
@@ -257,11 +248,6 @@ void AICast_Die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		self->takedamage = qtrue;   // can still be gibbed
 
 		self->s.weapon = WP_NONE;
-		if ( cs->bs ) {
-			cs->weaponNum = WP_NONE;
-		}
-		self->client->ps.weapon = WP_NONE;
-
 		self->s.powerups = 0;
 		self->r.contents = CONTENTS_CORPSE;
 
@@ -313,32 +299,13 @@ void AICast_Die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				BG_UpdateConditionValue( self->s.number, ANIM_COND_ENEMY_POSITION, POSITION_BEHIND, qtrue );
 			}
 
-			if ( self->takedamage ) { // only play the anim if we haven't gibbed
-				// play the animation
-				BG_AnimScriptEvent( &self->client->ps, ANIM_ET_DEATH, qfalse, qtrue );
-			}
-
-			// set gib delay
-			if ( cs->aiCharacter == AICHAR_HEINRICH || cs->aiCharacter == AICHAR_HELGA ) {
-				cs->lastLoadTime = level.time + self->client->ps.torsoTimer - 200;
-			}
+			// play the animation
+			BG_AnimScriptEvent( &self->client->ps, ANIM_ET_DEATH, qfalse, qtrue );
 
 			// set this flag so no other anims override us
 			self->client->ps.eFlags |= EF_DEAD;
 			self->s.eFlags |= EF_DEAD;
 
-			// make sure we dont move around while on the ground
-			//self->flags |= FL_NO_HEADCHECK;
-
-		}
-
-		// if end map, sink into ground
-		cs->deadSinkStartTime = 0;
-		if ( cs->aiCharacter == AICHAR_WARZOMBIE ) {
-			trap_Cvar_VariableStringBuffer( "mapname", mapname, sizeof( mapname ) );
-			if ( !Q_strncmp( mapname, "end", 3 ) ) {    // !! FIXME: post beta2, make this a spawnflag!
-				cs->deadSinkStartTime = level.time + 4000;
-			}
 		}
 	}
 
@@ -347,10 +314,7 @@ void AICast_Die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		if ( self->aiCharacter == AICHAR_ZOMBIE ) {
 			if ( !cs->secondDeadTime ) {
 				cs->rebirthTime = level.time + 5000 + rand() % 2000;
-				// RF, only set for gib at next death, if NoRevive is not set
-				if ( !( self->spawnflags & 2 ) ) {
-					cs->secondDeadTime = qtrue;
-				}
+				cs->secondDeadTime = qtrue;
 				cs->revivingTime = 0;
 			} else if ( cs->secondDeadTime > 1 ) {
 				cs->rebirthTime = 0;
@@ -365,9 +329,6 @@ void AICast_Die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 	trap_LinkEntity( self );
 
-	// kill, instanly, any streaming sound the character had going
-	G_AddEvent( &g_entities[self->s.number], EV_STOPSTREAMINGSOUND, 0 );
-
 	// mark the time of death
 	cs->deathTime = level.time;
 
@@ -375,8 +336,7 @@ void AICast_Die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	if ( !cs->rebirthTime ) {
 		G_UseTargets( self, self );
 		// really dead now, so call the script
-		if ( attacker )
-			AICast_ScriptEvent( cs, "death", attacker->aiName ? attacker->aiName : "" );
+		AICast_ScriptEvent( cs, "death", "" );
 		// call the deathfunc for this cast, so we can play associated sounds, or do any character-specific things
 		if ( !( cs->aiFlags & AIFL_DENYACTION ) && cs->deathfunc ) {
 			cs->deathfunc( self, attacker, damage, meansOfDeath );   //----(SA)	added mod
@@ -489,11 +449,6 @@ void AICast_ProcessActivate( int entNum, int activatorNum ) {
 	cs = AICast_GetCastState( entNum );
 	ent = &g_entities[entNum];
 
-	if ( cs->lastActivate > level.time - 1000 ) {
-		return;
-	}
-	cs->lastActivate = level.time;
-
 	if ( !AICast_SameTeam( cs, activatorNum ) ) {
 
 		if ( ent->aiTeam == AITEAM_NEUTRAL ) {
@@ -513,7 +468,7 @@ void AICast_ProcessActivate( int entNum, int activatorNum ) {
 	// if we are doing something else
 	if ( cs->castScriptStatus.castScriptEventIndex >= 0 ) {
 		if ( ent->eventTime != level.time ) {
-			G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[ORDERSDENYSOUNDSCRIPT] ) );
+			G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].ordersDenySoundScript ) );
 		}
 		return;
 	}
@@ -521,7 +476,7 @@ void AICast_ProcessActivate( int entNum, int activatorNum ) {
 	// if we are already following them, stop following
 	if ( cs->leaderNum == activatorNum ) {
 		if ( ent->eventTime != level.time ) {
-			G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[STAYSOUNDSCRIPT] ) );
+			G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].staySoundScript ) );
 		}
 
 		cs->leaderNum = -1;
@@ -546,13 +501,13 @@ void AICast_ProcessActivate( int entNum, int activatorNum ) {
 		}
 		if ( count >= 3 ) {
 			if ( ent->eventTime != level.time ) {
-				G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[ORDERSDENYSOUNDSCRIPT] ) );
+				G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].ordersDenySoundScript ) );
 			}
 			return;
 		}
 
 		if ( ent->eventTime != level.time ) {
-			G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].soundScripts[FOLLOWSOUNDSCRIPT] ) );
+			G_AddEvent( &g_entities[entNum], EV_GENERAL_SOUND, G_SoundIndex( aiDefaults[cs->aiCharacter].followSoundScript ) );
 		}
 
 		// if they have a wait goal, free it

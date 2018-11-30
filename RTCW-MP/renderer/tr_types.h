@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -58,7 +58,7 @@ If you have questions concerning this license or the applicable additional terms
 									// player to get the same lighting
 #define RF_SHADOW_PLANE     0x0100     // use refEntity->shadowPlane
 #define RF_WRAP_FRAMES      0x0200     // mod the model frames by the maxframes to allow continuous
-				       // animation without needing to know the frame count
+									// animation without needing to know the frame count
 
 #define RF_HILIGHT          ( 1 << 8 )  // more than RF_MINLIGHT.  For when an object is "Highlighted" (looked at/training identification/etc)
 #define RF_BLINK            ( 1 << 9 )  // eyes in 'blink' state
@@ -69,8 +69,6 @@ If you have questions concerning this license or the applicable additional terms
 
 // Rafael
 #define RDF_SKYBOXPORTAL    0x0008
-
-#define RDF_DRAWSKYBOX      0x0010      // the above marks a scene as being a 'portal sky'.  this flag says to draw it or not
 
 //----(SA)
 #define RDF_UNDERWATER      ( 1 << 4 )  // so the renderer knows to use underwater fog when the player is underwater
@@ -108,13 +106,9 @@ typedef enum {
 #define ZOMBIEFX_FADEOUT_TIME   10000
 
 #define REFLAG_ONLYHAND     1   // only draw hand surfaces
-#define REFLAG_ZOMBIEFX     2   // special post-tesselation processing for zombie skin
-#define REFLAG_ZOMBIEFX2    4   // special post-tesselation processing for zombie skin
 #define REFLAG_FORCE_LOD    8   // force a low lod
 #define REFLAG_ORIENT_LOD   16  // on LOD switch, align the model to the player's camera
 #define REFLAG_DEAD_LOD     32  // allow the LOD to go lower than recommended
-#define REFLAG_SCALEDSPHERECULL 64  // on LOD switch, align the model to the player's camera
-#define REFLAG_FULL_LOD     8   // force a FULL lod
 
 typedef struct {
 	refEntityType_t reType;
@@ -132,8 +126,6 @@ typedef struct {
 	float origin[3];                // also used as MODEL_BEAM's "from"
 	int frame;                      // also used as MODEL_BEAM's diameter
 	int torsoFrame;                 // skeletal torso can have frame independant of legs frame
-
-	vec3_t scale;       //----(SA)	added
 
 	// previous data for frame interpolation
 	float oldorigin[3];             // also used as MODEL_BEAM's "to"
@@ -211,8 +203,6 @@ typedef struct {
 	qboolean registered;        // has this fog been set up?
 	qboolean drawsky;           // draw skybox
 	qboolean clearscreen;       // clear the GL color buffer
-
-	int dirty;
 } glfog_t;
 
 //----(SA)	end
@@ -292,7 +282,7 @@ typedef struct {
 	char renderer_string[MAX_STRING_CHARS];
 	char vendor_string[MAX_STRING_CHARS];
 	char version_string[MAX_STRING_CHARS];
-	char extensions_string[4 * MAX_STRING_CHARS];                       // this is actually too short for many current cards/drivers  // (SA) doubled from 2x to 4x MAX_STRING_CHARS
+	char extensions_string[MAX_STRING_CHARS * 4];                  // TTimo - bumping, some cards have a big extension string
 
 	int maxTextureSize;                             // queried from GL
 	int numTextureUnits;				// multitexture ability
@@ -310,7 +300,7 @@ typedef struct {
 
 	// vendor-specific support
 	// NVidia
-	qboolean NVFogAvailable;                    //----(SA)	added
+	qboolean NVFogAvailable;                        //----(SA)	added
 	int NVFogMode;                                  //----(SA)	added
 	// ATI
 	int ATIMaxTruformTess;                          // for truform support
@@ -334,6 +324,5 @@ typedef struct {
 
 	qboolean textureFilterAnisotropicAvailable;                 //DAJ
 } glconfig_t;
-
 
 #endif  // __TR_TYPES_H

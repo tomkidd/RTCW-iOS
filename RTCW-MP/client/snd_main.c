@@ -49,10 +49,7 @@ static qboolean S_ValidSoundInterface( soundInterface_t *si )
 	if( !si->StartLocalSound ) return qfalse;
 	if( !si->StartBackgroundTrack ) return qfalse;
 	if( !si->StopBackgroundTrack ) return qfalse;
-	if( !si->FadeStreamingSound ) return qfalse;
-	if( !si->FadeAllSounds ) return qfalse;
 	if( !si->StartStreamingSound ) return qfalse;
-	if( !si->StopEntStreamingSound ) return qfalse;
 	if( !si->GetVoiceAmplitude ) return qfalse;
 	if( !si->RawSamples ) return qfalse;
 	if( !si->StopAllSounds ) return qfalse;
@@ -143,30 +140,6 @@ void S_StopBackgroundTrack( void )
 
 /*
 =================
-S_FadeStreamingSound
-=================
-*/
-void S_FadeStreamingSound( float targetvol, int time, int ssNum )
-{
-	if( si.FadeStreamingSound ) {
-		si.FadeStreamingSound( targetvol, time, ssNum );
-	}
-}
-
-/*
-=================
-S_FadeAllSounds
-=================
-*/
-void S_FadeAllSounds( float targetvol, int time )
-{
-	if( si.FadeAllSounds ) {
-		si.FadeAllSounds( targetvol, time );
-	}
-}
-
-/*
-=================
 S_StartStreamingSound
 =================
 */
@@ -179,22 +152,10 @@ void S_StartStreamingSound( const char *intro, const char *loop, int entityNum, 
 
 /*
 =================
-S_StopEntStreamingSound
+S_GetVoiceAmplitude
 =================
 */
-void S_StopEntStreamingSound( int entNum )
-{
-	if( si.StopEntStreamingSound ) {
-		si.StopEntStreamingSound( entNum );
-	}
-}
-
-/* 		
-================= 		
-S_GetVoiceAmplitude 		
-================= 		
-*/ 		
-int S_GetVoiceAmplitude( int entityNum ) 		
+int S_GetVoiceAmplitude( int entityNum )
 {
 	if( si.GetVoiceAmplitude ) {
 		return si.GetVoiceAmplitude( entityNum );

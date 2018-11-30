@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -44,7 +44,7 @@ If you have questions concerning this license or the applicable additional terms
 //
 #define MAX_AIFUNCS         15      // if we go over this per frame, likely to have an infinite loop
 //
-#define SIGHT_PER_SEC       50      // do this many sight iterations per second
+#define SIGHT_PER_SEC       100     // do this many sight iterations per second
 //
 // Cast AI specific action flags (get translated into ucmd's
 #define CASTACTION_WALK     1
@@ -93,10 +93,6 @@ If you have questions concerning this license or the applicable additional terms
 #define AIFL_NO_HEADSHOT_DMG    0x400000
 #define AIFL_DIVE_ANIM          0x800000    // able to dive to cover
 #define AIFL_NO_TESLA_DAMAGE    0x1000000
-#define AIFL_EXPLICIT_ROUTING   0x2000000   // direct routing towards ai_markers, rather than using AAS
-#define AIFL_DISMOUNTING        0x4000000
-#define AIFL_SPECIAL_FUNC       0x8000000   // prevent external interuption of current think func
-
 //
 // predict events
 typedef enum
@@ -146,7 +142,6 @@ typedef enum
 	ALERTNESS,      // max = 1.0	(ability to notice enemies at long range)
 	STARTING_HEALTH, // MAX = 999	(starting health)
 	HEARING_SCALE,  // max = 999	(multiply default hearing ranges by this)
-	HEARING_SCALE_NOT_PVS,  // max = 999 (multiply hearing range by this if outside PVS)
 	INNER_DETECTION_RADIUS, // default = 512	(enemies within this range trigger immediate combat mode
 	PAIN_THRESHOLD_SCALE,   // default = 1.0
 
@@ -154,29 +149,19 @@ typedef enum
 
 } castAttributes_t;
 //
-typedef enum
-{
-	SIGHTSOUNDSCRIPT,
-	ATTACKSOUNDSCRIPT,
-	ORDERSSOUNDSCRIPT,
-	DEATHSOUNDSCRIPT,
-	QUIETDEATHSOUNDSCRIPT,  //----(SA)	ADDED FOR SILENT DEATHS (SNIPER/KNIFE)
-	FLAMEDEATHSOUNDSCRIPT,  //----(SA)	ADDED FOR FLAMING
-	PAINSOUNDSCRIPT,
-
-	STAYSOUNDSCRIPT,
-	FOLLOWSOUNDSCRIPT,
-	ORDERSDENYSOUNDSCRIPT,
-	MISC1SOUNDSCRIPT,
-
-	MAX_AI_EVENT_SOUNDS
-} AIEventSounds_t;
-//
 typedef struct {
 	char *name;
 	float attributes[AICAST_MAX_ATTRIBUTES];
+	char *sightSoundScript;
+	char *attackSoundScript;
+	char *ordersSoundScript;
+	char *deathSoundScript;
+	char *quietDeathSoundScript;    //----(SA)	added for silent deaths (sniper/knife)
+	char *painSoundScript;
 
-	char    *soundScripts[MAX_AI_EVENT_SOUNDS];
+	char *staySoundScript;
+	char *followSoundScript;
+	char *ordersDenySoundScript;
 
 	int aiTeam;
 	char *skin;
@@ -213,10 +198,9 @@ extern AICharacterDefaults_t aiDefaults[NUM_CHARACTERS];
 #define AIVIS_INSPECTED				2		// we have inspected them once already
 #define AIVIS_INSPECT				4		// we should inspect them when we get a chance
 #define AIVIS_PROCESS_SIGHTING		8		// so we know if we have or haven't processed the sighting since they were last seen
-#define AIVIS_SIGHT_SCRIPT_CALLED	0x10	// set once sight script has been called.. only call once
 //
 // share range
-#define AIVIS_SHARE_RANGE       384     // if we are within this range of a friendly, share their vis info
+#define AIVIS_SHARE_RANGE   170     // if we are within this range of a friendly, share their vis info
 //
 #define MAX_CHASE_MARKERS       3
 #define CHASE_MARKER_INTERVAL   1000
@@ -292,7 +276,6 @@ typedef struct
 	int scriptFlags;
 	int scriptNoAttackTime;
 	int scriptNoMoveTime;
-	int playAnimViewlockTime;
 	int scriptGotoEnt;              // just goto them, then resume normal behaviour (don't follow)
 	int scriptGotoId;
 	vec3_t scriptWaitPos;
@@ -301,7 +284,6 @@ typedef struct
 	int scriptWaitHideTime;
 	int scriptNoSightTime;
 	int scriptAttackEnt;            // we should always attack this AI if they are alive
-	vec3_t playanim_viewangles;
 } cast_script_status_t;
 //
 typedef struct
@@ -525,7 +507,6 @@ typedef struct cast_state_s
 
 	int scriptPauseTime;
 
-	int bulletImpactEntity;
 	int bulletImpactTime;           // last time we heard/saw a bullet impact
 	int bulletImpactIgnoreTime;
 	vec3_t bulletImpactStart, bulletImpactEnd;
@@ -545,23 +526,6 @@ typedef struct cast_state_s
 
 	int numEnemies;             // last count of enemies that are currently pursuing us
 
-	int noReloadTime;           // dont reload prematurely until this time has expired
-
-	int lastValidAreaNum[2];        // last valid area within each AAS world
-	int lastValidAreaTime[2];       // time we last got the area
-
-	int weaponNum;              // our current weapon
-	int enemyNum;               // our current enemy
-	vec3_t ideal_viewangles, viewangles;
-	usercmd_t lastucmd;
-	int attackcrouch_time;
-	int bFlags;
-
-	int deadSinkStartTime;
-
-	int lastActivate;
-
-	vec3_t loperLeapVel;
 	// -------------------------------------------------------------------------------------------
 	// if working on a post release patch, new variables should ONLY be inserted after this point
 	// -------------------------------------------------------------------------------------------
@@ -604,11 +568,12 @@ extern vmCvar_t aicast_debug;
 extern vmCvar_t aicast_debugname;
 extern vmCvar_t aicast_scripts;
 //
+extern int numSecrets;
 //
 // procedure defines
 //
 // ai_cast.c
-void    AIChar_SetBBox( gentity_t *ent, cast_state_t *cs, qboolean useHeadTag );
+void    AIChar_SetBBox( gentity_t *ent, cast_state_t *cs );
 void    AICast_Printf( int type, const char *fmt, ... ) __attribute__ ((format (printf, 2, 3)));
 gentity_t *AICast_CreateCharacter( gentity_t *ent, float *attributes, cast_weapon_info_t *weaponInfo, char *castname, char *model, char *head, char *sex, char *color, char *handicap );
 void    AICast_Init( void );
@@ -622,6 +587,7 @@ qboolean AICast_VisibleFromPos( vec3_t srcpos, int srcnum,
 								vec3_t destpos, int destnum, qboolean updateVisPos );
 void    AICast_UpdateVisibility( gentity_t *srcent, gentity_t *destent, qboolean shareVis, qboolean directview );
 qboolean AICast_CheckVisibility( gentity_t *srcent, gentity_t *destent );
+void    AICast_SightSoundEvent( cast_state_t *cs, float range );
 //
 // ai_cast_debug.c
 void    AICast_DBG_InitAIFuncs( void );
@@ -632,7 +598,6 @@ int     Sys_MilliSeconds( void );
 void    AICast_DebugFrame( cast_state_t *cs );
 //
 // ai_cast_funcs.c
-void AICast_SpecialFunc( cast_state_t *cs );
 bot_moveresult_t *AICast_MoveToPos( cast_state_t *cs, vec3_t pos, int entnum );
 float   AICast_SpeedScaleForDistance( cast_state_t *cs, float startdist, float idealDist );
 char    *AIFunc_DefaultStart( cast_state_t *cs );
@@ -658,7 +623,6 @@ char    *AIFunc_BattleHuntStart( cast_state_t *cs );
 // ai_cast_func_attack.c
 char    *AIFunc_ZombieFlameAttackStart( cast_state_t *cs );
 char    *AIFunc_ZombieAttack2Start( cast_state_t *cs );
-char    *AIFunc_ZombieMeleeStart( cast_state_t *cs );
 char    *AIFunc_LoperAttack1Start( cast_state_t *cs );
 char    *AIFunc_LoperAttack2Start( cast_state_t *cs );
 char    *AIFunc_LoperAttack3Start( cast_state_t *cs );
@@ -671,13 +635,11 @@ char    *AIFunc_WarriorZombieSightStart( cast_state_t *cs );
 char    *AIFunc_WarriorZombieDefenseStart( cast_state_t *cs );
 //
 // ai_cast_func_boss1.c
-char    *AIFunc_Helga_SpiritAttack_Start( cast_state_t *cs );
-char    *AIFunc_Helga_MeleeStart( cast_state_t *cs );
+char    *AIFunc_FZombie_IdleStart( cast_state_t *cs );
+char    *AIFunc_FZombie_HandLightningAttackStart( cast_state_t *cs );
+char    *AIFunc_FZombie_LightningAttackStart( cast_state_t *cs );
+char    *AIFunc_Helga_IdleStart( cast_state_t *cs );
 char    *AIFunc_FlameZombie_PortalStart( cast_state_t *cs );
-char    *AIFunc_Heinrich_MeleeStart( cast_state_t *cs );
-char    *AIFunc_Heinrich_RaiseDeadStart( cast_state_t *cs );
-char    *AIFunc_Heinrich_SpawnSpiritsStart( cast_state_t *cs );
-void    AICast_Heinrich_SoundPrecache( void );
 //
 // ai_cast_fight.c
 qboolean AICast_StateChange( cast_state_t *cs, aistateEnum_t newaistate );
@@ -705,8 +667,6 @@ qboolean AICast_GotEnoughAmmoForWeapon( cast_state_t *cs, int weapon );
 qboolean AICast_HostileEnemy( cast_state_t *cs, int enemynum );
 qboolean AICast_QueryEnemy( cast_state_t *cs, int enemynum );
 void AICast_AudibleEvent( int srcnum, vec3_t pos, float range );
-qboolean AICast_WeaponUsable( cast_state_t *cs, int weaponNum );
-float AICast_WeaponRange( cast_state_t *cs, int weaponnum );
 
 //
 // ai_cast_events.c
@@ -726,7 +686,6 @@ qboolean AICast_RequestCrouchAttack( cast_state_t *cs, vec3_t org, float time );
 qboolean AICast_GetAvoid( cast_state_t *cs, bot_goal_t *goal, vec3_t outpos, qboolean reverse, int blockEnt );
 void AICast_QueryThink( cast_state_t *cs );
 void AICast_DeadClipWalls( cast_state_t *cs );
-void AICast_IdleReload( cast_state_t *cs );
 //
 // ai_cast_script.c
 qboolean AICast_ScriptRun( cast_state_t *cs, qboolean force );

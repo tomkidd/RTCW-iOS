@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -28,7 +28,7 @@ If you have questions concerning this license or the applicable additional terms
 
 // cmd.c -- Quake script command processing module
 
-#include "../qcommon/q_shared.h"
+#include "q_shared.h"
 #include "qcommon.h"
 
 #define MAX_CMD_BUFFER  128*1024
@@ -37,7 +37,7 @@ If you have questions concerning this license or the applicable additional terms
 typedef struct {
 	byte    *data;
 	int maxsize;
-	int cmdsize;        //DAJ renamed from cursize
+	int cursize;
 } cmd_t;
 
 int cmd_wait;
@@ -83,7 +83,7 @@ Cbuf_Init
 void Cbuf_Init( void ) {
 	cmd_text.data = cmd_text_buf;
 	cmd_text.maxsize = MAX_CMD_BUFFER;
-	cmd_text.cmdsize = 0;
+	cmd_text.cursize = 0;
 }
 
 /*
@@ -98,12 +98,12 @@ void Cbuf_AddText( const char *text ) {
 
 	l = strlen( text );
 
-	if ( cmd_text.cmdsize + l >= cmd_text.maxsize ) {
+	if ( cmd_text.cursize + l >= cmd_text.maxsize ) {
 		Com_Printf( "Cbuf_AddText: overflow\n" );
 		return;
 	}
-	memcpy( &cmd_text.data[cmd_text.cmdsize], text, l );
-	cmd_text.cmdsize += l;
+	memcpy( &cmd_text.data[cmd_text.cursize], text, l );
+	cmd_text.cursize += l;
 }
 
 
@@ -120,13 +120,13 @@ void Cbuf_InsertText( const char *text ) {
 	int i;
 
 	len = strlen( text ) + 1;
-	if ( len + cmd_text.cmdsize > cmd_text.maxsize ) {
+	if ( len + cmd_text.cursize > cmd_text.maxsize ) {
 		Com_Printf( "Cbuf_InsertText overflowed\n" );
 		return;
 	}
 
 	// move the existing command text
-	for ( i = cmd_text.cmdsize - 1 ; i >= 0 ; i-- ) {
+	for ( i = cmd_text.cursize - 1 ; i >= 0 ; i-- ) {
 		cmd_text.data[ i + len ] = cmd_text.data[ i ];
 	}
 
@@ -136,7 +136,7 @@ void Cbuf_InsertText( const char *text ) {
 	// add a \n
 	cmd_text.data[ len - 1 ] = '\n';
 
-	cmd_text.cmdsize += len;
+	cmd_text.cursize += len;
 }
 
 
@@ -184,7 +184,7 @@ void Cbuf_Execute( void ) {
 	// breaking it for semicolon or newline.
 	qboolean in_star_comment = qfalse;
 	qboolean in_slash_comment = qfalse;
-	while ( cmd_text.cmdsize )
+	while ( cmd_text.cursize )
 	{
 		if ( cmd_wait > 0 ) {
 			// skip out while text still remains in buffer, leaving it
@@ -197,13 +197,13 @@ void Cbuf_Execute( void ) {
 		text = (char *)cmd_text.data;
 
 		quotes = 0;
-		for ( i = 0 ; i < cmd_text.cmdsize ; i++ )
+		for ( i = 0 ; i < cmd_text.cursize ; i++ )
 		{
 			if ( text[i] == '"' ) {
 				quotes++;
 			}
 			if ( !(quotes&1)) {
-				if (i < cmd_text.cmdsize - 1) {
+				if (i < cmd_text.cursize - 1) {
 					if (! in_star_comment && text[i] == '/' && text[i+1] == '/')
 						in_slash_comment = qtrue;
 					else if (! in_slash_comment && text[i] == '/' && text[i+1] == '*')
@@ -237,13 +237,13 @@ void Cbuf_Execute( void ) {
 // this is necessary because commands (exec) can insert data at the
 // beginning of the text buffer
 
-		if ( i == cmd_text.cmdsize ) {
-			cmd_text.cmdsize = 0;
+		if ( i == cmd_text.cursize ) {
+			cmd_text.cursize = 0;
 		} else
 		{
 			i++;
-			cmd_text.cmdsize -= i;
-			memmove( text, text + i, cmd_text.cmdsize );
+			cmd_text.cursize -= i;
+			memmove( text, text + i, cmd_text.cursize );
 		}
 
 // execute the command line
@@ -290,13 +290,12 @@ void Cmd_Exec_f( void ) {
 		Com_Printf ("couldn't exec %s\n", filename);
 		return;
 	}
-
 	if (!quiet)
 		Com_Printf ("execing %s\n", filename);
 
-	Cbuf_InsertText (f.c);
+	Cbuf_InsertText( f.c );
 
-	FS_FreeFile (f.v);
+	FS_FreeFile( f.v );
 }
 
 
@@ -350,11 +349,11 @@ typedef struct cmd_function_s
 
 
 static int cmd_argc;
-static char *cmd_argv[MAX_STRING_TOKENS];				// points into cmd_tokenized
-static char cmd_tokenized[BIG_INFO_STRING + MAX_STRING_TOKENS];		// will have 0 bytes inserted
-static char cmd_cmd[BIG_INFO_STRING];					// the original command we received (no token processing)
+static char        *cmd_argv[MAX_STRING_TOKENS];        // points into cmd_tokenized
+static char cmd_tokenized[BIG_INFO_STRING + MAX_STRING_TOKENS];         // will have 0 bytes inserted
+static char cmd_cmd[BIG_INFO_STRING];         // the original command we received (no token processing)
 
-static cmd_function_t  *cmd_functions;					// possible commands to execute
+static cmd_function_t  *cmd_functions;      // possible commands to execute
 
 /*
 ============
@@ -455,11 +454,10 @@ Cmd_Cmd
 
 Retrieve the unmodified command string
 For rcon use when you want to transmit without altering quoting
-https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=543
+ATVI Wolfenstein Misc #284
 ============
 */
-char *Cmd_Cmd(void)
-{
+char *Cmd_Cmd(void) {
 	return cmd_cmd;
 }
 
@@ -644,7 +642,7 @@ void    Cmd_AddCommand( const char *cmd_name, xcommand_t function ) {
 	}
 
 	// use a small malloc to avoid zone fragmentation
-	cmd = Z_Malloc( sizeof( cmd_function_t ) );
+	cmd = S_Malloc( sizeof( cmd_function_t ) );
 	cmd->name = CopyString( cmd_name );
 	cmd->function = function;
 	cmd->complete = NULL;

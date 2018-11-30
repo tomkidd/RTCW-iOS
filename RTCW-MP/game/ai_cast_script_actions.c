@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -71,10 +71,10 @@ void AICast_NoAttackIfNotHurtSinceLastScriptAction( cast_state_t *cs ) {
 	}
 
 	// if our enemy is in the direction we are moving, don't hold back
-	if ( cs->enemyNum >= 0 && cs->castScriptStatus.scriptGotoEnt >= 0 ) {
+	if ( cs->bs->enemy >= 0 && cs->castScriptStatus.scriptGotoEnt >= 0 ) {
 		vec3_t v;
 
-		VectorSubtract( g_entities[cs->enemyNum].r.currentOrigin, cs->bs->origin, v );
+		VectorSubtract( g_entities[cs->bs->enemy].r.currentOrigin, cs->bs->origin, v );
 		if ( DotProduct( cs->bs->velocity, v ) > 0 ) {
 			return;
 		}
@@ -106,10 +106,6 @@ qboolean AICast_ScriptAction_GotoMarker( cast_state_t *cs, char *params ) {
 	if ( cs->castScriptStatus.scriptGotoId < 0 && cs->dangerEntityValidTime > level.time ) {
 		return qfalse;
 	}
-	// if we are in a special func, then wait
-	if ( cs->aiFlags & AIFL_SPECIAL_FUNC ) {
-		return qfalse;
-	}
 
 	pString = params;
 	token = COM_ParseExt( &pString, qfalse );
@@ -125,11 +121,9 @@ qboolean AICast_ScriptAction_GotoMarker( cast_state_t *cs, char *params ) {
 			VectorSubtract( ent->r.currentOrigin, cs->bs->origin, vec );
 			//
 			if ( cs->followSlowApproach && VectorLength( vec ) < cs->followDist ) {
-				cs->followTime = 0;
 				AIFunc_IdleStart( cs );   // resume normal AI
 				return qtrue;
 			} else if ( !cs->followSlowApproach && VectorLength( vec ) < 64 /*&& DotProduct(cs->bs->cur_ps.velocity, vec) < 0*/ )       {
-				cs->followTime = 0;
 				AIFunc_IdleStart( cs );   // resume normal AI
 				return qtrue;
 			} else
@@ -151,7 +145,7 @@ qboolean AICast_ScriptAction_GotoMarker( cast_state_t *cs, char *params ) {
 					BG_EvaluateTrajectory( &ent->s.pos, level.time, org );
 					VectorSubtract( org, cs->bs->origin, vec );
 					VectorNormalize( vec );
-					vectoangles( vec, cs->ideal_viewangles );
+					vectoangles( vec, cs->bs->ideal_viewangles );
 					// noattack?
 					token = COM_ParseExt( &pString, qfalse );
 					if ( !token[0] || Q_stricmp( token,"noattack" ) ) {
@@ -164,22 +158,18 @@ qboolean AICast_ScriptAction_GotoMarker( cast_state_t *cs, char *params ) {
 						}
 						if ( fire ) {
 							for ( i = 0; i < 2; i++ ) {
-								diff = fabs( AngleDifference( cs->viewangles[i], cs->ideal_viewangles[i] ) );
+								diff = fabs( AngleDifference( cs->bs->viewangles[i], cs->bs->ideal_viewangles[i] ) );
 								if ( diff < 20 ) {
-									// dont reload prematurely
-									cs->noReloadTime = level.time + 1000;
 									// force fire
 									trap_EA_Attack( cs->bs->client );
 									//
-									cs->bFlags |= BFL_ATTACKED;
-									// dont reload prematurely
-									cs->noReloadTime = level.time + 200;
+									cs->bs->flags |= BFL_ATTACKED;
 								}
 							}
 						}
 					}
 				}
-				cs->followTime = level.time + 500;
+				cs->followTime = level.time + FRAMETIME * 3;
 				return qfalse;
 			}
 		} else
@@ -236,10 +226,6 @@ qboolean AICast_ScriptAction_WalkToMarker( cast_state_t *cs, char *params ) {
 	if ( cs->castScriptStatus.scriptGotoId < 0 && cs->dangerEntityValidTime > level.time ) {
 		return qfalse;
 	}
-	// if we are in a special func, then wait
-	if ( cs->aiFlags & AIFL_SPECIAL_FUNC ) {
-		return qfalse;
-	}
 	if ( !AICast_ScriptAction_GotoMarker( cs, params ) || ( !strstr( params, " nostop" ) && VectorLength( cs->bs->cur_ps.velocity ) ) ) {
 		cs->movestate = MS_WALK;
 		cs->movestateType = MSTYPE_TEMPORARY;
@@ -261,10 +247,6 @@ AICast_ScriptAction_CrouchToMarker
 qboolean AICast_ScriptAction_CrouchToMarker( cast_state_t *cs, char *params ) {
 	// if we are avoiding danger, then wait for the danger to pass
 	if ( cs->castScriptStatus.scriptGotoId < 0 && cs->dangerEntityValidTime > level.time ) {
-		return qfalse;
-	}
-	// if we are in a special func, then wait
-	if ( cs->aiFlags & AIFL_SPECIAL_FUNC ) {
 		return qfalse;
 	}
 	if ( !AICast_ScriptAction_GotoMarker( cs, params ) || ( !strstr( params, " nostop" ) && VectorLength( cs->bs->cur_ps.velocity ) ) ) {
@@ -297,10 +279,6 @@ qboolean AICast_ScriptAction_GotoCast( cast_state_t *cs, char *params ) {
 	if ( cs->castScriptStatus.scriptGotoId < 0 && cs->dangerEntityValidTime > level.time ) {
 		return qfalse;
 	}
-	// if we are in a special func, then wait
-	if ( cs->aiFlags & AIFL_SPECIAL_FUNC ) {
-		return qfalse;
-	}
 
 	pString = params;
 	token = COM_ParseExt( &pString, qfalse );
@@ -313,7 +291,6 @@ qboolean AICast_ScriptAction_GotoCast( cast_state_t *cs, char *params ) {
 		ent = &g_entities[cs->castScriptStatus.scriptGotoEnt];
 		if ( ent->targetname && !Q_strcasecmp( ent->targetname, token ) ) {
 			if ( Distance( cs->bs->origin, ent->r.currentOrigin ) < cs->followDist ) {
-				cs->followTime = 0;
 				AIFunc_IdleStart( cs );   // resume normal AI
 				return qtrue;
 			} else
@@ -336,7 +313,7 @@ qboolean AICast_ScriptAction_GotoCast( cast_state_t *cs, char *params ) {
 					BG_EvaluateTrajectory( &ent->s.pos, level.time, org );
 					VectorSubtract( org, cs->bs->origin, vec );
 					VectorNormalize( vec );
-					vectoangles( vec, cs->ideal_viewangles );
+					vectoangles( vec, cs->bs->ideal_viewangles );
 					// noattack?
 					token = COM_ParseExt( &pString, qfalse );
 					if ( !token[0] || Q_stricmp( token,"noattack" ) ) {
@@ -349,22 +326,18 @@ qboolean AICast_ScriptAction_GotoCast( cast_state_t *cs, char *params ) {
 						}
 						if ( fire ) {
 							for ( i = 0; i < 2; i++ ) {
-								diff = fabs( AngleDifference( cs->viewangles[i], cs->ideal_viewangles[i] ) );
+								diff = fabs( AngleDifference( cs->bs->viewangles[i], cs->bs->ideal_viewangles[i] ) );
 								if ( diff < 20 ) {
-									// dont reload prematurely
-									cs->noReloadTime = level.time + 1000;
 									// force fire
 									trap_EA_Attack( cs->bs->client );
 									//
-									cs->bFlags |= BFL_ATTACKED;
-									// dont reload prematurely
-									cs->noReloadTime = level.time + 200;
+									cs->bs->flags |= BFL_ATTACKED;
 								}
 							}
 						}
 					}
 				}
-				cs->followTime = level.time + 500;
+				cs->followTime = level.time + FRAMETIME * 3;  // keep following them for another few frames
 				return qfalse;
 			}
 		} else
@@ -410,10 +383,6 @@ qboolean AICast_ScriptAction_WalkToCast( cast_state_t *cs, char *params ) {
 	if ( cs->castScriptStatus.scriptGotoId < 0 && cs->dangerEntityValidTime > level.time ) {
 		return qfalse;
 	}
-	// if we are in a special func, then wait
-	if ( cs->aiFlags & AIFL_SPECIAL_FUNC ) {
-		return qfalse;
-	}
 	if ( !AICast_ScriptAction_GotoCast( cs, params ) ) {
 		cs->movestate = MS_WALK;
 		cs->movestateType = MSTYPE_TEMPORARY;
@@ -437,10 +406,6 @@ qboolean AICast_ScriptAction_CrouchToCast( cast_state_t *cs, char *params ) {
 	if ( cs->castScriptStatus.scriptGotoId < 0 && cs->dangerEntityValidTime > level.time ) {
 		return qfalse;
 	}
-	// if we are in a special func, then wait
-	if ( cs->aiFlags & AIFL_SPECIAL_FUNC ) {
-		return qfalse;
-	}
 	if ( !AICast_ScriptAction_GotoCast( cs, params ) ) {
 		cs->movestate = MS_CROUCH;
 		cs->movestateType = MSTYPE_TEMPORARY;
@@ -450,26 +415,6 @@ qboolean AICast_ScriptAction_CrouchToCast( cast_state_t *cs, char *params ) {
 
 	return qtrue;
 }
-
-
-/*
-==============
-AICast_ScriptAction_AbortIfLoadgame
-==============
-*/
-qboolean AICast_ScriptAction_AbortIfLoadgame( cast_state_t *cs, char *params ) {
-	char loading[4];
-
-	trap_Cvar_VariableStringBuffer( "savegame_loading", loading, sizeof( loading ) );
-
-	if ( strlen( loading ) > 0 && atoi( loading ) != 0 ) {
-		// abort the current script
-		cs->castScriptStatus.castScriptStackHead = cs->castScriptEvents[cs->castScriptStatus.castScriptEventIndex].stack.numItems;
-	}
-
-	return qtrue;
-}
-
 
 /*
 =================
@@ -488,17 +433,13 @@ qboolean AICast_ScriptAction_Wait( cast_state_t *cs, char *params ) {
 	gentity_t *ent;
 	vec3_t org, vec;
 
-	// if we are in a special func, then wait
-	if ( cs->aiFlags & AIFL_SPECIAL_FUNC ) {
-		return qfalse;
-	}
 	// EXPERIMENTAL: if they are on fire, or avoiding danger, let them loose until it passes (or they die)
 	if ( cs->dangerEntityValidTime > level.time ) {
 		cs->castScriptStatus.scriptNoMoveTime = -1;
 		return qfalse;
 	}
 
-	if ( ( cs->castScriptStatus.scriptFlags & SFL_FIRST_CALL ) && cs->bs ) {
+	if ( cs->castScriptStatus.castScriptStackChangeTime == level.time && cs->bs ) {
 		// first call, init the waitPos
 		VectorCopy( cs->bs->origin, cs->castScriptStatus.scriptWaitPos );
 	}
@@ -536,29 +477,28 @@ qboolean AICast_ScriptAction_Wait( cast_state_t *cs, char *params ) {
 		}
 	}
 
-	// default to no moverange
-//	if ( moverange == -999 ) {
-//		moverange = 200;
-//	}
+	if ( moverange == -999 ) {
+		moverange = 200;
+	}
 
 	if ( moverange != 0 ) {       // default to 200 if no range given
 		if ( moverange > 0 ) {
 			dist = Distance( cs->bs->origin, cs->castScriptStatus.scriptWaitPos );
 			// if we are able to move, and have an enemy
 			if (    ( cs->castScriptStatus.scriptWaitMovetime < level.time )
-					&&  ( cs->enemyNum >= 0 ) ) {
+					&&  ( cs->bs->enemy >= 0 ) ) {
 
 				// if we can attack them, or they can't attack us, stay here
 
-				if (    AICast_CheckAttack( cs, cs->enemyNum, qfalse )
-						||  (   !AICast_EntityVisible( AICast_GetCastState( cs->enemyNum ), cs->entityNum, qfalse )
-								&&  !AICast_CheckAttack( AICast_GetCastState( cs->enemyNum ), cs->entityNum, qfalse ) ) ) {
+				if (    AICast_CheckAttack( cs, cs->bs->enemy, qfalse )
+						||  (   !AICast_EntityVisible( AICast_GetCastState( cs->bs->enemy ), cs->entityNum, qfalse )
+								&&  !AICast_CheckAttack( AICast_GetCastState( cs->bs->enemy ), cs->entityNum, qfalse ) ) ) {
 					cs->castScriptStatus.scriptNoMoveTime = level.time + 200;
 				}
 
 			}
 			// if outside range, move towards waitPos
-			if ( ( !cs->bs || !cs->bs->cur_ps.legsTimer ) && ( ( ( cs->castScriptStatus.scriptWaitMovetime > level.time ) && ( dist > 32 ) ) || ( dist > moverange ) ) ) {
+			if ( ( ( cs->castScriptStatus.scriptWaitMovetime > level.time ) && ( dist > 32 ) ) || ( dist > moverange ) ) {
 				cs->castScriptStatus.scriptNoMoveTime = 0;
 				AICast_MoveToPos( cs, cs->castScriptStatus.scriptWaitPos, 0 );
 				if ( dist > 64 ) {
@@ -566,7 +506,7 @@ qboolean AICast_ScriptAction_Wait( cast_state_t *cs, char *params ) {
 				}
 			} else
 			// if we are reloading, look for somewhere to hide
-			if ( cs->castScriptStatus.scriptWaitHideTime > level.time || ( cs->bs && cs->bs->cur_ps.weaponTime > 500 ) ) {
+			if ( cs->castScriptStatus.scriptWaitHideTime > level.time || cs->bs->cur_ps.weaponTime > 500 ) {
 				if ( cs->castScriptStatus.scriptWaitHideTime < level.time ) {
 					// look for a hide pos within the wait range
 
@@ -592,7 +532,7 @@ qboolean AICast_ScriptAction_Wait( cast_state_t *cs, char *params ) {
 		BG_EvaluateTrajectory( &ent->s.pos, level.time, org );
 		VectorSubtract( org, cs->bs->origin, vec );
 		VectorNormalize( vec );
-		vectoangles( vec, cs->ideal_viewangles );
+		vectoangles( vec, cs->bs->ideal_viewangles );
 	}
 
 	return ( cs->castScriptStatus.castScriptStackChangeTime + duration < level.time );
@@ -738,7 +678,7 @@ qboolean AICast_ScriptAction_Attack( cast_state_t *cs, char *params ) {
 			G_Error( "AI Scripting: \"attack\" command unable to find aiName \"%s\"", params );
 		}
 		cs->castScriptStatus.scriptAttackEnt = ent->s.number;
-		cs->enemyNum = ent->s.number;
+		cs->bs->enemy = ent->s.number;
 	} else {
 		cs->castScriptStatus.scriptAttackEnt = -1;
 	}
@@ -750,25 +690,21 @@ qboolean AICast_ScriptAction_Attack( cast_state_t *cs, char *params ) {
 =================
 AICast_ScriptAction_PlayAnim
 
-  syntax: playanim <animation> [legs/torso/both] [HOLDFRAME] [numLoops/FOREVER] [target]
+  syntax: playanim <animation> [legs/torso/both]
 
   NOTE: any new animations that are needed by the scripting system, will need to be added here
 =================
 */
 qboolean AICast_ScriptAction_PlayAnim( cast_state_t *cs, char *params ) {
 	char *pString, *token, tokens[3][MAX_QPATH];
-	int i, endtime, duration, numLoops;
+	int i, endtime, duration;
 	gclient_t *client;
-	gentity_t *ent;
-	vec3_t org, vec;
-	qboolean forever = qfalse;
-	qboolean holdframe = qfalse;
 
 	pString = params;
 
 	client = &level.clients[cs->entityNum];
 
-	if ( level.animScriptData.modelInfo[level.animScriptData.clientModels[cs->entityNum] - 1]->version > 1 ) {    // new (scripted) model
+	if ( level.animScriptData.modelInfo[level.animScriptData.clientModels[cs->entityNum] - 1].version > 1 ) { // new (scripted) model
 
 		// read the name
 		token = COM_ParseExt( &pString, qfalse );
@@ -786,122 +722,19 @@ qboolean AICast_ScriptAction_PlayAnim( cast_state_t *cs, char *params ) {
 		Q_strncpyz( tokens[1], token, sizeof( tokens[1] ) );
 		Q_strlwr( tokens[1] );
 
-		// read the HOLDFRAME (optional)
-		token = COM_ParseExt( &pString, qfalse );
-		if ( token && token[0] && !Q_strcasecmp( token, "holdframe" ) ) {
-			holdframe = qtrue;
-			// read the numLoops (optional)
-			token = COM_ParseExt( &pString, qfalse );
-		}
-		// token is parsed above
-		if ( token && token[0] ) {
-			if ( !Q_strcasecmp( token, "forever" ) ) {
-				forever = qtrue;
-				numLoops = -1;
-				// read the target (optional)
-				token = COM_ParseExt( &pString, qfalse );
-			} else {
-				numLoops = atoi( token );
-				if ( !numLoops ) {    // must be the target, so set loops to 1
-					numLoops = 1;
-				} else {
-					// read the target (optional)
-					token = COM_ParseExt( &pString, qfalse );
-				}
-			}
-
-			if ( token && token[0] ) {
-				// find this targetname
-				ent = G_Find( NULL, FOFS( targetname ), token );
-				if ( !ent ) {
-					ent = AICast_FindEntityForName( token );
-					if ( !ent ) {
-						G_Error( "AI Scripting: playanim cannot find targetname \"%s\"\n", token );
-					}
-				}
-				// set the view angle manually
-				BG_EvaluateTrajectory( &ent->s.pos, level.time, org );
-				VectorSubtract( org, cs->bs->origin, vec );
-				VectorNormalize( vec );
-				vectoangles( vec, cs->ideal_viewangles );
-				VectorCopy( cs->ideal_viewangles, cs->castScriptStatus.playanim_viewangles );
-			}
-
-		} else {
-			numLoops = 1;
-		}
+		cs->scriptAnimTime = level.time;
 
 		if ( cs->castScriptStatus.scriptFlags & SFL_FIRST_CALL ) {
 			// first time in here, play the anim
-			duration = BG_PlayAnimName( &( client->ps ), tokens[0], BG_IndexForString( tokens[1], animBodyPartsStr, qfalse ), qtrue, qfalse, qtrue );
-			if ( numLoops == -1 ) {
-				cs->scriptAnimTime = 0x7fffffff;    // maximum time allowed
-			} else {
-				cs->scriptAnimTime = level.time + ( numLoops * duration );
-			}
+			BG_PlayAnimName( &( client->ps ), tokens[0], BG_IndexForString( tokens[1], animBodyPartsStr, qfalse ), qtrue, qfalse, qtrue );
 			if ( !strcmp( tokens[1], "torso" ) ) {
 				cs->scriptAnimNum = client->ps.torsoAnim & ~ANIM_TOGGLEBIT;
-				// adjust the duration according to numLoops
-				if ( numLoops > 1 ) {
-					client->ps.torsoTimer += duration * numLoops;
-				} else if ( numLoops == -1 ) {
-					client->ps.torsoTimer = 9999;
-				}
-			} else {    // dont move
+			} else {
 				cs->scriptAnimNum = client->ps.legsAnim & ~ANIM_TOGGLEBIT;
-				cs->castScriptStatus.scriptNoMoveTime = cs->scriptAnimTime;
-				// lock the viewangles
-				if ( !cs->castScriptStatus.playAnimViewlockTime || cs->castScriptStatus.playAnimViewlockTime < level.time ) {
-					VectorCopy( cs->ideal_viewangles, cs->castScriptStatus.playanim_viewangles );
-				}
-				cs->castScriptStatus.playAnimViewlockTime = cs->scriptAnimTime;
-				// adjust the duration according to numLoops
-				if ( numLoops > 1 ) {
-					client->ps.legsTimer += duration * ( numLoops - 1 );
-					if ( !strcmp( tokens[1], "both" ) ) {
-						client->ps.torsoTimer += duration * ( numLoops - 1 );
-					}
-				} else if ( numLoops == -1 ) {
-					client->ps.legsTimer = 9999;
-					if ( !strcmp( tokens[1], "both" ) ) {
-						client->ps.torsoTimer = 9999;
-					}
-				}
 			}
 		} else {
-			if ( holdframe ) {
-				// make sure it doesn't stop before the next command can be processed
-				if ( !strcmp( tokens[1], "torso" ) ) {
-					if ( client->ps.torsoTimer < 400 ) {
-						client->ps.torsoTimer = 400;
-					}
-				} else if ( !strcmp( tokens[1], "legs" ) ) {
-					if ( client->ps.legsTimer < 400 ) {
-						client->ps.legsTimer = 400;
-					}
-				} else if ( !strcmp( tokens[1], "both" ) ) {
-					if ( client->ps.torsoTimer < 400 ) {
-						client->ps.torsoTimer = 400;
-					}
-					if ( client->ps.legsTimer < 400 ) {
-						client->ps.legsTimer = 400;
-					}
-				}
-			}
-			// keep it looping if forever
-			if ( forever ) {
-				if ( !strcmp( tokens[1], "torso" ) ) {
-					client->ps.torsoTimer = 9999;
-				} else {
-					client->ps.legsTimer = 9999;
-					if ( !strcmp( tokens[1], "both" ) ) {
-						client->ps.torsoTimer = 9999;
-					}
-				}
-				return qfalse;
-			}
 			// wait for the anim to stop playing
-			if ( cs->scriptAnimTime <= level.time ) {
+			if ( ( cs->castScriptStatus.castScriptStackChangeTime != level.time ) && ( client->ps.legsTimer < 250 ) && ( client->ps.torsoTimer < 250 ) ) {
 				return qtrue;
 			}
 		}
@@ -1001,9 +834,6 @@ qboolean AICast_ScriptAction_ClearAnim( cast_state_t *cs, char *params ) {
 	client->ps.torsoTimer = 0;
 	client->ps.legsTimer = 0;
 
-	// let us move again
-	cs->castScriptStatus.scriptNoMoveTime = 0;
-
 	return qtrue;
 }
 
@@ -1050,23 +880,14 @@ qboolean AICast_ScriptAction_SetAmmo( cast_state_t *cs, char *params ) {
 	if ( weapon != WP_NONE ) {
 		// give them the ammo
 
-		if ( atoi( token ) ) {
-			int amt;
-			amt = atoi( token );
-			if ( amt > 50 + ammoTable[BG_FindAmmoForWeapon( weapon )].maxammo ) {
-				amt = 999;  // unlimited
-			}
-			Add_Ammo( &g_entities[cs->entityNum], weapon, amt, qtrue );
-		} else {
-			// remove ammo for this weapon
-			g_entities[cs->entityNum].client->ps.ammo[BG_FindAmmoForWeapon( weapon )] = 0;
-			g_entities[cs->entityNum].client->ps.ammoclip[BG_FindClipForWeapon( weapon )] = 0;
-		}
+//----(SA)	// trying this with Add_Ammo() again so automatic stuff happens automatically
+		Add_Ammo( &g_entities[cs->entityNum], weapon, atoi( token ), qtrue );
+//		g_entities[cs->entityNum].client->ps.ammo[BG_FindAmmoForWeapon(weapon)] = atoi(token);
+//		Fill_Clip (&g_entities[cs->entityNum].client->ps, weapon);		//----(SA)	added (Add_Ammo would do the same, but this leaves more in the hands of the ai)
+//----(SA)	end
 
 	} else {
-		if ( g_cheats.integer ) {
-			G_Printf( "--SCRIPTER WARNING-- AI Scripting: setammo: unknown ammo \"%s\"\n", params );
-		}
+//		G_Printf( "--SCRIPTER WARNING-- AI Scripting: setammo: unknown ammo \"%s\"\n", params );
 		return qfalse;  // (SA) temp as scripts transition to new names
 	}
 
@@ -1135,45 +956,6 @@ qboolean AICast_ScriptAction_SetClip( cast_state_t *cs, char *params ) {
 	return qtrue;
 }
 
-
-
-/*
-==============
-AICast_ScriptAction_SuggestWeapon
-==============
-*/
-qboolean AICast_ScriptAction_SuggestWeapon( cast_state_t *cs, char *params ) {
-	int weapon;
-	int i;
-	//int		suggestedweaps = 0; // TTimo: unused
-
-	weapon = WP_NONE;
-
-	for ( i = 1; bg_itemlist[i].classname; i++ )
-	{
-		//----(SA)	first try the name they see in the editor, then the pickup name
-		if ( !Q_strcasecmp( params, bg_itemlist[i].classname ) ) {
-			weapon = bg_itemlist[i].giTag;
-			break;
-		}
-
-		if ( !Q_strcasecmp( params, bg_itemlist[i].pickup_name ) ) {
-			weapon = bg_itemlist[i].giTag;
-			break;
-		}
-	}
-
-	if ( weapon != WP_NONE ) {
-		G_AddEvent( &g_entities[cs->entityNum], EV_SUGGESTWEAP, weapon );
-	} else {
-		G_Error( "AI Scripting: suggestweapon: unknown weapon \"%s\"", params );
-	}
-
-	return qtrue;
-
-}
-
-
 /*
 =================
 AICast_ScriptAction_SelectWeapon
@@ -1203,7 +985,7 @@ qboolean AICast_ScriptAction_SelectWeapon( cast_state_t *cs, char *params ) {
 
 	if ( weapon != WP_NONE ) {
 		if ( cs->bs ) {
-			cs->weaponNum = weapon;
+			cs->bs->weaponnum = weapon;
 		}
 		cs->castScriptStatus.scriptFlags |= SFL_NOCHANGEWEAPON;
 
@@ -1211,12 +993,12 @@ qboolean AICast_ScriptAction_SelectWeapon( cast_state_t *cs, char *params ) {
 		g_entities[cs->entityNum].client->ps.weaponstate = WEAPON_READY;
 
 		if ( !cs->aiCharacter ) {  // only do this for player
-			g_entities[cs->entityNum].client->ps.weaponTime = 750;  // (SA) HACK: FIXME: TODO: delay to catch initial weapon reload
+			g_entities[cs->entityNum].client->ps.weaponTime = 500;  // (SA) HACK: FIXME: TODO: delay to catch initial weapon reload
 		}
 	} else {
 //		G_Printf( "--SCRIPTER WARNING-- AI Scripting: selectweapon: unknown weapon \"%s\"\n", params );
-//		return qfalse;	// (SA) temp as scripts transition to new names
-		G_Error( "AI Scripting: selectweapon: unknown weapon \"%s\"", params );
+		return qfalse;	// (SA) temp as scripts transition to new names
+//		G_Error( "AI Scripting: selectweapon: unknown weapon \"%s\"", params );
 	}
 
 	return qtrue;
@@ -1225,23 +1007,6 @@ qboolean AICast_ScriptAction_SelectWeapon( cast_state_t *cs, char *params ) {
 
 
 //----(SA)	added
-/*
-==============
-AICast_ScriptAction_GiveArmor
-	syntax: setarmor <amount>
-
-==============
-*/
-qboolean AICast_ScriptAction_SetArmor( cast_state_t *cs, char *params ) {
-	if ( !params || !params[0] ) {
-		G_Error( "AI Scripting: setarmor requires an armor value" );
-	}
-
-	g_entities[cs->entityNum].client->ps.stats[STAT_ARMOR] += atoi( params );
-
-	return qtrue;
-}
-
 /*
 ==============
 AICast_ScriptAction_GiveArmor
@@ -1273,9 +1038,6 @@ qboolean AICast_ScriptAction_GiveArmor( cast_state_t *cs, char *params ) {
 
 	if ( item->giType == IT_ARMOR ) {
 		g_entities[cs->entityNum].client->ps.stats[STAT_ARMOR] += item->quantity;
-		if ( g_entities[cs->entityNum].client->ps.stats[STAT_ARMOR] > 100 ) {
-			g_entities[cs->entityNum].client->ps.stats[STAT_ARMOR] = 100;
-		}
 	}
 
 	return qtrue;
@@ -1311,13 +1073,6 @@ qboolean AICast_ScriptAction_GiveWeapon( cast_state_t *cs, char *params ) {
 		}
 	}
 
-	if ( weapon == WP_COLT ) {
-		// if you had the colt already, now you've got two!
-		if ( COM_BitCheck( g_entities[cs->entityNum].client->ps.weapons, WP_COLT ) ) {
-			weapon = WP_AKIMBO;
-		}
-	}
-
 	if ( weapon != WP_NONE ) {
 		COM_BitSet( g_entities[cs->entityNum].client->ps.weapons, weapon );
 
@@ -1331,14 +1086,17 @@ qboolean AICast_ScriptAction_GiveWeapon( cast_state_t *cs, char *params ) {
 		if ( weapon == WP_FG42 ) {
 			COM_BitSet( g_entities[cs->entityNum].client->ps.weapons, WP_FG42SCOPE );
 		}
-		if ( weapon == WP_SNIPERRIFLE ) {
-			COM_BitSet( g_entities[cs->entityNum].client->ps.weapons, WP_MAUSER );
+		if ( weapon == WP_BAR ) {
+			COM_BitSet( g_entities[cs->entityNum].client->ps.weapons, WP_BAR2 );
+		}
+		if ( weapon == WP_DYNAMITE ) {
+			COM_BitSet( g_entities[cs->entityNum].client->ps.weapons, WP_DYNAMITE2 );
 		}
 //----(SA)	end
 
 		// monsters have full ammo for their attacks
 		// knife gets infinite ammo too
-		if ( !Q_strncasecmp( params, "monsterattack", 13 ) || weapon == WP_KNIFE ) {
+		if ( !Q_strncasecmp( params, "monsterattack", 13 ) || weapon == WP_KNIFE || weapon == WP_KNIFE2 ) {
 			g_entities[cs->entityNum].client->ps.ammo[BG_FindAmmoForWeapon( weapon )] = 999;
 			Fill_Clip( &g_entities[cs->entityNum].client->ps, weapon );      //----(SA)	added
 		}
@@ -1374,8 +1132,6 @@ qboolean AICast_ScriptAction_TakeWeapon( cast_state_t *cs, char *params ) {
 		// clear out all weapons
 		memset( g_entities[cs->entityNum].client->ps.weapons, 0, sizeof( g_entities[cs->entityNum].client->ps.weapons ) );
 		memset( g_entities[cs->entityNum].client->ps.ammo, 0, sizeof( g_entities[cs->entityNum].client->ps.ammo ) );
-		memset( g_entities[cs->entityNum].client->ps.ammoclip, 0, sizeof( g_entities[cs->entityNum].client->ps.ammoclip ) );
-		cs->weaponNum = WP_NONE;
 
 	} else {
 
@@ -1395,17 +1151,6 @@ qboolean AICast_ScriptAction_TakeWeapon( cast_state_t *cs, char *params ) {
 
 		if ( weapon != WP_NONE ) {
 			qboolean clear;
-
-			if ( weapon == WP_AKIMBO ) {
-				// take both the colt /and/ the akimbo weapons when 'akimbo' is specified
-				COM_BitClear( g_entities[cs->entityNum].client->ps.weapons, WP_COLT );
-			} else if ( weapon == WP_COLT ) {
-				// take 'akimbo' first if it's there, then take 'colt'
-				if ( COM_BitCheck( g_entities[cs->entityNum].client->ps.weapons, WP_AKIMBO ) ) {
-					weapon = WP_AKIMBO;
-				}
-			}
-
 			//
 			COM_BitClear( g_entities[cs->entityNum].client->ps.weapons, weapon );
 			// also remove the ammo for this weapon
@@ -1431,7 +1176,7 @@ qboolean AICast_ScriptAction_TakeWeapon( cast_state_t *cs, char *params ) {
 
 	if ( !( g_entities[cs->entityNum].client->ps.weapons[0] ) && !( g_entities[cs->entityNum].client->ps.weapons[1] ) ) {
 		if ( cs->bs ) {
-			cs->weaponNum = WP_NONE;
+			cs->bs->weaponnum = WP_NONE;
 		} else {
 			g_entities[cs->entityNum].client->ps.weapon = WP_NONE;
 		}
@@ -1569,7 +1314,7 @@ AICast_ScriptAction_SaveGame
 =================
 */
 qboolean AICast_ScriptAction_SaveGame( cast_state_t *cs, char *params ) {
-	char *pString, *saveName;
+	char *pString; //, *saveName;
 	pString = params;
 
 	if ( cs->bs ) {
@@ -1577,12 +1322,12 @@ qboolean AICast_ScriptAction_SaveGame( cast_state_t *cs, char *params ) {
 	}
 
 //----(SA)	check for parameter
-	saveName = COM_ParseExt( &pString, qfalse );
-	if ( !saveName[0] ) {
-		G_SaveGame( NULL );	// save the default "current" savegame
-	} else {
-		G_SaveGame( saveName );
-	}
+	COM_ParseExt( &pString, qfalse );
+//	if ( !saveName[0] ) {
+//		G_SaveGame( NULL );	// save the default "current" savegame
+//	} else {
+//		G_SaveGame( saveName );
+//	}
 //----(SA)	end
 
 	return qtrue;
@@ -1622,30 +1367,26 @@ qboolean AICast_ScriptAction_FireAtTarget( cast_state_t *cs, char *params ) {
 	}
 
 	// if this is our first call for this fireattarget, record the ammo count
-	if ( cs->castScriptStatus.scriptFlags & SFL_FIRST_CALL ) {
+	if ( cs->castScriptStatus.castScriptStackChangeTime == level.time ) {
 		cs->lastWeaponFired = 0;
 	}
 	// make sure we don't move or shoot while turning to our target
 	if ( cs->castScriptStatus.scriptNoAttackTime < level.time ) {
-		cs->castScriptStatus.scriptNoAttackTime = level.time + 500;
+		cs->castScriptStatus.scriptNoAttackTime = level.time + 250;
 	}
-	// dont reload prematurely
-	cs->noReloadTime = level.time + 1000;
 	// don't move while firing at all
 	//if (cs->castScriptStatus.scriptNoMoveTime < level.time) {
-	cs->castScriptStatus.scriptNoMoveTime = level.time + 500;
+	cs->castScriptStatus.scriptNoMoveTime = level.time + 250;
 	//}
-	// let us move our view, whether it looks bad or not
-	cs->castScriptStatus.playAnimViewlockTime = 0;
 	// set the view angle manually
 	BG_EvaluateTrajectory( &ent->s.pos, level.time, org );
 	VectorCopy( cs->bs->origin, src );
 	src[2] += cs->bs->cur_ps.viewheight;
 	VectorSubtract( org, src, vec );
 	VectorNormalize( vec );
-	vectoangles( vec, cs->ideal_viewangles );
+	vectoangles( vec, cs->bs->ideal_viewangles );
 	for ( i = 0; i < 2; i++ ) {
-		diff = fabs( AngleDifference( cs->viewangles[i], cs->ideal_viewangles[i] ) );
+		diff = fabs( AngleDifference( cs->bs->cur_ps.viewangles[i], cs->bs->ideal_viewangles[i] ) );
 		if ( VectorCompare( vec3_origin, ent->s.pos.trDelta ) ) {
 			if ( diff ) {
 				return qfalse;  // not facing yet
@@ -1660,7 +1401,7 @@ qboolean AICast_ScriptAction_FireAtTarget( cast_state_t *cs, char *params ) {
 	// force fire
 	trap_EA_Attack( cs->bs->client );
 	//
-	cs->bFlags |= BFL_ATTACKED;
+	cs->bs->flags |= BFL_ATTACKED;
 	//
 	// if we haven't fired yet
 	if ( !cs->lastWeaponFired ) {
@@ -1890,90 +1631,34 @@ qboolean AICast_ScriptAction_SpawnCast( cast_state_t *cs, char *params ) {
 =================
 AICast_ScriptAction_MissionFailed
 
-  syntax: missionfailed  <time>
+  syntax: missionfailed
 =================
 */
 qboolean AICast_ScriptAction_MissionFailed( cast_state_t *cs, char *params ) {
-	char    *pString, *token;
-	int time = 6, mof = 0;
-
-	pString = params;
-
-	token = COM_ParseExt( &pString, qfalse );   // time
-	if ( token && token[0] ) {
-		time = atoi( token );
+	// todo!! (just kill the player for now)
+	gentity_t *player;
+	player = AICast_FindEntityForName( "player" );
+	if ( player ) {
+		G_Damage( player, player, player, vec3_origin, vec3_origin, 99999, DAMAGE_NO_PROTECTION, MOD_SUICIDE );
 	}
 
-	token = COM_ParseExt( &pString, qfalse );   // mof (means of failure)
-	if ( token && token[0] ) {
-		mof = atoi( token );
-	}
-
-	// play mission fail music
-	trap_SendServerCommand( -1, "mu_play sound/music/l_failed_1.wav 0\n" );
-	// clear queue so it'll be quiet after failed stinger
-	trap_SetConfigstring( CS_MUSIC_QUEUE, "" );
-
-	// fade all sound out
-	trap_SendServerCommand( -1, va( "snd_fade 0 %d", time * 1000 ) );
-
-	if ( mof < 0 ) {
-		mof = 0;
-	}
-	trap_SendServerCommand( -1, va( "cp missionfail%d", mof ) );
-
-	// reload the current savegame, after a delay
-	trap_SetConfigstring( CS_SCREENFADE, va( "1 %i %i", level.time + 250, time * 1000 ) );
-//	reloading = RELOAD_FAILED;
-	trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_FAILED ) );
-
-	level.reloadDelayTime = level.time + 1000 + time * 1000;
+	G_Printf( "Mission Failed...\n" );    // todo
 
 	return qtrue;
 }
 
 /*
 =================
-AICast_ScriptAction_ObjectivesNeeded
+AICast_ScriptAction_MissionSuccess
 
-  syntax: objectivesneeded <num_objectives>
+  syntax: missionsuccess <mission_level>
 =================
 */
-qboolean AICast_ScriptAction_ObjectivesNeeded( cast_state_t *cs, char *params ) {
-	char *pString, *token;
+qboolean AICast_ScriptAction_MissionSuccess( cast_state_t *cs, char *params ) {
+	gentity_t *player;
 
-	pString = params;
-
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "AI Scripting: objectivesneeded requires a num_objectives identifier\n" );
-	}
-
-	level.numObjectives = atoi( token );
-
-	return qtrue;
-}
-
-
-/*
-=================
-AICast_ScriptAction_ObjectiveMet
-
-  syntax: objectivemet <num_objective>
-  also (for backwards compaiblity): missionsuccess <num_objective> [nodisplay]
-=================
-*/
-qboolean AICast_ScriptAction_ObjectiveMet( cast_state_t *cs, char *params ) {
-	gentity_t   *player;
-	vmCvar_t cvar;
-	int lvl;
-	char *pString, *token;
-
-	pString = params;
-
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "AI Scripting: missionsuccess requires a num_objective identifier\n" );
+	if ( !params || !params[0] ) {
+		G_Error( "AI Scripting: missionsuccess requires a mission_level identifier\n" );
 	}
 
 	player = AICast_FindEntityForName( "player" );
@@ -1982,28 +1667,11 @@ qboolean AICast_ScriptAction_ObjectiveMet( cast_state_t *cs, char *params ) {
 		return qfalse;  // hold the script here
 
 	}
-	lvl = atoi( token );
+	player->missionLevel = atoi( params );
 
-// if you've already got it, just return.  don't need to set 'yougotmail'
-	if ( player->missionObjectives & ( 1 << ( lvl - 1 ) ) ) {
-		return qtrue;
-	}
+	G_Printf( "Mission Success!!!!\n" );  // todo
 
-	player->missionObjectives |= ( 1 << ( lvl - 1 ) );  // make this bitwise
-
-	//set g_objective<n> cvar
-	trap_Cvar_Register( &cvar, va( "g_objective%i", lvl ), "1", CVAR_ROM );
-	// set it to make sure
-	trap_Cvar_Set( va( "g_objective%i", lvl ), "1" );
-
-	token = COM_ParseExt( &pString, qfalse );
-	if ( token[0] ) {
-		if ( Q_strcasecmp( token,"nodisplay" ) ) {   // unknown command
-			G_Error( "AI Scripting: missionsuccess with unknown parameter: %s\n", token );
-		}
-	} else {    // show on-screen information
-		trap_Cvar_Set( "cg_youGotMail", "2" ); // set flag to draw icon
-	}
+//	G_SaveGame( NULL );
 
 	return qtrue;
 }
@@ -2069,7 +1737,7 @@ qboolean AICast_ScriptAction_FaceTargetAngles( cast_state_t *cs, char *params ) 
 		G_Error( "AI Scripting: facetargetangles cannot find targetname \"%s\"\n", params );
 	}
 
-	VectorCopy( targetEnt->s.angles, cs->ideal_viewangles );
+	VectorCopy( targetEnt->s.angles, cs->bs->ideal_viewangles );
 
 	return qtrue;
 }
@@ -2098,20 +1766,15 @@ qboolean AICast_ScriptAction_ResetScript( cast_state_t *cs, char *params ) {
 		}
 	}
 
-	// stop playing voice channel sounds
-	G_AddEvent( &g_entities[cs->bs->entitynum], EV_GENERAL_SOUND, G_SoundIndex( "Blank" ) );
-
 	cs->castScriptStatus.scriptNoMoveTime = 0;
-	cs->castScriptStatus.playAnimViewlockTime = 0;
 	// stop following anything that we don't need to be following
 	cs->followEntity = -1;
-	if ( cs->castScriptStatus.scriptFlags & SFL_FIRST_CALL ) {
+	if ( level.time == cs->castScriptStatus.castScriptStackChangeTime ) {
 		return qfalse;
 	}
 
 	// make sure zoom is off
 	cs->aiFlags &= ~AIFL_ZOOMING;
-	g_entities[cs->entityNum].client->ps.eFlags &= ~EF_CIG; //----(SA)	added
 
 	return qtrue;
 }
@@ -2141,7 +1804,7 @@ qboolean AICast_ScriptAction_Mount( cast_state_t *cs, char *params ) {
 
 	VectorSubtract( targetEnt->r.currentOrigin, cs->bs->origin, vec );
 	dist = VectorNormalize( vec );
-	vectoangles( vec, cs->ideal_viewangles );
+	vectoangles( vec, cs->bs->ideal_viewangles );
 
 	if ( dist > 40 ) {
 		// walk towards it
@@ -2149,13 +1812,8 @@ qboolean AICast_ScriptAction_Mount( cast_state_t *cs, char *params ) {
 		return qfalse;
 	}
 
-	if ( !targetEnt->takedamage ) {
-		// the gun has been destroyed
-		return qtrue;
-	}
-
 	// if we are facing it, start holding activate
-	if ( fabs( cs->ideal_viewangles[YAW] - cs->viewangles[YAW] ) < 10 ) {
+	if ( fabs( cs->bs->ideal_viewangles[YAW] - cs->bs->viewangles[YAW] ) < 10 ) {
 		ent = &g_entities[cs->entityNum];
 		Cmd_Activate_f( ent );
 		// did we mount it?
@@ -2179,17 +1837,13 @@ AICast_ScriptAction_Unmount
 ===================
 */
 qboolean AICast_ScriptAction_Unmount( cast_state_t *cs, char *params ) {
-	gentity_t   *ent, *mg42;
+	gentity_t   *ent;
 
 	ent = &g_entities[cs->entityNum];
-	mg42 = &g_entities[cs->mountedEntity];
 
 	if ( !ent->active ) {
 		return qtrue;   // nothing mounted, just skip this command
 	}
-	// face straight forward
-	VectorCopy( mg42->s.angles, cs->ideal_viewangles );
-	// try and unmount
 	Cmd_Activate_f( ent );
 	if ( !ent->active ) {
 		return qtrue;
@@ -2213,159 +1867,117 @@ AICast_ScriptAction_SavePersistant
 ====================
 */
 qboolean AICast_ScriptAction_SavePersistant( cast_state_t *cs, char *params ) {
-	G_SavePersistant( params );
+//	G_SavePersistant( params );
 	return qtrue;
 }
-
-
-
-/*
-==============
-AICast_ScriptAction_Teleport
-==============
-*/
-qboolean AICast_ScriptAction_Teleport( cast_state_t *cs, char *params ) {
-	gentity_t   *dest;
-
-	dest =  G_PickTarget( params );
-	if ( !dest ) {
-		G_Error( "AI Scripting: couldn't find teleporter destination: '%s'\n", params );
-	}
-
-	TeleportPlayer( &g_entities[cs->entityNum], dest->s.origin, dest->s.angles );
-
-	return qtrue;
-}
-
-
-
-extern void G_EndGame( void );
-
-/*
-==============
-AICast_ScriptAction_EndGame
-==============
-*/
-qboolean AICast_ScriptAction_EndGame( cast_state_t *cs, char *params ) {
-	G_EndGame();
-	return qtrue;
-}
-
-
-
 
 /*
 ====================
 AICast_ScriptAction_ChangeLevel
 
-	syntax: changelevel <mapname> [exitTime] <persistent> <silent>
+	syntax: changelevel <mapname> [nostats] [persistant]
 
-  Issues an spdevmap/spmap to the console.
-  Optionally add
-	"persistent" if you want the player to keep their inventory through the transition.
-	"silent" if you want it to not play the mission success music
-
+  Issues an spdevmap/spmap to the consol. Optionally add "persistant" if you want the player to
+  keep their inventory through the transition.
 ====================
 */
 qboolean AICast_ScriptAction_ChangeLevel( cast_state_t *cs, char *params ) {
-	int i;
-	char *pch, *pch2, *newstr;
-	gentity_t   *player;
-	qboolean silent = qfalse, endgame = qfalse, savepersist = qfalse;
-	int exitTime = 8000;
+	char *pch, *newstr, cmd[MAX_QPATH];
 
-	player = AICast_FindEntityForName( "player" );
-	// double check that they are still alive
-	if ( player->health <= 0 ) {
-		return qtrue;   // get out of here
-
-	}
-	// don't process if already changing
-//	if(reloading)
-	if ( g_reloading.integer ) {
+	// if the player is dead, we can't change levels
+	if ( g_entities[0].health <= 0 ) {
 		return qtrue;
+	}
+
+	// build the mission stats string
+	newstr = va( "%s", params );
+	pch = strstr( newstr, " nostats" );
+	if ( !pch ) {
+		int kills[2];
+		int nazis[2];
+		int monsters[2];
+		int i;
+		gentity_t *ent;
+
+		memset( cmd, 0, sizeof( cmd ) );
+		Q_strcat( cmd, sizeof( cmd ), "s=" );
+
+		// count kills
+		kills[0] = kills[1] = 0;
+		nazis[0] = nazis[1] = 0;
+		monsters[0] = monsters[1] = 0;
+		for ( i = 0; i < aicast_maxclients; i++ ) {
+			ent = &g_entities[i];
+
+			if ( !ent->inuse ) {
+				continue;
+			}
+
+			if ( !( ent->r.svFlags & SVF_CASTAI ) ) {
+				continue;
+			}
+
+			if ( ent->aiTeam == AITEAM_ALLIES ) {
+				continue;
+			}
+
+			kills[1]++;
+
+			if ( ent->health <= 0 ) {
+				kills[0]++;
+			}
+
+			if ( ent->aiTeam == AITEAM_NAZI ) {
+				nazis[1]++;
+				if ( ent->health <= 0 ) {
+					nazis[0]++;
+				}
+			} else {
+				monsters[1]++;
+				if ( ent->health <= 0 ) {
+					monsters[0]++;
+				}
+			}
+		}
+		Q_strcat( cmd, sizeof( cmd ), va( ",%i,%i,%i,%i,%i,%i", kills[0], kills[1], nazis[0], nazis[1], monsters[0], monsters[1] ) );
+
+		// time
+		Q_strcat( cmd, sizeof( cmd ), va( ",%i,%i,%i", ( ( cs->totalPlayTime / 1000 ) / 60 ) / 60, ( cs->totalPlayTime / 1000 ) / 60, ( cs->totalPlayTime / 1000 ) % 60 ) );
+
+		// secrets
+		Q_strcat( cmd, sizeof( cmd ), va( ",%i,%i", cs->secretsFound, numSecrets ) );
+
+		// attempts
+		Q_strcat( cmd, sizeof( cmd ), va( ",%i", cs->attempts ) );
+
+		trap_Cvar_Set( "g_missionStats", cmd );
 	}
 
 	// save persistent data if required
 	newstr = va( "%s", params );
-	pch = strstr( newstr, " persistent" ); // (SA) whoops, this was mis-spelled
+	pch = strstr( newstr, " persistent" );
 	if ( pch ) {
 		pch = strstr( newstr, " " );
 		*pch = '\0';
-		savepersist = qtrue;
-	}
-
-	//
-	newstr = va( "%s", params );
-	pch = strstr( newstr, " silent" );
-	if ( pch ) {
-		pch = strstr( newstr, " " );
-		*pch = '\0';
-		silent = qtrue;
+//		G_SavePersistant( newstr );
 	}
 
 	// make sure we strip any params after the mapname
-	newstr = va( "%s", params );
 	pch = strstr( newstr, " " );
 	if ( pch ) {
-		*( pch++ ) = '\0';
-		//
-		// see if there is a mission_level specified
-		pch2 = strstr( pch, " " );
-		if ( pch2 ) { // kill the space if exists
-			*pch2 = '\0';
-		}
-
-		if ( atoi( pch ) ) { // there's a 'time' specified
-			exitTime = atoi( pch );
-		}
+		*pch = '\0';
 	}
 
-	if ( !Q_stricmp( newstr, "gamefinished" ) ) { // 'gamefinished' is keyword for 'exit to credits'
-		endgame = qtrue;
+	// wait for a key before clearing stats and loading client data/showing mission briefing
+	trap_Cvar_Set( "cl_waitForFire", "1" );
+
+	if ( g_cheats.integer ) {
+		Com_sprintf( cmd, MAX_QPATH, "spdevmap %s\n", newstr );
+	} else {
+		Com_sprintf( cmd, MAX_QPATH, "spmap %s\n", newstr );
 	}
 
-	if ( !endgame ) {
-
-		// check for missing objectives
-		for ( i = 0; i < level.numObjectives; i++ ) {
-			if ( !( player->missionObjectives & ( 1 << i ) ) ) {
-				trap_SendServerCommand( -1, "cp objectivesnotcomplete" );
-				return qtrue;
-			}
-		}
-
-		if ( savepersist ) {
-			G_SavePersistant( newstr ); // save persistent data if required
-
-		}
-	}
-
-
-	if ( !silent && !endgame ) {
-		trap_SendServerCommand( -1, "mu_play sound/music/l_complete_1.wav 0\n" );   // play mission success music
-	}
-	trap_SetConfigstring( CS_MUSIC_QUEUE, "" );  // don't try to start anything.  no level load music
-
-	trap_SetConfigstring( CS_SCREENFADE, va( "1 %i %i", level.time + 250, 750 + exitTime ) ); // fade out screen
-
-	trap_SendServerCommand( -1, va( "snd_fade 0 %d", 1000 + exitTime ) ); //----(SA)	added
-
-	// load the next map, after a delay
-	level.reloadDelayTime = level.time + 4000 + exitTime;
-	trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_NEXTMAP_WAITING ) );
-
-	if ( endgame ) {
-		trap_Cvar_Set( "g_reloading", va( "%d", RELOAD_ENDGAME ) );
-		return qtrue;
-	}
-
-	Q_strncpyz( level.nextMap, newstr, sizeof( level.nextMap ) );
-
-	//if (g_cheats.integer)
-	//	trap_SendConsoleCommand( EXEC_APPEND, va("spdevmap %s\n", newstr) );
-	//else
-	//	trap_SendConsoleCommand( EXEC_APPEND, va("spmap %s\n", newstr ) );
+	trap_SendConsoleCommand( EXEC_APPEND, cmd );
 
 	return qtrue;
 }
@@ -2376,11 +1988,7 @@ AICast_ScriptAction_FoundSecret
 ==================
 */
 qboolean AICast_ScriptAction_FoundSecret( cast_state_t *cs, char *params ) {
-	gentity_t *player = AICast_FindEntityForName( "player" );
-//	level.numSecretsFound++;
-	player->numSecretsFound++;
-	trap_SendServerCommand( -1, "cp secretarea" );
-	G_SendMissionStats();
+	cs->secretsFound++;
 	return qtrue;
 }
 
@@ -2563,15 +2171,15 @@ qboolean AICast_ScriptAction_RestoreScript( cast_state_t *cs, char *params ) {
 =================
 AICast_ScriptAction_StateType
 
-  set the current state for this character
+  set the default state for this character
+
+  currently only accepts "alert" since "relaxed" is the default
 =================
 */
 qboolean AICast_ScriptAction_StateType( cast_state_t *cs, char *params ) {
 
 	if ( !Q_stricmp( params, "alert" ) ) {
 		cs->aiState = AISTATE_ALERT;
-	} else if ( !Q_stricmp( params, "relaxed" ) ) {
-		cs->aiState = AISTATE_RELAXED;
 	}
 
 	return qtrue;
@@ -2674,37 +2282,6 @@ qboolean AICast_ScriptAction_StartCam( cast_state_t *cs, char *params ) {
 }
 qboolean AICast_ScriptAction_StartCamBlack( cast_state_t *cs, char *params ) {
 	return ScriptStartCam( cs, params, qtrue );
-}
-
-qboolean AICast_ScriptAction_StopCamBlack( cast_state_t *cs, char *params ) {
-	trap_SendServerCommand( cs->entityNum, "stopCamblack" );
-	return qtrue;
-}
-
-qboolean AICast_ScriptAction_StopCam( cast_state_t *cs, char *params ) {
-	trap_SendServerCommand( cs->entityNum, "stopCam" );
-	return qtrue;
-}
-
-qboolean AICast_ScriptAction_Cigarette( cast_state_t *cs, char *params ) {
-	char    *pString, *token;
-
-	pString = params;
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "AI_Scripting: syntax: cigarette <ON/OFF>" );
-	}
-	Q_strlwr( token );
-
-	if ( !Q_stricmp( token, "on" ) ) {
-		g_entities[cs->entityNum].client->ps.eFlags |= EF_CIG;
-	} else if ( !Q_stricmp( token, "off" ) ) {
-		g_entities[cs->entityNum].client->ps.eFlags &= ~EF_CIG;
-	} else {
-		G_Error( "AI_Scripting: syntax: cigarette <ON/OFF>" );
-	}
-
-	return qtrue;
 }
 //----(SA)	end
 
@@ -2823,264 +2400,8 @@ qboolean AICast_ScriptAction_Cvar( cast_state_t *cs, char *params ) {
 		G_Error( "AI_Scripting: syntax: cvar <cvarName> <cvarValue>" );
 	}
 
-	if ( !strcmp( cvarName, "objective" ) ) {
-		G_Printf( "WARNING: 'objective' cvar set from script.  Do not set directly.  Use 'missionsuccess <num>'\n" );
-		return qtrue;
-	}
-
 	trap_Cvar_Register( &cvar, cvarName, token, CVAR_ROM );
 	// set it to make sure
 	trap_Cvar_Set( cvarName, token );
-	return qtrue;
-}
-
-/*
-==================
-AICast_ScriptAction_MusicStart
-
-==================
-*/
-qboolean AICast_ScriptAction_MusicStart( cast_state_t *cs, char *params ) {
-	char    *pString, *token;
-	char cvarName[MAX_QPATH];
-	int fadeupTime = 0;
-
-	pString = params;
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "AI_Scripting: syntax: mu_start <musicfile> <fadeuptime>" );
-	}
-	Q_strncpyz( cvarName, token, sizeof( cvarName ) );
-
-	token = COM_ParseExt( &pString, qfalse );
-	if ( token[0] ) {
-		fadeupTime = atoi( token );
-	}
-
-	trap_SendServerCommand( cs->entityNum, va( "mu_start %s %d", cvarName, fadeupTime ) );
-
-	return qtrue;
-}
-
-/*
-==================
-AICast_ScriptAction_MusicPlay
-
-==================
-*/
-qboolean AICast_ScriptAction_MusicPlay( cast_state_t *cs, char *params ) {
-	char    *pString, *token;
-	char cvarName[MAX_QPATH];
-	int fadeupTime = 0;
-
-	pString = params;
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "AI_Scripting: syntax: mu_play <musicfile> [fadeup time]" );
-	}
-	Q_strncpyz( cvarName, token, sizeof( cvarName ) );
-
-	trap_SendServerCommand( cs->entityNum, va( "mu_play %s %d", cvarName, fadeupTime ) );
-
-	return qtrue;
-}
-
-
-/*
-==================
-AICast_ScriptAction_MusicStop
-==================
-*/
-qboolean AICast_ScriptAction_MusicStop( cast_state_t *cs, char *params ) {
-	char    *pString, *token;
-	int fadeoutTime = 0;
-
-	pString = params;
-	token = COM_ParseExt( &pString, qfalse );
-	if ( token[0] ) {
-		fadeoutTime = atoi( token );
-	}
-
-	trap_SendServerCommand( cs->entityNum, va( "mu_stop %i", fadeoutTime ) );
-
-	return qtrue;
-}
-
-
-/*
-==================
-AICast_ScriptAction_MusicFade
-==================
-*/
-qboolean AICast_ScriptAction_MusicFade( cast_state_t *cs, char *params ) {
-	char    *pString, *token;
-	float targetvol;
-	int fadetime;
-
-	pString = params;
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "AI_Scripting: syntax: mu_fade <targetvol> <fadetime>" );
-	}
-	targetvol = atof( token );
-
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "AI_Scripting: syntax: mu_fade <targetvol> <fadetime>" );
-	}
-	fadetime = atoi( token );
-
-	trap_SendServerCommand( cs->entityNum, va( "mu_fade %f %i", targetvol, fadetime ) );
-
-	return qtrue;
-}
-
-
-/*
-==================
-AICast_ScriptAction_MusicQueue
-==================
-*/
-qboolean AICast_ScriptAction_MusicQueue( cast_state_t *cs, char *params ) {
-	char    *pString, *token;
-	char cvarName[MAX_QPATH];
-
-	pString = params;
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "AI_Scripting: syntax: mu_queue <musicfile>" );
-	}
-	Q_strncpyz( cvarName, token, sizeof( cvarName ) );
-
-	trap_SetConfigstring( CS_MUSIC_QUEUE, cvarName );
-
-	return qtrue;
-}
-
-
-/*
-=================
-AICast_ScriptAction_ExplicitRouting
-
-  syntax: explicit_routing <on/off>
-=================
-*/
-
-qboolean AICast_ScriptAction_ExplicitRouting( cast_state_t *cs, char *params ) {
-	if ( !params || !params[0] ) {
-		G_Error( "AI Scripting: explicit_routing requires an on/off specifier\n" );
-	}
-
-	if ( !Q_stricmp( params, "on" ) ) {
-		cs->aiFlags |= AIFL_EXPLICIT_ROUTING;
-	} else if ( !Q_stricmp( params, "off" ) ) {
-		cs->aiFlags &= ~AIFL_EXPLICIT_ROUTING;
-	} else {
-		G_Error( "AI Scripting: explicit_routing requires an on/off specifier\n" );
-	}
-
-	return qtrue;
-}
-
-/*
-=================
-AICast_ScriptAction_LockPlayer
-
-  syntax: lockplayer <ON/OFF>
-=================
-*/
-qboolean AICast_ScriptAction_LockPlayer( cast_state_t *cs, char *params ) {
-	gentity_t *ent;
-
-	ent = &g_entities[cs->entityNum];
-
-	if ( !params || !params[0] ) {
-		G_Error( "AI Scripting: lockplayer requires an on/off specifier\n" );
-	}
-
-	if ( !Q_stricmp( params, "on" ) ) {
-		ent->client->ps.pm_flags |= PMF_IGNORE_INPUT;
-	} else if ( !Q_stricmp( params, "off" ) ) {
-		ent->client->ps.pm_flags &= ~PMF_IGNORE_INPUT;
-	} else {
-		G_Error( "AI Scripting: lockplayer requires an on/off specifier\n" );
-	}
-
-	return qtrue;
-}
-
-/*
-==================
-AICast_ScriptAction_AnimCondition
-
-  syntax: anim_condition <condition> <string>
-==================
-*/
-qboolean AICast_ScriptAction_AnimCondition( cast_state_t *cs, char *params ) {
-	char    *pString, *token;
-	char condition[MAX_QPATH];
-
-	pString = params;
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "AI_Scripting: syntax: anim_condition <condition> <string>" );
-	}
-	Q_strncpyz( condition, token, sizeof( condition ) );
-	//
-	token = COM_ParseExt( &pString, qfalse );
-	if ( !token[0] ) {
-		G_Error( "AI_Scripting: syntax: anim_condition <condition> <string>" );
-	}
-	//
-	BG_UpdateConditionValueStrings( cs->entityNum, condition, token );
-	//
-	return qtrue;
-}
-
-/*
-================
-AICast_ScriptAction_PushAway
-
-  syntax: pushaway <ainame>
-================
-*/
-qboolean AICast_ScriptAction_PushAway( cast_state_t *cs, char *params ) {
-	gentity_t *pushed;
-	vec3_t v, ang, f, r;
-
-	if ( !params || !params[0] ) {
-		G_Error( "AI_Scripting: syntax: pushaway <ainame>" );
-	}
-	// find them
-	pushed = AICast_FindEntityForName( params );
-	if ( !pushed ) {
-		G_Error( "AI_Scripting: pushaway: cannot find \"%s\"", params );
-	}
-	// calc the vecs
-	VectorSubtract( pushed->s.pos.trBase, cs->bs->origin, v );
-	VectorNormalize( v );
-	vectoangles( v, ang );
-	AngleVectors( ang, f, r, NULL );
-	// push them away and to the side
-	VectorScale( f, 200, v );
-	VectorMA( v, ( level.time % 5000 < 2500 ? 200 : 200 ), r, v );
-	VectorAdd( pushed->client->ps.velocity, v, pushed->client->ps.velocity );
-	//
-	return qtrue;
-}
-
-/*
-==================
-AICast_ScriptAction_CatchFire
-==================
-*/
-qboolean AICast_ScriptAction_CatchFire( cast_state_t *cs, char *params ) {
-	gentity_t *ent = &g_entities[cs->entityNum];
-	//
-	ent->s.onFireEnd = level.time + 99999;  // make sure it goes for longer than they need to die
-	ent->flameBurnEnt = ENTITYNUM_WORLD;
-	// add to playerState for client-side effect
-	ent->client->ps.onFireStart = level.time;
-	//
 	return qtrue;
 }

@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -46,13 +46,19 @@ char systemChat[256];
 char teamChat1[256];
 char teamChat2[256];
 
+// NERVE - SMF
+void Controls_GetKeyAssignment( char *command, int *twokeys );
+char* BindingFromName( const char *cvar );
+void Controls_GetConfig( void );
+// -NERVE - SMF
+
 ////////////////////////
 ////////////////////////
 ////// new hud stuff
 ///////////////////////
 ///////////////////////
 
-int CG_Text_Width( const char *text, int font, float scale, int limit ) {
+int CG_Text_Width( const char *text, float scale, int limit ) {
 	int count,len;
 	float out;
 	glyphInfo_t *glyph;
@@ -60,18 +66,10 @@ int CG_Text_Width( const char *text, int font, float scale, int limit ) {
 	const char *s = text;
 	fontInfo_t *fnt = &cgDC.Assets.textFont;
 
-	if ( font == UI_FONT_DEFAULT ) {
-		if ( scale <= cg_smallFont.value ) {
-			fnt = &cgDC.Assets.smallFont;
-		} else if ( scale > cg_bigFont.value ) {
-			fnt = &cgDC.Assets.bigFont;
-		}
-	} else if ( font == UI_FONT_BIG ) {
-		fnt = &cgDC.Assets.bigFont;
-	} else if ( font == UI_FONT_SMALL ) {
+	if ( scale <= cg_smallFont.value ) {
 		fnt = &cgDC.Assets.smallFont;
-	} else if ( font == UI_FONT_HANDWRITING ) {
-		fnt = &cgDC.Assets.handwritingFont;
+	} else if ( scale > cg_bigFont.value ) {
+		fnt = &cgDC.Assets.bigFont;
 	}
 
 	useScale = scale * fnt->glyphScale;
@@ -97,7 +95,7 @@ int CG_Text_Width( const char *text, int font, float scale, int limit ) {
 	return out * useScale;
 }
 
-int CG_Text_Height( const char *text, int font, float scale, int limit ) {
+int CG_Text_Height( const char *text, float scale, int limit ) {
 	int len, count;
 	float max;
 	glyphInfo_t *glyph;
@@ -105,18 +103,10 @@ int CG_Text_Height( const char *text, int font, float scale, int limit ) {
 	const char *s = text;
 	fontInfo_t *fnt = &cgDC.Assets.textFont;
 
-	if ( font == UI_FONT_DEFAULT ) {
-		if ( scale <= cg_smallFont.value ) {
-			fnt = &cgDC.Assets.smallFont;
-		} else if ( scale > cg_bigFont.value ) {
-			fnt = &cgDC.Assets.bigFont;
-		}
-	} else if ( font == UI_FONT_BIG ) {
-		fnt = &cgDC.Assets.bigFont;
-	} else if ( font == UI_FONT_SMALL ) {
+	if ( scale <= cg_smallFont.value ) {
 		fnt = &cgDC.Assets.smallFont;
-	} else if ( font == UI_FONT_HANDWRITING ) {
-		fnt = &cgDC.Assets.handwritingFont;
+	} else if ( scale > cg_bigFont.value ) {
+		fnt = &cgDC.Assets.bigFont;
 	}
 
 	useScale = scale * fnt->glyphScale;
@@ -152,25 +142,17 @@ void CG_Text_PaintChar( float x, float y, float width, float height, float scale
 	trap_R_DrawStretchPic( x, y, w, h, s, t, s2, t2, hShader );
 }
 
-void CG_Text_Paint( float x, float y, int font, float scale, vec4_t color, const char *text, float adjust, int limit, int style ) {
+void CG_Text_Paint( float x, float y, float scale, vec4_t color, const char *text, float adjust, int limit, int style ) {
 	int len, count;
 	vec4_t newColor;
 	glyphInfo_t *glyph;
 	float useScale;
 	fontInfo_t *fnt = &cgDC.Assets.textFont;
 
-	if ( font == UI_FONT_DEFAULT ) {
-		if ( scale <= cg_smallFont.value ) {
-			fnt = &cgDC.Assets.smallFont;
-		} else if ( scale > cg_bigFont.value ) {
-			fnt = &cgDC.Assets.bigFont;
-		}
-	} else if ( font == UI_FONT_BIG ) {
-		fnt = &cgDC.Assets.bigFont;
-	} else if ( font == UI_FONT_SMALL ) {
+	if ( scale <= cg_smallFont.value ) {
 		fnt = &cgDC.Assets.smallFont;
-	} else if ( font == UI_FONT_HANDWRITING ) {
-		fnt = &cgDC.Assets.handwritingFont;
+	} else if ( scale > cg_bigFont.value ) {
+		fnt = &cgDC.Assets.bigFont;
 	}
 
 	useScale = scale * fnt->glyphScale;
@@ -233,23 +215,70 @@ void CG_Text_Paint( float x, float y, int font, float scale, vec4_t color, const
 	}
 }
 
+// NERVE - SMF - added back in
+int CG_DrawFieldWidth(int x, int y, int width, int value, int charWidth, int charHeight)
+{
+	char num[16], *ptr;
+	int  l;
+	int  totalwidth = 0;
 
+	if (width < 1)
+	{
+		return 0;
+	}
 
+	// draw number string
+	if (width > 5)
+	{
+		width = 5;
+	}
 
+	switch (width)
+	{
+	case 1:
+		value = value > 9 ? 9 : value;
+		value = value < 0 ? 0 : value;
+		break;
+	case 2:
+		value = value > 99 ? 99 : value;
+		value = value < -9 ? -9 : value;
+		break;
+	case 3:
+		value = value > 999 ? 999 : value;
+		value = value < -99 ? -99 : value;
+		break;
+	case 4:
+		value = value > 9999 ? 9999 : value;
+		value = value < -999 ? -999 : value;
+		break;
+	}
 
+	Com_sprintf(num, sizeof(num), "%i", value);
+	l = strlen(num);
+	if (l > width)
+	{
+		l = width;
+	}
 
+	ptr = num;
+	while (*ptr && l)
+	{
+		totalwidth += charWidth;
+		ptr++;
+		l--;
+	}
 
+	return totalwidth;
+}
 
-
-
-
-static void CG_DrawField( int x, int y, int width, int value ) {
+int CG_DrawField( int x, int y, int width, int value, int charWidth, int charHeight, qboolean dodrawpic, qboolean leftAlign ) {
 	char num[16], *ptr;
 	int l;
 	int frame;
+	int startx;
 
 	if ( width < 1 ) {
-		return;
+		return 0;
 	}
 
 	// draw number string
@@ -281,7 +310,13 @@ static void CG_DrawField( int x, int y, int width, int value ) {
 	if ( l > width ) {
 		l = width;
 	}
-	x += 2 + CHAR_WIDTH * ( width - l );
+
+	// NERVE - SMF
+	if ( !leftAlign ) {
+		x -= 2 + charWidth * ( l );
+	}
+
+	startx = x;
 
 	ptr = num;
 	while ( *ptr && l )
@@ -292,12 +327,17 @@ static void CG_DrawField( int x, int y, int width, int value ) {
 			frame = *ptr - '0';
 		}
 
-		CG_DrawPic( x,y, CHAR_WIDTH, CHAR_HEIGHT, cgs.media.numberShaders[frame] );
-		x += CHAR_WIDTH;
+		if ( dodrawpic ) {
+			CG_DrawPic( x,y, charWidth, charHeight, cgs.media.numberShaders[frame] );
+		}
+		x += charWidth;
 		ptr++;
 		l--;
 	}
+
+	return startx;
 }
+// -NERVE - SMF
 
 /*
 ================
@@ -337,11 +377,6 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 	refdef.height = h;
 
 	refdef.time = cg.time;
-
-	refdef.rdflags |= RDF_DRAWSKYBOX;
-	if ( !cg_skybox.integer ) {
-		refdef.rdflags &= ~RDF_DRAWSKYBOX;
-	}
 
 	trap_R_ClearScene();
 	trap_R_AddRefEntityToScene( &ent );
@@ -463,122 +498,6 @@ void CG_DrawKeyModel( int keynum, float x, float y, float w, float h, int fadeti
 
 /*
 ================
-CG_DrawStatusBarHead
-
-================
-*/
-static void CG_DrawStatusBarHead( float x ) {
-	vec3_t angles;
-	float size, stretch;
-	float frac;
-
-	VectorClear( angles );
-
-	if ( cg_fixedAspect.integer == 2 ) {
-		CG_SetScreenPlacement(PLACE_CENTER, PLACE_BOTTOM);
-	}
-
-	if ( cg.damageTime && cg.time - cg.damageTime < DAMAGE_TIME ) {
-		frac = (float)( cg.time - cg.damageTime ) / DAMAGE_TIME;
-		size = ICON_SIZE * 1.25 * ( 1.5 - frac * 0.5 );
-
-		stretch = size - ICON_SIZE * 1.25;
-		// kick in the direction of damage
-		x -= stretch * 0.5 + cg.viewDamage[cg.damageIndex].damageX * stretch * 0.5;
-
-		cg.headStartYaw = 180 + cg.viewDamage[cg.damageIndex].damageX * 45;
-
-		cg.headEndYaw = 180 + 20 * cos( crandom() * M_PI );
-		cg.headEndPitch = 5 * cos( crandom() * M_PI );
-
-		cg.headStartTime = cg.time;
-		cg.headEndTime = cg.time + 100 + random() * 2000;
-	} else {
-		if ( cg.time >= cg.headEndTime ) {
-			// select a new head angle
-			cg.headStartYaw = cg.headEndYaw;
-			cg.headStartPitch = cg.headEndPitch;
-			cg.headStartTime = cg.headEndTime;
-			cg.headEndTime = cg.time + 100 + random() * 2000;
-
-			cg.headEndYaw = 180 + 20 * cos( crandom() * M_PI );
-			cg.headEndPitch = 5 * cos( crandom() * M_PI );
-		}
-
-		size = ICON_SIZE * 1.25;
-	}
-
-	// if the server was frozen for a while we may have a bad head start time
-	if ( cg.headStartTime > cg.time ) {
-		cg.headStartTime = cg.time;
-	}
-
-	frac = ( cg.time - cg.headStartTime ) / (float)( cg.headEndTime - cg.headStartTime );
-	frac = frac * frac * ( 3 - 2 * frac );
-	angles[YAW] = cg.headStartYaw + ( cg.headEndYaw - cg.headStartYaw ) * frac;
-	angles[PITCH] = cg.headStartPitch + ( cg.headEndPitch - cg.headStartPitch ) * frac;
-
-	CG_DrawHead( x, 480 - size, size, size,
-			cg.snap->ps.clientNum, angles );
-}
-
-/*
-==============
-CG_DrawStatusBarKeys
-IT_KEY (this makes this routine easier to find in files...) (SA)
-==============
-*/
-static void CG_DrawStatusBarKeys() {
-	int i;
-	float y = 0;    // start height is
-	gitem_t *gi;
-	int itemnum;
-//	int		fadetime = 0;
-	float   *fadeColor;
-
-
-//----(SA)	added
-	if ( cg.showItems ) {
-		fadeColor = colorWhite;
-	} else {
-		fadeColor = CG_FadeColor( cg.itemFadeTime, 1000 );
-	}
-
-	if ( !fadeColor ) {
-		return;
-	}
-
-
-	// (SA) just don't draw this stuff for now.  It's got fog issues I need to clean up
-
-//	return;
-
-
-
-	for ( i = 1; i < KEY_NUM_KEYS; i++ )
-	{
-		gi = BG_FindItemForKey( i, &itemnum );
-		// if i've got the key...
-
-		if ( cg.snap->ps.stats[STAT_KEYS] & ( 1 << gi->giTag ) ) {
-			y += ICON_SIZE + 5;
-			CG_DrawKeyModel( itemnum, 640 - ( 1.5 * ICON_SIZE ), y, ICON_SIZE, ICON_SIZE, cg.time + fadeColor[0] * 1000 );
-		}
-	}
-}
-
-/*
-================
-CG_DrawStatusBarFlag
-
-================
-*/
-static void CG_DrawStatusBarFlag( float x, int team ) {
-	CG_DrawFlagModel( x, 480 - ICON_SIZE, ICON_SIZE, ICON_SIZE, team );
-}
-
-/*
-================
 CG_DrawTeamBackground
 
 ================
@@ -603,275 +522,6 @@ void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team ) 
 	trap_R_SetColor( NULL );
 }
 
-//////////////////////
-////// end new hud stuff
-//////////////////////
-
-
-
-
-
-// JOSEPH 4-25-00
-/*
-================
-CG_DrawStatusBar
-
-================
-*/
-static void CG_DrawStatusBar( void ) {
-	int color;
-	centity_t   *cent;
-	playerState_t   *ps;
-	int value, inclip;
-	vec4_t hcolor;
-	vec3_t angles;
-//	vec3_t		origin;
-
-	static float colors[4][4] = {
-//		{ 0.2, 1.0, 0.2, 1.0 } , { 1.0, 0.2, 0.2, 1.0 }, {0.5, 0.5, 0.5, 1} };
-		{ 1, 0.69, 0, 1.0 },        // normal
-		{ 1.0, 0.2, 0.2, 1.0 },     // low health
-		{0.5, 0.5, 0.5, 1},         // weapon firing
-		{ 1, 1, 1, 1 }
-	};                              // health > 100
-
-	if ( cg_drawStatus.integer == 0 ) {
-		return;
-	}
-
-	// draw the team background
-	if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
-		hcolor[0] = 1;
-		hcolor[1] = 0;
-		hcolor[2] = 0;
-		hcolor[3] = 0.33;
-		trap_R_SetColor( hcolor );
-		CG_DrawPic( 0, 420, 640, 60, cgs.media.teamStatusBar );
-		trap_R_SetColor( NULL );
-	} else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
-		hcolor[0] = 0;
-		hcolor[1] = 0;
-		hcolor[2] = 1;
-		hcolor[3] = 0.33;
-		trap_R_SetColor( hcolor );
-		CG_DrawPic( 0, 420, 640, 60, cgs.media.teamStatusBar );
-		trap_R_SetColor( NULL );
-	}
-
-	cent = &cg_entities[cg.snap->ps.clientNum];
-	ps = &cg.snap->ps;
-
-	VectorClear( angles );
-
-	// draw any 3D icons first, so the changes back to 2D are minimized
-
-	//----(SA) further change... we don't need to draw the ammo 3d model do we?
-/*
-	if ( cent->currentState.weapon && cg_weapons[ cent->currentState.weapon ].ammoModel ) {
-		origin[0] = 70;
-		origin[1] = 0;
-		origin[2] = 0;
-		angles[YAW] = 90 + 20 * sin( cg.time / 1000.0 );;
-//----(SA) Wolf statusbar change
-//			CG_Draw3DModel( CHAR_WIDTH*3 + TEXT_ICON_SPACE, STATUSBARHEIGHT -20, ICON_SIZE, ICON_SIZE,
-//					cg_weapons[ cent->currentState.weapon ].ammoModel, 0, origin, angles );
-//----(SA) end
-	}
-*/
-
-	
-	if ( cg_drawStatusHead.integer ) {
-		CG_DrawStatusBarHead( 185 + CHAR_WIDTH*3 + TEXT_ICON_SPACE );
-	}
-
-	CG_DrawStatusBarKeys();
-
-	if ( cg.predictedPlayerState.powerups[PW_REDFLAG] ) {
-		CG_DrawStatusBarFlag( 185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE + ICON_SIZE, TEAM_RED );
-	} else if ( cg.predictedPlayerState.powerups[PW_BLUEFLAG] ) {
-		CG_DrawStatusBarFlag( 185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE + ICON_SIZE, TEAM_BLUE );
-	}
-
-	//----(SA) further change... we don't need to draw the armor do we?
-/*
-	if ( ps->stats[ STAT_ARMOR ] ) {
-		origin[0] = 90;
-		origin[1] = 0;
-		origin[2] = -10;
-		angles[YAW] = ( cg.time & 2047 ) * 360 / 2048.0;
-//----(SA) Wolf statusbar change
-//			CG_Draw3DModel( 370 + CHAR_WIDTH*3 + TEXT_ICON_SPACE, STATUSBARHEIGHT -20, ICON_SIZE, ICON_SIZE,
-//					cgs.media.armorModel, 0, origin, angles );
-//----(SA) end
-	}
-*/
-
-	//
-	// ammo
-	//
-	if ( cent->currentState.weapon ) {
-		qhandle_t icon;
-		float scale,halfScale;
-		float wideOffset;
-
-		if ( cg_fixedAspect.integer == 2 ) {
-			CG_SetScreenPlacement(PLACE_RIGHT, PLACE_BOTTOM);
-		}
-
-		value = ps->ammo[BG_FindAmmoForWeapon( cent->currentState.weapon )];
-		inclip = ps->ammoclip[BG_FindClipForWeapon( cent->currentState.weapon )];
-
-		if ( value > -1 ) {
-			if ( cg.predictedPlayerState.weapon == WP_KNIFE ) {
-				color = 3; 
-			} else if ( ( cg.predictedPlayerState.weaponstate == WEAPON_FIRING || cg.predictedPlayerState.weaponstate == WEAPON_FIRINGALT )
-					&& cg.predictedPlayerState.weaponTime > 100 ) {
-				// draw as dark grey when reloading
-				color = 2;  // dark grey
-			} else {
-				if ( value >= 0 ) {
-					color = 0;  // green
-				} else {
-					color = 1;  // red
-				}
-			}
-			trap_R_SetColor( colors[color] );
-
-			// pulsing grenade icon to help the player 'count' in their head
-			if ( ps->grenadeTimeLeft ) {
-				if ( ps->weapon == WP_DYNAMITE ) {
-
-				} else {
-					if ( ( ( cg.grenLastTime ) % 1000 ) < ( ( ps->grenadeTimeLeft ) % 1000 ) ) {
-						switch ( ps->grenadeTimeLeft / 1000 ) {
-						case 3:
-							trap_S_StartLocalSound( cgs.media.grenadePulseSound4, CHAN_LOCAL_SOUND );
-							break;
-						case 2:
-							trap_S_StartLocalSound( cgs.media.grenadePulseSound3, CHAN_LOCAL_SOUND );
-							break;
-						case 1:
-							trap_S_StartLocalSound( cgs.media.grenadePulseSound2, CHAN_LOCAL_SOUND );
-							break;
-						case 0:
-							trap_S_StartLocalSound( cgs.media.grenadePulseSound1, CHAN_LOCAL_SOUND );
-							break;
-						}
-					}
-				}
-
-				scale = (float)( ( ps->grenadeTimeLeft ) % 1000 ) / 100.0f;
-				halfScale = scale * 0.5f;
-
-				cg.grenLastTime = ps->grenadeTimeLeft;
-			} else {
-				scale = halfScale = 0;
-			}
-
-
-			switch ( cg.predictedPlayerState.weapon ) {
-			case WP_THOMPSON:
-			case WP_MP40:
-			case WP_STEN:
-			case WP_MAUSER:
-			case WP_GARAND:
-			case WP_VENOM:
-			case WP_TESLA:
-			case WP_PANZERFAUST:
-			case WP_FLAMETHROWER:
-				wideOffset = -38;
-				break;
-			default:
-				wideOffset = 0;
-				break;
-			}
-
-			// don't draw ammo value for knife
-			if ( cg.predictedPlayerState.weapon != WP_KNIFE ) {
-				if ( cgs.dmflags & DF_NO_WEAPRELOAD ) {
-					CG_DrawBigString2( ( 580 - 23 + 35 ) + wideOffset, STATUSBARHEIGHT, va( "%d.", value ), cg_hudAlpha.value );
-				} else if ( value ) {
-					CG_DrawBigString2( ( 580 - 23 + 35 ) + wideOffset, STATUSBARHEIGHT, va( "%d/%d", inclip, value ), cg_hudAlpha.value );
-				} else {
-					CG_DrawBigString2( ( 580 - 23 + 35 ) + wideOffset, STATUSBARHEIGHT, va( "%d", inclip ), cg_hudAlpha.value );
-				}
-			}
-
-			icon = cg_weapons[ cg.predictedPlayerState.weapon ].weaponIcon[0];
-			if ( icon ) {
-				CG_DrawPic( ( ( 530 + 68 ) - halfScale ) + wideOffset,  ( 446 - 10 ) - halfScale, ( 38 + scale ) - wideOffset, 38 + scale, icon );
-			}
-
-			trap_R_SetColor( NULL );
-
-			// if we didn't draw a 3D icon, draw a 2D icon for ammo
-			if ( !cg_draw3dIcons.integer ) {
-				qhandle_t icon;
-
-				icon = cg_weapons[ cg.predictedPlayerState.weapon ].ammoIcon;
-				if ( icon ) {
-					CG_DrawPic( CHAR_WIDTH * 3 + TEXT_ICON_SPACE, STATUSBARHEIGHT, ICON_SIZE, ICON_SIZE, icon );
-				}
-			}
-		}
-	}
-
-	if ( cg_fixedAspect.integer == 2 ) {
-		CG_SetScreenPlacement(PLACE_LEFT, PLACE_BOTTOM);
-	}
-
-	//
-	// health
-	//
-	value = ps->stats[STAT_HEALTH];
-	if ( value > 100 ) {
-		trap_R_SetColor( colors[3] );       // white
-	} else if ( value > 25 ) {
-		trap_R_SetColor( colors[0] );   // green
-	} else if ( value > 0 ) {
-		color = ( cg.time >> 8 ) & 1; // flash
-		trap_R_SetColor( colors[color] );
-	} else {
-		trap_R_SetColor( colors[1] );   // red
-	}
-
-	// stretch the health up when taking damage
-//----(SA) Wolf statusbar change
-//	CG_DrawField ( 185, STATUSBARHEIGHT, 3, value);
-	{
-		char printme[16];
-		Com_sprintf( printme, sizeof( printme ), "%d", value );
-		//CG_DrawBigString( 185, STATUSBARHEIGHT, printme, cg_hudAlpha.value );
-		CG_DrawBigString2( 16 + 23 + 43, STATUSBARHEIGHT, printme, cg_hudAlpha.value );
-	}
-//----(SA) end
-	CG_ColorForHealth( hcolor );
-	trap_R_SetColor( hcolor );
-
-
-	//
-	// armor
-	//
-	value = ps->stats[STAT_ARMOR];
-	if ( value > 0 ) {
-		trap_R_SetColor( colors[0] );
-//----(SA) Wolf statusbar change
-//		CG_DrawField (370, STATUSBARHEIGHT, 3, value);
-		{
-			char printme[16];
-			Com_sprintf( printme, sizeof( printme ), "%d", value );
-			//CG_DrawBigString( 370, STATUSBARHEIGHT, printme, cg_hudAlpha.value );
-			CG_DrawBigString2( 200, STATUSBARHEIGHT, printme, cg_hudAlpha.value );
-		}
-//----(SA) end
-		trap_R_SetColor( NULL );
-//----(SA) Wolf statusbar change
-//		CG_DrawPic( 370 + CHAR_WIDTH*3 + TEXT_ICON_SPACE, STATUSBARHEIGHT, ICON_SIZE, ICON_SIZE, cgs.media.armorIcon );
-//----(SA) end
-	}
-}
-// END JOSEPH
-
 /*
 ===========================================================================================
 
@@ -881,59 +531,6 @@ static void CG_DrawStatusBar( void ) {
 */
 
 #define UPPERRIGHT_X 500
-
-/*
-================
-CG_DrawAttacker
-
-================
-*/
-static float CG_DrawAttacker( float y ) {
-	int t;
-	float size;
-	vec3_t angles;
-	const char  *info;
-	const char  *name;
-	int clientNum;
-
-	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
-		return y;
-	}
-
-	if ( !cg.attackerTime ) {
-		return y;
-	}
-
-	clientNum = cg.predictedPlayerState.persistant[PERS_ATTACKER];
-	if ( clientNum < 0 || clientNum >= MAX_CLIENTS || clientNum == cg.snap->ps.clientNum ) {
-		return y;
-	}
-
-	if ( !cgs.clientinfo[clientNum].infoValid ) {
-		cg.attackerTime = 0;
-		return y;
-	}
-
-	t = cg.time - cg.attackerTime;
-	if ( t > ATTACKER_HEAD_TIME ) {
-		cg.attackerTime = 0;
-		return y;
-	}
-
-	size = ICON_SIZE * 1.25;
-
-	angles[PITCH] = 0;
-	angles[YAW] = 180;
-	angles[ROLL] = 0;
-	CG_DrawHead( UPPERRIGHT_X - size, y, size, size, clientNum, angles );
-
-	info = CG_ConfigString( CS_PLAYERS + clientNum );
-	name = Info_ValueForKey(  info, "n" );
-	y += size;
-	CG_DrawBigString( UPPERRIGHT_X - ( Q_PrintStrlen( name ) * BIGCHAR_WIDTH ), y, name, 0.5 );
-
-	return y + BIGCHAR_HEIGHT + 2;
-}
 
 /*
 ==================
@@ -1009,7 +606,7 @@ static float CG_DrawTimer( float y ) {
 	int msec;
 
 	// NERVE - SMF - draw time remaining in multiplayer
-	if ( cgs.gametype == GT_WOLF ) {
+	if ( cgs.gametype >= GT_WOLF ) {
 		msec = ( cgs.timelimit * 60.f * 1000.f ) - ( cg.time - cgs.levelStartTime );
 	} else {
 		msec = cg.time - cgs.levelStartTime;
@@ -1022,7 +619,12 @@ static float CG_DrawTimer( float y ) {
 	tens = seconds / 10;
 	seconds -= tens * 10;
 
-	s = va( "%i:%i%i", mins, tens, seconds );
+	if ( msec < 0 ) {
+		s = va( "Sudden Death" );
+	} else {
+		s = va( "%i:%i%i", mins, tens, seconds );
+	}
+
 	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
 
 	CG_DrawBigString( UPPERRIGHT_X - w, y + 2, s, 1.0F );
@@ -1037,6 +639,8 @@ CG_DrawTeamOverlay
 =================
 */
 
+int maxCharsBeforeOverlay;
+
 // set in CG_ParseTeamInfo
 int sortedTeamPlayers[TEAM_MAXOVERLAY];
 int numSortedTeamPlayers;
@@ -1046,13 +650,29 @@ int numSortedTeamPlayers;
 
 static float CG_DrawTeamOverlay( float y ) {
 	int x, w, h, xx;
-	int i, j, len = 0;
+	int i, len = 0;
 	const char *p;
 	vec4_t hcolor;
 	int pwidth, lwidth;
 	int plyrs;
 	char st[16];
 	clientInfo_t *ci;
+	// NERVE - SMF
+	char classType[2] = { 0, 0 };
+	int val;
+	vec4_t deathcolor, damagecolor;      // JPW NERVE
+	float       *pcolor;
+	// -NERVE - SMF
+
+	deathcolor[0] = 1;
+	deathcolor[1] = 0;
+	deathcolor[2] = 0;
+	deathcolor[3] = cg_hudAlpha.value;
+	damagecolor[0] = 1;
+	damagecolor[1] = 1;
+	damagecolor[2] = 0;
+	damagecolor[3] = cg_hudAlpha.value;
+	maxCharsBeforeOverlay = 80;
 
 	if ( !cg_drawTeamOverlay.integer ) {
 		return y;
@@ -1071,7 +691,7 @@ static float CG_DrawTeamOverlay( float y ) {
 		ci = cgs.clientinfo + sortedTeamPlayers[i];
 		if ( ci->infoValid && ci->team == cg.snap->ps.persistant[PERS_TEAM] ) {
 			plyrs++;
-			len = CG_DrawStrlen( cgs.clientinfo[i].name );
+			len = CG_DrawStrlen( ci->name );
 			if ( len > pwidth ) {
 				pwidth = len;
 			}
@@ -1086,10 +706,28 @@ static float CG_DrawTeamOverlay( float y ) {
 		pwidth = TEAM_OVERLAY_MAXNAME_WIDTH;
 	}
 
+
+#if 1
+	// max location name width
+	lwidth = 0;
+	if ( cg_drawTeamOverlay.integer > 1 ) {
+		for ( i = 0; i < numSortedTeamPlayers; i++ ) {
+			ci = cgs.clientinfo + sortedTeamPlayers[i];
+			if ( ci->infoValid &&
+				 ci->team == cg.snap->ps.persistant[PERS_TEAM] &&
+				 CG_ConfigString( CS_LOCATIONS + ci->location ) ) {
+				len = CG_DrawStrlen( CG_TranslateString( CG_ConfigString( CS_LOCATIONS + ci->location ) ) );
+				if ( len > lwidth ) {
+					lwidth = len;
+				}
+			}
+		}
+	}
+#else
 	// max location name width
 	lwidth = 0;
 	for ( i = 1; i < MAX_LOCATIONS; i++ ) {
-		p = CG_ConfigString( CS_LOCATIONS + i );
+		p = CG_TranslateString( CG_ConfigString( CS_LOCATIONS + i ) );
 		if ( p && *p ) {
 			len = CG_DrawStrlen( p );
 			if ( len > lwidth ) {
@@ -1097,41 +735,94 @@ static float CG_DrawTeamOverlay( float y ) {
 			}
 		}
 	}
+#endif
 
 	if ( lwidth > TEAM_OVERLAY_MAXLOCATION_WIDTH ) {
 		lwidth = TEAM_OVERLAY_MAXLOCATION_WIDTH;
 	}
 
-	w = ( pwidth + lwidth + 4 + 7 ) * TINYCHAR_WIDTH;
-	x = 640 - w - 32;
+	if ( cg_drawTeamOverlay.integer > 1 ) {
+		w = ( pwidth + lwidth + 3 + 7 ) * TINYCHAR_WIDTH; // JPW NERVE was +4+7
+	} else {
+		w = ( pwidth + lwidth + 8 ) * TINYCHAR_WIDTH; // JPW NERVE was +4+7
+
+	}
+	x = 640 - w - 1; // JPW was -32
 	h = plyrs * TINYCHAR_HEIGHT;
 
-	if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
-		hcolor[0] = 1;
-		hcolor[1] = 0;
-		hcolor[2] = 0;
-		hcolor[3] = 0.33;
-	} else { // if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE )
-		hcolor[0] = 0;
-		hcolor[1] = 0;
-		hcolor[2] = 1;
-		hcolor[3] = 0.33;
+	// DHM - Nerve :: Set the max characters that can be printed before the left edge
+	if ( cg_fixedAspect.integer == 2 && ( cgs.glconfig.vidWidth * 480.0 > cgs.glconfig.vidHeight * 640.0 ) ) {
+		maxCharsBeforeOverlay = ( ( ( cgs.glconfig.vidWidth / cgs.screenXScale ) - w - 1 ) / TINYCHAR_WIDTH ) - 1;
+	} else {
+		maxCharsBeforeOverlay = ( x / TINYCHAR_WIDTH ) - 1;
 	}
-	trap_R_SetColor( hcolor );
-	CG_DrawPic( x, y, w, h, cgs.media.teamStatusBar );
-	trap_R_SetColor( NULL );
+
+	if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+		hcolor[0] = 0.5f; // was 0.38 instead of 0.5 JPW NERVE
+		hcolor[1] = 0.25f;
+		hcolor[2] = 0.25f;
+		hcolor[3] = 0.25f * cg_hudAlpha.value;
+	} else { // if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE )
+		hcolor[0] = 0.25f;
+		hcolor[1] = 0.25f;
+		hcolor[2] = 0.5f;
+		hcolor[3] = 0.25f * cg_hudAlpha.value;
+	}
+
+	CG_FillRect( x,y,w,h,hcolor );
+	VectorSet( hcolor, 0.4f, 0.4f, 0.4f );
+	hcolor[3] = cg_hudAlpha.value;
+	CG_DrawRect( x - 1, y, w + 2, h + 2, 1, hcolor );
 
 
 	for ( i = 0; i < numSortedTeamPlayers; i++ ) {
 		ci = cgs.clientinfo + sortedTeamPlayers[i];
 		if ( ci->infoValid && ci->team == cg.snap->ps.persistant[PERS_TEAM] ) {
 
-			hcolor[0] = hcolor[1] = hcolor[2] = hcolor[3] = 1.0;
+			// NERVE - SMF
+			// determine class type
+			val = cg_entities[ ci->clientNum ].currentState.teamNum;
+			if ( val == 0 ) {
+				classType[0] = 'S';
+			} else if ( val == 1 ) {
+				classType[0] = 'M';
+			} else if ( val == 2 ) {
+				classType[0] = 'E';
+			} else if ( val == 3 ) {
+				classType[0] = 'L';
+			} else {
+				classType[0] = 'S';
+			}
+
+			Com_sprintf( st, sizeof( st ), "%s", CG_TranslateString( classType ) );
 
 			xx = x + TINYCHAR_WIDTH;
 
+			hcolor[0] = hcolor[1] = 1.0;
+			hcolor[2] = 0.0;
+			hcolor[3] = cg_hudAlpha.value;
+
 			CG_DrawStringExt( xx, y,
-							  ci->name, hcolor, qfalse, qfalse,
+							  st, hcolor, qtrue, qfalse,
+							  TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 1 );
+
+			hcolor[0] = hcolor[1] = hcolor[2] = 1.0;
+			hcolor[3] = cg_hudAlpha.value;
+
+			xx = x + 3 * TINYCHAR_WIDTH;
+
+			// JPW NERVE
+			if ( ci->health > 80 ) {
+				pcolor = hcolor;
+			} else if ( ci->health > 0 ) {
+				pcolor = damagecolor;
+			} else {
+				pcolor = deathcolor;
+			}
+			// jpw
+
+			CG_DrawStringExt( xx, y,
+							  ci->name, pcolor, qtrue, qfalse,
 							  TINYCHAR_WIDTH, TINYCHAR_HEIGHT, TEAM_OVERLAY_MAXNAME_WIDTH );
 
 			if ( lwidth ) {
@@ -1139,46 +830,31 @@ static float CG_DrawTeamOverlay( float y ) {
 				if ( !p || !*p ) {
 					p = "unknown";
 				}
+				p = CG_TranslateString( p );
+//				len = CG_DrawStrlen( p );
+//				if ( len > lwidth ) {
+//					len = lwidth;
+//				}
 
-				xx = x + TINYCHAR_WIDTH * 2 + TINYCHAR_WIDTH * pwidth +
+				xx = x + TINYCHAR_WIDTH * 5 + TINYCHAR_WIDTH * pwidth +
 					 ( ( lwidth / 2 - len / 2 ) * TINYCHAR_WIDTH );
 				CG_DrawStringExt( xx, y,
 								  p, hcolor, qfalse, qfalse, TINYCHAR_WIDTH, TINYCHAR_HEIGHT,
 								  TEAM_OVERLAY_MAXLOCATION_WIDTH );
 			}
 
-			CG_ColorForHealth( hcolor );
 
-			Com_sprintf( st, sizeof( st ), "%3i %3i", ci->health,  ci->armor );
+			Com_sprintf( st, sizeof( st ), "%3i", ci->health ); // JPW NERVE pulled class stuff since it's at top now
 
-			xx = x + TINYCHAR_WIDTH * 3 +
-				 TINYCHAR_WIDTH * pwidth + TINYCHAR_WIDTH * lwidth;
+			if ( cg_drawTeamOverlay.integer > 1 ) {
+				xx = x + TINYCHAR_WIDTH * 6 + TINYCHAR_WIDTH * pwidth + TINYCHAR_WIDTH * lwidth;
+			} else {
+				xx = x + TINYCHAR_WIDTH * 4 + TINYCHAR_WIDTH * pwidth + TINYCHAR_WIDTH * lwidth;
+			}
 
 			CG_DrawStringExt( xx, y,
-							  st, hcolor, qfalse, qfalse,
-							  TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 0 );
-
-			// draw weapon icon
-			xx += TINYCHAR_WIDTH * 3;
-
-			CG_DrawPic( xx, y, TINYCHAR_WIDTH, TINYCHAR_HEIGHT,
-						cg_weapons[ci->curWeapon].weaponIcon[0] );
-
-			// Draw powerup icons
-			xx = x;
-			for ( j = 0; j < PW_NUM_POWERUPS; j++ ) {
-				if ( ci->powerups & ( 1 << j ) ) {
-					gitem_t *item;
-
-					item = BG_FindItemForPowerup( j );
-
-					if ( item != NULL ) { // JPW NERVE added for invulnerability powerup at beginning of map
-						CG_DrawPic( xx, y, TINYCHAR_WIDTH, TINYCHAR_HEIGHT,
-									trap_R_RegisterShader( item->icon ) );
-						xx -= TINYCHAR_WIDTH;
-					} // jpw
-				}
-			}
+							  st, pcolor, qfalse, qfalse,
+							  TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 3 );
 
 			y += TINYCHAR_HEIGHT;
 		}
@@ -1197,9 +873,9 @@ CG_DrawUpperRight
 static void CG_DrawUpperRight(stereoFrame_t stereoFrame) {
 	float y;
 
-	y = 0;
+	y = 0; // JPW NERVE move team overlay below obits, even with timer on left
 
-	if ( cg_fixedAspect.integer == 2 ) {
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement(PLACE_RIGHT, PLACE_TOP);
 	}
 
@@ -1213,14 +889,12 @@ static void CG_DrawUpperRight(stereoFrame_t stereoFrame) {
 		y = CG_DrawFPS( y );
 	}
 	if ( cg_drawTimer.integer ) {
-		y = CG_DrawTimer( y );
+		CG_DrawTimer( y );
 	}
 // (SA) disabling drawattacker for the time being
-	if ( cg_oldWolfUI.integer ) {
-		if ( cg_drawAttacker.integer ) {
-			CG_DrawAttacker( y );
-		}
-	}
+//	if ( cg_drawAttacker.integer ) {
+//		y = CG_DrawAttacker( y );
+//	}
 //----(SA)	end
 }
 
@@ -1234,271 +908,16 @@ static void CG_DrawUpperRight(stereoFrame_t stereoFrame) {
 
 /*
 =================
-CG_DrawScores
-
-Draw the small two score display
-=================
-*/
-static float CG_DrawScores( float y ) {
-	const char  *s;
-	int s1, s2, score;
-	int x, w;
-	int v;
-	vec4_t color;
-
-	s1 = cgs.scores1;
-	s2 = cgs.scores2;
-
-	y -=  BIGCHAR_HEIGHT + 8;
-
-	// draw from the right side to left
-	if ( cgs.gametype >= GT_TEAM ) {
-		x = 640;
-
-		color[0] = 0;
-		color[1] = 0;
-		color[2] = 1;
-		color[3] = 0.33;
-		s = va( "%2i", s2 );
-		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH + 8;
-		x -= w;
-		CG_FillRect( x, y - 4,  w, BIGCHAR_HEIGHT + 8, color );
-		if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
-			CG_DrawPic( x, y - 4, w, BIGCHAR_HEIGHT + 8, cgs.media.selectShader );
-		}
-		CG_DrawBigString( x + 4, y, s, 1.0F );
-
-
-		color[0] = 1;
-		color[1] = 0;
-		color[2] = 0;
-		color[3] = 0.33;
-		s = va( "%2i", s1 );
-		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH + 8;
-		x -= w;
-		CG_FillRect( x, y - 4,  w, BIGCHAR_HEIGHT + 8, color );
-		if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
-			CG_DrawPic( x, y - 4, w, BIGCHAR_HEIGHT + 8, cgs.media.selectShader );
-		}
-		CG_DrawBigString( x + 4, y, s, 1.0F );
-
-		if ( cgs.gametype == GT_CTF ) {
-			v = cgs.capturelimit;
-		} else {
-			v = cgs.fraglimit;
-		}
-		if ( v ) {
-			s = va( "%2i", v );
-			w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH + 8;
-			x -= w;
-			CG_DrawBigString( x + 4, y, s, 1.0F );
-		}
-
-//----(SA) don't show frag count/limit in sp
-	} else if ( cgs.gametype != GT_SINGLE_PLAYER && cg_drawFrags.integer ) {
-//----(SA) end
-		qboolean spectator;
-
-		x = 640;
-		score = cg.snap->ps.persistant[PERS_SCORE];
-		spectator = ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR );
-
-		// always show your score in the second box if not in first place
-		if ( s1 != score ) {
-			s2 = score;
-		}
-		if ( s2 != SCORE_NOT_PRESENT ) {
-			s = va( "%2i", s2 );
-			w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH + 8;
-			x -= w;
-			if ( !spectator && score == s2 && score != s1 ) {
-				color[0] = 1;
-				color[1] = 0;
-				color[2] = 0;
-				color[3] = 0.33;
-				CG_FillRect( x, y - 4,  w, BIGCHAR_HEIGHT + 8, color );
-				CG_DrawPic( x, y - 4, w, BIGCHAR_HEIGHT + 8, cgs.media.selectShader );
-			} else {
-				color[0] = 0.5;
-				color[1] = 0.5;
-				color[2] = 0.5;
-				color[3] = 0.33;
-				CG_FillRect( x, y - 4,  w, BIGCHAR_HEIGHT + 8, color );
-			}
-			CG_DrawBigString( x + 4, y, s, 1.0F );
-		}
-
-		// first place
-		if ( s1 != SCORE_NOT_PRESENT ) {
-			s = va( "%2i", s1 );
-			w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH + 8;
-			x -= w;
-			if ( !spectator && score == s1 ) {
-				color[0] = 0;
-				color[1] = 0;
-				color[2] = 1;
-				color[3] = 0.33;
-				CG_FillRect( x, y - 4,  w, BIGCHAR_HEIGHT + 8, color );
-				CG_DrawPic( x, y - 4, w, BIGCHAR_HEIGHT + 8, cgs.media.selectShader );
-			} else {
-				color[0] = 0.5;
-				color[1] = 0.5;
-				color[2] = 0.5;
-				color[3] = 0.33;
-				CG_FillRect( x, y - 4,  w, BIGCHAR_HEIGHT + 8, color );
-			}
-			CG_DrawBigString( x + 4, y, s, 1.0F );
-		}
-
-		if ( cgs.fraglimit ) {
-			s = va( "%2i", cgs.fraglimit );
-			w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH + 8;
-			x -= w;
-			CG_DrawBigString( x + 4, y, s, 1.0F );
-		}
-
-	}
-
-	return y - 8;
-}
-
-/*
-================
-CG_DrawPowerups
-================
-*/
-static float CG_DrawPowerups( float y ) {
-	int sorted[MAX_POWERUPS];
-	int sortedTime[MAX_POWERUPS];
-	int i, j, k;
-	int active;
-	playerState_t   *ps;
-	int t;
-	gitem_t *item;
-	int x;
-	int color;
-	float size;
-	float f;
-	static float colors[2][4] = {
-		{ 0.2, 1.0, 0.2, 1.0 }, { 1.0, 0.2, 0.2, 1.0 }
-	};
-
-	ps = &cg.snap->ps;
-
-	if ( ps->stats[STAT_HEALTH] <= 0 ) {
-		return y;
-	}
-
-	// sort the list by time remaining
-	active = 0;
-	for ( i = 0 ; i < MAX_POWERUPS ; i++ ) {
-		if ( !ps->powerups[ i ] ) {
-			continue;
-		}
-
-		// ZOID--don't draw if the power up has unlimited time
-		// This is true of the CTF flags
-		if ( ps->powerups[ i ] == INT_MAX ) {
-			continue;
-		}
-
-		t = ps->powerups[ i ] - cg.time;
-		if ( t <= 0 ) {
-			continue;
-		}
-
-		// insert into the list
-		for ( j = 0 ; j < active ; j++ ) {
-			if ( sortedTime[j] >= t ) {
-				for ( k = active - 1 ; k >= j ; k-- ) {
-					sorted[k + 1] = sorted[k];
-					sortedTime[k + 1] = sortedTime[k];
-				}
-				break;
-			}
-		}
-		sorted[j] = i;
-		sortedTime[j] = t;
-		active++;
-	}
-
-	// draw the icons and timers
-	x = 640 - ICON_SIZE - CHAR_WIDTH * 2;
-	for ( i = 0 ; i < active ; i++ ) {
-
-//		continue;   // (SA) FIXME: TEMP: as I'm getting powerup business going
-
-		item = BG_FindItemForPowerup( sorted[i] );
-
-		color = 1;
-
-		y -= ICON_SIZE;
-
-		trap_R_SetColor( colors[color] );
-		CG_DrawField( x, y, 2, sortedTime[ i ] / 1000 );
-
-		t = ps->powerups[ sorted[i] ];
-		if ( t - cg.time >= POWERUP_BLINKS * POWERUP_BLINK_TIME ) {
-			trap_R_SetColor( NULL );
-		} else {
-			vec4_t modulate;
-
-			f = (float)( t - cg.time ) / POWERUP_BLINK_TIME;
-			f -= (int)f;
-			modulate[0] = modulate[1] = modulate[2] = modulate[3] = f;
-			trap_R_SetColor( modulate );
-		}
-
-		if ( cg.powerupActive == sorted[i] &&
-			 cg.time - cg.powerupTime < PULSE_TIME ) {
-			f = 1.0 - ( ( (float)cg.time - cg.powerupTime ) / PULSE_TIME );
-			size = ICON_SIZE * ( 1.0 + ( PULSE_SCALE - 1.0 ) * f );
-		} else {
-			size = ICON_SIZE;
-		}
-
-		CG_DrawPic( 640 - size, y + ICON_SIZE / 2 - size / 2,
-					size, size, trap_R_RegisterShader( item->icon ) );
-	}
-	trap_R_SetColor( NULL );
-
-	return y;
-}
-
-
-/*
-=====================
-CG_DrawLowerRight
-
-=====================
-*/
-static void CG_DrawLowerRight( void ) {
-	float y;
-
-	y = 480 - ICON_SIZE;
-
-	if ( cg_fixedAspect.integer == 2 ) {
-		CG_SetScreenPlacement(PLACE_RIGHT, PLACE_BOTTOM);
-	}
-
-	y = CG_DrawScores( y );
-	CG_DrawPowerups( y );
-}
-
-//===========================================================================================
-
-/*
-=================
 CG_DrawTeamInfo
 =================
 */
 static void CG_DrawTeamInfo( void ) {
-	int h;
 	int i;
 	vec4_t hcolor;
 	int chatHeight;
+	float alphapercent;
 
-#define CHATLOC_Y 420 // bottom end
+#define CHATLOC_Y 385 // bottom end
 #define CHATLOC_X 0
 
 	if ( cg_teamChatHeight.integer < TEAMCHAT_HEIGHT ) {
@@ -1510,7 +929,7 @@ static void CG_DrawTeamInfo( void ) {
 		return; // disabled
 	}
 
-	if ( cg_fixedAspect.integer == 2 ) {
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement( PLACE_LEFT, PLACE_BOTTOM );
 	}
 
@@ -1519,37 +938,41 @@ static void CG_DrawTeamInfo( void ) {
 			cgs.teamLastChatPos++;
 		}
 
-		h = ( cgs.teamChatPos - cgs.teamLastChatPos ) * TINYCHAR_HEIGHT;
-
-		if ( cgs.clientinfo[cg.clientNum].team == TEAM_RED ) {
-			hcolor[0] = 1;
-			hcolor[1] = 0;
-			hcolor[2] = 0;
-			hcolor[3] = 0.33;
-		} else if ( cgs.clientinfo[cg.clientNum].team == TEAM_BLUE ) {
-			hcolor[0] = 0;
-			hcolor[1] = 0;
-			hcolor[2] = 1;
-			hcolor[3] = 0.33;
-		} else {
-			hcolor[0] = 0;
-			hcolor[1] = 1;
-			hcolor[2] = 0;
-			hcolor[3] = 0.33;
-		}
-
-		trap_R_SetColor( hcolor );
-		if ( cg_fixedAspect.integer == 2 ) {
-			CG_DrawPic( CHATLOC_X, CHATLOC_Y - h, cgs.glconfig.vidWidth, h, cgs.media.teamStatusBar );
-		} else {
-			CG_DrawPic( CHATLOC_X, CHATLOC_Y - h, 640, h, cgs.media.teamStatusBar );
-		}
-		trap_R_SetColor( NULL );
-
-		hcolor[0] = hcolor[1] = hcolor[2] = 1.0;
-		hcolor[3] = 1.0;
-
+// JPW NERVE rewritten to support first pass at fading chat messages
 		for ( i = cgs.teamChatPos - 1; i >= cgs.teamLastChatPos; i-- ) {
+			alphapercent = 1.0f - ( cg.time - cgs.teamChatMsgTimes[i % chatHeight] ) / (float)( cg_teamChatTime.integer );
+			if ( alphapercent > 1.0f ) {
+				alphapercent = 1.0f;
+			} else if ( alphapercent < 0.f ) {
+				alphapercent = 0.f;
+			}
+
+			if ( cgs.clientinfo[cg.clientNum].team == TEAM_RED ) {
+				hcolor[0] = 1;
+				hcolor[1] = 0;
+				hcolor[2] = 0;
+			} else if ( cgs.clientinfo[cg.clientNum].team == TEAM_BLUE ) {
+				hcolor[0] = 0;
+				hcolor[1] = 0;
+				hcolor[2] = 1;
+			} else {
+				hcolor[0] = 0;
+				hcolor[1] = 1;
+				hcolor[2] = 0;
+			}
+
+			hcolor[3] = 0.33f * alphapercent;
+
+			trap_R_SetColor( hcolor );
+			if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
+				CG_DrawPic( CHATLOC_X, CHATLOC_Y - ( cgs.teamChatPos - i ) * TINYCHAR_HEIGHT, cgs.glconfig.vidWidth, TINYCHAR_HEIGHT, cgs.media.teamStatusBar );
+			} else {
+				CG_DrawPic( CHATLOC_X, CHATLOC_Y - ( cgs.teamChatPos - i ) * TINYCHAR_HEIGHT, 640, TINYCHAR_HEIGHT, cgs.media.teamStatusBar );
+			}
+			hcolor[0] = hcolor[1] = hcolor[2] = 1.0;
+			hcolor[3] = alphapercent;
+			trap_R_SetColor( hcolor );
+
 			CG_DrawStringExt( CHATLOC_X + TINYCHAR_WIDTH,
 							  CHATLOC_Y - ( cgs.teamChatPos - i ) * TINYCHAR_HEIGHT,
 							  cgs.teamChatMsgs[i % chatHeight], hcolor, qfalse, qfalse,
@@ -1569,8 +992,9 @@ static void CG_DrawPickupItem( void ) {
 	float   *fadeColor;
 	char pickupText[256];
 	float color[4];
+	const char *s;
 
-	if ( cg_fixedAspect.integer == 2 ) {
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement(PLACE_LEFT, PLACE_BOTTOM);
 	}
 
@@ -1584,21 +1008,23 @@ static void CG_DrawPickupItem( void ) {
 			if ( bg_itemlist[ value ].giType == IT_AMMO || bg_itemlist[ value ].giType == IT_HEALTH || bg_itemlist[value].giType == IT_POWERUP ) {
 				if ( bg_itemlist[ value ].world_model[2] ) {   // this is a multi-stage item
 					// FIXME: print the correct amount for multi-stage
-					Com_sprintf( pickupText, sizeof( pickupText ), "%s", cgs.itemPrintNames[ value ] );
+					Com_sprintf( pickupText, sizeof( pickupText ), "%s", bg_itemlist[ value ].pickup_name );
 				} else {
-					if ( bg_itemlist[ value ].gameskillnumber[cg_gameSkill.integer] > 1 ) {
-						Com_sprintf( pickupText, sizeof( pickupText ), "%i  %s", bg_itemlist[ value ].gameskillnumber[cg_gameSkill.integer], cgs.itemPrintNames[ value ] );
-					} else {
-						Com_sprintf( pickupText, sizeof( pickupText ), "%s", cgs.itemPrintNames[value] );
-					}
+					Com_sprintf( pickupText, sizeof( pickupText ), "%i  %s", bg_itemlist[ value ].gameskillnumber[( cg_gameSkill.integer ) - 1], bg_itemlist[ value ].pickup_name );
 				}
 			} else {
-				Com_sprintf( pickupText, sizeof( pickupText ), "%s", cgs.itemPrintNames[value] );
+				if ( !Q_stricmp( "Blue Flag", bg_itemlist[ value ].pickup_name ) ) {
+					Com_sprintf( pickupText, sizeof( pickupText ), "%s", "Objective" );
+				} else {
+					Com_sprintf( pickupText, sizeof( pickupText ), "%s", bg_itemlist[ value ].pickup_name );
+				}
 			}
+
+			s = CG_TranslateString( pickupText );
 
 			color[0] = color[1] = color[2] = 1.0;
 			color[3] = fadeColor[0];
-			CG_DrawStringExt2( ICON_SIZE + 16, 398, pickupText, color, qfalse, qtrue, 10, 10, 0 );
+			CG_DrawStringExt2( 34, 388, s, color, qfalse, qtrue, 10, 10, 0 ); // JPW NERVE moved per atvi req
 
 			trap_R_SetColor( NULL );
 		}
@@ -1607,97 +1033,66 @@ static void CG_DrawPickupItem( void ) {
 //----(SA)	end
 
 /*
-===================
-CG_DrawHoldableItem
-===================
+=================
+CG_DrawNotify
+=================
 */
-void CG_DrawHoldableItem_old( void ) {
-	int value;
-	gitem_t *item;
+#define NOTIFYLOC_Y 42 // bottom end
+#define NOTIFYLOC_X 0
 
-	if ( !cg.holdableSelect ) {
-		return;
-	}
-
-	item    = BG_FindItemForHoldable( cg.holdableSelect );
-
-	if ( !item ) {
-		return;
-	}
-
-	if ( cg_fixedAspect.integer == 2 ) {
-		CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
-	}
-
-	value   = cg.predictedPlayerState.holdable[cg.holdableSelect];
-
-	if ( value ) {
-
-		trap_R_SetColor( NULL );
-
-		CG_RegisterItemVisuals( item - bg_itemlist );
-
-		if ( cg.holdableSelect == HI_WINE ) {
-			if ( value > 3 ) {
-				value = 3;  // 3 stages to icon, just draw full if beyond 'full'
-			}
-			CG_DrawPic( 606, 366, 24, 24, cg_items[item - bg_itemlist].icons[2 - ( value - 1 )] );
-		} else {
-			CG_DrawPic( 606, 366, 24, 24, cg_items[item - bg_itemlist].icons[0] );
-
-		}
-
-		// draw the selection box so it's not just floating in space
-		CG_DrawPic( 606 - 4, 366 - 4, 32, 32, cgs.media.selectShader );
-	}
-}
-/*
-		if(cg.holdableSelect == HI_WINE) {
-			if(value > 3)
-				value = 3;	// 3 stages to icon, just draw full if beyond 'full'
-
-			CG_DrawPic( 598 + 16, 366, 16, 32, cg_items[item - bg_itemlist].icons[2-(value-1)] );
-			CG_DrawPic( (598 + 16)-4, 366-4, 24, 40, cgs.media.selectShader );
-
-		} else {
-			CG_DrawPic( 598, 366, 32, 32, cg_items[item - bg_itemlist].icons[0] );
-			CG_DrawPic( 598-4, 366-4, 40, 40, cgs.media.selectShader );
-		}
-*/
-
-/*
-===================
-CG_DrawReward
-===================
-*/
-static void CG_DrawReward( void ) {
-	float   *color;
+static void CG_DrawNotify( void ) {
 	int i;
-	float x, y;
+	vec4_t hcolor;
+	int chatHeight;
+	float alphapercent;
+	char var[MAX_TOKEN_CHARS];
+	float notifytime = 1.0f;
 
-	if ( !cg_drawRewards.integer ) {
-		return;
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
+		CG_SetScreenPlacement(PLACE_LEFT, PLACE_TOP);
 	}
 
-	if ( cg_fixedAspect.integer ) {
-		CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
+	trap_Cvar_VariableStringBuffer( "con_notifytime", var, sizeof( var ) );
+	notifytime = atof( var ) * 1000;
+
+	if ( notifytime <= 100.f ) {
+		notifytime = 100.0f;
 	}
 
-	color = CG_FadeColor( cg.rewardTime, REWARD_TIME );
-	if ( !color ) {
-		return;
-	}
+	chatHeight = NOTIFY_HEIGHT;
 
-	trap_R_SetColor( color );
-	y = 56;
-	x = 320 - cg.rewardCount * ICON_SIZE / 2;
-	for ( i = 0 ; i < cg.rewardCount ; i++ ) {
-		CG_DrawPic( x, y, ICON_SIZE - 4, ICON_SIZE - 4, cg.rewardShader );
-		x += ICON_SIZE;
+	if ( cgs.notifyLastPos != cgs.notifyPos ) {
+		if ( cg.time - cgs.notifyMsgTimes[cgs.notifyLastPos % chatHeight] > notifytime ) {
+			cgs.notifyLastPos++;
+		}
+
+		if ( maxCharsBeforeOverlay <= 0 ) {
+			maxCharsBeforeOverlay = 80;
+		}
+
+		for ( i = cgs.notifyPos - 1; i >= cgs.notifyLastPos; i-- ) {
+			alphapercent = 1.0f - ( ( cg.time - cgs.notifyMsgTimes[i % chatHeight] ) / notifytime );
+			if ( alphapercent > 0.5f ) {
+				alphapercent = 1.0f;
+			} else {
+				alphapercent *= 2;
+			}
+
+			if ( alphapercent < 0.f ) {
+				alphapercent = 0.f;
+			}
+
+			hcolor[0] = hcolor[1] = hcolor[2] = 1.0;
+			hcolor[3] = alphapercent;
+			trap_R_SetColor( hcolor );
+
+			CG_DrawStringExt( NOTIFYLOC_X + TINYCHAR_WIDTH,
+							  NOTIFYLOC_Y - ( cgs.notifyPos - i ) * TINYCHAR_HEIGHT,
+							  cgs.notifyMsgs[i % chatHeight], hcolor, qfalse, qfalse,
+							  TINYCHAR_WIDTH, TINYCHAR_HEIGHT, maxCharsBeforeOverlay );
+		}
 	}
-	trap_R_SetColor( NULL );
 }
-
 
 /*
 ===============================================================================
@@ -1786,7 +1181,7 @@ static void CG_DrawDisconnect( void ) {
 	}
 
 	// also add text in center of screen
-	s = "Connection Interrupted";
+	s = CG_TranslateString( "Connection Interrupted" );
 	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
 	CG_DrawBigString( 320 - w / 2, 100, s, 1.0F );
 
@@ -1795,12 +1190,12 @@ static void CG_DrawDisconnect( void ) {
 		return;
 	}
 
-	if ( cg_fixedAspect.integer == 2 ) {
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement(PLACE_RIGHT, PLACE_BOTTOM);
 	}
 
 	x = 640 - 52;
-	y = 480 - 240;
+	y = 480 - 140;
 
 	CG_DrawPic( x, y, 48, 48, trap_R_RegisterShader( "gfx/2d/net.tga" ) );
 }
@@ -1827,7 +1222,7 @@ static void CG_DrawLagometer( void ) {
 		return;
 	}
 
-	if ( cg_fixedAspect.integer == 2 ) {
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement(PLACE_RIGHT, PLACE_BOTTOM);
 	}
 
@@ -1835,7 +1230,7 @@ static void CG_DrawLagometer( void ) {
 	// draw the graph
 	//
 	x = 640 - 52;
-	y = 480 - 240;
+	y = 480 - 140;
 
 	trap_R_SetColor( NULL );
 	CG_DrawPic( x, y, 48, 48, cgs.media.lagometerShader );
@@ -1939,13 +1334,36 @@ Called for important messages that should stay in the center of the screen
 for a few moments
 ==============
 */
+#define CP_LINEWIDTH 55         // NERVE - SMF
+
 void CG_CenterPrint( const char *str, int y, int charWidth ) {
-	char   *s;
+	char    *s;
+	int i, len;                         // NERVE - SMF
+	qboolean neednewline = qfalse;      // NERVE - SMF
+	int priority = 0;
 
-//----(SA)	added translation lookup
-	Q_strncpyz( cg.centerPrint, CG_translateString( (char*)str ), sizeof( cg.centerPrint ) );
-//----(SA)	end
+	// NERVE - SMF - don't draw if this print message is less important
+	if ( cg.centerPrintTime && priority < cg.centerPrintPriority ) {
+		return;
+	}
 
+	Q_strncpyz( cg.centerPrint, str, sizeof( cg.centerPrint ) );
+	cg.centerPrintPriority = priority;  // NERVE - SMF
+
+	// NERVE - SMF - turn spaces into newlines, if we've run over the linewidth
+	len = strlen( cg.centerPrint );
+	for ( i = 0; i < len; i++ ) {
+
+		// NOTE: subtract a few chars here so long words still get displayed properly
+		if ( i % ( CP_LINEWIDTH - 20 ) == 0 && i > 0 ) {
+			neednewline = qtrue;
+		}
+		if ( cg.centerPrint[i] == ' ' && neednewline ) {
+			cg.centerPrint[i] = '\n';
+			neednewline = qfalse;
+		}
+	}
+	// -NERVE - SMF
 
 	cg.centerPrintTime = cg.time;
 	cg.centerPrintY = y;
@@ -1958,14 +1376,62 @@ void CG_CenterPrint( const char *str, int y, int charWidth ) {
 		if ( *s == '\n' ) {
 			cg.centerPrintLines++;
 		}
-		if ( !Q_strncmp( s, "\\n", 1 ) ) {
-			cg.centerPrintLines++;
-			s++;
-		}
 		s++;
 	}
 }
 
+// NERVE - SMF
+/*
+==============
+CG_PriorityCenterPrint
+
+Called for important messages that should stay in the center of the screen
+for a few moments
+==============
+*/
+void CG_PriorityCenterPrint( const char *str, int y, int charWidth, int priority ) {
+	char    *s;
+	int i, len;                         // NERVE - SMF
+	qboolean neednewline = qfalse;      // NERVE - SMF
+
+	// NERVE - SMF - don't draw if this print message is less important
+	if ( cg.centerPrintTime && priority < cg.centerPrintPriority ) {
+		return;
+	}
+
+	Q_strncpyz( cg.centerPrint, str, sizeof( cg.centerPrint ) );
+	cg.centerPrintPriority = priority;  // NERVE - SMF
+
+	// NERVE - SMF - turn spaces into newlines, if we've run over the linewidth
+	len = strlen( cg.centerPrint );
+	for ( i = 0; i < len; i++ ) {
+
+		// NOTE: subtract a few chars here so long words still get displayed properly
+		if ( i % ( CP_LINEWIDTH - 20 ) == 0 && i > 0 ) {
+			neednewline = qtrue;
+		}
+		if ( cg.centerPrint[i] == ' ' && neednewline ) {
+			cg.centerPrint[i] = '\n';
+			neednewline = qfalse;
+		}
+	}
+	// -NERVE - SMF
+
+	cg.centerPrintTime = cg.time + 2000;
+	cg.centerPrintY = y;
+	cg.centerPrintCharWidth = charWidth;
+
+	// count the number of lines for centering
+	cg.centerPrintLines = 1;
+	s = cg.centerPrint;
+	while ( *s ) {
+		if ( *s == '\n' ) {
+			cg.centerPrintLines++;
+		}
+		s++;
+	}
+}
+// -NERVE - SMF
 
 /*
 ===================
@@ -1984,6 +1450,8 @@ static void CG_DrawCenterString( void ) {
 
 	color = CG_FadeColor( cg.centerPrintTime, 1000 * cg_centertime.value );
 	if ( !color ) {
+		cg.centerPrintTime = 0;
+		cg.centerPrintPriority = 0;
 		return;
 	}
 
@@ -2000,8 +1468,8 @@ static void CG_DrawCenterString( void ) {
 	while ( 1 ) {
 		char linebuffer[1024];
 
-		for ( l = 0; l < 40; l++ ) {
-			if ( !start[l] || start[l] == '\n' || !Q_strncmp( &start[l], "\\n", 1 ) ) {
+		for ( l = 0; l < CP_LINEWIDTH; l++ ) {          // NERVE - SMF - added CP_LINEWIDTH
+			if ( !start[l] || start[l] == '\n' ) {
 				break;
 			}
 			linebuffer[l] = start[l];
@@ -2012,15 +1480,12 @@ static void CG_DrawCenterString( void ) {
 
 		x = ( SCREEN_WIDTH - w ) / 2;
 
-		CG_DrawStringExt( x, y, linebuffer, color, qfalse, qtrue, cg.centerPrintCharWidth, (int)( cg.centerPrintCharWidth * 1.5 ), 0 );
+		CG_DrawStringExt( x, y, linebuffer, color, qfalse, qtrue,
+						  cg.centerPrintCharWidth, (int)( cg.centerPrintCharWidth * 1.5 ), 0 );
 
-		y += cg.centerPrintCharWidth * 2;
+		y += cg.centerPrintCharWidth * 1.5;
 
 		while ( *start && ( *start != '\n' ) ) {
-			if ( !Q_strncmp( start, "\\n", 1 ) ) {
-				start++;
-				break;
-			}
 			start++;
 		}
 		if ( !*start ) {
@@ -2049,225 +1514,152 @@ CG_DrawWeapReticle
 ==============
 */
 static void CG_DrawWeapReticle( void ) {
-	int weap;
+	qboolean snooper, sniper;
 	vec4_t color = {0, 0, 0, 1};
-	vec4_t snoopercolor = {0.7, .8, 0.7, 0};    // greenish
-	float snooperBrightness;
-	float x = 80, y, w = 240, h = 240;
 	float mask = 0, lb = 0;
 
-	CG_AdjustFrom640( &x, &y, &w, &h );
-
-	weap = cg.weaponSelect;
-
 	// DHM - Nerve :: So that we will draw reticle
-	if ( cgs.gametype == GT_WOLF && cg.snap->ps.pm_flags & PMF_FOLLOW ) {
-		weap = cg.snap->ps.weapon;
+	if ( cgs.gametype >= GT_WOLF && ( ( cg.snap->ps.pm_flags & PMF_FOLLOW ) || cg.demoPlayback ) ) {
+		sniper = (qboolean)( cg.snap->ps.weapon == WP_SNIPERRIFLE );
+		snooper = (qboolean)( cg.snap->ps.weapon == WP_SNOOPERSCOPE );
+	} else {
+		sniper = (qboolean)( cg.weaponSelect == WP_SNIPERRIFLE );
+		snooper = (qboolean)( cg.weaponSelect == WP_SNOOPERSCOPE );
 	}
 
+	if ( sniper ) {
+		if ( cg_reticles.integer ) {
 
-	if ( weap == WP_SNIPERRIFLE ) {
-		// sides
-		if ( cg_fixedAspect.integer ) {
-			if ( cgs.glconfig.vidWidth * 480.0 > cgs.glconfig.vidHeight * 640.0 ) {
-				mask = 0.5 * ( ( cgs.glconfig.vidWidth - ( cgs.screenXScale * 480.0 ) ) / cgs.screenXScale );
+			// sides
+			if ( cg_fixedAspect.integer && !cg.limboMenu ) {
+				if ( cgs.glconfig.vidWidth * 480.0 > cgs.glconfig.vidHeight * 640.0 ) {
+					mask = 0.5 * ( ( cgs.glconfig.vidWidth - ( cgs.screenXScale * 480.0 ) ) / cgs.screenXScale );
 
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
-				CG_FillRect( 0, 0, mask, 480, color );
-				CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
-				CG_FillRect( 640 - mask, 0, mask, 480, color );
-			} else if ( cgs.glconfig.vidWidth * 480.0 < cgs.glconfig.vidHeight * 640.0 ) {
-				// sides with letterbox
-				lb = 0.5 * ( ( cgs.glconfig.vidHeight - ( cgs.screenYScale * 480.0 ) ) / cgs.screenYScale );
+					CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
+					CG_FillRect( 0, 0, mask, 480, color );
+					CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
+					CG_FillRect( 640 - mask, 0, mask, 480, color );
+				} else if ( cgs.glconfig.vidWidth * 480.0 < cgs.glconfig.vidHeight * 640.0 ) {
+					// sides with letterbox
+					lb = 0.5 * ( ( cgs.glconfig.vidHeight - ( cgs.screenYScale * 480.0 ) ) / cgs.screenYScale );
 
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
-				CG_FillRect( 0, 0, 80, 480, color );
-				CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
-				CG_FillRect( 560, 0, 80, 480, color );
+					CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
+					CG_FillRect( 0, 0, 80, 480, color );
+					CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
+					CG_FillRect( 560, 0, 80, 480, color );
 
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_BOTTOM);
-				CG_FillRect( 0, 480 - lb, 640, lb, color );
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_TOP);
-				CG_FillRect( 0, 0, 640, lb, color );
+					CG_SetScreenPlacement(PLACE_LEFT, PLACE_BOTTOM);
+					CG_FillRect( 0, 480 - lb, 640, lb, color );
+					CG_SetScreenPlacement(PLACE_LEFT, PLACE_TOP);
+					CG_FillRect( 0, 0, 640, lb, color );
+				} else {
+					// resolution is 4:3
+					CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
+					CG_FillRect( 0, 0, 80, 480, color );
+					CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
+					CG_FillRect( 560, 0, 80, 480, color );
+				}
 			} else {
-				// resolution is 4:3
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
 				CG_FillRect( 0, 0, 80, 480, color );
-				CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
 				CG_FillRect( 560, 0, 80, 480, color );
 			}
-		} else {
-			CG_FillRect( 0, 0, 80, 480, color );
-			CG_FillRect( 560, 0, 80, 480, color );
-		}
 
-		// center
-		if ( cg_fixedAspect.integer ) {
-			CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
-		}
-
-		if ( cgs.media.reticleShaderSimpleQ ) {
+			// center
 			if ( cg_fixedAspect.integer ) {
-				trap_R_DrawStretchPic( x, lb * cgs.screenYScale, w, h, 0, 0, 1, 1, cgs.media.reticleShaderSimpleQ );         // tl
-				trap_R_DrawStretchPic( x + w, lb * cgs.screenYScale, w, h, 1, 0, 0, 1, cgs.media.reticleShaderSimpleQ );     // tr
-				trap_R_DrawStretchPic( x, h + lb * cgs.screenYScale, w, h, 0, 1, 1, 0, cgs.media.reticleShaderSimpleQ );     // bl
-				trap_R_DrawStretchPic( x + w, h + lb * cgs.screenYScale, w, h, 1, 1, 0, 0, cgs.media.reticleShaderSimpleQ ); // br
-			} else {
-				trap_R_DrawStretchPic( x, 0, w, h, 0, 0, 1, 1, cgs.media.reticleShaderSimpleQ );      // tl
-				trap_R_DrawStretchPic( x + w, 0, w, h, 1, 0, 0, 1, cgs.media.reticleShaderSimpleQ );  // tr
-				trap_R_DrawStretchPic( x, h, w, h, 0, 1, 1, 0, cgs.media.reticleShaderSimpleQ );      // bl
-				trap_R_DrawStretchPic( x + w, h, w, h, 1, 1, 0, 0, cgs.media.reticleShaderSimpleQ );  // br
+				CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
 			}
+
+			if ( cgs.media.reticleShaderSimple ) {
+				CG_DrawPic( 80, 0, 480, 480, cgs.media.reticleShaderSimple );
+			}
+
+			// hairs
+			CG_FillRect( 84, 239, 177, 2, color );   // left
+			CG_FillRect( 320, 242, 1, 58, color );   // center top
+			CG_FillRect( 319, 300, 2, 178, color );  // center bot
+			CG_FillRect( 380, 239, 177, 2, color );  // right
 		}
+	} else if ( snooper )     {
+		if ( cg_reticles.integer ) {
 
-		if ( cg_drawCrosshairReticle.integer ) {
-			CG_FillRect( 80, 239, 480, 1, color );	// horiz
-			CG_FillRect( 319, 0, 1, 480, color );   // vert
-		}
+			// sides
+			if ( cg_fixedAspect.integer && !cg.limboMenu ) {
+				if ( cgs.glconfig.vidWidth * 480.0 > cgs.glconfig.vidHeight * 640.0 ) {
+					mask = 0.5 * ( ( cgs.glconfig.vidWidth - ( cgs.screenXScale * 480.0 ) ) / cgs.screenXScale );
 
-		// hairs
-		CG_FillRect( 84, 239, 177, 2, color );   // left
-		CG_FillRect( 320, 242, 1, 58, color );   // center top
-		CG_FillRect( 319, 300, 2, 178, color );  // center bot
-		CG_FillRect( 380, 239, 177, 2, color );  // right
+					CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
+					CG_FillRect( 0, 0, mask, 480, color );
+					CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
+					CG_FillRect( 640 - mask, 0, mask, 480, color );
+				} else if ( cgs.glconfig.vidWidth * 480.0 < cgs.glconfig.vidHeight * 640.0 ) {
+					// sides with letterbox
+					lb = 0.5 * ( ( cgs.glconfig.vidHeight - ( cgs.screenYScale * 480.0 ) ) / cgs.screenYScale );
 
-	} else if ( weap == WP_SNOOPERSCOPE ) {
-		// sides
-		if ( cg_fixedAspect.integer ) {
-			if ( cgs.glconfig.vidWidth * 480.0 > cgs.glconfig.vidHeight * 640.0 ) {
-				mask = 0.5 * ( ( cgs.glconfig.vidWidth - ( cgs.screenXScale * 480.0 ) ) / cgs.screenXScale );
+					CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
+					CG_FillRect( 0, 0, 80, 480, color );
+					CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
+					CG_FillRect( 560, 0, 80, 480, color );
 
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
-				CG_FillRect( 0, 0, mask, 480, color );
-				CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
-				CG_FillRect( 640 - mask, 0, mask, 480, color );
-			} else if ( cgs.glconfig.vidWidth * 480.0 < cgs.glconfig.vidHeight * 640.0 ) {
-				// sides with letterbox
-				lb = 0.5 * ( ( cgs.glconfig.vidHeight - ( cgs.screenYScale * 480.0 ) ) / cgs.screenYScale );
-
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
-				CG_FillRect( 0, 0, 80, 480, color );
-				CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
-				CG_FillRect( 560, 0, 80, 480, color );
-
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_BOTTOM);
-				CG_FillRect( 0, 480 - lb, 640, lb, color );
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_TOP);
-				CG_FillRect( 0, 0, 640, lb, color );
+					CG_SetScreenPlacement(PLACE_LEFT, PLACE_BOTTOM);
+					CG_FillRect( 0, 480 - lb, 640, lb, color );
+					CG_SetScreenPlacement(PLACE_LEFT, PLACE_TOP);
+					CG_FillRect( 0, 0, 640, lb, color );
+				} else {
+					// resolution is 4:3
+					CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
+					CG_FillRect( 0, 0, 80, 480, color );
+					CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
+					CG_FillRect( 560, 0, 80, 480, color );
+				}
 			} else {
-				// resolution is 4:3
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
 				CG_FillRect( 0, 0, 80, 480, color );
-				CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
 				CG_FillRect( 560, 0, 80, 480, color );
 			}
-		} else {
-			CG_FillRect( 0, 0, 80, 480, color );
-			CG_FillRect( 560, 0, 80, 480, color );
-		}
 
-		// center
-		if ( cg_fixedAspect.integer ) {
-			CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
-		}
+			// center
+			if ( cg_fixedAspect.integer ) {
+				CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
+			}
 
 //----(SA)	added
-		// DM didn't like how bright it gets
-		snooperBrightness = Com_Clamp( 0.0f, 1.0f, cg_reticleBrightness.value );
-		snoopercolor[0] *= snooperBrightness;
-		snoopercolor[1] *= snooperBrightness;
-		snoopercolor[2] *= snooperBrightness;
-		trap_R_SetColor( snoopercolor );
+			// DM didn't like how bright it gets
+			{
+				vec4_t hcolor = {0.7, .8, 0.7, 0}; // greenish
+				float brt;
+
+				brt = cg_reticleBrightness.value;
+				Com_Clamp( 0.0f, 1.0f, brt );
+				hcolor[0] *= brt;
+				hcolor[1] *= brt;
+				hcolor[2] *= brt;
+				trap_R_SetColor( hcolor );
+			}
 //----(SA)	end
 
-		if ( cgs.media.snooperShaderSimple ) {
-			CG_DrawPic( 80, 0, 480, 480, cgs.media.snooperShaderSimple );
-		}
-
-		// hairs
-
-		CG_FillRect( 310, 120, 20, 1, color );   //					-----
-		CG_FillRect( 300, 160, 40, 1, color );   //				-------------
-		CG_FillRect( 310, 200, 20, 1, color );   //					-----
-
-		CG_FillRect( 140, 239, 360, 1, color );  // horiz ---------------------------
-
-		CG_FillRect( 310, 280, 20, 1, color );   //					-----
-		CG_FillRect( 300, 320, 40, 1, color );   //				-------------
-		CG_FillRect( 310, 360, 20, 1, color );   //					-----
-
-
-
-		CG_FillRect( 400, 220, 1, 40, color );   // l
-
-		CG_FillRect( 319, 60, 1, 360, color );   // vert
-
-		CG_FillRect( 240, 220, 1, 40, color );   // r
-	} else if ( weap == WP_FG42SCOPE ) {
-		// sides
-		if ( cg_fixedAspect.integer ) {
-			if ( cgs.glconfig.vidWidth * 480.0 > cgs.glconfig.vidHeight * 640.0 ) {
-				mask = 0.5 * ( ( cgs.glconfig.vidWidth - ( cgs.screenXScale * 480.0 ) ) / cgs.screenXScale );
-
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
-				CG_FillRect( 0, 0, mask, 480, color );
-				CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
-				CG_FillRect( 640 - mask, 0, mask, 480, color );
-			} else if ( cgs.glconfig.vidWidth * 480.0 < cgs.glconfig.vidHeight * 640.0 ) {
-				// sides with letterbox
-				lb = 0.5 * ( ( cgs.glconfig.vidHeight - ( cgs.screenYScale * 480.0 ) ) / cgs.screenYScale );
-
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
-				CG_FillRect( 0, 0, 80, 480, color );
-				CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
-				CG_FillRect( 560, 0, 80, 480, color );
-
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_BOTTOM);
-				CG_FillRect( 0, 480 - lb, 640, lb, color );
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_TOP);
-				CG_FillRect( 0, 0, 640, lb, color );
-			} else {
-				// resolution is 4:3
-				CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
-				CG_FillRect( 0, 0, 80, 480, color );
-				CG_SetScreenPlacement(PLACE_RIGHT, PLACE_CENTER);
-				CG_FillRect( 560, 0, 80, 480, color );
+			if ( cgs.media.snooperShaderSimple ) {
+				CG_DrawPic( 80, 0, 480, 480, cgs.media.snooperShaderSimple );
 			}
-		} else {
-			CG_FillRect( 0, 0, 80, 480, color );
-			CG_FillRect( 560, 0, 80, 480, color );
+
+			// hairs
+
+			CG_FillRect( 310, 120, 20, 1, color );   //					-----
+			CG_FillRect( 300, 160, 40, 1, color );   //				-------------
+			CG_FillRect( 310, 200, 20, 1, color );   //					-----
+
+			CG_FillRect( 140, 239, 360, 2, color );  // horiz ---------------------------
+
+			CG_FillRect( 310, 280, 20, 1, color );   //					-----
+			CG_FillRect( 300, 320, 40, 1, color );   //				-------------
+			CG_FillRect( 310, 360, 20, 1, color );   //					-----
+
+
+
+			CG_FillRect( 400, 220, 1, 40, color );   // l
+
+			CG_FillRect( 319, 60, 2, 360, color );   // vert
+
+			CG_FillRect( 240, 220, 1, 40, color );   // r
 		}
-
-		// center
-		if ( cg_fixedAspect.integer ) {
-			CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
-		}
-
-		if ( cgs.media.reticleShaderSimpleQ ) {
-			if ( cg_fixedAspect.integer ) {
-				trap_R_DrawStretchPic( x, lb * cgs.screenYScale, w, h, 0, 0, 1, 1, cgs.media.reticleShaderSimpleQ );         // tl
-				trap_R_DrawStretchPic( x + w, lb * cgs.screenYScale, w, h, 1, 0, 0, 1, cgs.media.reticleShaderSimpleQ );     // tr
-				trap_R_DrawStretchPic( x, h + lb * cgs.screenYScale, w, h, 0, 1, 1, 0, cgs.media.reticleShaderSimpleQ );     // bl
-				trap_R_DrawStretchPic( x + w, h + lb * cgs.screenYScale, w, h, 1, 1, 0, 0, cgs.media.reticleShaderSimpleQ ); // br
-			} else {
-				trap_R_DrawStretchPic( x, 0, w, h, 0, 0, 1, 1, cgs.media.reticleShaderSimpleQ );     // tl
-				trap_R_DrawStretchPic( x + w, 0, w, h, 1, 0, 0, 1, cgs.media.reticleShaderSimpleQ ); // tr
-				trap_R_DrawStretchPic( x, h, w, h, 0, 1, 1, 0, cgs.media.reticleShaderSimpleQ );     // bl
-				trap_R_DrawStretchPic( x + w, h, w, h, 1, 1, 0, 0, cgs.media.reticleShaderSimpleQ ); // br
-			}
-		}
-
-		// hairs
-		CG_FillRect( 84, 239, 150, 3, color );   // left
-		CG_FillRect( 234, 240, 173, 1, color );  // horiz center
-		CG_FillRect( 407, 239, 150, 3, color );  // right
-
-
-		CG_FillRect( 319, 2,   3, 151, color );  // top center top
-		CG_FillRect( 320, 153, 1, 114, color );  // top center bot
-
-		CG_FillRect( 320, 241, 1, 87, color );   // bot center top
-		CG_FillRect( 319, 327, 3, 151, color );  // bot center bot
 	}
 }
 
@@ -2277,9 +1669,7 @@ CG_DrawBinocReticle
 ==============
 */
 static void CG_DrawBinocReticle( void ) {
-	// an alternative.  This gives nice sharp lines at the expense of a few extra polys
 	vec4_t color = {0, 0, 0, 1};
-	float x, y, w = 320, h = 240;
 	float mask = 0, lb = 0;
 
 	if ( cg_fixedAspect.integer ) {
@@ -2304,36 +1694,29 @@ static void CG_DrawBinocReticle( void ) {
 		CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
 	}
 
-	if ( cgs.media.binocShaderSimpleQ ) {
-		CG_AdjustFrom640( &x, &y, &w, &h );
-		if ( cg_fixedAspect.integer ) {
-			trap_R_DrawStretchPic( mask * cgs.screenXScale, lb * cgs.screenYScale, w, h, 0, 0, 1, 1, cgs.media.binocShaderSimpleQ );         // tl
-			trap_R_DrawStretchPic( w + mask * cgs.screenXScale, lb * cgs.screenYScale, w, h, 1, 0, 0, 1, cgs.media.binocShaderSimpleQ );     // tr
-			trap_R_DrawStretchPic( mask * cgs.screenXScale, h + lb * cgs.screenYScale, w, h, 0, 1, 1, 0, cgs.media.binocShaderSimpleQ );     // bl
-			trap_R_DrawStretchPic( w + mask * cgs.screenXScale, h + lb * cgs.screenYScale, w, h, 1, 1, 0, 0, cgs.media.binocShaderSimpleQ ); // br
-		} else {
-			trap_R_DrawStretchPic( 0, 0, w, h, 0, 0, 1, 1, cgs.media.binocShaderSimpleQ );  // tl
-			trap_R_DrawStretchPic( w, 0, w, h, 1, 0, 0, 1, cgs.media.binocShaderSimpleQ );  // tr
-			trap_R_DrawStretchPic( 0, h, w, h, 0, 1, 1, 0, cgs.media.binocShaderSimpleQ );  // bl
-			trap_R_DrawStretchPic( w, h, w, h, 1, 1, 0, 0, cgs.media.binocShaderSimpleQ );  // br
+	if ( cg_reticles.integer ) {
+		if ( cg_reticleType.integer == 0 ) {
+			if ( cgs.media.binocShader ) {
+				CG_DrawPic( 0, 0, 640, 480, cgs.media.binocShader );
+			}
+		} else if ( cg_reticleType.integer == 1 ) {
+			// an alternative.  This gives nice sharp lines at the expense of a few extra polys
+
+			if ( cgs.media.binocShaderSimple ) {
+				CG_DrawPic( 0, 0, 640, 480, cgs.media.binocShaderSimple );
+			}
+
+			CG_FillRect( 146, 239, 348, 1, color );
+
+			CG_FillRect( 188, 234, 1, 13, color );   // ll
+			CG_FillRect( 234, 226, 1, 29, color );   // l
+			CG_FillRect( 274, 234, 1, 13, color );   // lr
+			CG_FillRect( 320, 213, 1, 55, color );   // center
+			CG_FillRect( 360, 234, 1, 13, color );   // rl
+			CG_FillRect( 406, 226, 1, 29, color );   // r
+			CG_FillRect( 452, 234, 1, 13, color );   // rr
 		}
 	}
-
-	if ( cg_drawCrosshairBinoc.integer ) {
-		CG_FillRect( 0, 239, 640, 1, color );	// horiz
-		CG_FillRect( 320, 0, 1, 480, color );   // vert
-	}
-			
-
-	CG_FillRect( 146, 239, 348, 1, color );
-
-	CG_FillRect( 188, 234, 1, 13, color );   // ll
-	CG_FillRect( 234, 226, 1, 29, color );   // l
-	CG_FillRect( 274, 234, 1, 13, color );   // lr
-	CG_FillRect( 320, 213, 1, 55, color );   // center
-	CG_FillRect( 360, 234, 1, 13, color );   // rl
-	CG_FillRect( 406, 226, 1, 29, color );   // r
-	CG_FillRect( 452, 234, 1, 13, color );   // rr
 }
 
 void CG_FinishWeaponChange( int lastweap, int newweap ); // JPW NERVE
@@ -2351,35 +1734,10 @@ static void CG_DrawCrosshair( void ) {
 	float x, y;
 	int weapnum;                // DHM - Nerve
 	vec4_t hcolor = {1, 1, 1, 1};
-	qboolean friendInSights = qfalse;
 
 	if ( cg.renderingThirdPerson ) {
 		return;
 	}
-
-	hcolor[3] = cg_crosshairAlpha.value;    //----(SA)	added
-
-	if ( cg_fixedAspect.integer ) {
-		CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
-	}
-
-	// on mg42
-	if ( cg.snap->ps.eFlags & EF_MG42_ACTIVE ) {
-		hcolor[0] = hcolor[1] = hcolor[2] = 0.0f;
-		hcolor[3] = 0.6f;
-		// option 1
-//		CG_FillRect (300, 240, 40, 2, hcolor);	// horizontal
-//		CG_FillRect (319, 242, 2, 16, hcolor);	// vertical
-
-		// option 2
-		CG_FillRect( 305, 240, 30, 2, hcolor );  // horizontal
-		CG_FillRect( 314, 256, 12, 2, hcolor );  // horizontal2
-		CG_FillRect( 319, 242, 2, 32, hcolor );  // vertical
-
-		return;
-	}
-
-	friendInSights = (qboolean)( cg.snap->ps.serverCursorHint == HINT_PLYR_FRIEND );  //----(SA)	added
 
 	// DHM - Nerve :: show reticle in limbo and spectator
 	if ( cgs.gametype >= GT_WOLF && ( ( cg.snap->ps.pm_flags & PMF_FOLLOW ) || cg.demoPlayback ) ) {
@@ -2392,36 +1750,17 @@ static void CG_DrawCrosshair( void ) {
 
 		// weapons that get no reticle
 	case WP_NONE:       // no weapon, no crosshair
-	case WP_GARAND:
 		if ( cg.zoomedBinoc ) {
 			CG_DrawBinocReticle();
 		}
-		return;
-		break;
 
-		// special reticle for weapon
-	case WP_KNIFE:
-		if ( cg.zoomedBinoc ) {
-			CG_DrawBinocReticle();
-			return;
-		}
-
-		// no crosshair when looking at exits
-		if ( cg.snap->ps.serverCursorHint >= HINT_EXIT && cg.snap->ps.serverCursorHint <= HINT_NOEXIT_FAR ) {
-			return;
-		}
-
-		if ( !friendInSights ) {
-			if ( !cg.snap->ps.leanf ) {     // no crosshair while leaning
-				CG_FillRect( 319, 239, 2, 2, hcolor );      // dot
-			}
+		if ( cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR ) {
 			return;
 		}
 		break;
 
+		// special reticle for weapon
 	case WP_SNIPERRIFLE:
-	case WP_SNOOPERSCOPE:
-	case WP_FG42SCOPE:
 		if ( !( cg.snap->ps.eFlags & EF_MG42_ACTIVE ) ) {
 
 			// JPW NERVE -- don't let players run with rifles -- speed 80 == crouch, 128 == walk, 256 == run
@@ -2451,14 +1790,7 @@ static void CG_DrawCrosshair( void ) {
 		return;
 	}
 
-	// mauser only gets crosshair if you don't have the scope (I don't like this, but it's a test)
-	if ( cg.weaponSelect == WP_MAUSER ) {
-		if ( COM_BitCheck( cg.predictedPlayerState.weapons, WP_SNIPERRIFLE ) ) {
-			return;
-		}
-	}
-
-	if ( !cg_drawCrosshair.integer ) {	//----(SA)	moved down so it doesn't keep the scoped weaps from drawing reticles
+	if ( cg_drawCrosshair.integer < 0 ) {	//----(SA)	moved down so it doesn't keep the scoped weaps from drawing reticles
 		return;
 	}
 
@@ -2467,14 +1799,8 @@ static void CG_DrawCrosshair( void ) {
 		return;
 	}
 
-	// no crosshair when looking at exits
-	if ( cg.snap->ps.serverCursorHint >= HINT_EXIT && cg.snap->ps.serverCursorHint <= HINT_NOEXIT_FAR ) {
-		return;
-	}
-
-	if ( cg_paused.integer ) {
-		// no draw if any menu's are up	 (or otherwise paused)
-		return;
+	if ( cg_fixedAspect.integer ) {
+		CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
 	}
 
 	// set color based on health
@@ -2498,23 +1824,52 @@ static void CG_DrawCrosshair( void ) {
 		CG_AdjustFrom640( &x, &y, &w, &h );
 	}
 
-//----(SA)	modified
-	if ( friendInSights ) {
-		hShader = cgs.media.crosshairFriendly;
-	} else {
-		hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
-	}
-//----(SA)	end
+	hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
 
 	// NERVE - SMF - modified, fixes crosshair offset in shifted/scaled 3d views
-	// (SA) also breaks scaled view...
-	if ( cg_fixedAspect.integer ) {
-		CG_DrawPic( ((SCREEN_WIDTH-w)*0.5f)+x, ((SCREEN_HEIGHT-h)*0.5f)+y, w, h, hShader );
+	if ( cg.limboMenu ) { // JPW NERVE
+		if ( cg_fixedAspect.integer ) {
+			CG_DrawPic( ( ( SCREEN_WIDTH - w ) * 0.5f ) + x, ( ( SCREEN_HEIGHT - h ) * 0.5f ) + y, w, h, hShader );
+		} else {
+			trap_R_DrawStretchPic( x /*+ cg.refdef.x*/ + 0.5 * ( cg.refdef.width - w ),
+								   y /*+ cg.refdef.y*/ + 0.5 * ( cg.refdef.height - h ),
+								   w, h, 0, 0, 1, 1, hShader );
+		}
 	} else {
-		trap_R_DrawStretchPic(  x + cg.refdef.x + 0.5 * ( cg.refdef.width - w ),
-								y + cg.refdef.y + 0.5 * ( cg.refdef.height - h ),
-								w, h, 0, 0, 1, 1, hShader );
+		if ( cg_fixedAspect.integer ) {
+			CG_DrawPic( ( ( SCREEN_WIDTH - w ) * 0.5f ) + x, ( ( SCREEN_HEIGHT - h ) * 0.5f ) + y, w, h, hShader );
+		} else {
+			trap_R_DrawStretchPic( x + 0.5 * ( cgs.glconfig.vidWidth - w ), // JPW NERVE for scaled-down main windows
+								   y + 0.5 * ( cgs.glconfig.vidHeight - h ),
+								   w, h, 0, 0, 1, 1, hShader );
+		}
 	}
+	// NERVE - SMF
+	if ( cg.crosshairShaderAlt[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ] ) {
+		w = h = cg_crosshairSize.value;
+		x = cg_crosshairX.integer;
+		y = cg_crosshairY.integer;
+		if ( !cg_fixedAspect.integer ) {
+			CG_AdjustFrom640( &x, &y, &w, &h );
+		}
+
+		if ( cg.limboMenu ) { // JPW NERVE
+			if ( cg_fixedAspect.integer ) {
+				CG_DrawPic( ( ( SCREEN_WIDTH - w ) * 0.5f ) + x, ( ( SCREEN_HEIGHT - h ) * 0.5f ) + y, w, h, cg.crosshairShaderAlt[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ] );
+			} else {
+				trap_R_DrawStretchPic( x + 0.5 * ( cg.refdef.width - w ), y + 0.5 * ( cg.refdef.height - h ),
+								   w, h, 0, 0, 1, 1, cg.crosshairShaderAlt[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ] );
+			}
+		} else {
+			if ( cg_fixedAspect.integer ) {
+				CG_DrawPic( ( ( SCREEN_WIDTH - w ) * 0.5f ) + x, ( ( SCREEN_HEIGHT - h ) * 0.5f ) + y, w, h, cg.crosshairShaderAlt[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ] );
+			} else {
+				trap_R_DrawStretchPic( x + 0.5 * ( cgs.glconfig.vidWidth - w ), y + 0.5 * ( cgs.glconfig.vidHeight - h ), // JPW NERVE fix for small main windows (dunno why people still do this, but it's supported)
+								   w, h, 0, 0, 1, 1, cg.crosshairShaderAlt[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ] );
+			}
+		}
+	}
+	// -NERVE - SMF
 
 	trap_R_SetColor( NULL );
 }
@@ -2530,9 +1885,6 @@ static void CG_DrawCrosshair3D( void ) {
 	qhandle_t hShader;
 	float f;
 	int weapnum;                // DHM - Nerve
-	vec4_t hcolor = {1, 1, 1, 1};
-	qboolean friendInSights = qfalse;
-
 	trace_t trace;
 	vec3_t endpos;
 	float stereoSep, zProj, maxdist, xmax;
@@ -2542,27 +1894,6 @@ static void CG_DrawCrosshair3D( void ) {
 	if ( cg.renderingThirdPerson ) {
 		return;
 	}
-
-	hcolor[3] = cg_crosshairAlpha.value;    //----(SA)	added
-
-
-	// on mg42
-	if ( cg.snap->ps.eFlags & EF_MG42_ACTIVE ) {
-		hcolor[0] = hcolor[1] = hcolor[2] = 0.0f;
-		hcolor[3] = 0.6f;
-		// option 1
-//		CG_FillRect (300, 240, 40, 2, hcolor);	// horizontal
-//		CG_FillRect (319, 242, 2, 16, hcolor);	// vertical
-
-		// option 2
-		CG_FillRect( 305, 240, 30, 2, hcolor );  // horizontal
-		CG_FillRect( 314, 256, 12, 2, hcolor );  // horizontal2
-		CG_FillRect( 319, 242, 2, 32, hcolor );  // vertical
-
-		return;
-	}
-
-	friendInSights = (qboolean)( cg.snap->ps.serverCursorHint == HINT_PLYR_FRIEND );  //----(SA)	added
 
 	// DHM - Nerve :: show reticle in limbo and spectator
 	if ( cgs.gametype >= GT_WOLF && ( ( cg.snap->ps.pm_flags & PMF_FOLLOW ) || cg.demoPlayback ) ) {
@@ -2575,36 +1906,17 @@ static void CG_DrawCrosshair3D( void ) {
 
 		// weapons that get no reticle
 	case WP_NONE:       // no weapon, no crosshair
-	case WP_GARAND:
 		if ( cg.zoomedBinoc ) {
 			CG_DrawBinocReticle();
 		}
-		return;
-		break;
 
-		// special reticle for weapon
-	case WP_KNIFE:
-		if ( cg.zoomedBinoc ) {
-			CG_DrawBinocReticle();
-			return;
-		}
-
-		// no crosshair when looking at exits
-		if ( cg.snap->ps.serverCursorHint >= HINT_EXIT && cg.snap->ps.serverCursorHint <= HINT_NOEXIT_FAR ) {
-			return;
-		}
-
-		if ( !friendInSights ) {
-			if ( !cg.snap->ps.leanf ) {     // no crosshair while leaning
-				CG_FillRect( 319, 239, 2, 2, hcolor );      // dot
-			}
+		if ( cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR ) {
 			return;
 		}
 		break;
 
+		// special reticle for weapon
 	case WP_SNIPERRIFLE:
-	case WP_SNOOPERSCOPE:
-	case WP_FG42SCOPE:
 		if ( !( cg.snap->ps.eFlags & EF_MG42_ACTIVE ) ) {
 
 			// JPW NERVE -- don't let players run with rifles -- speed 80 == crouch, 128 == walk, 256 == run
@@ -2634,30 +1946,12 @@ static void CG_DrawCrosshair3D( void ) {
 		return;
 	}
 
-	// mauser only gets crosshair if you don't have the scope (I don't like this, but it's a test)
-	if ( cg.weaponSelect == WP_MAUSER ) {
-		if ( COM_BitCheck( cg.predictedPlayerState.weapons, WP_SNIPERRIFLE ) ) {
-			return;
-		}
-	}
-
-
-	if ( !cg_drawCrosshair.integer ) {	//----(SA)	moved down so it doesn't keep the scoped weaps from drawing reticles
+	if ( cg_drawCrosshair.integer < 0 ) {	//----(SA)	moved down so it doesn't keep the scoped weaps from drawing reticles
 		return;
 	}
 
 	// no crosshair while leaning
 	if ( cg.snap->ps.leanf ) {
-		return;
-	}
-
-	// no crosshair when looking at exits
-	if ( cg.snap->ps.serverCursorHint >= HINT_EXIT && cg.snap->ps.serverCursorHint <= HINT_NOEXIT_FAR ) {
-		return;
-	}
-
-	if ( cg_paused.integer ) {
-		// no draw if any menu's are up	 (or otherwise paused)
 		return;
 	}
 
@@ -2667,13 +1961,7 @@ static void CG_DrawCrosshair3D( void ) {
 	f = (float)cg.snap->ps.aimSpreadScale / 255.0;
 	w *= ( 1 + f * 2.0 );
 
-//----(SA)	modified
-	if ( friendInSights ) {
-		hShader = cgs.media.crosshairFriendly;
-	} else {
-		hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
-	}
-//----(SA)	end
+	hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
 
 	// Use a different method rendering the crosshair so players don't see two of them when
 	// focusing their eyes at distant objects with high stereo separation
@@ -2705,9 +1993,20 @@ static void CG_DrawCrosshair3D( void ) {
 	ent.shaderRGBA[0]=255;
 	ent.shaderRGBA[1]=255;
 	ent.shaderRGBA[2]=255;
-	ent.shaderRGBA[3]=(byte)(hcolor[3]*255.f);
+	ent.shaderRGBA[3]=255;
 
 	trap_R_AddRefEntityToScene(&ent);
+
+	if ( cg.crosshairShaderAlt[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ] ) {
+		ent.customShader = cg.crosshairShaderAlt[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
+
+		ent.shaderRGBA[0]=255;
+		ent.shaderRGBA[1]=255;
+		ent.shaderRGBA[2]=255;
+		ent.shaderRGBA[3]=255;
+
+		trap_R_AddRefEntityToScene(&ent);
+	}
 }
 
 
@@ -2733,9 +2032,9 @@ static void CG_ScanForCrosshairEntity( void ) {
 	CG_Trace( &trace, start, vec3_origin, vec3_origin, end,
 			  cg.snap->ps.clientNum, CONTENTS_SOLID | CONTENTS_BODY | CONTENTS_ITEM );
 
-//	if ( trace.entityNum >= MAX_CLIENTS ) {
-//		return;
-//	}
+	if ( trace.entityNum >= MAX_CLIENTS ) {
+		return;
+	}
 
 //	traceEnt = &g_entities[trace.entityNum];
 
@@ -2754,9 +2053,9 @@ static void CG_ScanForCrosshairEntity( void ) {
 	// update the fade timer
 	cg.crosshairClientNum = trace.entityNum;
 	cg.crosshairClientTime = cg.time;
-//	if ( cg.crosshairClientNum != cg.identifyClientNum && cg.crosshairClientNum != ENTITYNUM_WORLD ) {
-//		cg.identifyClientRequest = cg.crosshairClientNum;
-//	}
+	if ( cg.crosshairClientNum != cg.identifyClientNum && cg.crosshairClientNum != ENTITYNUM_WORLD ) {
+		cg.identifyClientRequest = cg.crosshairClientNum;
+	}
 }
 
 
@@ -2772,7 +2071,7 @@ static void CG_DrawDynamiteStatus( void ) {
 	int timeleft;
 	float w;
 
-	if ( cg.snap->ps.weapon != WP_DYNAMITE ) {
+	if ( cg.snap->ps.weapon != WP_DYNAMITE && cg.snap->ps.weapon != WP_DYNAMITE2 ) {
 		return;
 	}
 
@@ -2794,12 +2093,7 @@ static void CG_DrawDynamiteStatus( void ) {
 
 	trap_R_SetColor( color );
 
-	timeleft *= 5;
-	timeleft -= ( timeleft % 5000 );
-	timeleft += 5000;
-	timeleft /= 1000;
-
-	name = va( "Timer: %d", timeleft );
+	name = va( "Timer: 30" );
 	w = CG_DrawStrlen( name ) * BIGCHAR_WIDTH;
 
 	color[3] *= cg_hudAlpha.value;
@@ -2809,26 +2103,137 @@ static void CG_DrawDynamiteStatus( void ) {
 }
 
 
+#define CH_KNIFE_DIST       48  // from g_weapon.c
+#define CH_LADDER_DIST      100
+#define CH_WATER_DIST       100
+#define CH_BREAKABLE_DIST   64
+#define CH_DOOR_DIST        96
+
+#define CH_DIST             100 //128		// use the largest value from above
 
 /*
 ==============
 CG_CheckForCursorHints
+	concept in progress...
 ==============
 */
 void CG_CheckForCursorHints( void ) {
+	trace_t trace;
+	vec3_t start, end;
+	centity_t   *tracent;
+	vec3_t pforward, eforward;
+	float dist;
+
 
 	if ( cg.renderingThirdPerson ) {
 		return;
 	}
 
-	if ( cg.snap->ps.serverCursorHint != HINT_NONE ) { // let the client remember what was last looked at (for fading out)
+	if ( cg.snap->ps.serverCursorHint ) {  // server is dictating a cursor hint, use it.
 		cg.cursorHintTime = cg.time;
-		cg.cursorHintFade = cg_hintFadeTime.integer;    // fade out time
+		cg.cursorHintFade = 500;    // fade out time
 		cg.cursorHintIcon = cg.snap->ps.serverCursorHint;
 		cg.cursorHintValue = cg.snap->ps.serverCursorHintVal;
+		return;
 	}
 
-	// (SA) (8/14/01) removed all the client-side stuff.  don't think it's really necessary anymore
+
+	// From here on it's client-side cursor hints.  So if the server isn't sending that info (as an option)
+	// then it falls into here and you can get basic cursorhint info if you want, but not the detailed info
+	// the server sends.
+
+	// the trace
+	VectorCopy( cg.refdef.vieworg, start );
+	VectorMA( start, CH_DIST, cg.refdef.viewaxis[0], end );
+
+//	CG_Trace( &trace, start, vec3_origin, vec3_origin, end, cg.snap->ps.clientNum, MASK_ALL &~CONTENTS_MONSTERCLIP);
+	CG_Trace( &trace, start, vec3_origin, vec3_origin, end, cg.snap->ps.clientNum, MASK_PLAYERSOLID );
+
+	if ( trace.fraction == 1 ) {
+		return;
+	}
+
+	dist = trace.fraction * CH_DIST;
+
+	tracent = &cg_entities[ trace.entityNum ];
+
+	//
+	// world
+	//
+	if ( trace.entityNum == ENTITYNUM_WORLD ) {
+		// if looking into water, warn if you don't have a breather
+		if ( ( trace.contents & CONTENTS_WATER ) && !( cg.snap->ps.powerups[PW_BREATHER] ) ) {
+			if ( dist <= CH_WATER_DIST ) {
+				cg.cursorHintIcon = HINT_WATER;
+				cg.cursorHintTime = cg.time;
+				cg.cursorHintFade = 500;
+			}
+		}
+		// ladder
+		else if ( ( trace.surfaceFlags & SURF_LADDER ) && !( cg.snap->ps.pm_flags & PMF_LADDER ) ) {
+			if ( dist <= CH_LADDER_DIST ) {
+				cg.cursorHintIcon = HINT_LADDER;
+				cg.cursorHintTime = cg.time;
+				cg.cursorHintFade = 500;
+			}
+		}
+
+
+	}
+	//
+	// people
+	//
+	else if ( trace.entityNum < MAX_CLIENTS ) {
+
+		// knife
+		if ( trace.entityNum < MAX_CLIENTS && ( cg.snap->ps.weapon == WP_KNIFE || cg.snap->ps.weapon == WP_KNIFE2 ) ) {
+			if ( dist <= CH_KNIFE_DIST ) {
+
+				AngleVectors( cg.snap->ps.viewangles,   pforward, NULL, NULL );
+				AngleVectors( tracent->lerpAngles,      eforward, NULL, NULL );
+
+				if ( DotProduct( eforward, pforward ) > 0.9f ) {   // from behind
+					cg.cursorHintIcon = HINT_KNIFE;
+					cg.cursorHintTime = cg.time;
+					cg.cursorHintFade = 100;
+				}
+			}
+		}
+	}
+	//
+	// other entities
+	//
+	else {
+		if ( tracent->currentState.dmgFlags ) {
+			switch ( tracent->currentState.dmgFlags ) {
+			case HINT_DOOR:
+				if ( dist < CH_DOOR_DIST ) {
+					cg.cursorHintIcon = HINT_DOOR;
+					cg.cursorHintTime = cg.time;
+					cg.cursorHintFade = 500;
+				}
+				break;
+				//case HINT_CHAIR:
+			case HINT_MG42:
+				if ( dist < CH_DOOR_DIST && !( cg.snap->ps.eFlags & EF_MG42_ACTIVE ) ) {
+					cg.cursorHintIcon = HINT_ACTIVATE;
+					cg.cursorHintTime = cg.time;
+					cg.cursorHintFade = 500;
+				}
+				break;
+			}
+		} else {
+
+			if ( tracent->currentState.eType == ET_EXPLOSIVE ) {
+				if ( ( dist < CH_BREAKABLE_DIST ) && ( cg.cursorHintIcon != HINT_FORCENONE ) ) { // JPW NERVE so we don't get breakables in trigger_objective_info fields for wrong team (see code chunk in g_main.c)
+					cg.cursorHintIcon = HINT_BREAKABLE;
+					cg.cursorHintTime = cg.time;
+					cg.cursorHintFade = 500;
+				}
+
+			}
+		}
+	}
 }
 
 
@@ -2839,17 +2244,27 @@ CG_DrawCrosshairNames
 */
 static void CG_DrawCrosshairNames( void ) {
 	float       *color;
-	vec4_t teamColor;           // NERVE - SMF
 	char        *name;
 	float w;
+	// NERVE - SMF
+	const char  *s, *playerClass;
+	int playerHealth, val;
+	vec4_t c;
+	float barFrac;
+	// -NERVE - SMF
 
-	if ( !cg_drawCrosshair.integer ) {
+	if ( cg_drawCrosshair.integer < 0 ) {
 		return;
 	}
 	if ( !cg_drawCrosshairNames.integer ) {
 		return;
 	}
 	if ( cg.renderingThirdPerson ) {
+		return;
+	}
+
+	// NERVE - SMF - we don't want to do this in warmup
+	if ( cgs.gamestate != GS_PLAYING && cgs.gametype == GT_WOLF_STOPWATCH ) {
 		return;
 	}
 
@@ -2874,31 +2289,59 @@ static void CG_DrawCrosshairNames( void ) {
 		return;
 	}
 
-	// NERVE - SMF - use fade alpha but color text according to teams
-	teamColor[3] = color[3];
+	// NERVE - SMF
+	if ( cg.crosshairClientNum > MAX_CLIENTS ) {
+		return;
+	}
 
-	// NERVE - SMF - no longer identify opposing side, so just use green now
-//	if ( cgs.clientinfo[ cg.crosshairClientNum ].team != cgs.clientinfo[ cg.clientNum ].team )
-//		VectorSet( teamColor, 0.7608, 0.1250, 0.0859 );			// LIGHT-RED
-//	else
-	VectorSet( teamColor, 0.1250, 0.7608, 0.0859 );             // LIGHT-GREEN
+	// we only want to see players on our team
+	if ( cgs.clientinfo[cg.snap->ps.clientNum].team != TEAM_SPECTATOR
+		 && cgs.clientinfo[ cg.crosshairClientNum ].team != cgs.clientinfo[cg.snap->ps.clientNum].team ) {
+		return;
+	}
 
-	trap_R_SetColor( teamColor );
-	// -NERVE - SMF
+	// determine player class
+	val = cg_entities[ cg.crosshairClientNum ].currentState.teamNum;
+	if ( val == 0 ) {
+		playerClass = "S";
+	} else if ( val == 1 ) {
+		playerClass = "M";
+	} else if ( val == 2 ) {
+		playerClass = "E";
+	} else if ( val == 3 ) {
+		playerClass = "L";
+	} else {
+		playerClass = "";
+	}
 
 	name = cgs.clientinfo[ cg.crosshairClientNum ].name;
-	w = CG_DrawStrlen( va( "Axis: %s", name ) ) * BIGCHAR_WIDTH;
-//	CG_DrawBigString( 320 - w / 2, 170, name, color[3] * 0.5 );
 
-	// NERVE - SMF
-	if ( strlen( name ) ) {
-		if ( ( cgs.clientinfo[ cg.crosshairClientNum ].team == TEAM_RED ) &&
-			 ( cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_RED ) ) { // JPW NERVE -- only show same team info so people can't pan-search
-			CG_DrawBigStringColor( 320 - w / 2, 170, va( "Axis: %s", name ), teamColor );
-		} else if ( ( cgs.clientinfo[ cg.crosshairClientNum ].team == TEAM_BLUE ) &&
-					( cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_BLUE ) ) { // JPW NERVE -- so's we can't find snipers for free
-			CG_DrawBigStringColor( 320 - w / 2, 170, va( "Ally: %s", name ), teamColor );
+	s = va( "[%s] %s", CG_TranslateString( playerClass ), name );
+	if ( !s ) {
+		return;
+	}
+	w = CG_DrawStrlen( s ) * SMALLCHAR_WIDTH;
+
+	// draw the name and class
+	CG_DrawSmallStringColor( 320 - w / 2, 170, s, color );
+
+	// draw the health bar
+	playerHealth = cg.identifyClientHealth;
+
+	if ( cg.crosshairClientNum == cg.identifyClientNum ) {
+		barFrac = (float)playerHealth / 100;
+
+		if ( barFrac > 1.0 ) {
+			barFrac = 1.0;
+		} else if ( barFrac < 0 ) {
+			barFrac = 0;
 		}
+
+		c[0] = 1.0f;
+		c[1] = c[2] = barFrac;
+		c[3] = 0.25 + barFrac * 0.5 * color[3];
+
+		CG_FilledBar( 320 - w / 2, 190, 110, 10, c, NULL, NULL, barFrac, 16 );
 	}
 	// -NERVE - SMF
 
@@ -2915,10 +2358,11 @@ CG_DrawSpectator
 =================
 */
 static void CG_DrawSpectator( void ) {
-	if ( cg_fixedAspect.integer == 2 ) {
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement(PLACE_CENTER, PLACE_BOTTOM);
 	}
-	CG_DrawBigString( 320 - 9 * 8, 440, "SPECTATOR", 1.0F );
+
+	CG_DrawBigString( 320 - 9 * 8, 440, CG_TranslateString( "SPECTATOR" ), 1.0F );
 	if ( cgs.gametype == GT_TOURNAMENT ) {
 		CG_DrawBigString( 320 - 15 * 8, 460, "waiting to play", 1.0F );
 	}
@@ -2934,14 +2378,65 @@ CG_DrawVote
 */
 static void CG_DrawVote( void ) {
 	char    *s;
+	char str1[32], str2[32];
+	float color[4] = { 1, 1, 0, 1 };
 	int sec;
+
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
+		CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
+	}
+
+	if ( cgs.complaintEndTime > cg.time ) {
+
+		if ( cgs.complaintClient == -1 ) {
+			s = "Your complaint has been filed";
+			CG_DrawStringExt( 8, 200, CG_TranslateString( s ), color, qtrue, qfalse, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 80 );
+			return;
+		}
+		if ( cgs.complaintClient == -2 ) {
+			s = "Complaint dismissed";
+			CG_DrawStringExt( 8, 200, CG_TranslateString( s ), color, qtrue, qfalse, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 80 );
+			return;
+		}
+		if ( cgs.complaintClient == -3 ) {
+			s = "Server Host cannot be complained against";
+			CG_DrawStringExt( 8, 200, CG_TranslateString( s ), color, qtrue, qfalse, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 80 );
+			return;
+		}
+		if ( cgs.complaintClient == -4 ) {
+			s = "You were team-killed by the Server Host";
+			CG_DrawStringExt( 8, 200, CG_TranslateString( s ), color, qtrue, qfalse, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 80 );
+			return;
+		}
+
+		Q_strncpyz( str1, BindingFromName( "vote yes" ), 32 );
+		if ( !Q_stricmp( str1, "???" ) ) {
+			Q_strncpyz( str1, "vote yes", 32 );
+		}
+		Q_strncpyz( str2, BindingFromName( "vote no" ), 32 );
+		if ( !Q_stricmp( str2, "???" ) ) {
+			Q_strncpyz( str2, "vote no", 32 );
+		}
+
+		s = va( CG_TranslateString( "File complaint against %s for team-killing?" ), cgs.clientinfo[cgs.complaintClient].name );
+		CG_DrawStringExt( 8, 200, s, color, qtrue, qfalse, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 80 );
+
+		s = va( CG_TranslateString( "Press '%s' for YES, or '%s' for No" ), str1, str2 );
+		CG_DrawStringExt( 8, 214, s, color, qtrue, qfalse, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 80 );
+		return;
+	}
 
 	if ( !cgs.voteTime ) {
 		return;
 	}
 
-	if ( cg_fixedAspect.integer == 2 ) {
-		CG_SetScreenPlacement(PLACE_LEFT, PLACE_CENTER);
+	Q_strncpyz( str1, BindingFromName( "vote yes" ), 32 );
+	if ( !Q_stricmp( str1, "???" ) ) {
+		Q_strncpyz( str1, "vote yes", 32 );
+	}
+	Q_strncpyz( str2, BindingFromName( "vote no" ), 32 );
+	if ( !Q_stricmp( str2, "???" ) ) {
+		Q_strncpyz( str2, "vote no", 32 );
 	}
 
 	// play a talk beep whenever it is modified
@@ -2954,8 +2449,17 @@ static void CG_DrawVote( void ) {
 	if ( sec < 0 ) {
 		sec = 0;
 	}
-	s = va( "VOTE(%i):%s yes(F1):%i no(F2):%i", sec, cgs.voteString, cgs.voteYes, cgs.voteNo );
-	CG_DrawSmallString( 0, 58, s, 1.0F );
+
+	if ( !( cg.snap->ps.eFlags & EF_VOTED ) ) {
+		s = va( CG_TranslateString( "VOTE(%i):%s" ), sec, cgs.voteString );
+		CG_DrawStringExt( 8, 200, s, color, qtrue, qfalse, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 60 );
+
+		s = va( CG_TranslateString( "YES(%s):%i, NO(%s):%i" ), str1, cgs.voteYes, str2, cgs.voteNo );
+		CG_DrawStringExt( 8, 214, s, color, qtrue, qfalse, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 60 );
+	} else {
+		s = va( CG_TranslateString( "Y:%i, N:%i" ), cgs.voteYes, cgs.voteNo );
+		CG_DrawStringExt( 8, 214, s, color, qtrue, qfalse, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 20 );
+	}
 }
 
 /*
@@ -2979,39 +2483,166 @@ static void CG_DrawIntermission( void ) {
 CG_ActivateLimboMenu
 =================
 */
-// TTimo: unused
-/*
 static void CG_ActivateLimboMenu( void ) {
+	// ATVI Wolfenstein Misc #339
+	// track when the UI would disable limbo, that leaves us in an inconsistent latch state
+	// the inconsistent state is a good thing most of the time, except when game sends us back to free fly
+	// that had the bad effect of triggering limbo again
+	static qboolean ui_disable = qfalse;
+	// track when we see cgame conditions change and need to emit a new limbo console command
 	static qboolean latch = qfalse;
 	qboolean test;
 	char buf[32];
 
-	if ( cgs.gametype != GT_WOLF )
+	if ( cgs.gametype < GT_WOLF ) {
 		return;
+	}
+
+	// a test to detect when UI closes the limbo
+	trap_Cvar_VariableStringBuffer( "ui_limboMode", buf, sizeof( buf ) );
+	if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR && atoi( buf ) == 0 && latch == 1 ) {
+		ui_disable = qtrue;
+	}
 
 	// should we open the limbo menu
-	test = cg.snap->ps.pm_flags & PMF_LIMBO || cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR;
-
-	if ( test && !latch ) {
-		trap_SendConsoleCommand( "startLimboMode\n" );
-		trap_SendConsoleCommand( "OpenLimboMenu\n" );
-		latch = qtrue;
-	}
-	else if ( !test && latch ) {
-		trap_SendConsoleCommand( "stopLimboMode\n" );
-		trap_SendConsoleCommand( "CloseLimboMenu\n" );
-		latch = qfalse;
+	if ( cg.snap->ps.pm_type == PM_INTERMISSION ) {
+		test = qfalse;
+	} else {
+		test = cg.snap->ps.pm_flags & PMF_LIMBO || cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.warmup;
 	}
 
-	// set the limbo state
-	trap_Cvar_VariableStringBuffer( "ui_limboMode", buf, sizeof( buf ) );
+	// auto open/close limbo mode
+	if ( cg_popupLimboMenu.integer ) {
+		// we don't want to trigger limbo in this very particular case
+		if ( ui_disable && cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR && test && !latch ) {
+			// ATVI Wolfenstein Misc #413
+			// we manually update this, otherwise there's a chance team selections won't work
+			trap_Cvar_Set( "mp_currentTeam", "2" );
+			latch = 1;
+			ui_disable = qfalse;
+		}
+		if ( test && !latch ) {
+			trap_SendConsoleCommand( "OpenLimboMenu\n" );
+			latch = qtrue;
+			ui_disable = qfalse;
+		} else if ( !test && latch )   {
+			trap_SendConsoleCommand( "CloseLimboMenu\n" );
+			latch = qfalse;
+		}
+	}
 
-	if ( atoi( buf ) )
+	if ( atoi( buf ) ) {
 		cg.limboMenu = qtrue;
-	else
+	} else {
 		cg.limboMenu = qfalse;
+	}
 }
+
+/*
+=================
+CG_DrawSpectatorMessage
+=================
 */
+static void CG_DrawSpectatorMessage( void ) {
+	float color[4] = { 1, 1, 1, 1 };
+	const char *str, *str2;
+	float x, y;
+	char buf[32];
+
+	if ( cgs.gametype < GT_WOLF ) {
+		return;
+	}
+
+	if ( !cg_descriptiveText.integer ) {
+		return;
+	}
+
+	if ( !( cg.snap->ps.pm_flags & PMF_LIMBO || cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) ) {
+		return;
+	}
+
+	trap_Cvar_VariableStringBuffer( "ui_limboMode", buf, sizeof( buf ) );
+	if ( atoi( buf ) ) {
+		return;
+	}
+
+	Controls_GetConfig();
+
+	x = 80;
+	y = 408;
+
+	str2 = BindingFromName( "OpenLimboMenu" );
+	if ( !Q_stricmp( str2, "???" ) ) {
+		str2 = "ESCAPE";
+	}
+	str = va( CG_TranslateString( "- Press %s to open Limbo Menu" ), str2 );
+	CG_DrawStringExt( x, y, str, color, qtrue, 0, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 0 );
+	y += TINYCHAR_HEIGHT;
+
+	str2 = BindingFromName( "mp_QuickMessage" );
+	str = va( CG_TranslateString( "- Press %s to open quick message menu" ), str2 );
+	CG_DrawStringExt( x, y, str, color, qtrue, 0, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 0 );
+	y += TINYCHAR_HEIGHT;
+
+	str2 = BindingFromName( "+attack" );
+	str = va( CG_TranslateString( "- Press %s to follow next player" ), str2 );
+	CG_DrawStringExt( x, y, str, color, qtrue, 0, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 0 );
+}
+
+/*
+=================
+CG_DrawLimboMessage
+=================
+*/
+
+#define INFOTEXT_STARTX 42
+
+static void CG_DrawLimboMessage( void ) {
+	float color[4] = { 1, 1, 1, 1 };
+	const char *str;
+	playerState_t *ps;
+	//int w;
+
+	if ( cgs.gametype < GT_WOLF ) {
+		return;
+	}
+
+	ps = &cg.snap->ps;
+
+	if ( ps->stats[STAT_HEALTH] > 0 ) {
+		return;
+	}
+
+	if ( cg.snap->ps.pm_flags & PMF_LIMBO || cgs.clientinfo[cg.clientNum].team == TEAM_SPECTATOR ) {
+		return;
+	}
+
+	color[3] *= cg_hudAlpha.value;
+
+	if ( cg_descriptiveText.integer ) {
+		str = CG_TranslateString( "You are wounded and waiting for a medic." );
+		CG_DrawSmallStringColor( INFOTEXT_STARTX, 68, str, color );
+
+		str = CG_TranslateString( "Press JUMP to go into reinforcement queue." );
+		CG_DrawSmallStringColor( INFOTEXT_STARTX, 86, str, color );
+	}
+
+	// JPW NERVE
+	if ( cg.snap->ps.persistant[PERS_RESPAWNS_LEFT] == 0 ) {
+		str = CG_TranslateString( "No more reinforcements this round." );
+	} else if ( cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_RED ) {
+		str = va( CG_TranslateString( "Reinforcements deploy in %d seconds." ),
+				  (int)( 1 + (float)( cg_redlimbotime.integer - ( cg.time % cg_redlimbotime.integer ) ) * 0.001f ) );
+	} else {
+		str = va( CG_TranslateString( "Reinforcements deploy in %d seconds." ),
+				  (int)( 1 + (float)( cg_bluelimbotime.integer - ( cg.time % cg_bluelimbotime.integer ) ) * 0.001f ) );
+	}
+
+	CG_DrawSmallStringColor( INFOTEXT_STARTX, 104, str, color );
+	// jpw
+
+	trap_R_SetColor( NULL );
+}
 // -NERVE - SMF
 
 /*
@@ -3020,7 +2651,7 @@ CG_DrawFollow
 =================
 */
 static qboolean CG_DrawFollow( void ) {
-	float x;
+	//float x;
 	vec4_t color;
 	const char  *name;
 	char deploytime[128];        // JPW NERVE
@@ -3029,7 +2660,7 @@ static qboolean CG_DrawFollow( void ) {
 		return qfalse;
 	}
 
-	if ( cg_fixedAspect.integer == 2 ) {
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement(PLACE_LEFT, PLACE_TOP);
 	}
 
@@ -3038,71 +2669,38 @@ static qboolean CG_DrawFollow( void ) {
 	color[2] = 1;
 	color[3] = 1;
 
-// JPW NERVE -- if in limbo, show different follow message
+	// JPW NERVE -- if in limbo, show different follow message
 	if ( cg.snap->ps.pm_flags & PMF_LIMBO ) {
-//		CG_Printf("following %s\n",cgs.clientinfo[ cg.snap->ps.clientNum ].name);
-		color[1] = 0;
-		color[2] = 0;
-		if ( cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_RED ) {
-			Com_sprintf( deploytime, sizeof(deploytime), "Deploying in %d seconds", (int)( (float)( cg_redlimbotime.integer - ( cg.time % cg_redlimbotime.integer ) ) * 0.001f ) );
+		color[1] = 0.0;
+		color[2] = 0.0;
+		if ( cg.snap->ps.persistant[PERS_RESPAWNS_LEFT] == 0 ) {
+			Q_strncpyz( deploytime, CG_TranslateString( "No more deployments this round" ), sizeof(deploytime) );
+		} else if ( cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_RED ) {
+			Com_sprintf( deploytime, sizeof(deploytime), CG_TranslateString( "Deploying in %d seconds" ),
+					 (int)( 1 + (float)( cg_redlimbotime.integer - ( cg.time % cg_redlimbotime.integer ) ) * 0.001f ) );
 		} else {
-			Com_sprintf( deploytime, sizeof(deploytime), "Deploying in %d seconds", (int)( (float)( cg_bluelimbotime.integer - ( cg.time % cg_bluelimbotime.integer ) ) * 0.001f ) );
+			Com_sprintf( deploytime, sizeof(deploytime), CG_TranslateString( "Deploying in %d seconds" ),
+					 (int)( 1 + (float)( cg_bluelimbotime.integer - ( cg.time % cg_bluelimbotime.integer ) ) * 0.001f ) );
 		}
 
-		x = 0.5 * ( 640 - BIGCHAR_WIDTH * strlen( deploytime ) ); //CG_DrawStrlen( deploytime ) );
-		CG_DrawStringExt( x, 24, deploytime, color, qtrue, qtrue, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0 );
-		Com_sprintf( deploytime, sizeof(deploytime), "(Following %s)",cgs.clientinfo[ cg.snap->ps.clientNum ].name );
-		x = 0.5 * ( 640 - BIGCHAR_WIDTH * strlen( deploytime ) ); //CG_DrawStrlen( deploytime ) );
-		CG_DrawStringExt( x, 48, deploytime, color, qtrue, qtrue, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0 );
+		CG_DrawStringExt( INFOTEXT_STARTX, 68, deploytime, color, qtrue, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 80 );
 
+		// DHM - Nerve :: Don't display if you're following yourself
+		if ( cg.snap->ps.clientNum != cg.clientNum ) {
+			Com_sprintf( deploytime, sizeof(deploytime), "(%s %s)", CG_TranslateString( "Following" ), cgs.clientinfo[ cg.snap->ps.clientNum ].name );
+			CG_DrawStringExt( INFOTEXT_STARTX, 86, deploytime, color, qtrue, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 80 );
+		}
 	} else {
 // jpw
-		CG_DrawBigString( 320 - 9 * 8, 24, "following", 1.0F );
+		CG_DrawSmallString( INFOTEXT_STARTX, 68, CG_TranslateString( "following" ), 1.0F );
 
 		name = cgs.clientinfo[ cg.snap->ps.clientNum ].name;
 
-		x = 0.5 * ( 640 - GIANT_WIDTH * CG_DrawStrlen( name ) );
-
-		CG_DrawStringExt( x, 40, name, color, qtrue, qtrue, GIANT_WIDTH, GIANT_HEIGHT, 0 );
+		CG_DrawStringExt( 120, 68, name, color, qtrue, qtrue, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0 );
 	} // JPW NERVE
 	return qtrue;
 }
 
-
-
-/*
-=================
-CG_DrawAmmoWarning
-=================
-*/
-static void CG_DrawAmmoWarning( void ) {
-//----(SA)	forcing return for now
-//			if we have messages to show here, comment back in
-#if 0
-	const char  *s;
-	int w;
-
-	if ( cg_drawAmmoWarning.integer == 0 ) {
-		return;
-	}
-
-	if ( !cg.lowAmmoWarning ) {
-		return;
-	}
-
-	if ( cg_fixedAspect.integer == 2 ) {
-		CG_SetScreenPlacement(PLACE_CENTER, PLACE_TOP);
-	}
-
-	if ( cg.lowAmmoWarning == 2 ) {
-		s = "OUT OF AMMO";
-	} else {
-		s = "LOW AMMO WARNING";
-	}
-	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
-	CG_DrawBigString( 320 - w / 2, 64, s, 1.0F );
-#endif
-}
 
 /*
 =================
@@ -3112,98 +2710,128 @@ CG_DrawWarmup
 static void CG_DrawWarmup( void ) {
 	int w;
 	int sec;
-	int i;
-	clientInfo_t    *ci1, *ci2;
 	int cw;
-	const char  *s;
+	const char  *s, *s1, *s2;
 
 	if ( cgs.gametype == GT_SINGLE_PLAYER ) {
 		return;     // (SA) don't bother with this stuff in sp
 	}
 
-	sec = cg.warmup;
-	if ( !sec ) {
-		return;
-	}
-
-	if ( cg_fixedAspect.integer == 2 ) {
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
 		CG_SetScreenPlacement(PLACE_CENTER, PLACE_TOP);
 	}
 
-	if ( sec < 0 ) {
-		s = "Waiting for players";
-		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
-		CG_DrawBigString( 320 - w / 2, 40, s, 1.0F );
-		cg.warmupCount = 0;
+	sec = cg.warmup;
+	if ( !sec ) {
+		if ( cgs.gamestate == GS_WAITING_FOR_PLAYERS ) {
+			cw = 10;
+
+			s = CG_TranslateString( "Game Stopped - Waiting for more players" );
+
+			w = CG_DrawStrlen( s );
+			CG_DrawStringExt( 320 - w * 6, 120, s, colorWhite, qfalse, qtrue, 12, 18, 0 );
+
+
+			s1 = va( CG_TranslateString( "Waiting for %i players" ), cgs.minclients );
+			s2 = CG_TranslateString( "or call a vote to start match" );
+
+			w = CG_DrawStrlen( s1 );
+			CG_DrawStringExt( 320 - w * cw / 2, 160, s1, colorWhite,
+							  qfalse, qtrue, cw, (int)( cw * 1.5 ), 0 );
+
+			w = CG_DrawStrlen( s2 );
+			CG_DrawStringExt( 320 - w * cw / 2, 180, s2, colorWhite,
+							  qfalse, qtrue, cw, (int)( cw * 1.5 ), 0 );
+
+			return;
+		}
+
 		return;
 	}
-
-
-	// find the two active players
-	ci1 = NULL;
-	ci2 = NULL;
-	for ( i = 0 ; i < cgs.maxclients ; i++ ) {
-		if ( cgs.clientinfo[i].infoValid && cgs.clientinfo[i].team == TEAM_FREE ) {
-			if ( !ci1 ) {
-				ci1 = &cgs.clientinfo[i];
-			} else {
-				ci2 = &cgs.clientinfo[i];
-			}
-		}
-	}
-
-	if ( ci1 && ci2 ) {
-		s = va( "%s vs %s", ci1->name, ci2->name );
-		w = CG_DrawStrlen( s );
-		if ( w > 640 / GIANT_WIDTH ) {
-			cw = 640 / w;
-		} else {
-			cw = GIANT_WIDTH;
-		}
-		CG_DrawStringExt( 320 - w * cw / 2, 20,s, colorWhite,
-						  qfalse, qtrue, cw, (int)( cw * 1.5 ), 0 );
-	}
-
 
 	sec = ( sec - cg.time ) / 1000;
 	if ( sec < 0 ) {
 		sec = 0;
 	}
-	s = va( "Starts in: %i", sec + 1 );
-	if ( sec != cg.warmupCount ) {
-		cg.warmupCount = sec;
-		switch ( sec ) {
-		case 0:
-			trap_S_StartLocalSound( cgs.media.count1Sound, CHAN_ANNOUNCER );
-			break;
-		case 1:
-			trap_S_StartLocalSound( cgs.media.count2Sound, CHAN_ANNOUNCER );
-			break;
-		case 2:
-			trap_S_StartLocalSound( cgs.media.count3Sound, CHAN_ANNOUNCER );
-			break;
-		default:
-			break;
-		}
-	}
-	switch ( cg.warmupCount ) {
-	case 0:
-		cw = 28;
-		break;
-	case 1:
-		cw = 24;
-		break;
-	case 2:
-		cw = 20;
-		break;
-	default:
-		cw = 16;
-		break;
+
+	if ( cgs.gametype == GT_WOLF_STOPWATCH ) {
+		s = va( "%s %i", CG_TranslateString( "(WARMUP) Match begins in:" ), sec + 1 );
+	} else {
+		s = va( "%s %i", CG_TranslateString( "(WARMUP) Match begins in:" ), sec + 1 );
 	}
 
 	w = CG_DrawStrlen( s );
-	CG_DrawStringExt( 320 - w * cw / 2, 70, s, colorWhite,
-					  qfalse, qtrue, cw, (int)( cw * 1.5 ), 0 );
+	CG_DrawStringExt( 320 - w * 6, 120, s, colorWhite, qfalse, qtrue, 12, 18, 0 );
+
+	// NERVE - SMF - stopwatch stuff
+	s1 = "";
+	s2 = "";
+
+	if ( cgs.gametype == GT_WOLF_STOPWATCH ) {
+		const char  *cs;
+		int defender;
+
+		s = va( "%s %i", CG_TranslateString( "Stopwatch Round" ), cgs.currentRound + 1 );
+
+		cs = CG_ConfigString( CS_MULTI_INFO );
+		defender = atoi( Info_ValueForKey( cs, "defender" ) );
+
+		if ( !defender ) {
+			if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+				if ( cgs.currentRound == 1 ) {
+					s1 = "You have been switched to the Axis team";
+					s2 = "Keep the Allies from beating the clock!";
+				} else {
+					s1 = "You are on the Axis team";
+				}
+			} else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE )   {
+				if ( cgs.currentRound == 1 ) {
+					s1 = "You have been switched to the Allied team";
+					s2 = "Try to beat the clock!";
+				} else {
+					s1 = "You are on the Allied team";
+				}
+			}
+		} else {
+			if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+				if ( cgs.currentRound == 1 ) {
+					s1 = "You have been switched to the Axis team";
+					s2 = "Try to beat the clock!";
+				} else {
+					s1 = "You are on the Axis team";
+				}
+			} else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE )   {
+				if ( cgs.currentRound == 1 ) {
+					s1 = "You have been switched to the Allied team";
+					s2 = "Keep the Axis from beating the clock!";
+				} else {
+					s1 = "You are on the Allied team";
+				}
+			}
+		}
+
+		if ( strlen( s1 ) ) {
+			s1 = CG_TranslateString( s1 );
+		}
+
+		if ( strlen( s2 ) ) {
+			s2 = CG_TranslateString( s2 );
+		}
+
+		cw = 10;
+
+		w = CG_DrawStrlen( s );
+		CG_DrawStringExt( 320 - w * cw / 2, 140, s, colorWhite,
+						  qfalse, qtrue, cw, (int)( cw * 1.5 ), 0 );
+
+		w = CG_DrawStrlen( s1 );
+		CG_DrawStringExt( 320 - w * cw / 2, 160, s1, colorWhite,
+						  qfalse, qtrue, cw, (int)( cw * 1.5 ), 0 );
+
+		w = CG_DrawStrlen( s2 );
+		CG_DrawStringExt( 320 - w * cw / 2, 180, s2, colorWhite,
+						  qfalse, qtrue, cw, (int)( cw * 1.5 ), 0 );
+	}
 }
 
 //==================================================================================
@@ -3218,35 +2846,35 @@ static void CG_DrawFlashFade( void ) {
 	int elapsed, time;
 	vec4_t col;
 
-	if ( cgs.scrFadeStartTime + cgs.scrFadeDuration < cg.time ) {
-		cgs.scrFadeAlphaCurrent = cgs.scrFadeAlpha;
-	} else if ( cgs.scrFadeAlphaCurrent != cgs.scrFadeAlpha ) {
+	if ( cgs.fadeStartTime + cgs.fadeDuration < cg.time ) {
+		cgs.fadeAlphaCurrent = cgs.fadeAlpha;
+	} else if ( cgs.fadeAlphaCurrent != cgs.fadeAlpha ) {
 		elapsed = ( time = trap_Milliseconds() ) - lastTime;  // we need to use trap_Milliseconds() here since the cg.time gets modified upon reloading
 		lastTime = time;
 		if ( elapsed < 500 && elapsed > 0 ) {
-			if ( cgs.scrFadeAlphaCurrent > cgs.scrFadeAlpha ) {
-				cgs.scrFadeAlphaCurrent -= ( (float)elapsed / (float)cgs.scrFadeDuration );
-				if ( cgs.scrFadeAlphaCurrent < cgs.scrFadeAlpha ) {
-					cgs.scrFadeAlphaCurrent = cgs.scrFadeAlpha;
+			if ( cgs.fadeAlphaCurrent > cgs.fadeAlpha ) {
+				cgs.fadeAlphaCurrent -= ( (float)elapsed / (float)cgs.fadeDuration );
+				if ( cgs.fadeAlphaCurrent < cgs.fadeAlpha ) {
+					cgs.fadeAlphaCurrent = cgs.fadeAlpha;
 				}
 			} else {
-				cgs.scrFadeAlphaCurrent += ( (float)elapsed / (float)cgs.scrFadeDuration );
-				if ( cgs.scrFadeAlphaCurrent > cgs.scrFadeAlpha ) {
-					cgs.scrFadeAlphaCurrent = cgs.scrFadeAlpha;
+				cgs.fadeAlphaCurrent += ( (float)elapsed / (float)cgs.fadeDuration );
+				if ( cgs.fadeAlphaCurrent > cgs.fadeAlpha ) {
+					cgs.fadeAlphaCurrent = cgs.fadeAlpha;
 				}
 			}
 		}
 	}
 	// now draw the fade
-	if ( cgs.scrFadeAlphaCurrent > 0.0 ) {
+	if ( cgs.fadeAlphaCurrent > 0.0 ) {
 		VectorClear( col );
-		col[3] = cgs.scrFadeAlphaCurrent;
+		col[3] = cgs.fadeAlphaCurrent;
 		if ( cg_fixedAspect.integer ) {
 			CG_SetScreenPlacement(PLACE_STRETCH, PLACE_STRETCH);
-		 	CG_FillRect( 0, 0, 640, 480, col );
+		 	CG_FillRect( -10, -10, 650, 490, col );
 			CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
 		} else {	
-			CG_FillRect( 0, 0, 640, 480, col );
+			CG_FillRect( -10, -10, 650, 490, col );
 		}
 	}
 }
@@ -3365,11 +2993,7 @@ static void CG_DrawFlashFire( void ) {
 		return;
 	}
 
-	if ( cg_thirdPerson.integer ) {
-		return;
-	}
-
-	if ( cg.cameraMode ) { // don't draw flames on camera screen.  will still do damage though, so not a potential cheat
+	if ( cg.renderingThirdPerson ) {
 		return;
 	}
 
@@ -3485,12 +3109,31 @@ CG_DrawObjectiveInfo
 =================
 */
 #define OID_LEFT    10
-#define OID_TOP     65
+#define OID_TOP     360
 
-void CG_ObjectivePrint( const char *str, int charWidth, int team ) {
+void CG_ObjectivePrint( const char *str, int charWidth ) {
 	char    *s;
+	int i, len;                         // NERVE - SMF
+	qboolean neednewline = qfalse;      // NERVE - SMF
 
-	Q_strncpyz( cg.oidPrint, str, sizeof( cg.oidPrint ) );
+	s = CG_TranslateString( str );
+
+	Q_strncpyz( cg.oidPrint, s, sizeof( cg.oidPrint ) );
+
+	// NERVE - SMF - turn spaces into newlines, if we've run over the linewidth
+	len = strlen( cg.oidPrint );
+	for ( i = 0; i < len; i++ ) {
+
+		// NOTE: subtract a few chars here so long words still get displayed properly
+		if ( i % ( CP_LINEWIDTH - 20 ) == 0 && i > 0 ) {
+			neednewline = qtrue;
+		}
+		if ( cg.oidPrint[i] == ' ' && neednewline ) {
+			cg.oidPrint[i] = '\n';
+			neednewline = qfalse;
+		}
+	}
+	// -NERVE - SMF
 
 	cg.oidPrintTime = cg.time;
 	cg.oidPrintY = OID_TOP;
@@ -3513,32 +3156,44 @@ static void CG_DrawObjectiveInfo( void ) {
 	int x, y, w;
 	int x1, y1, x2, y2;
 	float   *color;
-	vec4_t backColor = { 0.2f, 0.2f, 0.2f, 1.f };
+	vec4_t backColor;
+	backColor[0] = 0.2f;
+	backColor[1] = 0.2f;
+	backColor[2] = 0.2f;
+	backColor[2] = cg_hudAlpha.value;
 
 	if ( !cg.oidPrintTime ) {
 		return;
 	}
 
-	color = CG_FadeColor( cg.oidPrintTime, 1000 * 5 );
+	color = CG_FadeColor( cg.oidPrintTime, 250 );
 	if ( !color ) {
+		cg.oidPrintTime = 0;
 		return;
+	}
+
+	if ( cg_fixedAspect.integer ) {
+		CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
 	}
 
 	trap_R_SetColor( color );
 
 	start = cg.oidPrint;
 
-	y = cg.oidPrintY - cg.oidPrintLines * BIGCHAR_HEIGHT / 2;
+// JPW NERVE
+	//	y = cg.oidPrintY - cg.oidPrintLines * BIGCHAR_HEIGHT / 2;
+	y = 415 - cg.oidPrintLines * BIGCHAR_HEIGHT / 2;
 
-	x1 = OID_LEFT - 2;
+	x1 = 319;
 	y1 = y - 2;
-	x2 = 0;
+	x2 = 321;
+// jpw
 
 	// first just find the bounding rect
 	while ( 1 ) {
 		char linebuffer[1024];
 
-		for ( l = 0; l < 40; l++ ) {
+		for ( l = 0; l < CP_LINEWIDTH; l++ ) {
 			if ( !start[l] || start[l] == '\n' ) {
 				break;
 			}
@@ -3546,10 +3201,13 @@ static void CG_DrawObjectiveInfo( void ) {
 		}
 		linebuffer[l] = 0;
 
-		w = cg.oidPrintCharWidth * CG_DrawStrlen( linebuffer );
-		if ( x1 + w > x2 ) {
-			x2 = x1 + w;
+		w = cg.oidPrintCharWidth * CG_DrawStrlen( linebuffer ) + 10;
+// JPW NERVE
+		if ( 320 - w / 2 < x1 ) {
+			x1 = 320 - w / 2;
+			x2 = 320 + w / 2;
 		}
+// jpw
 
 		y += cg.oidPrintCharWidth * 1.5;
 
@@ -3565,22 +3223,27 @@ static void CG_DrawObjectiveInfo( void ) {
 	x2 = x2 + 4;
 	y2 = y - cg.oidPrintCharWidth * 1.5 + 4;
 
-	backColor[3] = color[3];
-	CG_FillRect( x1, y1, x2 - x1, y2 - y1, backColor );
+	VectorCopy( color, backColor );
+	backColor[3] = 0.5 * color[3];
+	trap_R_SetColor( backColor );
+
+	CG_DrawPic( x1, y1, x2 - x1, y2 - y1, cgs.media.teamStatusBar );
 
 	VectorSet( backColor, 0, 0, 0 );
 	CG_DrawRect( x1, y1, x2 - x1, y2 - y1, 1, backColor );
 
-	//trap_R_SetColor( color );
+	trap_R_SetColor( color );
 
 	// do the actual drawing
 	start = cg.oidPrint;
-	y = cg.oidPrintY - cg.oidPrintLines * BIGCHAR_HEIGHT / 2;
+//	y = cg.oidPrintY - cg.oidPrintLines * BIGCHAR_HEIGHT / 2;
+	y = 415 - cg.oidPrintLines * BIGCHAR_HEIGHT / 2; // JPW NERVE
+
 
 	while ( 1 ) {
 		char linebuffer[1024];
 
-		for ( l = 0; l < 40; l++ ) {
+		for ( l = 0; l < CP_LINEWIDTH; l++ ) {
 			if ( !start[l] || start[l] == '\n' ) {
 				break;
 			}
@@ -3593,7 +3256,7 @@ static void CG_DrawObjectiveInfo( void ) {
 			x2 = x1 + w;
 		}
 
-		x = OID_LEFT;
+		x = 320 - w / 2; // JPW NERVE
 
 		CG_DrawStringExt( x, y, linebuffer, color, qfalse, qtrue,
 						  cg.oidPrintCharWidth, (int)( cg.oidPrintCharWidth * 1.5 ), 0 );
@@ -3610,6 +3273,174 @@ static void CG_DrawObjectiveInfo( void ) {
 	}
 
 	trap_R_SetColor( NULL );
+}
+
+void CG_DrawObjectiveIcons( void ) {
+	float x, y, w, h, xx, fade; // JPW NERVE
+	float startColor[4];
+	const char *s, *buf;
+	char teamstr[32];
+	float captureHoldFract;
+	int i, num, status,barheight;
+	vec4_t hcolor = { 0.2f, 0.2f, 0.2f, 1.f };
+	int msec, mins, seconds, tens; // JPW NERVE
+
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
+		CG_SetScreenPlacement(PLACE_LEFT, PLACE_TOP);
+	}
+
+// JPW NERVE added round timer
+	y = 48;
+	x = 5;
+	msec = ( cgs.timelimit * 60.f * 1000.f ) - ( cg.time - cgs.levelStartTime );
+
+	seconds = msec / 1000;
+	mins = seconds / 60;
+	seconds -= mins * 60;
+	tens = seconds / 10;
+	seconds -= tens * 10;
+	if ( msec < 0 ) {
+		fade = fabs( sin( cg.time * 0.002 ) ) * cg_hudAlpha.value;
+		s = va( "0:00" );
+	} else {
+		s = va( "%i:%i%i", mins, tens, seconds ); // float cast to line up with reinforce time
+		fade = cg_hudAlpha.value;
+	}
+
+	CG_DrawSmallString( x,y,s,fade );
+
+// jpw
+
+	x = 5;
+	y = 68;
+	w = 24;
+	h = 14;
+
+	// draw the stopwatch
+	if ( cgs.gametype == GT_WOLF_STOPWATCH ) {
+		if ( cgs.currentRound == 0 ) {
+			CG_DrawPic( 3, y, 30, 30, trap_R_RegisterShader( "sprites/stopwatch1.tga" ) );
+		} else {
+			CG_DrawPic( 3, y, 30, 30, trap_R_RegisterShader( "sprites/stopwatch2.tga" ) );
+		}
+		y += 34;
+	}
+
+	// determine character's team
+	if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+		strcpy( teamstr, "axis_desc" );
+	} else {
+		strcpy( teamstr, "allied_desc" );
+	}
+
+	s = CG_ConfigString( CS_MULTI_INFO );
+	buf = Info_ValueForKey( s, "numobjectives" );
+
+	if ( buf && atoi( buf ) ) {
+		num = atoi( buf );
+
+		VectorSet( hcolor, 0.3f, 0.3f, 0.3f );
+		hcolor[3] = 0.7f * cg_hudAlpha.value; // JPW NERVE
+		CG_DrawRect( x - 1, y - 1, w + 2, ( h + 4 ) * num - 4 + 2, 1, hcolor );
+
+		VectorSet( hcolor, 1.0f, 1.0f, 1.0f );
+		hcolor[3] = 0.2f * cg_hudAlpha.value; // JPW NERVE
+		trap_R_SetColor( hcolor );
+		CG_DrawPic( x, y, w, ( h + 4 ) * num - 4, cgs.media.teamStatusBar );
+		trap_R_SetColor( NULL );
+
+		for ( i = 0; i < num; i++ ) {
+			s = CG_ConfigString( CS_MULTI_OBJECTIVE1 + i );
+			Info_ValueForKey( s, teamstr );
+
+			xx = x;
+
+			hcolor[0] = 0.25f;
+			hcolor[1] = 0.38f;
+			hcolor[2] = 0.38f;
+			hcolor[3] = 0.5f * cg_hudAlpha.value; // JPW NERVE
+			trap_R_SetColor( hcolor );
+			CG_DrawPic( xx, y, w, h, cgs.media.teamStatusBar );
+			trap_R_SetColor( NULL );
+
+			// draw text
+			VectorSet( hcolor, 1.f, 1.f, 1.f );
+			hcolor[3] = cg_hudAlpha.value; // JPW NERVE
+//			CG_DrawStringExt( xx, y, va( "%i", i+1 ), hcolor, qtrue, qfalse, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 ); // JPW NERVE pulled per id request
+
+//			xx += 10;
+
+			// draw status flags
+			s = CG_ConfigString( CS_MULTI_OBJ1_STATUS + i );
+			status = atoi( Info_ValueForKey( s, "status" ) );
+
+			VectorSet( hcolor, 1, 1, 1 );
+			hcolor[3] = 0.7f * cg_hudAlpha.value; // JPW NERVE
+			trap_R_SetColor( hcolor );
+
+			if ( status == 0 ) {
+				CG_DrawPic( xx, y, w, h, trap_R_RegisterShaderNoMip( "ui_mp/assets/ger_flag.tga" ) );
+			} else if ( status == 1 )   {
+				CG_DrawPic( xx, y, w, h, trap_R_RegisterShaderNoMip( "ui_mp/assets/usa_flag.tga" ) );
+			}
+
+			VectorSet( hcolor, 0.2f, 0.2f, 0.2f );
+			hcolor[3] = cg_hudAlpha.value; // JPW NERVE
+			trap_R_SetColor( hcolor );
+
+//			CG_DrawRect( xx, y, w, h, 2, hcolor );
+
+			y += h + 4;
+		}
+	}
+
+// JPW NERVE compute & draw hold bar
+	if ( cgs.gametype == GT_WOLF_CPH ) {
+		if ( cg.snap->ps.stats[STAT_CAPTUREHOLD_RED] || cg.snap->ps.stats[STAT_CAPTUREHOLD_BLUE] ) {
+			captureHoldFract = (float)cg.snap->ps.stats[STAT_CAPTUREHOLD_RED] /
+							   (float)( cg.snap->ps.stats[STAT_CAPTUREHOLD_RED] + cg.snap->ps.stats[STAT_CAPTUREHOLD_BLUE] );
+		} else {
+			captureHoldFract = 0.5;
+		}
+
+		barheight = y - 72; // (68+4)
+
+
+		startColor[0] = 1;
+		startColor[1] = 1;
+		startColor[2] = 1;
+		startColor[3] = 1;
+		if ( captureHoldFract > 0.5 ) {
+			startColor[3] = cg_hudAlpha.value;
+		} else {
+			startColor[3] = cg_hudAlpha.value * ( ( captureHoldFract ) + 0.15 );
+		}
+//		startColor[3] = 0.25;
+		trap_R_SetColor( startColor );
+		CG_DrawPic( 32,68,5,barheight * captureHoldFract,cgs.media.redColorBar );
+
+		if ( captureHoldFract < 0.5 ) {
+			startColor[3] = cg_hudAlpha.value;
+		} else {
+			startColor[3] = cg_hudAlpha.value * ( 0.15 + ( 1.0f - captureHoldFract ) );
+		}
+//		startColor[3] = 0.25;
+		trap_R_SetColor( startColor );
+		CG_DrawPic( 32,68 + barheight * captureHoldFract,5,barheight - barheight * captureHoldFract,cgs.media.blueColorBar );
+	}
+// jpw
+
+
+	// draw treasure icon if we have the flag
+	y += 4;
+
+	VectorSet( hcolor, 1, 1, 1 );
+	hcolor[3] = cg_hudAlpha.value;
+	trap_R_SetColor( hcolor );
+	if ( cgs.clientinfo[cg.snap->ps.clientNum].powerups & ( 1 << PW_REDFLAG ) ||
+		 cgs.clientinfo[cg.snap->ps.clientNum].powerups & ( 1 << PW_BLUEFLAG ) ) {
+		CG_DrawPic( -7, y, 48, 48, trap_R_RegisterShader( "models/multiplayer/treasure/treasure" ) );
+	}
 }
 // -NERVE - SMF
 
@@ -3633,48 +3464,21 @@ void CG_DrawTimedMenus( void ) {
 CG_Fade
 =================
 */
-void CG_Fade( int r, int g, int b, int a, int time, int duration ) {
-
-	// incorporate this into the current fade scheme
-
-	cgs.scrFadeAlpha = (float)a / 255.0f;
-	cgs.scrFadeStartTime = time;
-	cgs.scrFadeDuration = duration;
-
-	if ( cgs.scrFadeStartTime + cgs.scrFadeDuration <= cg.time ) {
-		cgs.scrFadeAlphaCurrent = cgs.scrFadeAlpha;
-	}
-
-	return;
-}
-
-
-/*
-===============
-CG_DrawGameScreenFade
-===============
-*/
-static void CG_DrawGameScreenFade( void ) {
-	vec4_t col;
-
-	if ( cg.viewFade <= 0.0 ) {
-		return;
-	}
-
-	if ( !cg.snap ) {
-		return;
-	}
-
-	VectorClear( col );
-	col[3] = cg.viewFade;
-	if ( cg_fixedAspect.integer ) {
-		CG_SetScreenPlacement(PLACE_STRETCH, PLACE_STRETCH);
-		CG_FillRect( 0, 0, 640, 480, col );
-		CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
+void CG_Fade( int r, int g, int b, int a, float time ) {
+	if ( time <= 0 ) {  // do instantly
+		cg.fadeRate = 1;
+		cg.fadeTime = cg.time - 1;  // set cg.fadeTime behind cg.time so it will start out 'done'
 	} else {
-		CG_FillRect( 0, 0, 640, 480, col );
+		cg.fadeRate = 1.0f / time;
+		cg.fadeTime = cg.time + time;
 	}
+
+	cg.fadeColor2[ 0 ] = ( float )r / 255.0f;
+	cg.fadeColor2[ 1 ] = ( float )g / 255.0f;
+	cg.fadeColor2[ 2 ] = ( float )b / 255.0f;
+	cg.fadeColor2[ 3 ] = ( float )a / 255.0f;
 }
+
 
 /*
 =================
@@ -3686,9 +3490,6 @@ static void CG_ScreenFade( void ) {
 	int i;
 	float t, invt;
 	vec4_t color;
-
-	// Ridah, fade the screen (in-game)
-	CG_DrawGameScreenFade();
 
 	if ( !cg.fadeRate ) {
 		return;
@@ -3734,7 +3535,193 @@ static void CG_ScreenFade( void ) {
 	}
 }
 
+// JPW NERVE
+void CG_Draw2D2( void ) {
+	qhandle_t weapon;
+	vec4_t hcolor;
 
+	VectorSet( hcolor, 1.f,1.f,1.f );
+//	VectorSet(hcolor, cg_hudAlpha.value, cg_hudAlpha.value, cg_hudAlpha.value);
+	hcolor[3] = cg_hudAlpha.value;
+	trap_R_SetColor( hcolor );
+
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
+		CG_SetScreenPlacement(PLACE_CENTER, PLACE_BOTTOM);
+	}
+
+	CG_DrawPic( 0, 480, 640, -70, cgs.media.hud1Shader );
+
+	if ( !( cg.snap->ps.eFlags & EF_MG42_ACTIVE ) ) {
+		switch ( cg.snap->ps.weapon ) {
+		case WP_COLT:
+		case WP_LUGER:
+			weapon = cgs.media.hud2Shader;
+			break;
+		case WP_KNIFE:
+			weapon = cgs.media.hud5Shader;
+			break;
+		case WP_VENOM:
+			weapon = cgs.media.hud4Shader;
+			break;
+		default:
+			weapon = cgs.media.hud3Shader;
+		}
+		CG_DrawPic( 220,410, 200,-200,weapon );
+	}
+}
+// jpw
+
+/*
+=================
+CG_DrawCompassIcon
+
+NERVE - SMF
+=================
+*/
+void CG_DrawCompassIcon( int x, int y, int w, int h, vec3_t origin, vec3_t dest, qhandle_t shader ) {
+	float angle, pi2 = M_PI * 2;
+	vec3_t v1, angles;
+	float len;
+
+	VectorCopy( dest, v1 );
+	VectorSubtract( origin, v1, v1 );
+	len = VectorLength( v1 );
+	VectorNormalize( v1 );
+	vectoangles( v1, angles );
+
+	if ( v1[0] == 0 && v1[1] == 0 && v1[2] == 0 ) {
+		return;
+	}
+
+	angles[YAW] = AngleSubtract( cg.snap->ps.viewangles[YAW], angles[YAW] );
+
+	angle = ( ( angles[YAW] + 180.f ) / 360.f - ( 0.50 / 2.f ) ) * pi2;
+
+	w /= 2;
+	h /= 2;
+
+	x += w;
+	y += h;
+
+	w = sqrt( ( w * w ) + ( h * h ) ) / 3.f * 2.f * 0.9f;
+
+	x = x + ( cos( angle ) * w );
+	y = y + ( sin( angle ) * w );
+
+	len = 1 - min( 1.f, len / 2000.f );
+
+	CG_DrawPic( x - ( 14 * len + 4 ) / 2, y - ( 14 * len + 4 ) / 2, 14 * len + 4, 14 * len + 4, shader );
+}
+
+/*
+=================
+CG_DrawCompass
+
+NERVE - SMF
+=================
+*/
+static void CG_DrawCompass( void ) {
+	float basex = 290, basey = 420;
+	float basew = 60, baseh = 60;
+	snapshot_t  *snap;
+	vec4_t hcolor;
+	float angle;
+	int i;
+
+	if ( cgs.gametype < GT_WOLF ) {
+		return;
+	}
+
+	if ( cg.snap->ps.pm_flags & PMF_LIMBO || cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
+		return;
+	}
+
+	if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
+		CG_SetScreenPlacement(PLACE_CENTER, PLACE_BOTTOM);
+	}
+
+	angle = ( cg.snap->ps.viewangles[YAW] + 180.f ) / 360.f - ( 0.25 / 2.f );
+
+	VectorSet( hcolor, 1.f,1.f,1.f );
+	hcolor[3] = cg_hudAlpha.value;
+	trap_R_SetColor( hcolor );
+
+	CG_DrawRotatedPic( basex, basey, basew, baseh, trap_R_RegisterShader( "gfx/2d/compass2.tga" ), angle );
+	CG_DrawPic( basex, basey, basew, baseh, trap_R_RegisterShader( "gfx/2d/compass.tga" ) );
+
+	// draw voice chats
+	for ( i = 0; i < MAX_CLIENTS; i++ ) {
+		centity_t *cent = &cg_entities[i];
+
+		if ( cg.snap->ps.clientNum == i || !cgs.clientinfo[i].infoValid || cg.snap->ps.persistant[PERS_TEAM] != cgs.clientinfo[i].team ) {
+			continue;
+		}
+
+		// also draw revive icons if cent is dead and player is a medic
+		if ( cent->voiceChatSpriteTime < cg.time ) {
+			continue;
+		}
+
+		if ( cgs.clientinfo[i].health <= 0 ) {
+			// reset
+			cent->voiceChatSpriteTime = cg.time;
+			continue;
+		}
+
+		CG_DrawCompassIcon( basex, basey, basew, baseh, cg.snap->ps.origin, cent->lerpOrigin, cent->voiceChatSprite );
+	}
+
+	// draw explosives if an engineer
+	if ( cg.snap->ps.stats[ STAT_PLAYER_CLASS ] == PC_ENGINEER ) {
+		if ( cg.nextSnap && !cg.nextFrameTeleport && !cg.thisFrameTeleport ) {
+			snap = cg.nextSnap;
+		} else {
+			snap = cg.snap;
+		}
+
+		for ( i = 0; i < snap->numEntities; i++ ) {
+			centity_t *cent = &cg_entities[ snap->entities[ i ].number ];
+
+			if ( cent->currentState.eType != ET_EXPLOSIVE_INDICATOR ) {
+				continue;
+			}
+
+			if ( cent->currentState.teamNum == 1 && cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+				continue;
+			} else if ( cent->currentState.teamNum == 2 && cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
+				continue;
+			}
+
+			CG_DrawCompassIcon( basex, basey, basew, baseh, cg.snap->ps.origin, cent->lerpOrigin, trap_R_RegisterShader( "sprites/destroy.tga" ) );
+		}
+	}
+
+	// draw revive medic icons
+	if ( cg.snap->ps.stats[ STAT_PLAYER_CLASS ] == PC_MEDIC ) {
+		if ( cg.nextSnap && !cg.nextFrameTeleport && !cg.thisFrameTeleport ) {
+			snap = cg.nextSnap;
+		} else {
+			snap = cg.snap;
+		}
+
+		for ( i = 0; i < snap->numEntities; i++ ) {
+			entityState_t *ent = &snap->entities[i];
+
+			if ( ent->eType != ET_PLAYER ) {
+				continue;
+			}
+
+			if ( ( ent->eFlags & EF_DEAD ) && ent->number == ent->clientNum ) {
+				if ( !cgs.clientinfo[ent->clientNum].infoValid || cg.snap->ps.persistant[PERS_TEAM] != cgs.clientinfo[ent->clientNum].team ) {
+					continue;
+				}
+
+				CG_DrawCompassIcon( basex, basey, basew, baseh, cg.snap->ps.origin, ent->pos.trBase, cgs.media.medicReviveShader );
+			}
+		}
+	}
+}
+// -NERVE - SMF
 
 /*
 =================
@@ -3749,7 +3736,6 @@ static void CG_Draw2D(stereoFrame_t stereoFrame) {
 	}
 
 	if ( cg.cameraMode ) { //----(SA)	no 2d when in camera view
-		CG_DrawFlashBlend();    // (for fades)
 		return;
 	}
 
@@ -3766,6 +3752,14 @@ static void CG_Draw2D(stereoFrame_t stereoFrame) {
 
 	CG_DrawFlashBlendBehindHUD();
 
+#ifndef PRE_RELEASE_DEMO
+	if ( cg_uselessNostalgia.integer ) {
+		CG_DrawCrosshair();
+		CG_Draw2D2();
+		return;
+	}
+#endif
+
 	if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
 		CG_DrawSpectator();
 
@@ -3775,33 +3769,29 @@ static void CG_Draw2D(stereoFrame_t stereoFrame) {
 		CG_DrawCrosshairNames();
 	} else {
 		// don't draw any status if dead
-		if ( cg.snap->ps.stats[STAT_HEALTH] > 0 ) {
+		if ( cg.snap->ps.stats[STAT_HEALTH] > 0 || ( cg.snap->ps.pm_flags & PMF_FOLLOW ) ) {
 
 			if(stereoFrame == STEREO_CENTER)
 				CG_DrawCrosshair();
 
-			if ( cg_drawStatus.integer ) {
-				if ( cg_fixedAspect.integer == 2 ) {
-					CG_SetScreenPlacement(PLACE_LEFT, PLACE_BOTTOM);
-				}
-
-				if ( !cg_oldWolfUI.integer ) {
-					Menu_PaintAll();
-					CG_DrawTimedMenus();
-				}
-			}
-
-			if ( cg_oldWolfUI.integer ) {
-				CG_DrawStatusBar();
-				CG_DrawHoldableItem_old();
-			}
-			CG_DrawAmmoWarning();
 			CG_DrawDynamiteStatus();
 			CG_DrawCrosshairNames();
-			CG_DrawWeaponSelect();
-			CG_DrawHoldableSelect();
+
+			// DHM - Nerve :: Don't draw icon in upper-right when switching weapons
+			//CG_DrawWeaponSelect();
+
 			CG_DrawPickupItem();
-			CG_DrawReward();
+		}
+
+		if ( cg_drawStatus.integer ) {
+			if ( cg_fixedAspect.integer == 2 && cg.limboMenu ) {
+				CG_SetScreenPlacement(PLACE_STRETCH, PLACE_STRETCH);
+			} else if ( cg_fixedAspect.integer == 2 && !cg.limboMenu ) {
+				CG_SetScreenPlacement(PLACE_LEFT, PLACE_BOTTOM);
+			}
+
+			Menu_PaintAll();
+			CG_DrawTimedMenus();
 		}
 	}
 
@@ -3817,121 +3807,65 @@ static void CG_Draw2D(stereoFrame_t stereoFrame) {
 		CG_DrawUpperRight(stereoFrame);
 	}
 
-	if ( cg_oldWolfUI.integer ) {
-		CG_DrawLowerRight();
-	}
-
-	if ( !CG_DrawFollow() ) {
-		CG_DrawWarmup();
-	}
-
 	// don't draw center string if scoreboard is up
 	if ( !CG_DrawScoreboard() ) {
 		CG_DrawCenterString();
 
-		CG_DrawObjectiveInfo();     // NERVE - SMF
+		CG_DrawFollow();
+		CG_DrawWarmup();
+
+		//if ( cg_drawNotifyText.integer )
+		CG_DrawNotify();
+
+		// NERVE - SMF
+		if ( cg_drawCompass.integer ) {
+			CG_DrawCompass();
+		}
+
+		CG_DrawObjectiveInfo();
+		CG_DrawObjectiveIcons();
+
+		CG_DrawSpectatorMessage();
+
+		CG_DrawLimboMessage();
+		// -NERVE - SMF
 	}
 
 	// Ridah, draw flash blends now
 	CG_DrawFlashBlend();
 }
 
-/*
-====================
-CG_StartShakeCamera
-====================
-*/
-void CG_StartShakeCamera( float p, int duration, vec3_t src, float radius ) {
-	int i;
+// NERVE - SMF
+void CG_StartShakeCamera( float p ) {
+	cg.cameraShakeScale = p;
 
-	// find a free shake slot
-	for ( i = 0; i < MAX_CAMERA_SHAKE; i++ ) {
-		if ( cg.cameraShake[i].time > cg.time || cg.cameraShake[i].time + cg.cameraShake[i].length <= cg.time ) {
-			break;
-		}
-	}
-
-	if ( i == MAX_CAMERA_SHAKE ) {
-		return; // no free slots
-
-	}
-	cg.cameraShake[i].scale = p;
-
-	cg.cameraShake[i].length = duration;
-	cg.cameraShake[i].time = cg.time;
-	VectorCopy( src, cg.cameraShake[i].src );
-	cg.cameraShake[i].radius = radius;
+	cg.cameraShakeLength = 1000 * ( p * p );
+	cg.cameraShakeTime = cg.time + cg.cameraShakeLength;
+	cg.cameraShakePhase = crandom() * M_PI; // start chain in random dir
 }
 
-/*
-====================
-CG_CalcShakeCamera
-====================
-*/
-void CG_CalcShakeCamera() {
-	float val, scale, dist, x, sx;
-	float bx = 0.0f; // TTimo: init
-	int i;
+void CG_ShakeCamera( void ) {
+	float x, val;
 
-	// build the scale
-	scale = 0.0f;
-	sx = (float)cg.time / 600.0; // x * (float)(cg.cameraShake[i].length) / 600.0;
-	for ( i = 0; i < MAX_CAMERA_SHAKE; i++ ) {
-		if ( cg.cameraShake[i].time <= cg.time && cg.cameraShake[i].time + cg.cameraShake[i].length > cg.time ) {
-			dist = Distance( cg.cameraShake[i].src, cg.refdef.vieworg );
-			// fade with distance
-			val = cg.cameraShake[i].scale * ( 1.0f - ( dist / cg.cameraShake[i].radius ) );
-			// fade with time
-			x = 1.0f - ( ( cg.time - cg.cameraShake[i].time ) / cg.cameraShake[i].length );
-			val *= x;
-			// overwrite global scale if larger
-			if ( val > scale ) {
-				scale = val;
-				bx = x;
-			}
-		}
-	}
-
-	// check the current rumble status
-	if ( cg.rumbleScale > scale ) {
-		scale = cg.rumbleScale;
-		bx = cg.rumbleScale;
-	}
-
-	if ( scale <= 0.0f ) {
-		cg.cameraShakePhase = crandom() * M_PI; // randomize the phase
+	if ( cg.time > cg.cameraShakeTime ) {
+		cg.cameraShakeScale = 0; // JPW NERVE all pending explosions resolved, so reset shakescale
 		return;
 	}
 
-	if ( scale > 1.0f ) {
-		scale = 1.0f;
-	}
+	// JPW NERVE starts at 1, approaches 0 over time
+	x = ( cg.cameraShakeTime - cg.time ) / cg.cameraShakeLength;
 
 	// up/down
-	val = sin( M_PI * 8 * sx + cg.cameraShakePhase ) * bx * 18.0f * scale;
-	cg.cameraShakeAngles[0] = val;
-	//cg.refdefViewAngles[0] += val;
+	val = sin( M_PI * 8 * x + cg.cameraShakePhase ) * x * 18.0f * cg.cameraShakeScale;
+	cg.refdefViewAngles[0] += val;
 
 	// left/right
-	val = sin( M_PI * 15 * sx + cg.cameraShakePhase ) * bx * 16.0f * scale;
-	cg.cameraShakeAngles[1] = val;
-	//cg.refdefViewAngles[1] += val;
+	val = sin( M_PI * 15 * x + cg.cameraShakePhase ) * x * 16.0f * cg.cameraShakeScale;
+	cg.refdefViewAngles[1] += val;
 
-	// roll
-	val = sin( M_PI * 12 * sx + cg.cameraShakePhase ) * bx * 10.0f * scale;
-	cg.cameraShakeAngles[2] = val;
-	//cg.refdefViewAngles[2] += val;
-}
-
-/*
-====================
-CG_ApplyShakeCamera
-====================
-*/
-void CG_ApplyShakeCamera() {
-	VectorAdd( cg.refdefViewAngles, cg.cameraShakeAngles, cg.refdefViewAngles );
 	AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
 }
+// -NERVE - SMF
 
 /*
 =====================
@@ -3965,13 +3899,13 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	}
 
 	// clear around the rendered view if sized down
-	//CG_TileClear();	// (SA) moved down
+	CG_TileClear();
 
 	if(stereoView != STEREO_CENTER)
 		CG_DrawCrosshair3D();
 
 	cg.refdef.glfog.registered = 0; // make sure it doesn't use fog from another scene
-/*
+
 	// NERVE - SMF - activate limbo menu and draw small 3d window
 	CG_ActivateLimboMenu();
 
@@ -3982,6 +3916,10 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 		w = LIMBO_3D_W;
 		h = LIMBO_3D_H;
 
+		if ( cg_fixedAspect.integer ) {
+			CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
+		}
+
 		cg.refdef.width = 0;
 		CG_AdjustFrom640( &x, &y, &w, &h );
 
@@ -3991,18 +3929,13 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 		cg.refdef.height = h;
 	}
 	// -NERVE - SMF
-*/
-	cg.refdef.rdflags |= RDF_DRAWSKYBOX;
-	if ( !cg_skybox.integer ) {
-		cg.refdef.rdflags &= ~RDF_DRAWSKYBOX;
-	}
+
+	CG_ShakeCamera();       // NERVE - SMF
 
 	trap_R_RenderScene( &cg.refdef );
-
-	// clear around the rendered view if sized down
-	CG_TileClear();     //----(SA)	moved to 2d section to avoid 2d/3d fog-state problems
 
 	// draw status bar and other floating elements
 	CG_Draw2D(stereoView);
 }
+
 

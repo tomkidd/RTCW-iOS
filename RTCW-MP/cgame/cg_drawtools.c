@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -65,10 +65,29 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 
 	if ( cg_fixedAspect.integer ) {
 		if (cg_horizontalPlacement == PLACE_STRETCH) {
+			// NERVE - SMF - hack to make images display properly in small view / limbo mode
+			if ( cg.limboMenu && cg.refdef.width ) {
+				float xscale = ( ( cg.refdef.width / cgs.screenXScaleStretch ) / 640.0 );
+
+				( *x ) = ( *x ) * xscale + ( cg.refdef.x / cgs.screenXScaleStretch );
+				( *w ) *= xscale;
+			}
+			// -NERVE - SMF
+
 			// scale for screen sizes (not aspect correct in wide screen)
 			*w *= cgs.screenXScaleStretch;
 			*x *= cgs.screenXScaleStretch;
 		} else {
+			// NERVE - SMF - hack to make images display properly in small view / limbo mode
+			if ( cg.limboMenu && cg.refdef.width ) {
+				float limboxscale = ( 640.0 / 480.0 ) / ( (float)LIMBO_3D_W / (float)LIMBO_3D_H ); // Limbo is not quite 4:3
+				float xscale = ( ( cg.refdef.width / cgs.screenXScale ) / ( 640.0 * limboxscale ) );
+
+				( *x ) = ( *x ) * xscale + ( cg.refdef.x / cgs.screenXScale ) - ( cgs.screenXBias / cgs.screenXScale);
+				( *w ) *= xscale;
+			}
+			// -NERVE - SMF
+
 			// scale for screen sizes
 			*w *= cgs.screenXScale;
 			*x *= cgs.screenXScale;
@@ -81,9 +100,28 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 		}
 
 		if (cg_verticalPlacement == PLACE_STRETCH) {
+			// NERVE - SMF - hack to make images display properly in small view / limbo mode
+			if ( cg.limboMenu && cg.refdef.width ) {
+				float yscale = ( ( cg.refdef.height / cgs.screenYScaleStretch ) / 480.0 );
+
+				( *y ) = ( *y ) * yscale + ( cg.refdef.y / cgs.screenYScaleStretch );
+				( *h ) *= yscale;
+			}
+			// -NERVE - SMF
+
 			*h *= cgs.screenYScaleStretch;
 			*y *= cgs.screenYScaleStretch;
 		} else {
+			// NERVE - SMF - hack to make images display properly in small view / limbo mode
+			if ( cg.limboMenu && cg.refdef.width ) {
+				float limboyscale = ( 480.0 / 640.0 ) / ( (float)LIMBO_3D_H / (float)LIMBO_3D_W ); // Limbo is not quite 4:3
+				float yscale = ( ( cg.refdef.height / cgs.screenYScale ) / ( 480.0 * limboyscale ) );
+
+				( *y ) = ( *y ) * yscale + ( cg.refdef.y / cgs.screenYScale ) - ( cgs.screenYBias / cgs.screenYScale);
+				( *h ) *= yscale;
+			}
+			// -NERVE - SMF
+
 			*h *= cgs.screenYScale;
 			*y *= cgs.screenYScale;
 	
@@ -94,6 +132,18 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 			}
 		}
 	} else {
+		// NERVE - SMF - hack to make images display properly in small view / limbo mode
+		if ( cg.limboMenu && cg.refdef.width ) {
+			float xscale = ( ( cg.refdef.width / cgs.screenXScale ) / 640.f );
+			float yscale = ( ( cg.refdef.height / cgs.screenYScale ) / 480.f );
+
+			( *x ) = ( *x ) * xscale + ( cg.refdef.x / cgs.screenXScale );
+			( *y ) = ( *y ) * yscale + ( cg.refdef.y / cgs.screenYScale );
+			( *w ) *= xscale;
+			( *h ) *= yscale;
+		}
+		// -NERVE - SMF
+
 		// scale for screen sizes
 		*x *= cgs.screenXScale;
 		*y *= cgs.screenYScale;
@@ -166,13 +216,9 @@ flags:
 
 #define BAR_BORDERSIZE 2
 
-void CG_FilledBar( float x, float y, float w, float h, const float *startColorIn, float *endColor, const float *bgColor, float frac, int flags ) {
+void CG_FilledBar( float x, float y, float w, float h, float *startColor, float *endColor, const float *bgColor, float frac, int flags ) {
 	vec4_t backgroundcolor = {1, 1, 1, 0.25f}, colorAtPos;  // colorAtPos is the lerped color if necessary
-	vec4_t startColor;
-
 	int indent = BAR_BORDERSIZE;
-
-	VectorCopy4( startColorIn, startColor );
 
 	if ( ( flags & BAR_BG ) && bgColor ) { // BAR_BG set, and color specified, use specified bg color
 		Vector4Copy( bgColor, backgroundcolor );
@@ -262,6 +308,23 @@ void CG_HorizontalPercentBar( float x, float y, float width, float height, float
 	CG_FilledBar( x, y, width, height, color, NULL, bgcolor, percent, BAR_BG | BAR_NOHUDALPHA );
 }
 
+/*
+=================
+CG_DrawMotd
+=================
+*/
+void CG_DrawMotd() {
+	const char *s;
+	vec4_t color = { 0.5f, 0.5f, 0.5f, 0.3f };
+	int len;
+
+	s = CG_ConfigString( CS_MOTD );
+	if ( s[0] ) {
+		CG_FillRect( 0, 448, 640, 14, color );
+		len = (int)( (float)UI_ProportionalStringWidth( s ) * UI_ProportionalSizeScale( UI_EXSMALLFONT ) / 2 );
+		CG_DrawStringExt( 320 - len, 445, s, colorWhite, qfalse, qtrue, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+	}
+}
 
 /*
 ================
@@ -319,7 +382,21 @@ void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader 
 	trap_R_DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
 }
 
+// NERVE - SMF
+/*
+================
+CG_DrawRotatedPic
 
+Coordinates are 640*480 virtual values
+=================
+*/
+void CG_DrawRotatedPic( float x, float y, float width, float height, qhandle_t hShader, float angle ) {
+
+	CG_AdjustFrom640( &x, &y, &width, &height );
+
+	trap_R_DrawRotatedPic( x, y, width, height, 0, 0, 1, 1, hShader, angle );
+}
+// -NERVE - SMF
 
 /*
 ===============
@@ -810,6 +887,8 @@ float *CG_FadeColor( int startMsec, int totalMsec ) {
 	}
 	color[0] = color[1] = color[2] = 1;
 
+	color[3] *= cg_hudAlpha.value;          // NERVE - SMF - make this work like everything else
+
 	return color;
 }
 
@@ -1114,7 +1193,7 @@ static void UI_DrawBannerString2( int x, int y, const char* str, vec4_t color ) 
 		ch = *s & 127;
 		if ( ch == ' ' ) {
 			ax += ( (float)PROPB_SPACE_WIDTH + (float)PROPB_GAP_WIDTH ) * cgs.screenXScale;
-		} else if ( Q_isupper( ch ) )     {
+		} else if ( ch >= 'A' && ch <= 'Z' )     {
 			ch -= 'A';
 			fcol = (float)propMapB[ch][0] / 256.0f;
 			frow = (float)propMapB[ch][1] / 256.0f;
@@ -1324,3 +1403,15 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 	UI_DrawProportionalString2( x, y, str, color, sizeScale, cgs.media.charsetProp );
 }
 
+#define MAX_VA_STRING       32000
+char* CG_TranslateString( const char *string ) {
+	static char staticbuf[2][MAX_VA_STRING];
+	static int bufcount = 0;
+	char *buf;
+
+	buf = staticbuf[bufcount++ % 2];
+
+	trap_TranslateString( string, buf );
+
+	return buf;
+}

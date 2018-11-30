@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -65,7 +65,7 @@ void AddRemap( const char *oldShader, const char *newShader, float timeOffset ) 
 	}
 }
 
-const char *BuildShaderStateConfig( void ) {
+const char *BuildShaderStateConfig(void) {
 	static char buff[MAX_STRING_CHARS * 4];
 	char out[( MAX_QPATH * 2 ) + 5];
 	int i;
@@ -394,9 +394,6 @@ void G_InitGentity( gentity_t *e ) {
 	e->s.number = e - g_entities;
 	e->r.ownerNum = ENTITYNUM_NONE;
 	e->headshotDamageScale = 1.0;   // RF, default value
-	e->eventTime = 0;
-	e->freeAfterEvent = qfalse;
-	e->neverFree = qfalse;
 
 	// RF, init scripting
 	e->scriptStatus.scriptEventIndex = -1;
@@ -727,38 +724,13 @@ infront
 qboolean infront( gentity_t *self, gentity_t *other ) {
 	vec3_t vec;
 	float dot;
-	vec3_t forward, otherOrigin;
+	vec3_t forward;
 
-	if ( self->client ) {
-		AngleVectors( self->client->ps.viewangles, forward, NULL, NULL );
-	} else {
-		AngleVectors( self->s.angles, forward, NULL, NULL );
-	}
-
-
-	if ( self->activateArc ) {
-		// move the origin of the 'other' up/down so that it matches the 'self' so the check is along a horizontal plane
-		VectorCopy( other->r.currentOrigin, otherOrigin );
-		otherOrigin[2] = self->r.currentOrigin[2];
-		VectorSubtract( otherOrigin, self->r.currentOrigin, vec );
-	} else {
-		VectorSubtract( other->r.currentOrigin, self->r.currentOrigin, vec );
-	}
-
+	AngleVectors( self->s.angles, forward, NULL, NULL );
+	VectorSubtract( other->r.currentOrigin, self->r.currentOrigin, vec );
 	VectorNormalize( vec );
 	dot = DotProduct( vec, forward );
 	// G_Printf( "other %5.2f\n",	dot);
-
-	if ( !other->aiCharacter && self->activateArc ) {  //----(SA)	make sure ai's aren't constrained to the grabarc of an mg42
-		float angle;
-		angle = RAD2DEG( M_PI - acos( dot ) );
-		if ( angle < ( self->activateArc * 2.0 ) ) { // arc is 'half arc' since that's the way the other angles in the mg42 were done
-			return qfalse;
-		} else {
-			return qtrue;
-		}
-	}
-
 	if ( dot > 0.0 ) {
 		return qtrue;
 	}
@@ -771,7 +743,7 @@ qboolean infront( gentity_t *self, gentity_t *other ) {
 G_ProcessTagConnect
 ==================
 */
-void G_ProcessTagConnect( gentity_t *ent, qboolean clearAngles ) {
+void G_ProcessTagConnect( gentity_t *ent ) {
 	if ( !ent->tagName ) {
 		G_Error( "G_ProcessTagConnect: NULL ent->tagName\n" );
 	}
@@ -781,16 +753,14 @@ void G_ProcessTagConnect( gentity_t *ent, qboolean clearAngles ) {
 	G_FindConfigstringIndex( va( "%i %i %s", ent->s.number, ent->tagParent->s.number, ent->tagName ), CS_TAGCONNECTS, MAX_TAGCONNECTS, qtrue );
 	ent->s.eFlags |= EF_TAGCONNECT;
 
-	if ( clearAngles ) {
-		// clear out the angles so it always starts out facing the tag direction
-		VectorClear( ent->s.angles );
-		VectorCopy( ent->s.angles, ent->s.apos.trBase );
-		ent->s.apos.trTime = level.time;
-		ent->s.apos.trDuration = 0;
-		ent->s.apos.trType = TR_STATIONARY;
-		VectorClear( ent->s.apos.trDelta );
-		VectorClear( ent->r.currentAngles );
-	}
+	// clear out the angles so it always starts out facing the tag direction
+	VectorClear( ent->s.angles );
+	VectorCopy( ent->s.angles, ent->s.apos.trBase );
+	ent->s.apos.trTime = level.time;
+	ent->s.apos.trDuration = 0;
+	ent->s.apos.trType = TR_STATIONARY;
+	VectorClear( ent->s.apos.trDelta );
+	VectorClear( ent->r.currentAngles );
 }
 
 /*

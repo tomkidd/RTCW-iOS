@@ -44,7 +44,6 @@ cvar_t *s_alDevice;
 cvar_t *s_alInputDevice;
 cvar_t *s_alAvailableDevices;
 cvar_t *s_alAvailableInputDevices;
-cvar_t *s_alTalkAnims;
 
 static qboolean enumeration_ext = qfalse;
 static qboolean enumeration_all_ext = qfalse;
@@ -786,7 +785,6 @@ void S_AL_SrcShutdown( void )
 	}
 
 	memset(srcList, 0, sizeof(srcList));
-	memset( s_entityTalkAmplitude, 0, sizeof( s_entityTalkAmplitude ) );
 
 	alSourcesInitialised = qfalse;
 }
@@ -1114,14 +1112,6 @@ srcHandle_t S_AL_SrcAlloc( sfxHandle_t sfx, alSrcPriority_t priority, int entnum
 				continue;
 			}
 
-			// RF, let client voice sounds be overwritten
-			if ( entnum < MAX_CLIENTS && curSource->channel != -1 && curSource->channel != CHAN_AUTO && curSource->channel != CHAN_WEAPON ) {
-				S_AL_SrcKill(i);
-				if (empty == -1)
-					empty = i;
-				continue;
-			}
-
 			// cutoff sounds that expect to be overwritten
 			if ( curSource->flags & SND_OKTOCUT ) {
 				S_AL_SrcKill(i);
@@ -1141,7 +1131,7 @@ srcHandle_t S_AL_SrcAlloc( sfxHandle_t sfx, alSrcPriority_t priority, int entnum
 			}
 
 			// re-use channel if applicable
-			if ( curSource->channel != -1 && curSource->channel != CHAN_AUTO && curSource->sfx == sfx && !cutDuplicateSound ) {
+			if ( curSource->channel != -1 && curSource->sfx == sfx && !cutDuplicateSound ) {
 				cutDuplicateSound = qtrue;
 				S_AL_SrcKill(i);
 				if (empty == -1)
@@ -1323,15 +1313,6 @@ static void S_AL_MainStartSound( vec3_t origin, int entnum, int entchannel, sfxH
 	{
 		// We're getting tight on sources and source is not within hearing distance so don't add it
 		return;
-	}
-
-	// Talk anims default to ZERO amplitude
-	if ( entchannel == CHAN_VOICE )
-		memset( s_entityTalkAmplitude, 0, sizeof( s_entityTalkAmplitude ) );
-
-	if ( entnum < MAX_CLIENTS && entchannel == CHAN_VOICE )
-	{
-		s_entityTalkAmplitude[entnum] = (unsigned char)(s_alTalkAnims->integer);
 	}
 
 	// Try to grab a source
@@ -2197,8 +2178,6 @@ void S_AL_StartBackgroundTrack( const char *intro, const char *loop )
 	// Stop any existing music that might be playing
 	S_AL_StopBackgroundTrack();
 
-	Cvar_Set( "s_currentMusic", "" ); //----(SA)	so the savegame will have the right music
-
 	if((!intro || !*intro) && (!loop || !*loop))
 		return;
 
@@ -2228,8 +2207,6 @@ void S_AL_StartBackgroundTrack( const char *intro, const char *loop )
 	}
 	else
 		intro_stream = NULL;
-
-	Cvar_Set( "s_currentMusic", s_backgroundLoop ); //----(SA)	so the savegame will have the right music
 
 	mus_stream = S_CodecOpenStream(s_backgroundLoop);
 	if(!mus_stream)
@@ -2300,39 +2277,10 @@ void S_AL_MusicUpdate( void )
 
 /*
 ======================
-S_FadeStreamingSound
-======================
-*/
-static
-void S_AL_FadeStreamingSound( float targetvol, int time, int ssNum ) {
-	// FIXME: Stub
-}
-
-/*
-======================
-S_FadeAllSounds
-======================
-*/
-static
-void S_AL_FadeAllSounds( float targetvol, int time ) {
-	// FIXME: Stub
-}
-
-/*
-======================
 S_StartStreamingSound
 ======================
 */
-static void S_AL_StartStreamingSound( const char *intro, const char *loop, int entnum, int channel, int attenuation ) {
-	// FIXME: Stub
-}
-
-/*
-======================
-S_StopEntStreamingSound
-======================
-*/
-static void S_AL_StopEntStreamingSound( int entnum ) {
+void S_AL_StartStreamingSound( const char *intro, const char *loop, int entnum, int channel, int attenuation ) {
 	// FIXME: Stub
 }
 
@@ -2342,12 +2290,8 @@ S_GetVoiceAmplitude
 ======================
 */
 int S_AL_GetVoiceAmplitude( int entityNum ) {
-	if ( entityNum >= MAX_CLIENTS ) {
-		Com_Printf( "Error: S_GetVoiceAmplitude() called for a non-client\n" );
-		return 0;
-	}
-
-	return (int)s_entityTalkAmplitude[entityNum];
+	// FIXME: Stub
+	return 0;
 }
 
 //===========================================================================
@@ -2672,11 +2616,10 @@ qboolean S_AL_Init( soundInterface_t *si )
 	s_alSources = Cvar_Get( "s_alSources", "128", CVAR_ARCHIVE );
 	s_alDopplerFactor = Cvar_Get( "s_alDopplerFactor", "1.0", CVAR_ARCHIVE );
 	s_alDopplerSpeed = Cvar_Get( "s_alDopplerSpeed", "9000", CVAR_ARCHIVE );
-	s_alMinDistance = Cvar_Get( "s_alMinDistance", "256", CVAR_ARCHIVE );
-	s_alMaxDistance = Cvar_Get("s_alMaxDistance", "1024", CVAR_ARCHIVE);
-	s_alRolloff = Cvar_Get( "s_alRolloff", "1.3", CVAR_ARCHIVE);
-	s_alGraceDistance = Cvar_Get("s_alGraceDistance", "512", CVAR_ARCHIVE);
-	s_alTalkAnims = Cvar_Get("s_alTalkAnims", "160", CVAR_ARCHIVE);
+	s_alMinDistance = Cvar_Get( "s_alMinDistance", "120", CVAR_CHEAT );
+	s_alMaxDistance = Cvar_Get("s_alMaxDistance", "1024", CVAR_CHEAT);
+	s_alRolloff = Cvar_Get( "s_alRolloff", "2", CVAR_CHEAT);
+	s_alGraceDistance = Cvar_Get("s_alGraceDistance", "512", CVAR_CHEAT);
 
 	s_alDriver = Cvar_Get( "s_alDriver", ALDRIVER_DEFAULT, CVAR_ARCHIVE | CVAR_LATCH | CVAR_PROTECTED );
 
@@ -2874,10 +2817,7 @@ qboolean S_AL_Init( soundInterface_t *si )
 	si->StartLocalSound = S_AL_StartLocalSound;
 	si->StartBackgroundTrack = S_AL_StartBackgroundTrack;
 	si->StopBackgroundTrack = S_AL_StopBackgroundTrack;
-	si->FadeStreamingSound = S_AL_FadeStreamingSound;
-	si->FadeAllSounds = S_AL_FadeAllSounds;
 	si->StartStreamingSound = S_AL_StartStreamingSound;
-	si->StopEntStreamingSound = S_AL_StopEntStreamingSound;
 	si->GetVoiceAmplitude = S_AL_GetVoiceAmplitude;
 	si->RawSamples = S_AL_RawSamples;
 	si->StopAllSounds = S_AL_StopAllSounds;

@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -209,7 +209,6 @@ SV_LinkEntity
 ===============
 */
 #define MAX_TOTAL_ENT_LEAFS     128
-worldSector_t *debugNode;
 void SV_LinkEntity( sharedEntity_t *gEnt ) {
 	worldSector_t   *node;
 	int leafs[MAX_TOTAL_ENT_LEAFS];
@@ -418,7 +417,7 @@ static void SV_AreaEntities_r( worldSector_t *node, areaParms_t *ap ) {
 		}
 
 		if ( ap->count == ap->maxcount ) {
-			Com_DPrintf( "SV_AreaEntities: MAXCOUNT\n" );
+			Com_Printf( "SV_AreaEntities: MAXCOUNT\n" );
 			return;
 		}
 
@@ -517,6 +516,9 @@ void SV_ClipToEntity( trace_t *trace, const vec3_t start, const vec3_t mins, con
 }
 
 
+// FIXME: Copied from cm_local.h
+#define BOX_MODEL_HANDLE        511
+
 /*
 ====================
 SV_ClipMoveToEntities
@@ -568,13 +570,13 @@ static void SV_ClipMoveToEntities( moveclip_t *clip ) {
 			continue;
 		}
 
-		// RF, special case, ignore chairs if we are carrying them
-		if ( touch->s.eType == ET_PROP && touch->s.otherEntityNum == clip->passEntityNum + 1 ) {
-			continue;
-		}
-
 		// might intersect, so do an exact clip
 		clipHandle = SV_ClipHandleForEntity( touch );
+
+		// DHM - Nerve :: If clipping against BBOX, set to correct contents
+		if ( clipHandle == BOX_MODEL_HANDLE ) {
+			CM_SetTempBoxModelContents( touch->r.contents );
+		}
 
 		origin = touch->r.currentOrigin;
 		angles = touch->r.currentAngles;
@@ -587,7 +589,6 @@ static void SV_ClipMoveToEntities( moveclip_t *clip ) {
 		CM_TransformedBoxTrace( &trace, clip->start, clip->end,
 								clip->mins, clip->maxs, clipHandle,  clip->contentmask,
 								origin, angles, clip->capsule );
-
 		if ( trace.allsolid ) {
 			clip->trace.allsolid = qtrue;
 			trace.entityNum = touch->s.number;
@@ -605,6 +606,11 @@ static void SV_ClipMoveToEntities( moveclip_t *clip ) {
 			trace.entityNum = touch->s.number;
 			clip->trace = trace;
 			clip->trace.startsolid |= oldStart;
+		}
+
+		// DHM - Nerve :: Reset contents to default
+		if ( clipHandle == BOX_MODEL_HANDLE ) {
+			CM_SetTempBoxModelContents( CONTENTS_BODY );
 		}
 	}
 }
@@ -701,12 +707,9 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 			angles = vec3_origin;   // boxes don't rotate
 		}
 
-		// RF, ignore this test if the origin is at the world origin
-		//if (!VectorCompare( hit->s.origin, vec3_origin )) {
 		c2 = CM_TransformedPointContents (p, clipHandle, hit->r.currentOrigin, angles);
 
 		contents |= c2;
-		//}
 	}
 
 	return contents;

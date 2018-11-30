@@ -352,6 +352,14 @@
 		A15AA92B211B470200DE867F /* MainMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA929211B470200DE867F /* MainMenuViewController.swift */; };
 		A15AA92C211B470200DE867F /* MainMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA929211B470200DE867F /* MainMenuViewController.swift */; };
 		A15AA92D211B470200DE867F /* MainMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA929211B470200DE867F /* MainMenuViewController.swift */; };
+		A161C9E621B1FC0B009FAFD4 /* pbmd5.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9E521B1FC0B009FAFD4 /* pbmd5.c */; };
+		A161C9E721B1FC0B009FAFD4 /* pbmd5.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9E521B1FC0B009FAFD4 /* pbmd5.c */; };
+		A161C9E821B1FC6D009FAFD4 /* pbmd5.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9E521B1FC0B009FAFD4 /* pbmd5.c */; };
+		A161C9E921B1FC6D009FAFD4 /* pbmd5.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9E521B1FC0B009FAFD4 /* pbmd5.c */; };
+		A161C9EB21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */; };
+		A161C9EC21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */; };
+		A161C9ED21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */; };
+		A161C9EE21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */; };
 		A179BFE7210142FA00D3C611 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A179BFE6210142FA00D3C611 /* AppDelegate.swift */; };
 		A179BFE9210142FA00D3C611 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A179BFE8210142FA00D3C611 /* GameViewController.swift */; };
 		A179BFEC210142FA00D3C611 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A179BFEA210142FA00D3C611 /* Main.storyboard */; };
@@ -998,26 +1006,21 @@
 		A1366911217E7EA700E0AC0B /* bg_animation.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_animation.c; sourceTree = "<group>"; };
 		A1366912217E7EA700E0AC0B /* ai_cast_global.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_cast_global.h; sourceTree = "<group>"; };
 		A1366913217E7EA700E0AC0B /* ai_cast_events.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast_events.c; sourceTree = "<group>"; };
-		A1366914217E7EA800E0AC0B /* g_func_decs.h.orig */ = {isa = PBXFileReference; lastKnownFileType = text; path = g_func_decs.h.orig; sourceTree = "<group>"; };
 		A1366915217E7EA800E0AC0B /* g_script_actions.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_script_actions.c; sourceTree = "<group>"; };
 		A1366916217E7EA800E0AC0B /* ai_cast.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast.c; sourceTree = "<group>"; };
-		A1366917217E7EA800E0AC0B /* g_funcs.h.orig */ = {isa = PBXFileReference; lastKnownFileType = text; path = g_funcs.h.orig; sourceTree = "<group>"; };
 		A1366918217E7EA800E0AC0B /* ai_cast.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_cast.h; sourceTree = "<group>"; };
 		A1366919217E7EA800E0AC0B /* g_tramcar.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_tramcar.c; sourceTree = "<group>"; };
 		A136691A217E7EA800E0AC0B /* ai_cast_script_ents.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast_script_ents.c; sourceTree = "<group>"; };
 		A136691B217E7EA800E0AC0B /* ai_cast_funcs.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast_funcs.c; sourceTree = "<group>"; };
 		A136691C217E7EA800E0AC0B /* g_alarm.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_alarm.c; sourceTree = "<group>"; };
 		A136691D217E7EA900E0AC0B /* g_props.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_props.c; sourceTree = "<group>"; };
-		A136691E217E7EA900E0AC0B /* g_func_decs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_func_decs.h; sourceTree = "<group>"; };
 		A136691F217E7EA900E0AC0B /* ai_cast_debug.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast_debug.c; sourceTree = "<group>"; };
 		A1366920217E7EA900E0AC0B /* ai_cast_script.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast_script.c; sourceTree = "<group>"; };
 		A1366921217E7EA900E0AC0B /* ai_cast_think.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast_think.c; sourceTree = "<group>"; };
 		A1366922217E7EA900E0AC0B /* ai_cast_characters.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast_characters.c; sourceTree = "<group>"; };
 		A1366923217E7EA900E0AC0B /* ai_cast_func_boss1.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast_func_boss1.c; sourceTree = "<group>"; };
 		A1366924217E7EA900E0AC0B /* ai_cast_sight.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast_sight.c; sourceTree = "<group>"; };
-		A1366925217E7EAA00E0AC0B /* g_save.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_save.c; sourceTree = "<group>"; };
 		A1366926217E7EAA00E0AC0B /* g_script.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_script.c; sourceTree = "<group>"; };
-		A1366927217E7EAA00E0AC0B /* g_funcs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_funcs.h; sourceTree = "<group>"; };
 		A1366928217E7EAA00E0AC0B /* ai_cast_script_actions.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast_script_actions.c; sourceTree = "<group>"; };
 		A1366929217E7EAA00E0AC0B /* ai_cast_func_attack.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast_func_attack.c; sourceTree = "<group>"; };
 		A136692A217E7EAA00E0AC0B /* ai_cast_fight.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_cast_fight.c; sourceTree = "<group>"; };
@@ -1115,6 +1118,10 @@
 		A15AA921211A68E900DE867F /* ServerListViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ServerListViewCell.xib; sourceTree = "<group>"; };
 		A15AA924211B43A400DE867F /* OptionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsViewController.swift; sourceTree = "<group>"; };
 		A15AA929211B470200DE867F /* MainMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuViewController.swift; sourceTree = "<group>"; };
+		A161C9E321B1FB2C009FAFD4 /* cg_spawn.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_spawn.c; sourceTree = "<group>"; };
+		A161C9E421B1FBA0009FAFD4 /* g_antilag.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_antilag.c; sourceTree = "<group>"; };
+		A161C9E521B1FC0B009FAFD4 /* pbmd5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pbmd5.c; sourceTree = "<group>"; };
+		A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sv_wallhack.c; sourceTree = "<group>"; };
 		A179BFE3210142FA00D3C611 /* RTCW-MP-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-MP-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A179BFE6210142FA00D3C611 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A179BFE8210142FA00D3C611 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
@@ -1829,6 +1836,7 @@
 				A179C0102101470F00D3C611 /* cg_servercmds.c */,
 				A179C0082101470F00D3C611 /* cg_snapshot.c */,
 				A136690F217E7B4600E0AC0B /* cg_sound.c */,
+				A161C9E321B1FB2C009FAFD4 /* cg_spawn.c */,
 				A179C0122101470F00D3C611 /* cg_syscalls.asm */,
 				A179C0012101470F00D3C611 /* cg_syscalls.c */,
 				A136690D217E7B4600E0AC0B /* cg_trails.c */,
@@ -2049,6 +2057,7 @@
 		A179C0E92101471000D3C611 /* server */ = {
 			isa = PBXGroup;
 			children = (
+				A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */,
 				A179C0F22101471000D3C611 /* server.h */,
 				A179C0EF2101471000D3C611 /* sv_bot.c */,
 				A179C0F32101471000D3C611 /* sv_ccmds.c */,
@@ -2099,6 +2108,7 @@
 		A179C1C72101472C00D3C611 /* game */ = {
 			isa = PBXGroup;
 			children = (
+				A161C9E421B1FBA0009FAFD4 /* g_antilag.c */,
 				A1366922217E7EA900E0AC0B /* ai_cast_characters.c */,
 				A136691F217E7EA900E0AC0B /* ai_cast_debug.c */,
 				A1366913217E7EA700E0AC0B /* ai_cast_events.c */,
@@ -2142,10 +2152,6 @@
 				A179C1C82101472C00D3C611 /* g_client.c */,
 				A179C1ED2101472C00D3C611 /* g_cmds.c */,
 				A179C1E42101472C00D3C611 /* g_combat.c */,
-				A136691E217E7EA900E0AC0B /* g_func_decs.h */,
-				A1366914217E7EA800E0AC0B /* g_func_decs.h.orig */,
-				A1366927217E7EAA00E0AC0B /* g_funcs.h */,
-				A1366917217E7EA800E0AC0B /* g_funcs.h.orig */,
 				A179C1E12101472C00D3C611 /* g_items.c */,
 				A179C1DD2101472C00D3C611 /* g_local.h */,
 				A179C1F52101472C00D3C611 /* g_main.c */,
@@ -2155,7 +2161,6 @@
 				A179C1C92101472C00D3C611 /* g_mover.c */,
 				A136691D217E7EA900E0AC0B /* g_props.c */,
 				A179C1F82101472C00D3C611 /* g_public.h */,
-				A1366925217E7EAA00E0AC0B /* g_save.c */,
 				A1366915217E7EA800E0AC0B /* g_script_actions.c */,
 				A1366926217E7EAA00E0AC0B /* g_script.c */,
 				A179C1D32101472C00D3C611 /* g_session.c */,
@@ -2350,6 +2355,7 @@
 				A179C2972101472E00D3C611 /* msg.c */,
 				A179C2B62101472E00D3C611 /* net_chan.c */,
 				A179C29E2101472E00D3C611 /* net_ip.c */,
+				A161C9E521B1FC0B009FAFD4 /* pbmd5.c */,
 				A179C2B72101472E00D3C611 /* puff.c */,
 				A179C2AA2101472E00D3C611 /* puff.h */,
 				A179C29C2101472E00D3C611 /* q_math.c */,
@@ -2723,6 +2729,7 @@
 				A1565F2C2109F30E00FA9BC9 /* con_log.c in Sources */,
 				A1565F2D2109F30E00FA9BC9 /* snd_dma.c in Sources */,
 				A1565F2F2109F30E00FA9BC9 /* snd_wavelet.c in Sources */,
+				A161C9E821B1FC6D009FAFD4 /* pbmd5.c in Sources */,
 				A13669B5217E89E900E0AC0B /* tr_animation.c in Sources */,
 				A1565F302109F30E00FA9BC9 /* be_ai_move.c in Sources */,
 				A1565F322109F30E00FA9BC9 /* ios_glsmp_null.c in Sources */,
@@ -2861,6 +2868,7 @@
 				A1565F972109F30E00FA9BC9 /* AppDelegate.swift in Sources */,
 				A1565F982109F30E00FA9BC9 /* jcapistd.c in Sources */,
 				A1565F992109F30E00FA9BC9 /* jdatasrc.c in Sources */,
+				A161C9ED21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */,
 				A1366944217E885D00E0AC0B /* splines.cpp in Sources */,
 				A1565F9A2109F30E00FA9BC9 /* net_chan.c in Sources */,
 				A1366960217E885D00E0AC0B /* util_str.cpp in Sources */,
@@ -3026,6 +3034,7 @@
 				A196B7432117FFA30031CEB8 /* ServerFilterViewController.swift in Sources */,
 				A179C3072101472E00D3C611 /* jchuff.c in Sources */,
 				A179C3142101472E00D3C611 /* jaricom.c in Sources */,
+				A161C9E621B1FC0B009FAFD4 /* pbmd5.c in Sources */,
 				A179C4942101472F00D3C611 /* msg.c in Sources */,
 				A179C3632101472E00D3C611 /* sv_main.c in Sources */,
 				A179C30D2101472E00D3C611 /* jerror.c in Sources */,
@@ -3107,6 +3116,7 @@
 				A179C3672101472E00D3C611 /* sv_init.c in Sources */,
 				A179C35E2101472E00D3C611 /* snd_mem.c in Sources */,
 				A179C4982101472F00D3C611 /* q_math.c in Sources */,
+				A161C9EB21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */,
 				A179C2F42101472E00D3C611 /* be_aas_route.c in Sources */,
 				A1366A07217E89E900E0AC0B /* tr_marks.c in Sources */,
 				A179C4962101472F00D3C611 /* vm_none.c in Sources */,
@@ -3242,6 +3252,7 @@
 				A136699C217E89E900E0AC0B /* tr_sky.c in Sources */,
 				A1902EE92108237E008823BB /* sv_main.c in Sources */,
 				A1902EEA2108237E008823BB /* jerror.c in Sources */,
+				A161C9E721B1FC0B009FAFD4 /* pbmd5.c in Sources */,
 				A1902EEB2108237E008823BB /* jfdctint.c in Sources */,
 				A1902EEC2108237E008823BB /* cl_parse.c in Sources */,
 				A1902EED2108237E008823BB /* puff.c in Sources */,
@@ -3347,6 +3358,7 @@
 				A1902F3A2108237E008823BB /* jcmarker.c in Sources */,
 				A1902F3B2108237E008823BB /* sv_net_chan.c in Sources */,
 				A196B6B42115F7C50031CEB8 /* GSMasterServerController.swift in Sources */,
+				A161C9EC21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */,
 				A196B6BC2115F7C50031CEB8 /* Q3ServerController.swift in Sources */,
 				A1902F3D2108237E008823BB /* jdmaster.c in Sources */,
 				A1902F3E2108237E008823BB /* jdatasrc.c in Sources */,
@@ -3541,6 +3553,7 @@
 				A1902F9821093B67008823BB /* cl_curl.c in Sources */,
 				A1902FE021093BE8008823BB /* cm_test.c in Sources */,
 				A1902F8621093B34008823BB /* be_ai_gen.c in Sources */,
+				A161C9EE21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */,
 				A17EE1A2211A611500811AE1 /* ServerBrowserViewController.swift in Sources */,
 				A1902FE121093BE8008823BB /* cm_trace.c in Sources */,
 				A1902FD121093BBE008823BB /* jerror.c in Sources */,
@@ -3557,6 +3570,7 @@
 				A1902FA721093B86008823BB /* snd_mix.c in Sources */,
 				A196B7302117F0430031CEB8 /* MasterServerController.swift in Sources */,
 				A1902FAF21093BBE008823BB /* jaricom.c in Sources */,
+				A161C9E921B1FC6D009FAFD4 /* pbmd5.c in Sources */,
 				A190301921093C4C008823BB /* sv_world.c in Sources */,
 				A1902FAD21093BA4008823BB /* ios_main.m in Sources */,
 				A136695D217E885D00E0AC0B /* math_angles.cpp in Sources */,

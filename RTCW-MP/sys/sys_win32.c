@@ -306,6 +306,65 @@ qboolean Sys_LowPhysicalMemory( void )
 }
 
 /*
+==================
+Sys_StartProcess
+
+NERVE - SMF
+==================
+*/
+void Sys_StartProcess( char *exeName, qboolean doexit ) {
+	TCHAR szPathOrig[MAX_PATH];
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	ZeroMemory( &si, sizeof( si ) );
+	si.cb = sizeof( si );
+
+	GetCurrentDirectory( MAX_PATH, szPathOrig );
+
+	// JPW NERVE swiped from Sherman's SP code
+	Cbuf_ExecuteText( EXEC_NOW, "net_stop" );
+	if ( !CreateProcess( NULL, va( "%s\\%s", szPathOrig, exeName ), NULL, NULL,FALSE, 0, NULL, NULL, &si, &pi ) ) {
+		// couldn't start it, popup error box
+		Com_Error( ERR_DROP, "Could not start process: '%s\\%s' ", szPathOrig, exeName  );
+		return;
+	}
+	// jpw
+
+	// TTimo: similar way of exiting as used in Sys_OpenURL below
+	if ( doexit ) {
+		Cbuf_ExecuteText( EXEC_APPEND, "quit" );
+	}
+}
+
+/*
+==================
+Sys_OpenURL
+
+NERVE - SMF
+==================
+*/
+void Sys_OpenURL( const char *url, qboolean doexit ) {
+	HWND wnd;
+
+	if ( !ShellExecute( NULL, "open", url, NULL, NULL, SW_RESTORE ) ) {
+		// couldn't start it, popup error box
+		Com_Error( ERR_DROP, "Could not open url: '%s' ", url );
+		return;
+	}
+
+	wnd = GetForegroundWindow();
+
+	if ( wnd ) {
+		ShowWindow( wnd, SW_MAXIMIZE );
+	}
+
+	if ( doexit ) {
+		Cbuf_ExecuteText( EXEC_APPEND, "quit" );
+	}
+}
+
+/*
 ==============
 Sys_Basename
 ==============
@@ -873,7 +932,7 @@ Sys_GetDLLName
 ==============
 */
 char* Sys_GetDLLName( const char *name ) {
-	return va("%s_sp_" ARCH_STRING DLL_EXT, name);
+	return va("%s_mp_" ARCH_STRING DLL_EXT, name);
 }
 
 /*
@@ -884,59 +943,4 @@ Sys_GetHighQualityCPU
 int Sys_GetHighQualityCPU() {
 	return 1;
 }
-
-//----(SA)	from NERVE MP codebase (10/15/01)  (checkins at time of this file should be related)
-/*
-==================
-Sys_StartProcess
-==================
-*/
-void Sys_StartProcess( char *exeName, qboolean doexit ) {           // NERVE - SMF
-	TCHAR szPathOrig[MAX_PATH];
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
-
-	ZeroMemory( &si, sizeof( si ) );
-	si.cb = sizeof( si );
-
-	GetCurrentDirectory( MAX_PATH, szPathOrig );
-	Cbuf_ExecuteText( EXEC_NOW, "net_stop" );
-	if ( !CreateProcess( NULL, va( "%s\\%s", szPathOrig, exeName ), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi ) )
-	{
-		// couldn't start it, popup error box
-		Com_Error( ERR_DROP, "Could not start process: '%s\\%s' ", szPathOrig, exeName  );
-		return;
-	}
-
-	// TTimo: similar way of exiting as used in Sys_OpenURL below
-	if ( doexit ) {
-		Cbuf_ExecuteText( EXEC_APPEND, "quit" );
-	}
-}
-
-/*
-==================
-Sys_OpenURL
-==================
-*/
-void Sys_OpenURL( char *url, qboolean doexit ) {                // NERVE - SMF
-	HWND wnd;
-
-	if ( !ShellExecute( NULL, "open", url, NULL, NULL, SW_RESTORE ) ) {
-		// couldn't start it, popup error box
-		Com_Error( ERR_DROP, "Could not open url: '%s' ", url );
-		return;
-	}
-
-	wnd = GetForegroundWindow();
-
-	if ( wnd ) {
-		ShowWindow( wnd, SW_MAXIMIZE );
-	}
-
-	if ( doexit ) {
-		Cbuf_ExecuteText( EXEC_APPEND, "quit" );
-	}
-}
-//----(SA)	end
 

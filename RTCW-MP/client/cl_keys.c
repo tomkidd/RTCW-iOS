@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -2152,7 +2152,7 @@ CL_ParseBinding
 Execute the commands in the bind string
 ===================
 */
-void CL_ParseBinding( int key, qboolean down, unsigned time )
+void CL_ParseBinding( int key, qboolean down, unsigned time, qboolean forceAll )
 {
 	char buf[ MAX_STRING_CHARS ], *p = buf, *end;
 	qboolean allCommands, allowUpCmds;
@@ -2164,7 +2164,7 @@ void CL_ParseBinding( int key, qboolean down, unsigned time )
 	Q_strncpyz( buf, keys[key].binding, sizeof( buf ) );
 
 	// run all bind commands if console, ui, etc aren't reading keys
-	allCommands = ( Key_GetCatcher( ) == 0 );
+	allCommands = forceAll || ( Key_GetCatcher( ) == 0 );
 
 	// allow button up commands if in game even if key catcher is set
 	allowUpCmds = ( clc.state != CA_DISCONNECTED );
@@ -2212,7 +2212,7 @@ Called by CL_KeyEvent to handle a keypress
 void CL_KeyDownEvent( int key, unsigned time )
 {
 	char    *kb;
-	int activeMenu = 0;
+	qboolean bypassMenu = qfalse;       // NERVE - SMF
 	keys[key].down = qtrue;
 	keys[key].repeats++;
 	if( keys[key].repeats == 1 )
@@ -2230,6 +2230,40 @@ void CL_KeyDownEvent( int key, unsigned time )
 		return;
 	}
 
+	// are we waiting to clear stats and move to briefing screen
+	if ( qtrue && cl_waitForFire && cl_waitForFire->integer ) {    //DAJ BUG in dedicated cl_waitForFire don't exist
+		if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) {   // get rid of the console
+			Con_ToggleConsole_f();
+		}
+		// clear all input controls
+		CL_ClearKeys();
+		// allow only attack command input
+		kb = keys[key].binding;
+		if ( !Q_stricmp( kb, "+attack" ) ) {
+			// clear the stats out, ignore the keypress
+			Cvar_Set( "g_missionStats", "xx" );       // just remove the stats, but still wait until we're done loading, and player has hit fire to begin playing
+			Cvar_Set( "cl_waitForFire", "0" );
+		}
+		return;     // no buttons while waiting
+	}
+
+	// are we waiting to begin the level
+	if ( qtrue && cl_missionStats && cl_missionStats->string[0] && cl_missionStats->string[1] ) {  //DAJ BUG in dedicated cl_missionStats don't exist
+		if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) {   // get rid of the console
+			Con_ToggleConsole_f();
+		}
+		// clear all input controls
+		CL_ClearKeys();
+		// allow only attack command input
+		kb = keys[key].binding;
+		if ( !Q_stricmp( kb, "+attack" ) ) {
+			// clear the stats out, ignore the keypress
+			Cvar_Set( "com_expectedhunkusage", "-1" );
+			Cvar_Set( "g_missionStats", "0" );
+		}
+		return;     // no buttons while waiting
+	}
+
 	// console key is hardcoded, so the user can never unbind it
 	if( key == K_CONSOLE || ( keys[K_SHIFT].down && key == K_ESCAPE ) )
 	{
@@ -2238,35 +2272,6 @@ void CL_KeyDownEvent( int key, unsigned time )
 		return;
 	}
 
-//----(SA)	added
-	if ( cl.cameraMode ) {
-		if ( !( Key_GetCatcher( ) & ( KEYCATCH_UI | KEYCATCH_CONSOLE ) ) ) {    // let menu/console handle keys if necessary
-
-			// in cutscenes we need to handle keys specially (pausing not allowed in camera mode)
-			if ( (  key == K_ESCAPE ||
-					key == K_SPACE ||
-					key == K_ENTER ) && qtrue ) {
-				if ( qtrue ) {
-					CL_AddReliableCommand( "cameraInterrupt", qfalse );
-				}
-				return;
-			}
-
-			// eat all keys
-			if ( qtrue ) {
-				return;
-			}
-		}
-
-		if ( ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) && key == K_ESCAPE ) {
-			// don't allow menu starting when console is down and camera running
-			return;
-		}
-	}
-//----(SA)	end
-
-
-	// most keys during demo playback will bring up the menu, but non-ascii
 
 	// keys can still be used for bound actions
 	if ( ( key < 128 || key == K_MOUSE1 ) &&
@@ -2276,11 +2281,6 @@ void CL_KeyDownEvent( int key, unsigned time )
 			Cvar_Set ("nextdemo","");
 			key = K_ESCAPE;
 		}
-	}
-
-//----(SA)	get the active menu if in ui mode
-	if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
-		activeMenu = VM_Call( uivm, UI_GET_ACTIVE_MENU );
 	}
 
 	// escape is always handled special
@@ -2314,22 +2314,29 @@ void CL_KeyDownEvent( int key, unsigned time )
 		return;
 	}
 
+	// NERVE - SMF - if we just want to pass it along to game
+	if ( cl_bypassMouseInput && cl_bypassMouseInput->integer && !( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) ) {    //DAJ BUG in dedicated cl_missionStats don't exist
+		if ( ( key == K_MOUSE1 || key == K_MOUSE2 || key == K_MOUSE3 ) ) {
+			if ( cl_bypassMouseInput->integer == 1 ) {
+				bypassMenu = qtrue;
+			}
+		} else if ( !UI_checkKeyExec( key ) ) {
+			bypassMenu = qtrue;
+		}
+	}
+
 	// send the bound action
-	CL_ParseBinding( key, qtrue, time );
+	CL_ParseBinding( key, qtrue, time, bypassMenu );
 
 	// distribute the key down event to the apropriate handler
 	if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) {
 		Console_Key( key );
-	} else if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
+	} else if ( Key_GetCatcher( ) & KEYCATCH_UI && !bypassMenu ) {
 		kb = keys[key].binding;
 
-		if ( activeMenu == UIMENU_CLIPBOARD ) {
+		if ( VM_Call( uivm, UI_GET_ACTIVE_MENU ) == UIMENU_CLIPBOARD ) {
 			// any key gets out of clipboard
 			key = K_ESCAPE;
-		} else if ( activeMenu == UIMENU_PREGAME ) {
-			if ( key != K_MOUSE1 ) {
-				return; // eat all keys except mouse click
-			}
 		} else {
 
 			// when in the notebook, check for the key bound to "notebook" and allow that as an escape key
@@ -2340,12 +2347,16 @@ void CL_KeyDownEvent( int key, unsigned time )
 						key = K_ESCAPE;
 					}
 				}
+
+				if ( !Q_stricmp( "help", kb ) ) {
+					if ( VM_Call( uivm, UI_GET_ACTIVE_MENU ) == UIMENU_HELP ) {
+						key = K_ESCAPE;
+					}
+				}
 			}
 		}
 
-		if ( uivm ) {
-			VM_Call( uivm, UI_KEY_EVENT, key, qtrue );
-		} 
+		VM_Call( uivm, UI_KEY_EVENT, key, qtrue );
 	} else if ( Key_GetCatcher( ) & KEYCATCH_CGAME ) {
 		if ( cgvm ) {
 			VM_Call( cgvm, CG_KEY_EVENT, key, qtrue );
@@ -2384,7 +2395,7 @@ void CL_KeyUpEvent( int key, unsigned time )
 	// console mode and menu mode, to keep the character from continuing
 	// an action started before a mode switch.
 	//
-	CL_ParseBinding( key, qfalse, time );
+	CL_ParseBinding( key, qfalse, time, qfalse );
 
 	if ( Key_GetCatcher( ) & KEYCATCH_UI && uivm ) {
 		VM_Call( uivm, UI_KEY_EVENT, key, qfalse );
@@ -2472,8 +2483,8 @@ Key_SetCatcher
 */
 void Key_SetCatcher( int catcher ) {
 	// If the catcher state is changing, clear all key states
-	if( catcher != keyCatchers )
-		Key_ClearStates( );
+//	if( catcher != keyCatchers )
+//		Key_ClearStates( );
 
 	keyCatchers = catcher;
 }

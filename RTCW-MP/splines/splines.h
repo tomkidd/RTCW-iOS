@@ -39,10 +39,7 @@ extern "C" {
 }
 #endif
 #include "util_list.h"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
 #include "util_str.h"
-#pragma clang diagnostic pop
 #include "math_vector.h"
 
 typedef int fileHandle_t;

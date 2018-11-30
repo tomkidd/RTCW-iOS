@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -46,17 +46,17 @@ If you have questions concerning this license or the applicable additional terms
 #define INFINITE            1000000
 
 #define FRAMETIME           100                 // msec
-#define EVENT_VALID_MSEC    1000
+#define EVENT_VALID_MSEC    300
 #define CARNAGE_REWARD_TIME 3000
 #define REWARD_SPRITE_TIME  2000
 
 #define INTERMISSION_DELAY_TIME 1000
 
+#define MG42_MULTIPLAYER_HEALTH 350             // JPW NERVE
 
 // gentity->flags
 #define FL_GODMODE              0x00000010
 #define FL_NOTARGET             0x00000020
-#define FL_DEFENSE_CROUCH       0x00000100  // warzombie defense pose
 #define FL_TEAMSLAVE            0x00000400  // not the first on the team
 #define FL_NO_KNOCKBACK         0x00000800
 #define FL_DROPPED_ITEM         0x00001000
@@ -77,7 +77,6 @@ If you have questions concerning this license or the applicable additional terms
 #define FL_NO_HEADCHECK         0x00800000
 
 #define FL_NODRAW               0x01000000
-#define FL_DOORNOISE            0x02000000  //----(SA)	added
 
 // movers are things like doors, plats, buttons, etc
 typedef enum {
@@ -105,8 +104,10 @@ typedef enum {
 #define HEAR_RANGE_DOOR_OPEN        256
 #define HEAR_RANGE_DOOR_KICKOPEN    768
 
-
-#define SP_PODIUM_MODEL     "models/mapobjects/podium/podium4.md3"
+// DHM - Nerve :: Worldspawn spawnflags to indicate if a gametype is not supported
+#define NO_GT_WOLF      1
+#define NO_STOPWATCH    2
+#define NO_CHECKPOINT   4
 
 //============================================================================
 
@@ -154,7 +155,6 @@ typedef struct
 // Script Flags
 #define SCFL_GOING_TO_MARKER    0x1
 #define SCFL_ANIMATING          0x2
-#define SCFL_WAITING_RESTORE    0x4
 //
 // Scripting Status (NOTE: this MUST NOT contain any pointer vars)
 typedef struct
@@ -173,7 +173,7 @@ void G_Script_ScriptEvent( gentity_t *ent, char *eventStr, char *params );
 //====================================================================
 
 
-#define CFOFS( x ) ( (size_t)&( ( (gclient_t *)0 )->x ) )
+#define CFOFS( x ) ( (int)&( ( (gclient_t *)0 )->x ) )
 
 struct gentity_s {
 	entityState_t s;                // communicated by server to clients
@@ -242,9 +242,8 @@ struct gentity_s {
 
 	int timestamp;              // body queue sinking, etc
 
-	float angle;                // set in editor, -1 = up, -2 = down
+	float		angle;			// set in editor, -1 = up, -2 = down
 	char        *target;
-	char        *targetdeath;   // fire this on death exclusively //----(SA)	added
 	char        *targetname;
 	char        *team;
 	char        *targetShaderName;
@@ -341,19 +340,11 @@ struct gentity_s {
 	float harc;
 	float varc;
 
-	//----(SA)	added
-	float activateArc;              // right now just for mg42, but available for setting what angle this ent can be touched/killed from
-
 	int props_frame_state;
 
 	// Ridah
-	int missionLevel;                   // highest mission level completed (for previous level de-briefings)
-	int missionObjectives;              // which objectives for the current level have been met
-										// gets reset each new level
-
-	int numSecretsFound;                //----(SA)	added to get into savegame
-	int numTreasureFound;               //----(SA)	added to get into savegame
-
+	int missionLevel;               // mission we are currently trying to complete
+									// gets reset each new level
 	// done.
 
 	// Rafael
@@ -392,7 +383,6 @@ struct gentity_s {
 	int numScriptEvents;
 	g_script_event_t    *scriptEvents;  // contains a list of actions to perform for each event type
 	g_script_status_t scriptStatus;     // current status of scripting
-	g_script_status_t scriptStatusBackup;
 	// the accumulation buffer
 	int scriptAccumBuffer[G_MAX_SCRIPT_ACCUM_BUFFERS];
 
@@ -404,15 +394,14 @@ struct gentity_s {
 
 	float headshotDamageScale;
 
-	g_script_status_t scriptStatusCurrent;      // had to go down here to keep savegames compatible
-
-	int emitID;                 //----(SA)	added
-	int emitNum;                //----(SA)	added
-	int emitPressure;           //----(SA)	added
-	int emitTime;               //----(SA)	added
-
+	int lastHintCheckTime;                  // DHM - Nerve
 	// -------------------------------------------------------------------------------------------
 	// if working on a post release patch, new variables should ONLY be inserted after this point
+	// DHM - Nerve :: the above warning does not really apply to MP, but I'll follow it for good measure
+
+	int voiceChatSquelch;                   // DHM - Nerve
+	int voiceChatPreviousTime;              // DHM - Nerve
+	int lastBurnedFrameNumber;              // JPW - Nerve   : to fix FT instant-kill exploit
 };
 
 // Ridah
@@ -461,15 +450,19 @@ typedef struct {
 // MUST be dealt with in G_InitSessionData() / G_ReadSessionData() / G_WriteSessionData()
 typedef struct {
 	team_t sessionTeam;
-	int			spectatorNum;		// for determining next-in-line to play
+	int spectatorNum;		// for determining next-in-line to play
 	spectatorState_t spectatorState;
 	int spectatorClient;            // for chasecam and follow mode
 	int wins, losses;               // tournament stats
 	int playerType;                 // DHM - Nerve :: for GT_WOLF
 	int playerWeapon;               // DHM - Nerve :: for GT_WOLF
-	int playerPistol;               // DHM - Nerve :: for GT_WOLF
 	int playerItem;                 // DHM - Nerve :: for GT_WOLF
 	int playerSkin;                 // DHM - Nerve :: for GT_WOLF
+	int spawnObjectiveIndex;         // JPW NERVE index of objective to spawn nearest to (returned from UI)
+	int latchPlayerType;            // DHM - Nerve :: for GT_WOLF not archived
+	int latchPlayerWeapon;          // DHM - Nerve :: for GT_WOLF not archived
+	int latchPlayerItem;            // DHM - Nerve :: for GT_WOLF not archived
+	int latchPlayerSkin;            // DHM - Nerve :: for GT_WOLF not archived
 } clientSession_t;
 
 //
@@ -497,12 +490,36 @@ typedef struct {
 
 	int maxHealth;                  // for handicapping
 	int enterTime;                  // level.time the client entered the game
+	int connectTime;                // DHM - Nerve :: level.time the client first connected to the server
 	playerTeamState_t teamState;    // status in teamplay games
 	int voteCount;                  // to prevent people from constantly calling votes
 	int teamVoteCount;              // to prevent people from constantly calling votes
+
+	int complaints;                     // DHM - Nerve :: number of complaints lodged against this client
+	int complaintClient;                // DHM - Nerve :: able to lodge complaint against this client
+	int complaintEndTime;               // DHM - Nerve :: until this time has expired
+
+	int lastReinforceTime;              // DHM - Nerve :: last reinforcement
+
 	qboolean teamInfo;              // send team overlay updates?
+
+	qboolean bAutoReloadAux; // TTimo - auxiliary storage for pmoveExt_t::bAutoReload, to achieve persistance
 } clientPersistant_t;
 
+typedef struct {
+	vec3_t mins;
+	vec3_t maxs;
+
+	vec3_t origin;
+
+	int time;
+	int servertime;
+} clientMarker_t;
+
+#define MAX_CLIENT_MARKERS 10
+
+#define LT_SPECIAL_PICKUP_MOD   3       // JPW NERVE # of times (minus one for modulo) LT must drop ammo before scoring a point
+#define MEDIC_SPECIAL_PICKUP_MOD    4   // JPW NERVE same thing for medic
 
 // this structure is cleared on each ClientSpawn(),
 // except for 'client->pers' and 'client->sess'
@@ -585,15 +602,24 @@ struct gclient_s {
 	gentity_t   *cameraPortal;              // grapple hook if out
 	vec3_t cameraOrigin;
 
+	int dropWeaponTime;         // JPW NERVE last time a weapon was dropped
 	int limboDropWeapon;         // JPW NERVE weapon to drop in limbo
 	int deployQueueNumber;         // JPW NERVE player order in reinforcement FIFO queue
 	int sniperRifleFiredTime;         // JPW NERVE last time a sniper rifle was fired (for muzzle flip effects)
 	float sniperRifleMuzzleYaw;       // JPW NERVE for time-dependent muzzle flip in multiplayer
-	float sniperRifleMuzzlePitch;       // (SA) added
-
+	int lastBurnTime;         // JPW NERVE last time index for flamethrower burn
+	int PCSpecialPickedUpCount;         // JPW NERVE used to count # of times somebody's picked up this LTs ammo (or medic health) (for scoring)
 	int saved_persistant[MAX_PERSISTANT];           // DHM - Nerve :: Save ps->persistant here during Limbo
-};
 
+	// g_antilag.c
+	int topMarker;
+	clientMarker_t clientMarkers[MAX_CLIENT_MARKERS];
+	clientMarker_t backupMarker;
+
+	gentity_t       *tempHead;  // Gordon: storing a temporary head for bullet head shot detection
+
+	pmoveExt_t pmext;
+};
 
 
 //
@@ -619,6 +645,7 @@ typedef struct {
 	int framenum;
 	int time;                           // in msec
 	int previousTime;                   // so movers can back up when blocked
+	int frameTime;                      // Gordon: time the frame started, for antilag stuff
 
 	int startTime;                      // level.time the map was started
 
@@ -645,6 +672,7 @@ typedef struct {
 	char voteDisplayString[MAX_STRING_CHARS];
 	int voteTime;                       // level.time vote was called
 	int voteExecuteTime;                // time the vote is executed
+	int prevVoteExecuteTime;            // JPW NERVE last vote execute time
 	int voteYes;
 	int voteNo;
 	int numVotingClients;               // set by CalculateRanks
@@ -696,16 +724,12 @@ typedef struct {
 
 	int snipersound;
 
-//----(SA)	added
-	int numSecrets;
-	int numTreasure;
-	int numArtifacts;
-	int numObjectives;
-//----(SA)	end
-
+	//----(SA)	added
 	int knifeSound[4];
+	//----(SA)	end
 
 // JPW NERVE
+	int capturetimes[4];         // red, blue, none, spectator for WOLF_MP_CPH
 	int redReinforceTime, blueReinforceTime;         // last time reinforcements arrived in ms
 	int redNumWaiting, blueNumWaiting;         // number of reinforcements in queue
 	vec3_t spawntargets[MAX_MULTI_SPAWNTARGETS];      // coordinates of spawn targets
@@ -718,15 +742,24 @@ typedef struct {
 	// player/AI model scripting (server repository)
 	animScriptData_t animScriptData;
 
-	// next map to load
-	char nextMap[MAX_STRING_CHARS];
+	// NERVE - SMF - debugging/profiling info
+	int totalHeadshots;
+	int missedHeadshots;
+	qboolean lastRestartTime;
+	// -NERVE - SMF
 
-	// RF, record last time we loaded, so we can hack around sighting issues on reload
-	int lastLoadTime;
+	int numFinalDead[2];                // DHM - Nerve :: unable to respawn and in limbo (per team)
+	int numOidTriggers;                 // DHM - Nerve
 
+	qboolean latchGametype;             // DHM - Nerve
 } level_locals_t;
 
-//extern    qboolean	reloading;				// loading up a savegame
+extern qboolean reloading;                  // loading up a savegame
+// JPW NERVE
+extern char testid1[];
+extern char testid2[];
+extern char testid3[];
+// jpw
 
 //
 // g_spawn.c
@@ -749,7 +782,7 @@ void Cmd_Score_f( gentity_t *ent );
 void StopFollowing( gentity_t *ent );
 //void BroadcastTeamChange( gclient_t *client, int oldTeam );
 void SetTeam( gentity_t *ent, const char *s );
-void SetWolfData( gentity_t *ent, char *ptype, char *weap, char *pistol, char *grenade, char *skinnum );    // DHM - Nerve
+void SetWolfData( gentity_t *ent, char *ptype, char *weap, char *grenade, char *skinnum );  // DHM - Nerve
 void Cmd_FollowCycle_f( gentity_t *ent, int dir );
 
 //
@@ -762,7 +795,7 @@ void RespawnItem( gentity_t *ent );
 void UseHoldableItem( gentity_t *ent, int item );
 void PrecacheItem( gitem_t *it );
 gentity_t *Drop_Item( gentity_t *ent, gitem_t *item, float angle, qboolean novelocity );
-gentity_t *LaunchItem( gitem_t *item, vec3_t origin, vec3_t velocity );
+gentity_t *LaunchItem( gitem_t *item, vec3_t origin, vec3_t velocity, int ownerNum );
 void SetRespawn( gentity_t *ent, float delay );
 void G_SpawnItem( gentity_t *ent, gitem_t *item );
 void FinishSpawningItem( gentity_t *ent );
@@ -818,7 +851,7 @@ void G_SetAngle( gentity_t *ent, vec3_t angle );
 
 qboolean infront( gentity_t *self, gentity_t *other );
 
-void G_ProcessTagConnect( gentity_t *ent, qboolean clearAngles );
+void G_ProcessTagConnect( gentity_t *ent );
 
 //
 // g_combat.c
@@ -828,14 +861,14 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 qboolean G_RadiusDamage( vec3_t origin, gentity_t *attacker, float damage, float radius, gentity_t *ignore, int mod );
 void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath );
 void TossClientItems( gentity_t *self );
+gentity_t* G_BuildHead( gentity_t *ent );
 
 // damage flags
-#define DAMAGE_RADIUS               0x00000001  // damage was indirect
-#define DAMAGE_NO_ARMOR             0x00000002  // armour does not protect from this damage
-#define DAMAGE_NO_KNOCKBACK         0x00000008  // do not affect velocity, just view angles
+#define DAMAGE_RADIUS           0x00000001  // damage was indirect
+#define DAMAGE_NO_ARMOR         0x00000002  // armour does not protect from this damage
+#define DAMAGE_NO_KNOCKBACK     0x00000008  // do not affect velocity, just view angles
+#define DAMAGE_NO_PROTECTION    0x00000020  // armor, shields, invulnerability, and godmode have no effect
 #define DAMAGE_NO_TEAM_PROTECTION   0x00000010  // armor, shields, invulnerability, and godmode have no effect
-#define DAMAGE_NO_PROTECTION        0x00000020  // armor, shields, invulnerability, and godmode have no effect
-#define DAMAGE_PASSTHRU             0x00000040  // damage came through an explosive, or other player, or has in some way already given damage to something
 
 //
 // g_missile.c
@@ -844,31 +877,35 @@ void G_RunMissile( gentity_t *ent );
 int G_PredictMissile( gentity_t *ent, int duration, vec3_t endPos, qboolean allowBounce );
 
 // Rafael zombiespit
-void G_RunSpit( gentity_t *ent );
 void G_RunDebris( gentity_t *ent );
 
-void G_RunCrowbar( gentity_t *ent );
+//DHM - Nerve :: server side flamethrower collision
+void G_RunFlamechunk( gentity_t *ent );
 
 //----(SA) removed unused q3a weapon firing
+gentity_t *fire_flamechunk( gentity_t *self, vec3_t start, vec3_t dir );
+
 gentity_t *fire_grenade( gentity_t *self, vec3_t start, vec3_t aimdir, int grenadeWPID );
 gentity_t *fire_rocket( gentity_t *self, vec3_t start, vec3_t dir );
+gentity_t *fire_speargun( gentity_t *self, vec3_t start, vec3_t dir );
 
+//----(SA)	added from MP
+gentity_t *fire_nail( gentity_t *self, vec3_t start, vec3_t forward, vec3_t right, vec3_t up );
+gentity_t *fire_prox( gentity_t *self, vec3_t start, vec3_t aimdir );
+//----(SA)	end
 
 // Rafael sniper
 void fire_lead( gentity_t *self,  vec3_t start, vec3_t dir, int damage );
 qboolean visible( gentity_t *self, gentity_t *other );
 
 gentity_t *fire_mortar( gentity_t *self, vec3_t start, vec3_t dir );
-
-gentity_t *fire_zombiespit( gentity_t *self, vec3_t start, vec3_t dir );
-gentity_t *fire_zombiespirit( gentity_t *self, gentity_t *bolt, vec3_t start, vec3_t dir );
-gentity_t *fire_crowbar( gentity_t *self, vec3_t start, vec3_t dir );
 gentity_t *fire_flamebarrel( gentity_t *self, vec3_t start, vec3_t dir );
 // done
 
 //
 // g_mover.c
 //
+gentity_t *G_TestEntityPosition( gentity_t *ent );
 void G_RunMover( gentity_t *ent );
 void Use_BinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator );
 void G_Activate( gentity_t *ent, gentity_t *activator );
@@ -890,6 +927,7 @@ void Reached_Tramcar( gentity_t *ent );
 // g_misc.c
 //
 void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles );
+void mg42_fire( gentity_t *other );
 
 
 //
@@ -901,12 +939,8 @@ void SnapVectorTowards( vec3_t v, vec3_t to );
 trace_t *CheckMeleeAttack( gentity_t *ent, float dist, qboolean isTest );
 gentity_t *weapon_grenadelauncher_fire( gentity_t *ent, int grenadeWPID );
 // Rafael
-gentity_t *weapon_crowbar_throw( gentity_t *ent );
 
 void CalcMuzzlePoints( gentity_t *ent, int weapon );
-//----(SA) commented out as we have no hook
-//void Weapon_HookFree (gentity_t *ent);
-//void Weapon_HookThink (gentity_t *ent);
 
 // Rafael - for activate
 void CalcMuzzlePointForActivate( gentity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint );
@@ -922,12 +956,11 @@ gentity_t *SelectSpawnPoint( vec3_t avoidPoint, vec3_t origin, vec3_t angles );
 void ClientRespawn(gentity_t *ent);
 void BeginIntermission( void );
 void InitBodyQue( void );
-void ClientSpawn( gentity_t *ent );
+void ClientSpawn( gentity_t *ent, qboolean revived );
 void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod );
 void AddScore( gentity_t *ent, int score );
 void CalculateRanks( void );
 qboolean SpotWouldTelefrag( gentity_t *spot );
-qboolean G_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **modelInfo );
 
 //
 // g_svcmds.c
@@ -935,18 +968,21 @@ qboolean G_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **model
 qboolean    ConsoleCommand( void );
 void G_ProcessIPBans( void );
 qboolean G_FilterPacket( char *from );
+qboolean G_FilterMaxLivesPacket( char *from );
+void AddMaxLivesGUID( char *str );
+void ClearMaxLivesGUID( void );
 
 //
 // g_weapon.c
 //
+void G_BurnMeGood( gentity_t *self, gentity_t *body );
 void FireWeapon( gentity_t *ent );
 
 //
 // g_cmds.c
 //
-void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const char *name, const char *message ); // JPW NERVE removed static declaration so it would link
+void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const char *name, const char *message, qboolean localize ); // JPW NERVE removed static declaration so it would link
 void DeathmatchScoreboardMessage( gentity_t *ent );
-
 
 //
 // g_main.c
@@ -960,11 +996,6 @@ void SendScoreboardMessageToAllClients( void );
 void QDECL G_Printf( const char *fmt, ... ) __attribute__ ((format (printf, 1, 2)));
 void QDECL G_DPrintf( const char *fmt, ... ) __attribute__ ((format (printf, 1, 2)));
 void QDECL G_Error( const char *fmt, ... ) __attribute__ ((noreturn, format (printf, 1, 2)));
-//----(SA)	added
-void G_EndGame( void );
-int G_SendMissionStats( void );   // return '0' if objectives not met, '1' if met
-void G_ChangeLevel( char *mapName );
-//----(SA)	end
 
 //
 // g_client.c
@@ -1007,7 +1038,7 @@ void G_WriteSessionData( void );
 //
 // g_bot.c
 //
-//void G_InitBots( qboolean restart );
+void G_InitBots( qboolean restart );
 char *G_GetBotInfoByNumber( int num );
 char *G_GetBotInfoByName( const char *name );
 void G_CheckBotSpawn( void );
@@ -1040,10 +1071,11 @@ int Cmd_WolfKick_f( gentity_t *ent );
 // Ridah
 
 // g_save.c
-qboolean G_SaveGame( char *username );
-void G_LoadGame( char *username );
-qboolean G_SavePersistant( char *nextmap );
-void G_LoadPersistant( void );
+/*qboolean G_SaveGame(char *username);
+void G_LoadGame(char *username);
+qboolean G_SavePersistant(char *nextmap);
+void G_LoadPersistant(void);
+void G_UpdatePlayTime ( void );*/
 
 // g_script.c
 void G_Script_ScriptParse( gentity_t *ent );
@@ -1060,7 +1092,7 @@ void Props_Chair_Skyboxtouch( gentity_t *ent );
 
 
 extern level_locals_t level;
-extern gentity_t g_entities[MAX_GENTITIES];
+extern gentity_t g_entities[];          //DAJ was explicit set to MAX_ENTITIES
 extern gentity_t       *g_camEnt;
 
 #define	FOFS(x) ((size_t)&(((gentity_t *)0)->x))
@@ -1071,12 +1103,11 @@ extern vmCvar_t g_gametype;
 extern vmCvar_t g_gameskill;
 // done
 
-extern vmCvar_t g_reloading;        //----(SA)	added
-
 extern vmCvar_t g_dedicated;
 extern vmCvar_t g_cheats;
 extern vmCvar_t g_maxclients;               // allow this many total, including spectators
 extern vmCvar_t g_maxGameClients;           // allow this many active
+extern vmCvar_t g_minGameClients;           // NERVE - SMF - we need at least this many before match actually starts
 extern vmCvar_t g_restarted;
 
 extern vmCvar_t g_dmflags;
@@ -1096,14 +1127,22 @@ extern vmCvar_t g_debugMove;
 extern vmCvar_t g_debugAlloc;
 extern vmCvar_t g_debugDamage;
 extern vmCvar_t g_debugBullets;     //----(SA)	added
-extern vmCvar_t g_debugAudibleEvents;       //----(SA)	added
-extern vmCvar_t g_headshotMaxDist;      //----(SA)	added
 extern vmCvar_t g_weaponRespawn;
 extern vmCvar_t g_synchronousClients;
 extern vmCvar_t g_motd;
 extern vmCvar_t g_warmup;
-extern vmCvar_t g_blood;
-extern vmCvar_t g_allowVote;
+extern vmCvar_t g_voteFlags;
+
+// DHM - Nerve :: The number of complaints allowed before kick/ban
+extern vmCvar_t g_complaintlimit;
+extern vmCvar_t g_maxlives;                 // DHM - Nerve :: number of respawns allowed (0==infinite)
+extern vmCvar_t g_voiceChatsAllowed;        // DHM - Nerve :: number before spam control
+extern vmCvar_t g_alliedmaxlives;           // Xian
+extern vmCvar_t g_axismaxlives;             // Xian
+extern vmCvar_t g_fastres;                  // Xian - Fast medic res'ing
+extern vmCvar_t g_fastResMsec;
+extern vmCvar_t g_knifeonly;                // Xian - Wacky Knife-Only rounds
+extern vmCvar_t g_enforcemaxlives;          // Xian - Temp ban with maxlives between rounds
 
 extern vmCvar_t g_weaponTeamRespawn;
 extern vmCvar_t g_doWarmup;
@@ -1134,9 +1173,6 @@ extern vmCvar_t g_forceModel;
 
 extern vmCvar_t g_mg42arc;
 
-extern vmCvar_t g_totalPlayTime;
-extern vmCvar_t g_attempts;
-
 extern vmCvar_t g_footstepAudibleRange;
 // JPW NERVE multiplayer
 extern vmCvar_t g_redlimbotime;
@@ -1145,15 +1181,32 @@ extern vmCvar_t g_medicChargeTime;
 extern vmCvar_t g_engineerChargeTime;
 extern vmCvar_t g_LTChargeTime;
 extern vmCvar_t g_soldierChargeTime;
+extern vmCvar_t sv_screenshake;
 // jpw
 
-extern vmCvar_t g_playerStart;      //----(SA)	added
+// NERVE - SMF
+extern vmCvar_t g_warmupLatch;
+extern vmCvar_t g_nextTimeLimit;
+extern vmCvar_t g_showHeadshotRatio;
+extern vmCvar_t g_userTimeLimit;
+extern vmCvar_t g_userAlliedRespawnTime;
+extern vmCvar_t g_userAxisRespawnTime;
+extern vmCvar_t g_currentRound;
+extern vmCvar_t g_noTeamSwitching;
+extern vmCvar_t g_altStopwatchMode;
+extern vmCvar_t g_gamestate;
+extern vmCvar_t g_swapteams;
+// -NERVE - SMF
+
+//Gordon
+extern vmCvar_t g_antilag;
+
+extern vmCvar_t g_dbgRevive;
 
 extern vmCvar_t g_localTeamPref;
 
 void	trap_Print( const char *text );
 void	trap_Error( const char *text ) __attribute__((noreturn));
-void    trap_Endgame( void );   //----(SA)	added
 int     trap_Milliseconds( void );
 int	trap_RealTime( qtime_t *qtime );
 int     trap_Argc( void );
@@ -1248,7 +1301,6 @@ int         trap_AAS_PredictClientMovement( void /* aas_clientmove_s */ *move, i
 void        trap_AAS_RT_ShowRoute( vec3_t srcpos, int srcnum, int destnum );
 qboolean    trap_AAS_RT_GetHidePos( vec3_t srcpos, int srcnum, int srcarea, vec3_t destpos, int destnum, int destarea, vec3_t returnPos );
 int         trap_AAS_FindAttackSpotWithinRange( int srcnum, int rangenum, int enemynum, float rangedist, int travelflags, float *outpos );
-qboolean    trap_AAS_GetRouteFirstVisPos( vec3_t srcpos, vec3_t destpos, int travelflags, vec3_t retpos );
 void        trap_AAS_SetAASBlockingEntity( vec3_t absmin, vec3_t absmax, qboolean blocking );
 // done.
 
@@ -1367,9 +1419,6 @@ int     trap_GeneticParentsAndChildSelection( int numranks, float *ranks, int *p
 
 void    trap_SnapVector( float *v );
 
-// New in IORTCW
-void	*trap_Alloc( int size );
-
 typedef enum
 {
 	shard_glass = 0,
@@ -1378,3 +1427,8 @@ typedef enum
 	shard_ceramic,
 	shard_rubble
 } shards_t;
+
+// g_antilag.c
+void G_StoreClientPosition( gentity_t* ent );
+void G_HistoricalTrace( gentity_t* ent, trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
+void G_ResetMarkers( gentity_t* ent );

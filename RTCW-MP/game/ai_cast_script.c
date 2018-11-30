@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -59,7 +59,6 @@ qboolean AICast_ScriptAction_GotoCast( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_WalkToCast( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_CrouchToCast( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_Wait( cast_state_t *cs, char *params );
-qboolean AICast_ScriptAction_AbortIfLoadgame( cast_state_t *cs, char *params );	//----(SA)	added
 qboolean AICast_ScriptAction_Trigger( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_FollowCast( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_PlaySound( cast_state_t *cs, char *params );
@@ -71,8 +70,6 @@ qboolean AICast_ScriptAction_SetAmmo( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_SetClip( cast_state_t *cs, char *params );			//----(SA)	added
 qboolean AICast_ScriptAction_SelectWeapon( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_GiveArmor( cast_state_t *cs, char *params );		//----(SA)	added
-qboolean AICast_ScriptAction_SetArmor( cast_state_t *cs, char *params );		//----(SA)	added
-qboolean AICast_ScriptAction_SuggestWeapon( cast_state_t *cs, char *params );	//----(SA)	added
 qboolean AICast_ScriptAction_GiveWeapon( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_GiveInventory( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_TakeWeapon( cast_state_t *cs, char *params );
@@ -84,8 +81,7 @@ qboolean AICast_ScriptAction_GodMode( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_Accum( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_SpawnCast( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_MissionFailed( cast_state_t *cs, char *params );
-qboolean AICast_ScriptAction_ObjectiveMet( cast_state_t *cs, char *params );
-qboolean AICast_ScriptAction_ObjectivesNeeded( cast_state_t *cs, char *params );
+qboolean AICast_ScriptAction_MissionSuccess( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_NoAIDamage( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_Print( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_FaceTargetAngles( cast_state_t *cs, char *params );
@@ -94,8 +90,6 @@ qboolean AICast_ScriptAction_Mount( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_Unmount( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_SavePersistant( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_ChangeLevel( cast_state_t *cs, char *params );
-qboolean AICast_ScriptAction_EndGame( cast_state_t *cs, char *params );			//----(SA)	added
-qboolean AICast_ScriptAction_Teleport( cast_state_t *cs, char *params );		//----(SA)	added
 qboolean AICast_ScriptAction_FoundSecret( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_NoSight( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_Sight( cast_state_t *cs, char *params );
@@ -111,27 +105,13 @@ qboolean AICast_ScriptAction_StateType( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_KnockBack( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_Zoom( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_Parachute( cast_state_t *cs, char *params );
-qboolean AICast_ScriptAction_Cigarette( cast_state_t *cs, char *params );		//----(SA)	added
-qboolean AICast_ScriptAction_StartCam( cast_state_t *cs, char *params );
-qboolean AICast_ScriptAction_StopCam( cast_state_t *cs, char *params );			//----(SA)	added
-qboolean AICast_ScriptAction_StartCamBlack( cast_state_t *cs, char *params );
+qboolean AICast_ScriptAction_StartCam( cast_state_t *cs, char *params );		//----(SA)	added
+qboolean AICast_ScriptAction_StartCamBlack( cast_state_t *cs, char *params );	//----(SA)	added
 qboolean AICast_ScriptAction_EntityScriptName( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_AIScriptName( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_SetHealth( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_NoTarget( cast_state_t *cs, char *params );
 qboolean AICast_ScriptAction_Cvar( cast_state_t *cs, char *params );
-
-qboolean AICast_ScriptAction_MusicStart( cast_state_t *cs, char *params );		//----(SA)
-qboolean AICast_ScriptAction_MusicPlay( cast_state_t *cs, char *params );		//----(SA)
-qboolean AICast_ScriptAction_MusicStop( cast_state_t *cs, char *params );		//----(SA)
-qboolean AICast_ScriptAction_MusicFade( cast_state_t *cs, char *params );		//----(SA)
-qboolean AICast_ScriptAction_MusicQueue( cast_state_t *cs, char *params );		//----(SA)
-
-qboolean AICast_ScriptAction_ExplicitRouting( cast_state_t *cs, char *params );
-qboolean AICast_ScriptAction_LockPlayer( cast_state_t *cs, char *params );
-qboolean AICast_ScriptAction_AnimCondition( cast_state_t *cs, char *params );
-qboolean AICast_ScriptAction_PushAway( cast_state_t *cs, char *params );
-qboolean AICast_ScriptAction_CatchFire( cast_state_t *cs, char *params );
 
 // these are the actions that each event can call
 cast_script_stack_action_t scriptActions[] =
@@ -149,16 +129,13 @@ cast_script_stack_action_t scriptActions[] =
 	{"playanim",     AICast_ScriptAction_PlayAnim},
 	{"clearanim",        AICast_ScriptAction_ClearAnim},
 	{"wait",         AICast_ScriptAction_Wait},
-	{"abort_if_loadgame",AICast_ScriptAction_AbortIfLoadgame},		//----(SA)	added
 	{"trigger",          AICast_ScriptAction_Trigger},
 	{"setammo",          AICast_ScriptAction_SetAmmo},
 	{"setclip",          AICast_ScriptAction_SetClip},				//----(SA)	added
 	{"selectweapon", AICast_ScriptAction_SelectWeapon},
 	{"noattack",     AICast_ScriptAction_NoAttack},
-	{"suggestweapon",    AICast_ScriptAction_SuggestWeapon},		//----(SA)	added
 	{"attack",           AICast_ScriptAction_Attack},
 	{"givearmor",        AICast_ScriptAction_GiveArmor},			//----(SA)	added
-	{"setarmor",     AICast_ScriptAction_SetArmor},					//----(SA)	added
 	{"giveinventory",    AICast_ScriptAction_GiveInventory},
 	{"giveweapon",       AICast_ScriptAction_GiveWeapon},
 	{"takeweapon",       AICast_ScriptAction_TakeWeapon},
@@ -170,9 +147,7 @@ cast_script_stack_action_t scriptActions[] =
 	{"accum",            AICast_ScriptAction_Accum},
 	{"spawncast",        AICast_ScriptAction_SpawnCast},
 	{"missionfailed",    AICast_ScriptAction_MissionFailed},
-	{"missionsuccess",   AICast_ScriptAction_ObjectiveMet},
-	{"objectivemet", AICast_ScriptAction_ObjectiveMet},				// dupe of missionsuccess so scripts can changeover to a more logical name
-	{"objectivesneeded",AICast_ScriptAction_ObjectivesNeeded},
+	{"missionsuccess",   AICast_ScriptAction_MissionSuccess},
 	{"noaidamage",       AICast_ScriptAction_NoAIDamage},
 	{"print",            AICast_ScriptAction_Print},
 	{"facetargetangles",AICast_ScriptAction_FaceTargetAngles},
@@ -181,8 +156,6 @@ cast_script_stack_action_t scriptActions[] =
 	{"unmount",          AICast_ScriptAction_Unmount},
 	{"savepersistant",   AICast_ScriptAction_SavePersistant},
 	{"changelevel",      AICast_ScriptAction_ChangeLevel},
-	{"endgame",          AICast_ScriptAction_EndGame},				//----(SA)	added
-	{"teleport",     AICast_ScriptAction_Teleport},					//----(SA)	added
 	{"foundsecret",      AICast_ScriptAction_FoundSecret},
 	{"nosight",          AICast_ScriptAction_NoSight},
 	{"sight",            AICast_ScriptAction_Sight},
@@ -199,29 +172,13 @@ cast_script_stack_action_t scriptActions[] =
 	{"knockback",        AICast_ScriptAction_KnockBack},
 	{"zoom",         AICast_ScriptAction_Zoom},
 	{"parachute",        AICast_ScriptAction_Parachute},
-	{"cigarette",        AICast_ScriptAction_Cigarette},			//----(SA)	added
-	{"startcam",     AICast_ScriptAction_StartCam},
-	{"startcamblack",    AICast_ScriptAction_StartCamBlack},
-	{"stopcam",          AICast_ScriptAction_StopCam},				//----(SA)	added
+	{"startcam",     AICast_ScriptAction_StartCam},				//----(SA)	added
+	{"startcamblack",    AICast_ScriptAction_StartCamBlack},	//----(SA)	added
 	{"entityscriptname",AICast_ScriptAction_EntityScriptName},
 	{"aiscriptname", AICast_ScriptAction_AIScriptName},
 	{"sethealth",        AICast_ScriptAction_SetHealth},
 	{"notarget",     AICast_ScriptAction_NoTarget},
 	{"cvar",         AICast_ScriptAction_Cvar},
-
-//----(SA)	added some music interface
-	{"mu_start",     AICast_ScriptAction_MusicStart},			// (char *new_music, int time)	// time to fade in
-	{"mu_play",          AICast_ScriptAction_MusicPlay},		// (char *new_music)
-	{"mu_stop",          AICast_ScriptAction_MusicStop},		// (int time)	// time to fadeout
-	{"mu_fade",          AICast_ScriptAction_MusicFade},		// (float target_volume, int time)	// time to fade to target
-	{"mu_queue",     AICast_ScriptAction_MusicQueue},			// (char *new_music)	// music that will start when previous fades to 0
-//----(SA)	end
-
-	{"explicit_routing", AICast_ScriptAction_ExplicitRouting},
-	{"lockplayer",       AICast_ScriptAction_LockPlayer},
-	{"anim_condition",   AICast_ScriptAction_AnimCondition},
-	{"pushaway",     AICast_ScriptAction_PushAway},
-	{"catchfire",        AICast_ScriptAction_CatchFire},
 
 	{NULL,              0}
 };
@@ -234,13 +191,12 @@ qboolean AICast_EventMatch_IntInRange( cast_script_event_t *event, char *eventPa
 cast_script_event_define_t scriptEvents[] =
 {
 	{"spawn",            0},          // called as each character is spawned into the game
-	{"playerstart",      0},          // called when player hits 'start' button
 	{"enemysight",       AICast_EventMatch_StringEqual}, // enemy has been sighted for the first time (once only)
 	{"sight",            AICast_EventMatch_StringEqual}, // non-enemy has been sighted for the first time (once only)
 	{"enemydead",        AICast_EventMatch_StringEqual}, // our enemy is now dead
 	{"trigger",          AICast_EventMatch_StringEqual}, // something has triggered us (always followed by an identifier)
 	{"pain",         AICast_EventMatch_IntInRange},  // we've been hurt
-	{"death",            AICast_EventMatch_StringEqual},	// RIP
+	{"death",            0},	// RIP
 	{"activate",     AICast_EventMatch_StringEqual}, // "param" has just activated us
 	{"enemysightcorpse",AICast_EventMatch_StringEqual},  // sighted the given enemy as a corpse, for the first time
 	{"friendlysightcorpse", 0},                       // sighted a friendly as a corpse for the first time
@@ -256,12 +212,11 @@ cast_script_event_define_t scriptEvents[] =
 	{"fakedeath",        0},
 	{"bulletimpactsound",    0},
 	{"inspectfriendlycombatstart", 0},
-	{"painenemy",        AICast_EventMatch_StringEqual},
-	{"forced_mg42_unmount",  0},
 
 	{NULL,              0}
 };
 
+int numSecrets;
 
 /*
 ===============
@@ -324,15 +279,14 @@ int AICast_EventForString( char *string ) {
 AICast_ActionForString
 ===============
 */
-cast_script_stack_action_t *AICast_ActionForString( cast_state_t *cs, char *string ) {
+cast_script_stack_action_t *AICast_ActionForString( char *string ) {
 	int i;
 
 	for ( i = 0; scriptActions[i].actionString; i++ )
 	{
 		if ( !Q_strcasecmp( string, scriptActions[i].actionString ) ) {
 			if ( !Q_strcasecmp( string, "foundsecret" ) ) {
-				level.numSecrets++;
-				G_SendMissionStats();
+				numSecrets++;
 			}
 			return &scriptActions[i];
 		}
@@ -405,7 +359,6 @@ void AICast_ScriptParse( cast_state_t *cs ) {
 	cast_script_stack_action_t  *action;
 	int i;
 	int bracketLevel;
-	qboolean buildScript;       //----(SA)	added
 
 	if ( !level.scriptAI ) {
 		return;
@@ -415,8 +368,6 @@ void AICast_ScriptParse( cast_state_t *cs ) {
 	if ( !ent->aiName ) {
 		return;
 	}
-
-	buildScript = qtrue;
 
 	pScript = level.scriptAI;
 	wantName = qtrue;
@@ -513,7 +464,7 @@ void AICast_ScriptParse( cast_state_t *cs ) {
 					G_Error( "AICast_ScriptParse(), Error (line %d): '}' expected, end of script found.\n", COM_GetCurrentParseLine() );
 				}
 
-				action = AICast_ActionForString( cs, token );
+				action = AICast_ActionForString( token );
 				if ( !action ) {
 					G_Error( "AICast_ScriptParse(), Error (line %d): unknown action: %s.\n", COM_GetCurrentParseLine(), token );
 				}
@@ -528,31 +479,9 @@ void AICast_ScriptParse( cast_state_t *cs ) {
 						Q_strcat( params, sizeof( params ), " " );
 					}
 
-					if ( i == 0 ) {
-						// Special case: playsound's need to be cached on startup to prevent in-game pauses
-						if ( !Q_stricmp( action->actionString, "playsound" ) ) {
-							G_SoundIndex( token );
-						}
-
-//----(SA)	added a bit more
-						if (    buildScript && (
-									!Q_stricmp( action->actionString, "mu_start" ) ||
-									!Q_stricmp( action->actionString, "mu_play" ) ||
-									!Q_stricmp( action->actionString, "mu_queue" ) ||
-									!Q_stricmp( action->actionString, "startcam" ) ||
-									!Q_stricmp( action->actionString, "startcamblack" ) )
-								) {
-							if ( strlen( token ) ) { // we know there's a [0], but don't know if it's '0'
-								trap_SendServerCommand( cs->entityNum, va( "addToBuild %s\n", token ) );
-							}
-						}
-
-						if ( !Q_stricmp( action->actionString, "giveweapon" ) ) { // register weapon for client pre-loading
-							gitem_t *weap = BG_FindItem2( token );    // (SA) FIXME: rats, need to fix this for weapon names with spaces: 'mauser rifle'
-//							if(weap)
-							RegisterItem( weap );   // don't be nice, just do it.  if it can't find it, you'll bomb out to the error menu
-						}
-//----(SA)	end
+					// Special case: playsound's need to be cached on startup to prevent in-game pauses
+					if ( ( i == 0 ) && !Q_stricmp( action->actionString, "playsound" ) ) {
+						G_SoundIndex( token );
 					}
 
 					if ( strrchr( token,' ' ) ) { // need to wrap this param in quotes since it has more than one word
@@ -737,6 +666,14 @@ AICast_ScriptRun
 qboolean AICast_ScriptRun( cast_state_t *cs, qboolean force ) {
 	cast_script_stack_t *stack;
 
+	if ( saveGamePending ) {
+		return qfalse;
+	}
+
+	if ( strlen( g_missionStats.string ) > 1 ) {
+		return qfalse;
+	}
+
 	if ( !aicast_scripts.integer ) {
 		return qtrue;
 	}
@@ -748,14 +685,6 @@ qboolean AICast_ScriptRun( cast_state_t *cs, qboolean force ) {
 	if ( !cs->castScriptEvents ) {
 		cs->castScriptStatus.castScriptEventIndex = -1;
 		return qtrue;
-	}
-
-	// only allow the PLAYER'S spawn function through if we're NOT still waiting on everything to finish loading in
-	if ( !cs->entityNum && saveGamePending && Q_stricmp( "spawn", scriptEvents[cs->castScriptEvents[cs->castScriptStatus.castScriptEventIndex].eventNum].eventStr ) ) {
-		//char loading[4];
-		//trap_Cvar_VariableStringBuffer( "savegame_loading", loading, sizeof(loading) );
-		//if (strlen( loading ) > 0 && atoi(loading) != 0)	// we're loading a savegame
-		return qfalse;
 	}
 
 	if ( !force && ( cs->scriptPauseTime >= level.time ) ) {
@@ -781,10 +710,7 @@ qboolean AICast_ScriptRun( cast_state_t *cs, qboolean force ) {
 		}
 		//
 		if ( !stack->items[cs->castScriptStatus.castScriptStackHead].action->actionFunc( cs, stack->items[cs->castScriptStatus.castScriptStackHead].params ) ) {
-			// check that we are still running the same script that we were when we call the action
-			if ( cs->castScriptStatus.castScriptEventIndex >= 0 && stack == &cs->castScriptEvents[cs->castScriptStatus.castScriptEventIndex].stack ) {
-				cs->castScriptStatus.scriptFlags &= ~SFL_FIRST_CALL;
-			}
+			cs->castScriptStatus.scriptFlags &= ~SFL_FIRST_CALL;
 			return qfalse;
 		}
 		// move to the next action in the script

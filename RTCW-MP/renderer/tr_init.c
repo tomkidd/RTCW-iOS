@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -80,11 +80,6 @@ cvar_t  *r_fastsky;
 cvar_t  *r_drawSun;
 cvar_t  *r_dynamiclight;
 cvar_t  *r_dlightBacks;
-cvar_t  *r_dlightScale; //----(SA)	added
-
-cvar_t  *r_waterFogColor;   //----(SA)	added
-cvar_t  *r_mapFogColor;
-cvar_t  *r_savegameFogColor;    //----(SA)	added
 
 cvar_t  *r_lodbias;
 cvar_t  *r_lodscale;
@@ -93,7 +88,7 @@ cvar_t  *r_norefresh;
 cvar_t  *r_drawentities;
 cvar_t  *r_drawworld;
 cvar_t  *r_speeds;
-cvar_t  *r_fullbright;
+cvar_t	*r_fullbright; // JPW NERVE removed per atvi request
 cvar_t  *r_novis;
 cvar_t  *r_nocull;
 cvar_t  *r_facePlaneCull;
@@ -106,8 +101,8 @@ cvar_t  *r_ext_compressed_textures;
 cvar_t  *r_ext_multitexture;
 cvar_t  *r_ext_compiled_vertex_array;
 cvar_t  *r_ext_texture_env_add;
-cvar_t  *r_ext_texture_filter_anisotropic;
 cvar_t	*r_ext_max_anisotropy;
+cvar_t  *r_ext_texture_filter_anisotropic;
 
 #ifndef USE_OPENGLES
 //----(SA)	added
@@ -118,7 +113,7 @@ cvar_t  *r_ext_ATI_pntriangles;
 cvar_t  *r_ati_truform_tess;        //
 cvar_t  *r_ati_truform_normalmode;  // linear/quadratic
 cvar_t  *r_ati_truform_pointmode;   // linear/cubic
-cvar_t  *r_ati_fsaa_samples;        //DAJ valids are 1, 2, 4
+cvar_t  *r_ati_fsaa_samples;        // DAJ valids are 1, 2, 4
 //----(SA)	end
 #endif
 
@@ -144,11 +139,8 @@ cvar_t  *r_mode;
 cvar_t  *r_nobind;
 cvar_t  *r_singleShader;
 cvar_t  *r_roundImagesDown;
-cvar_t  *r_lowMemTextureSize;
-cvar_t  *r_lowMemTextureThreshold;
 cvar_t  *r_colorMipLevels;
 cvar_t  *r_picmip;
-cvar_t  *r_picmip2;
 cvar_t  *r_showtris;
 cvar_t  *r_showsky;
 cvar_t  *r_shownormals;
@@ -197,7 +189,9 @@ cvar_t	*r_screenshotJpegQuality;
 // Ridah
 cvar_t  *r_compressModels;
 cvar_t  *r_exportCompressedModels;
+
 cvar_t  *r_buildScript;
+
 cvar_t  *r_bonesDebug;
 // done.
 
@@ -212,11 +206,6 @@ cvar_t  *r_maxpolys;
 int max_polys;
 cvar_t  *r_maxpolyverts;
 int max_polyverts;
-
-#ifndef GLimp_Minimize
-static void GLimp_Minimize(void) {
-}
-#endif
 
 #ifndef USE_OPENGLES
 //----(SA)	added
@@ -404,7 +393,6 @@ qboolean R_GetModeInfo( int *width, int *height, float *windowAspect, int mode )
 	if ( mode == -1 ) {
 		*width = r_customwidth->integer;
 		*height = r_customheight->integer;
-
 		pixelAspect = r_customPixelAspect->value;
 	} else {
 		vm = &r_vidModes[mode];
@@ -468,7 +456,8 @@ Stores the length of padding after a line of pixels to address padlen
 
 Return value must be freed with ri.Hunk_FreeTempMemory()
 ================== 
-*/
+*/  
+
 byte *RB_ReadPixels(int x, int y, int width, int height, size_t *offset, int *padlen)
 {
 	byte *buffer, *bufstart;
@@ -482,7 +471,7 @@ byte *RB_ReadPixels(int x, int y, int width, int height, size_t *offset, int *pa
 	
 	// Allocate a few more bytes so that we can choose an alignment we like
 	buffer = ri.Hunk_AllocateTempMemory(padwidth * height + *offset + packAlign - 1);
-	
+
 #ifdef USE_OPENGLES
 	bufstart=buffer;
 	padwidth=linelen;
@@ -500,8 +489,8 @@ byte *RB_ReadPixels(int x, int y, int width, int height, size_t *offset, int *pa
 #else
 	bufstart = PADP((intptr_t) buffer + *offset, packAlign);
 	qglReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, bufstart);
-#endif	
-
+#endif
+	
 	*offset = bufstart - buffer;
 	*padlen = padwidth - linelen;
 	
@@ -570,10 +559,11 @@ void RB_TakeScreenshot(int x, int y, int width, int height, char *fileName)
 }
 
 /* 
-+================== 
-+RB_TakeScreenshotJPEG
-+==================
+================== 
+RB_TakeScreenshotJPEG
+================== 
 */
+
 void RB_TakeScreenshotJPEG(int x, int y, int width, int height, char *fileName)
 {
 	byte *buffer;
@@ -606,7 +596,7 @@ const void *RB_TakeScreenshotCmd( const void *data ) {
 	else
 		RB_TakeScreenshot( cmd->x, cmd->y, cmd->width, cmd->height, cmd->fileName);
 	
-	return (const void *)(cmd + 1);
+	return (const void *)(cmd + 1);	
 }
 
 /*
@@ -637,9 +627,9 @@ void R_TakeScreenshot( int x, int y, int width, int height, char *name, qboolean
 ================== 
 R_ScreenshotFilename
 ================== 
-*/
+*/  
 void R_ScreenshotFilename( int lastNumber, char *fileName ) {
-	int a,b,c,d;
+	int		a,b,c,d;
 
 	if ( lastNumber < 0 || lastNumber > 9999 ) {
 		Com_sprintf( fileName, MAX_OSPATH, "screenshots/shot9999.tga" );
@@ -647,24 +637,24 @@ void R_ScreenshotFilename( int lastNumber, char *fileName ) {
 	}
 
 	a = lastNumber / 1000;
-	lastNumber -= a * 1000;
+	lastNumber -= a*1000;
 	b = lastNumber / 100;
-	lastNumber -= b * 100;
+	lastNumber -= b*100;
 	c = lastNumber / 10;
-	lastNumber -= c * 10;
+	lastNumber -= c*10;
 	d = lastNumber;
 
 	Com_sprintf( fileName, MAX_OSPATH, "screenshots/shot%i%i%i%i.tga"
-				 , a, b, c, d );
+		, a, b, c, d );
 }
 
 /* 
 ================== 
-R_ScreenshotFilenameJPEG
+R_ScreenshotFilename
 ================== 
-*/
+*/  
 void R_ScreenshotFilenameJPEG( int lastNumber, char *fileName ) {
-	int a,b,c,d;
+	int		a,b,c,d;
 
 	if ( lastNumber < 0 || lastNumber > 9999 ) {
 		Com_sprintf( fileName, MAX_OSPATH, "screenshots/shot9999.jpg" );
@@ -672,15 +662,15 @@ void R_ScreenshotFilenameJPEG( int lastNumber, char *fileName ) {
 	}
 
 	a = lastNumber / 1000;
-	lastNumber -= a * 1000;
+	lastNumber -= a*1000;
 	b = lastNumber / 100;
-	lastNumber -= b * 100;
+	lastNumber -= b*100;
 	c = lastNumber / 10;
-	lastNumber -= c * 10;
+	lastNumber -= c*10;
 	d = lastNumber;
 
 	Com_sprintf( fileName, MAX_OSPATH, "screenshots/shot%i%i%i%i.jpg"
-				 , a, b, c, d );
+		, a, b, c, d );
 }
 
 /*
@@ -742,16 +732,16 @@ void R_LevelShot( void ) {
 		R_GammaCorrect( buffer + 18, 128 * 128 * 3 );
 	}
 
-	ri.FS_WriteFile( checkname, buffer, 128 * 128 * 3 + 18 );
+	ri.FS_WriteFile( checkname, buffer, 128 * 128*3 + 18 );
 
-	ri.Hunk_FreeTempMemory( buffer );
-	ri.Hunk_FreeTempMemory( allsource );
+	ri.Hunk_FreeTempMemory(buffer);
+	ri.Hunk_FreeTempMemory(allsource);
 
 	ri.Printf( PRINT_ALL, "Wrote %s\n", checkname );
 }
 
 /* 
-==================
+================== 
 R_ScreenShot_f
 
 screenshot
@@ -767,12 +757,12 @@ void R_ScreenShot_f (void) {
 	static	int	lastNumber = -1;
 	qboolean	silent;
 
-	if ( !strcmp( ri.Cmd_Argv( 1 ), "levelshot" ) ) {
+	if ( !strcmp( ri.Cmd_Argv(1), "levelshot" ) ) {
 		R_LevelShot();
 		return;
 	}
 
-	if ( !strcmp( ri.Cmd_Argv( 1 ), "silent" ) ) {
+	if ( !strcmp( ri.Cmd_Argv(1), "silent" ) ) {
 		silent = qtrue;
 	} else {
 		silent = qfalse;
@@ -794,16 +784,16 @@ void R_ScreenShot_f (void) {
 		for ( ; lastNumber <= 9999 ; lastNumber++ ) {
 			R_ScreenshotFilename( lastNumber, checkname );
 
-			if (!ri.FS_FileExists( checkname ))
-			{
-				break; // file doesn't exist
-			}
+      if (!ri.FS_FileExists( checkname ))
+      {
+        break; // file doesn't exist
+      }
 		}
 
 		if ( lastNumber >= 9999 ) {
-			ri.Printf( PRINT_ALL, "ScreenShot: Couldn't create a file\n" );
+			ri.Printf (PRINT_ALL, "ScreenShot: Couldn't create a file\n"); 
 			return;
-		}
+ 		}
 
 		lastNumber++;
 	}
@@ -811,21 +801,21 @@ void R_ScreenShot_f (void) {
 	R_TakeScreenshot( 0, 0, glConfig.vidWidth, glConfig.vidHeight, checkname, qfalse );
 
 	if ( !silent ) {
-		ri.Printf( PRINT_ALL, "Wrote %s\n", checkname );
+		ri.Printf (PRINT_ALL, "Wrote %s\n", checkname);
 	}
-}
+} 
 
 void R_ScreenShotJPEG_f (void) {
 	char		checkname[MAX_OSPATH];
 	static	int	lastNumber = -1;
 	qboolean	silent;
 
-	if ( !strcmp( ri.Cmd_Argv( 1 ), "levelshot" ) ) {
+	if ( !strcmp( ri.Cmd_Argv(1), "levelshot" ) ) {
 		R_LevelShot();
 		return;
 	}
 
-	if ( !strcmp( ri.Cmd_Argv( 1 ), "silent" ) ) {
+	if ( !strcmp( ri.Cmd_Argv(1), "silent" ) ) {
 		silent = qtrue;
 	} else {
 		silent = qfalse;
@@ -847,16 +837,16 @@ void R_ScreenShotJPEG_f (void) {
 		for ( ; lastNumber <= 9999 ; lastNumber++ ) {
 			R_ScreenshotFilenameJPEG( lastNumber, checkname );
 
-			if (!ri.FS_FileExists( checkname ))
-			{
-				break; // file doesn't exist
-			}
+      if (!ri.FS_FileExists( checkname ))
+      {
+        break; // file doesn't exist
+      }
 		}
 
 		if ( lastNumber == 10000 ) {
-			ri.Printf( PRINT_ALL, "ScreenShot: Couldn't create a file\n" );
+			ri.Printf (PRINT_ALL, "ScreenShot: Couldn't create a file\n"); 
 			return;
-		}
+ 		}
 
 		lastNumber++;
 	}
@@ -864,9 +854,9 @@ void R_ScreenShotJPEG_f (void) {
 	R_TakeScreenshot( 0, 0, glConfig.vidWidth, glConfig.vidHeight, checkname, qtrue );
 
 	if ( !silent ) {
-		ri.Printf( PRINT_ALL, "Wrote %s\n", checkname );
+		ri.Printf (PRINT_ALL, "Wrote %s\n", checkname);
 	}
-}
+} 
 
 //============================================================================
 
@@ -913,7 +903,7 @@ const void *RB_TakeVideoFrameCmd( const void *data )
 			r_aviMotionJpegQuality->integer,
 			cmd->width, cmd->height, cBuf, padlen);
 		ri.CL_WriteAVIVideoFrame(cmd->encodeBuffer, memcount);
- 	}
+	}
 	else
 	{
 		byte *lineend, *memend;
@@ -946,6 +936,8 @@ const void *RB_TakeVideoFrameCmd( const void *data )
 
 	return (const void *)(cmd + 1);	
 }
+
+//============================================================================
 
 /*
 ** GL_SetDefaultState
@@ -995,7 +987,7 @@ void GL_SetDefaultState( void ) {
 	qglDisable( GL_CULL_FACE );
 	qglDisable( GL_BLEND );
 
-#if !defined(USE_OPENGLES) && !defined(IOS)
+#ifndef USE_OPENGLES
 //----(SA)	added.
 	// ATI pn_triangles
 	if ( qglPNTrianglesiATI ) {
@@ -1023,7 +1015,7 @@ void GL_SetDefaultState( void ) {
 		glConfig.maxAnisotropy = maxAnisotropy;
 
 		// set when rendering
-		// glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, glConfig.maxAnisotropy);
+		//qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, glConfig.maxAnisotropy);
 	}
 #endif
 //----(SA)	end
@@ -1087,8 +1079,8 @@ void GfxInfo_f( void ) {
 	ri.Printf( PRINT_ALL, "GL_RENDERER: %s\n", glConfig.renderer_string );
 	ri.Printf( PRINT_ALL, "GL_VERSION: %s\n", glConfig.version_string );
 	ri.Printf( PRINT_ALL, "GL_EXTENSIONS: " );
-#if !defined(USE_OPENGLES) && !defined(IOS)
-    if ( qglGetStringi )
+#ifndef USE_OPENGLES
+	if ( qglGetStringi )
 	{
 		GLint numExtensions;
 		int i;
@@ -1154,7 +1146,6 @@ void GfxInfo_f( void ) {
 
 	ri.Printf( PRINT_ALL, "texturemode: %s\n", r_textureMode->string );
 	ri.Printf( PRINT_ALL, "picmip: %d\n", r_picmip->integer );
-	ri.Printf( PRINT_ALL, "picmip2: %d\n", r_picmip2->integer );
 	ri.Printf( PRINT_ALL, "texture bits: %d\n", r_texturebits->integer );
 	ri.Printf( PRINT_ALL, "multitexture: %s\n", enablestrings[qglActiveTextureARB != 0] );
 	ri.Printf( PRINT_ALL, "compiled vertex arrays: %s\n", enablestrings[qglLockArraysEXT != 0 ] );
@@ -1162,14 +1153,6 @@ void GfxInfo_f( void ) {
 	ri.Printf( PRINT_ALL, "compressed textures: %s\n", enablestrings[glConfig.textureCompression != TC_NONE] );
 
 #ifndef USE_OPENGLES
-	ri.Printf( PRINT_ALL, "ATI truform: %s\n", enablestrings[qglPNTrianglesiATI != 0] );
-	if ( qglPNTrianglesiATI ) {
-//DAJ bogus at this point		ri.Printf( PRINT_ALL, "MAX_PN_TRIANGLES_TESSELATION_LEVEL_ATI: %d\n", glConfig.ATIMaxTruformTess );
-		ri.Printf( PRINT_ALL, "Truform Tess: %d\n", r_ati_truform_tess->integer );
-		ri.Printf( PRINT_ALL, "Truform Point Mode: %s\n", r_ati_truform_pointmode->string );
-		ri.Printf( PRINT_ALL, "Truform Normal Mode: %s\n", r_ati_truform_normalmode->string );
-	}
-
 	ri.Printf( PRINT_ALL, "NV distance fog: %s\n", enablestrings[glConfig.NVFogAvailable != 0] );
 	if ( glConfig.NVFogAvailable ) {
 		ri.Printf( PRINT_ALL, "Fog Mode: %s\n", r_nv_fogdist_mode->string );
@@ -1189,9 +1172,6 @@ void GfxInfo_f( void ) {
 		ri.Printf( PRINT_ALL, "Forcing glFinish\n" );
 	}
 }
-
-// RF
-extern void R_CropImages_f( void );
 
 /*
 ===============
@@ -1216,13 +1196,12 @@ void R_Register( void ) {
 //----(SA)	added
 	r_ext_ATI_pntriangles           = ri.Cvar_Get( "r_ext_ATI_pntriangles", "0", CVAR_ARCHIVE | CVAR_LATCH );   //----(SA)	default to '0'
 	r_ati_truform_tess              = ri.Cvar_Get( "r_ati_truform_tess", "1", CVAR_ARCHIVE );
-// GR - Change default mode -- linear doesn't do much...
-	r_ati_truform_normalmode        = ri.Cvar_Get( "r_ati_truform_normalmode", "QUADRATIC", CVAR_ARCHIVE );
-	r_ati_truform_pointmode         = ri.Cvar_Get( "r_ati_truform_pointmode", "CUBIC", CVAR_ARCHIVE );
+	r_ati_truform_normalmode        = ri.Cvar_Get( "r_ati_truform_normalmode", "GL_PN_TRIANGLES_NORMAL_MODE_LINEAR", CVAR_ARCHIVE );
+	r_ati_truform_pointmode         = ri.Cvar_Get( "r_ati_truform_pointmode", "GL_PN_TRIANGLES_POINT_MODE_LINEAR", CVAR_ARCHIVE );
 
 	r_ati_fsaa_samples              = ri.Cvar_Get( "r_ati_fsaa_samples", "1", CVAR_ARCHIVE );       //DAJ valids are 1, 2, 4
 
-	r_ext_NV_fog_dist                   = ri.Cvar_Get( "r_ext_NV_fog_dist", "1", CVAR_ARCHIVE | CVAR_LATCH );
+	r_ext_NV_fog_dist                   = ri.Cvar_Get( "r_ext_NV_fog_dist", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_nv_fogdist_mode                   = ri.Cvar_Get( "r_nv_fogdist_mode", "GL_EYE_RADIAL_NV", CVAR_ARCHIVE );    // default to 'looking good'
 //----(SA)	end
 #endif
@@ -1232,21 +1211,15 @@ void R_Register( void ) {
 	r_ext_texture_filter_anisotropic = ri.Cvar_Get( "r_ext_texture_filter_anisotropic", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_ext_max_anisotropy = ri.Cvar_Get( "r_ext_max_anisotropy", "2", CVAR_ARCHIVE | CVAR_LATCH );
 
-	r_picmip = ri.Cvar_Get( "r_picmip", "1", CVAR_ARCHIVE | CVAR_LATCH );
-	r_picmip2 = ri.Cvar_Get( "r_picmip2", "2", CVAR_ARCHIVE | CVAR_LATCH );   // used for character skins picmipping at a different level from the rest of the game
+	r_picmip = ri.Cvar_Get( "r_picmip", "1", CVAR_ARCHIVE | CVAR_LATCH ); //----(SA)	mod for DM and DK for id build.  was "1" // JPW NERVE pushed back to 1
 	r_roundImagesDown = ri.Cvar_Get( "r_roundImagesDown", "1", CVAR_ARCHIVE | CVAR_LATCH );
-	r_lowMemTextureSize = ri.Cvar_Get( "r_lowMemTextureSize", "0", CVAR_ARCHIVE | CVAR_LATCH );
-	r_lowMemTextureThreshold = ri.Cvar_Get( "r_lowMemTextureThreshold", "15.0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_rmse = ri.Cvar_Get( "r_rmse", "0.0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_colorMipLevels = ri.Cvar_Get( "r_colorMipLevels", "0", CVAR_LATCH );
 	ri.Cvar_CheckRange( r_picmip, 0, 16, qtrue );
-	ri.Cvar_CheckRange( r_picmip2, 0, 16, qtrue );
 	r_detailTextures = ri.Cvar_Get( "r_detailtextures", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_texturebits = ri.Cvar_Get( "r_texturebits", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_colorbits = ri.Cvar_Get( "r_colorbits", "0", CVAR_ARCHIVE | CVAR_LATCH );
-
 	r_stencilbits = ri.Cvar_Get( "r_stencilbits", "0", CVAR_ARCHIVE | CVAR_LATCH );
-
 	r_depthbits = ri.Cvar_Get( "r_depthbits", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_ext_multisample = ri.Cvar_Get( "r_ext_multisample", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_ext_multisample, 0, 4, qtrue );
@@ -1269,7 +1242,6 @@ void R_Register( void ) {
 	r_subdivisions = ri.Cvar_Get( "r_subdivisions", "4", CVAR_ARCHIVE | CVAR_LATCH );
 	r_stereoEnabled = ri.Cvar_Get( "r_stereoEnabled", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	r_ignoreFastPath = ri.Cvar_Get( "r_ignoreFastPath", "1", CVAR_ARCHIVE | CVAR_LATCH );
-
 	r_greyscale = ri.Cvar_Get("r_greyscale", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	ri.Cvar_CheckRange(r_greyscale, 0, 1, qfalse);
 
@@ -1278,7 +1250,7 @@ void R_Register( void ) {
 	//
 	r_displayRefresh = ri.Cvar_Get( "r_displayRefresh", "0", CVAR_LATCH );
 	ri.Cvar_CheckRange( r_displayRefresh, 0, 200, qtrue );
-	r_fullbright = ri.Cvar_Get( "r_fullbright", "0", CVAR_LATCH );
+	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", CVAR_LATCH ); // JPW NERVE removed per atvi request
 	r_mapOverBrightBits = ri.Cvar_Get( "r_mapOverBrightBits", "2", CVAR_LATCH );
 	r_intensity = ri.Cvar_Get( "r_intensity", "1", CVAR_LATCH );
 	r_singleShader = ri.Cvar_Get( "r_singleShader", "0", CVAR_CHEAT | CVAR_LATCH );
@@ -1301,7 +1273,6 @@ void R_Register( void ) {
 	r_inGameVideo = ri.Cvar_Get( "r_inGameVideo", "1", CVAR_ARCHIVE );
 	r_drawSun = ri.Cvar_Get( "r_drawSun", "1", CVAR_ARCHIVE );
 	r_dynamiclight = ri.Cvar_Get( "r_dynamiclight", "1", CVAR_ARCHIVE );
-	r_dlightScale = ri.Cvar_Get( "r_dlightScale", "1.0", CVAR_ARCHIVE );   //----(SA)	added
 	r_dlightBacks = ri.Cvar_Get( "r_dlightBacks", "1", CVAR_ARCHIVE );
 	r_finish = ri.Cvar_Get( "r_finish", "0", CVAR_ARCHIVE );
 	r_textureMode = ri.Cvar_Get( "r_textureMode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE );
@@ -1315,10 +1286,6 @@ void R_Register( void ) {
 	r_railWidth = ri.Cvar_Get( "r_railWidth", "16", CVAR_ARCHIVE );
 	r_railCoreWidth = ri.Cvar_Get( "r_railCoreWidth", "1", CVAR_ARCHIVE );
 	r_railSegmentLength = ri.Cvar_Get( "r_railSegmentLength", "32", CVAR_ARCHIVE );
-
-	r_waterFogColor = ri.Cvar_Get( "r_waterFogColor", "0", CVAR_ROM );  //----(SA)	added
-	r_mapFogColor = ri.Cvar_Get( "r_mapFogColor", "0", CVAR_ROM );  //----(SA)	added
-	r_savegameFogColor = ri.Cvar_Get( "r_savegameFogColor", "0", CVAR_ROM );    //----(SA)	added
 
 #ifdef USE_OPENGLES
 	r_primitives = ri.Cvar_Get( "r_primitives", "2", CVAR_ARCHIVE );
@@ -1341,21 +1308,25 @@ void R_Register( void ) {
 	r_printShaders = ri.Cvar_Get( "r_printShaders", "0", 0 );
 	r_saveFontData = ri.Cvar_Get( "r_saveFontData", "0", 0 );
 
+	// Ridah
+	// TTimo show_bug.cgi?id=570
 	r_compressModels = ri.Cvar_Get( "r_compressModels", "0", 0 );     // converts MD3 -> MDC at run-time
 	r_exportCompressedModels = ri.Cvar_Get( "r_exportCompressedModels", "0", 0 ); // saves compressed models
 	r_buildScript = ri.Cvar_Get( "com_buildscript", "0", 0 );
 	r_bonesDebug = ri.Cvar_Get( "r_bonesDebug", "0", CVAR_CHEAT );
+	// done.
 
 	// Rafael - wolf fog
-	r_wolffog = ri.Cvar_Get( "r_wolffog", "1", 0 );
+	r_wolffog = ri.Cvar_Get( "r_wolffog", "1", CVAR_CHEAT ); // JPW NERVE cheat protected per id request
 	// done
 
 	r_nocurves = ri.Cvar_Get( "r_nocurves", "0", CVAR_CHEAT );
 	r_drawworld = ri.Cvar_Get( "r_drawworld", "1", CVAR_CHEAT );
-	r_lightmap = ri.Cvar_Get( "r_lightmap", "0", CVAR_CHEAT );
+	r_lightmap = ri.Cvar_Get( "r_lightmap", "0", CVAR_CHEAT ); // DHM - NERVE :: cheat protect
 	r_portalOnly = ri.Cvar_Get( "r_portalOnly", "0", CVAR_CHEAT );
 
 	r_flareSize = ri.Cvar_Get( "r_flareSize", "40", CVAR_CHEAT );
+	ri.Cvar_Set( "r_flareFade", "5" ); // to force this when people already have "7" in their config
 	r_flareFade = ri.Cvar_Get( "r_flareFade", "5", CVAR_CHEAT );
 	r_flareCoeff = ri.Cvar_Get ("r_flareCoeff", FLARE_STDCOEFF, CVAR_CHEAT);
 
@@ -1409,7 +1380,10 @@ void R_Register( void ) {
 	ri.Cmd_AddCommand( "taginfo", R_TagInfo_f );
 
 	// Ridah
-	ri.Cmd_AddCommand( "cropimages", R_CropImages_f );
+	{
+		void R_CropImages_f( void );
+		ri.Cmd_AddCommand( "cropimages", R_CropImages_f );
+	}
 	// done.
 }
 
@@ -1463,6 +1437,9 @@ void R_Init( void ) {
 		}
 	}
 
+	// Ridah, init the virtual memory
+	R_Hunk_Begin();
+
 	R_InitFogTable();
 
 	R_NoiseInit();
@@ -1472,9 +1449,6 @@ void R_Init( void ) {
 #ifdef USE_BLOOM
 	R_BloomInit();
 #endif
-
-	// Ridah, init the virtual memory
-	R_Hunk_Begin();
 
 	max_polys = r_maxpolys->integer;
 	if ( max_polys < MAX_POLYS ) {
@@ -1504,8 +1478,6 @@ void R_Init( void ) {
 	R_ModelInit();
 
 	R_InitFreeType();
-
-	RB_ZombieFXInit();
 
 	err = qglGetError();
 	if ( err != GL_NO_ERROR ) {
@@ -1639,16 +1611,15 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 
 	re.SetColor         = RE_SetColor;
 	re.DrawStretchPic   = RE_StretchPic;
+	re.DrawRotatedPic   = RE_RotatedPic;        // NERVE - SMF
 	re.DrawStretchPicGradient   = RE_StretchPicGradient;
 	re.DrawStretchRaw   = RE_StretchRaw;
 	re.UploadCinematic  = RE_UploadCinematic;
 	re.RegisterFont     = RE_RegisterFont;
 	re.RemapShader      = R_RemapShader;
 	re.GetEntityToken   = R_GetEntityToken;
-	re.TakeVideoFrame = RE_TakeVideoFrame;
 
-	// RF
-	re.ZombieFXAddNewHit = RB_ZombieFXAddNewHit;
+	re.TakeVideoFrame = RE_TakeVideoFrame;
 
 	return &re;
 }

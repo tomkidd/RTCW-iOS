@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -39,6 +39,8 @@ int c_active_windings;
 int c_peak_windings;
 int c_winding_allocs;
 int c_winding_points;
+
+#define BOGUS_RANGE 8192
 
 void pw( winding_t *w ) {
 	int i;
@@ -65,7 +67,7 @@ winding_t   *AllocWinding( int points ) {
 
 	s = sizeof( vec_t ) * 3 * points + sizeof( int );
 	w = Z_Malloc( s );
-	Com_Memset( w, 0, s );
+	memset( w, 0, s );
 	return w;
 }
 
@@ -113,7 +115,7 @@ void    RemoveColinearPoints( winding_t *w ) {
 
 	c_removed += w->numpoints - nump;
 	w->numpoints = nump;
-	Com_Memcpy( w->p, p, nump * sizeof( p[0] ) );
+	memcpy( w->p, p, nump * sizeof( p[0] ) );
 }
 
 /*
@@ -153,17 +155,12 @@ vec_t   WindingArea( winding_t *w ) {
 	return total;
 }
 
-/*
-=============
-WindingBounds
-=============
-*/
 void    WindingBounds( winding_t *w, vec3_t mins, vec3_t maxs ) {
 	vec_t v;
 	int i,j;
 
-	mins[0] = mins[1] = mins[2] = MAX_MAP_BOUNDS;
-	maxs[0] = maxs[1] = maxs[2] = -MAX_MAP_BOUNDS;
+	mins[0] = mins[1] = mins[2] = 99999;
+	maxs[0] = maxs[1] = maxs[2] = -99999;
 
 	for ( i = 0 ; i < w->numpoints ; i++ )
 	{
@@ -210,7 +207,7 @@ winding_t *BaseWindingForPlane( vec3_t normal, vec_t dist ) {
 
 // find the major axis
 
-	max = -MAX_MAP_BOUNDS;
+	max = -BOGUS_RANGE;
 	x = -1;
 	for ( i = 0 ; i < 3; i++ )
 	{
@@ -244,8 +241,8 @@ winding_t *BaseWindingForPlane( vec3_t normal, vec_t dist ) {
 
 	CrossProduct( vup, normal, vright );
 
-	VectorScale( vup, MAX_MAP_BOUNDS, vup );
-	VectorScale( vright, MAX_MAP_BOUNDS, vright );
+	VectorScale( vup, 8192, vup );
+	VectorScale( vright, 8192, vright );
 
 // project a really big	axis aligned box onto the plane
 	w = AllocWinding( 4 );
@@ -564,7 +561,7 @@ void CheckWinding( winding_t *w ) {
 		p1 = w->p[i];
 
 		for ( j = 0 ; j < 3 ; j++ )
-			if ( p1[j] > MAX_MAP_BOUNDS || p1[j] < -MAX_MAP_BOUNDS ) {
+			if ( p1[j] > BOGUS_RANGE || p1[j] < -BOGUS_RANGE ) {
 				Com_Error( ERR_DROP, "CheckFace: BUGUS_RANGE: %f",p1[j] );
 			}
 
@@ -671,7 +668,7 @@ void    AddWindingToConvexHull( winding_t *w, winding_t **hull, vec3_t normal ) 
 	}
 
 	numHullPoints = ( *hull )->numpoints;
-	Com_Memcpy( hullPoints, ( *hull )->p, numHullPoints * sizeof( vec3_t ) );
+	memcpy( hullPoints, ( *hull )->p, numHullPoints * sizeof( vec3_t ) );
 
 	for ( i = 0 ; i < w->numpoints ; i++ ) {
 		p = w->p[i];
@@ -730,14 +727,14 @@ void    AddWindingToConvexHull( winding_t *w, winding_t **hull, vec3_t normal ) 
 		}
 
 		numHullPoints = numNew;
-		Com_Memcpy( hullPoints, newHullPoints, numHullPoints * sizeof( vec3_t ) );
+		memcpy( hullPoints, newHullPoints, numHullPoints * sizeof( vec3_t ) );
 	}
 
 	FreeWinding( *hull );
 	w = AllocWinding( numHullPoints );
 	w->numpoints = numHullPoints;
 	*hull = w;
-	Com_Memcpy( w->p, hullPoints, numHullPoints * sizeof( vec3_t ) );
+	memcpy( w->p, hullPoints, numHullPoints * sizeof( vec3_t ) );
 }
 
 

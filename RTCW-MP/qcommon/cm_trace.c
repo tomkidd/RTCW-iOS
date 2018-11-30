@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "cm_local.h"
 
 // always use bbox vs. bbox collision and never capsule vs. bbox or vice versa
-#define ALWAYS_BBOX_VS_BBOX
+//#define ALWAYS_BBOX_VS_BBOX
 // always use capsule vs. capsule collision and never capsule vs. bbox or vice versa
 //#define ALWAYS_CAPSULE_VS_CAPSULE
 
@@ -48,9 +48,7 @@ BASIC MATH
 RotatePoint
 ================
 */
-// TTimo: const vec_t ** would require explicit casts for ANSI C conformance
-// see unix/const-arg.c in Wolf MP source
-void RotatePoint( vec3_t point, /*const*/ vec3_t matrix[3] ) {
+void RotatePoint( vec3_t point, const vec3_t matrix[3] ) {
 	vec3_t tvec;
 
 	VectorCopy( point, tvec );
@@ -64,9 +62,7 @@ void RotatePoint( vec3_t point, /*const*/ vec3_t matrix[3] ) {
 TransposeMatrix
 ================
 */
-// TTimo: const vec_t ** would require explicit casts for ANSI C conformance
-// see unix/const-arg.c in Wolf MP source
-void TransposeMatrix( /*const*/ vec3_t matrix[3], vec3_t transpose[3] ) {
+void TransposeMatrix( const vec3_t matrix[3], vec3_t transpose[3] ) {
 	int i, j;
 	for ( i = 0; i < 3; i++ ) {
 		for ( j = 0; j < 3; j++ ) {
@@ -1163,7 +1159,7 @@ void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end,
 	c_traces++;             // for statistics, may be zeroed
 
 	// fill in a default trace
-	Com_Memset( &tw, 0, sizeof( tw ) );
+	memset( &tw, 0, sizeof( tw ) );
 	tw.trace.fraction = 1;  // assume it goes the entire distance until shown otherwise
 	VectorCopy( origin, tw.modelOrigin );
 
@@ -1279,16 +1275,14 @@ void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end,
 			if ( model == BOX_MODEL_HANDLE || model == CAPSULE_MODEL_HANDLE ) {
 				CM_TestCapsuleInCapsule( &tw, model );
 			} else
-#else
+#endif
 			if ( model == CAPSULE_MODEL_HANDLE ) {
 				if ( tw.sphere.use ) {
 					CM_TestCapsuleInCapsule( &tw, model );
 				} else {
 					CM_TestBoundingBoxInCapsule( &tw, model );
 				}
-			} else
-#endif
-			{
+			} else {
 				CM_TestInLeaf( &tw, &cmod->leaf );
 			}
 		} else {
@@ -1321,16 +1315,14 @@ void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end,
 			if ( model == BOX_MODEL_HANDLE || model == CAPSULE_MODEL_HANDLE ) {
 				CM_TraceCapsuleThroughCapsule( &tw, model );
 			} else
-#else
+#endif
 			if ( model == CAPSULE_MODEL_HANDLE ) {
 				if ( tw.sphere.use ) {
 					CM_TraceCapsuleThroughCapsule( &tw, model );
 				} else {
 					CM_TraceBoundingBoxThroughCapsule( &tw, model );
 				}
-			} else
-#endif
-			{
+			} else {
 				CM_TraceThroughLeaf( &tw, &cmod->leaf );
 			}
 		} else {
@@ -1431,8 +1423,9 @@ void CM_TransformedBoxTrace( trace_t *results, const vec3_t start, const vec3_t 
 		//		 bevels invalid.
 		//		 However this is correct for capsules since a capsule itself is rotated too.
 		CreateRotationMatrix( angles, matrix );
-		RotatePoint( start_l, matrix );
-		RotatePoint( end_l, matrix );
+		// NOTE TTimo gcc doesn't like the vec3_t m[3] to const vec3_t m[3] casting
+		RotatePoint( start_l, (const vec3_t *)matrix );
+		RotatePoint( end_l, (const vec3_t *)matrix );
 		// rotated sphere offset for capsule
 		sphere.offset[0] = matrix[0][ 2 ] * t;
 		sphere.offset[1] = -matrix[1][ 2 ] * t;
@@ -1447,8 +1440,8 @@ void CM_TransformedBoxTrace( trace_t *results, const vec3_t start, const vec3_t 
 	// if the bmodel was rotated and there was a collision
 	if ( rotated && trace.fraction != 1.0 ) {
 		// rotation of bmodel collision plane
-		TransposeMatrix( matrix, transpose );
-		RotatePoint( trace.plane.normal, transpose );
+		TransposeMatrix( (const vec3_t *)matrix, transpose );
+		RotatePoint( trace.plane.normal, (const vec3_t *)transpose );
 	}
 
 	// re-calculate the end position of the trace because the trace.endpos

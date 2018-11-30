@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -40,7 +40,6 @@ Bullets shot underwater
 ==================
 */
 void CG_BubbleTrail( vec3_t start, vec3_t end, float size, float spacing ) {
-#if 0
 	vec3_t move;
 	vec3_t vec;
 	float len;
@@ -92,7 +91,6 @@ void CG_BubbleTrail( vec3_t start, vec3_t end, float size, float spacing ) {
 
 		VectorAdd( move, vec, move );
 	}
-#endif
 }
 
 /*
@@ -166,6 +164,12 @@ localEntity_t *CG_SmokePuff( const vec3_t p, const vec3_t vel,
 		re->shaderRGBA[2] = le->color[2] * 0xff;
 		re->shaderRGBA[3] = 0xff;
 	}
+// JPW NERVE
+	if ( cg_fxflags & 1 ) {
+		re->customShader = getTestShader();
+		re->rotation = 180;
+	}
+// jpw
 
 	re->reType = RT_SPRITE;
 	re->radius = le->radius;
@@ -206,6 +210,18 @@ void CG_SpawnEffect( vec3_t org ) {
 	VectorCopy( org, re->origin );
 	re->origin[2] -= 24;
 #endif
+}
+
+qhandle_t getTestShader( void ) {
+	switch ( rand() % 2 ) {
+	case 0:
+		return cgs.media.nerveTestShader;
+		break;
+	case 1:
+	default:
+		return cgs.media.idTestShader;
+		break;
+	}
 }
 
 /*
@@ -298,7 +314,7 @@ void CG_AddBloodTrails( vec3_t origin, vec3_t dir, int speed, int duration, int 
 
 		le->leType = LE_BLOOD;
 		le->startTime = cg.time;
-		le->endTime = le->startTime + duration - (int)( 0.5 * random() * duration );
+		le->endTime = le->startTime + duration; // DHM - Nerve :: (removed) - (int)(0.5 * random() * duration);
 		le->lastTrailTime = cg.time;
 
 		VectorCopy( origin, re->origin );
@@ -330,10 +346,6 @@ void CG_Bleed( vec3_t origin, int entityNum ) {
 
 	if ( !cg_blood.integer ) {
 		return;
-	}
-
-	if ( cg_reloading.integer ) {
-		return;     // too dangerous, since we call playerangles() in here, which calls the animation system, which might not be setup yet
 	}
 
 	cent = &cg_entities[entityNum];
@@ -380,15 +392,15 @@ void CG_Bleed( vec3_t origin, int entityNum ) {
 			}
 		}
 
-
+		// DHM - Nerve :: Made minor adjustments
 		for ( i = 0; i < BLOOD_SPURT_COUNT; i++ ) {
 			VectorCopy( dir, ndir );
 			for ( j = 0; j < 3; j++ ) ndir[j] += crandom() * 0.3;
 			VectorNormalize( ndir );
 			CG_AddBloodTrails( bOrigin, ndir,
 							   100,     // speed
-							   250 + (int)( crandom() * 50 ),   // duration
-							   3 + rand() % 2,  // count
+							   450 + (int)( crandom() * 50 ),   // duration
+							   2 + rand() % 2,  // count
 							   0.1 );   // rand scale
 		}
 
@@ -407,6 +419,10 @@ void CG_LaunchGib( centity_t *cent, vec3_t origin, vec3_t angles, vec3_t velocit
 	localEntity_t   *le;
 	refEntity_t     *re;
 	int i;
+
+	if ( !cg_blood.integer ) {
+		return;
+	}
 
 	if ( !cent ) {
 		return;
@@ -430,6 +446,10 @@ void CG_LaunchGib( centity_t *cent, vec3_t origin, vec3_t angles, vec3_t velocit
 	}
 	re->hModel = hModel;
 
+	// re->fadeStartTime		= le->endTime - 3000;
+	re->fadeStartTime       = le->endTime - 1000;
+	re->fadeEndTime         = le->endTime;
+
 	switch ( cent->currentState.aiChar ) {
 	case AICHAR_ZOMBIE:
 		le->pos.trType = TR_GRAVITY_LOW;
@@ -441,9 +461,6 @@ void CG_LaunchGib( centity_t *cent, vec3_t origin, vec3_t angles, vec3_t velocit
 
 		le->bounceFactor = 0.5;
 		break;
-	case AICHAR_HEINRICH:
-	case AICHAR_HELGA:
-		le->endTime = le->startTime + 999000;   // stay around for long enough to see the player off
 	default:
 		le->leBounceSoundType = LEBS_BLOOD;
 		le->leMarkType = LEMT_BLOOD;
@@ -458,22 +475,10 @@ void CG_LaunchGib( centity_t *cent, vec3_t origin, vec3_t angles, vec3_t velocit
 		le->bounceFactor = 0.3;
 		break;
 	}
-
-	if ( cent->currentState.aiChar == AICHAR_HELGA || cent->currentState.aiChar == AICHAR_HEINRICH ) {
-		// bit bouncier
-		//le->pos.trType = TR_GRAVITY_LOW;
-		le->bounceFactor = 0.4;
-		//if (VectorLength( velocity ) < 300) {
-		//	VectorScale( velocity, 300.0 / VectorLength( velocity ), velocity );
-		//}
-	}
-
 	VectorCopy( origin, le->pos.trBase );
 	VectorCopy( velocity, le->pos.trDelta );
 	le->pos.trTime = cg.time;
 
-	re->fadeStartTime       = le->endTime - 1000;
-	re->fadeEndTime         = le->endTime;
 
 	le->angles.trType = TR_LINEAR;
 
@@ -518,6 +523,8 @@ void CG_LoseHat( centity_t *cent, vec3_t dir ) {
 	if ( !ci->accModels[ACC_HAT] ) {  // don't launch anything if they don't have one
 		return;
 	}
+
+	CG_GetOriginForTag( cent, &cent->pe.headRefEnt, "tag_mouth", 0, origin, NULL );
 
 	velocity[0] = dir[0] * ( 0.75 + random() ) * GIB_VELOCITY;
 	velocity[1] = dir[1] * ( 0.75 + random() ) * GIB_VELOCITY;
@@ -653,7 +660,7 @@ void CG_GibPlayer( centity_t *cent, vec3_t playerOrigin, vec3_t gdir ) {
 	vec3_t junctionOrigin[MAXJUNCTIONS];
 	int junction;
 	int j;
-	float size = 0.0;
+	//float size = 0.0;
 	vec3_t axis[3], angles;
 
 	char *JunctiongibTags[] = {
@@ -702,243 +709,107 @@ void CG_GibPlayer( centity_t *cent, vec3_t playerOrigin, vec3_t gdir ) {
 		NULL
 	};
 
-	// Rafael
-	for ( i = 0; i < MAXJUNCTIONS; i++ )
-		newjunction[i] = qfalse;
+	if ( cg_blood.integer ) {
+		// Rafael
+		for ( i = 0; i < MAXJUNCTIONS; i++ )
+			newjunction[i] = qfalse;
 
-	clientNum = cent->currentState.clientNum;
-	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-		CG_Error( "Bad clientNum on player entity" );
-	}
-	ci = &cgs.clientinfo[ clientNum ];
-
-	// Ridah, fetch the various positions of the tag_gib*'s
-	// and spawn the gibs from the correct places (especially the head)
-	for ( gibIndex = 0, count = 0, foundtag = qtrue; foundtag && gibIndex < MAX_GIB_MODELS && gibTags[gibIndex]; gibIndex++ ) {
-
-		refEntity_t *re = 0;
-
-		foundtag = qfalse;
-
-		if ( !ci->gibModels[gibIndex] ) {
-			continue;
+		clientNum = cent->currentState.clientNum;
+		if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
+			CG_Error( "Bad clientNum on player entity" );
 		}
+		ci = &cgs.clientinfo[ clientNum ];
 
-		re = &cent->pe.torsoRefEnt;
+		// Ridah, fetch the various positions of the tag_gib*'s
+		// and spawn the gibs from the correct places (especially the head)
+		for ( gibIndex = 0, count = 0, foundtag = qtrue; foundtag && gibIndex < MAX_GIB_MODELS && gibTags[gibIndex]; gibIndex++ ) {
 
-		for ( tagIndex = 0; ( tagIndex = CG_GetOriginForTag( cent, re, gibTags[gibIndex], tagIndex, origin, axis ) ) >= 0; count++, tagIndex++ ) {
+			refEntity_t *re = 0;
 
-			foundtag = qtrue;
+			foundtag = qfalse;
 
-			VectorSubtract( origin, re->origin, dir );
-			VectorNormalize( dir );
+			if ( !ci->gibModels[gibIndex] ) {
+				continue;
+			}
 
-			// spawn a gib
-			velocity[0] = dir[0] * ( 0.5 + random() ) * GIB_VELOCITY * 0.3;
-			velocity[1] = dir[1] * ( 0.5 + random() ) * GIB_VELOCITY * 0.3;
-			velocity[2] = GIB_JUMP + dir[2] * ( 0.5 + random() ) * GIB_VELOCITY * 0.5;
+			re = &cent->pe.torsoRefEnt;
 
-			VectorMA( velocity, GIB_VELOCITY, gdir, velocity );
+			for ( tagIndex = 0; ( tagIndex = CG_GetOriginForTag( cent, re, gibTags[gibIndex], tagIndex, origin, axis ) ) >= 0; count++, tagIndex++ ) {
 
-			AxisToAngles( axis, angles );
+				foundtag = qtrue;
 
-			// RF, Zombies dying by particle effect dont spawn gibs
-			if ( ( cent->currentState.aiChar == AICHAR_ZOMBIE ) ||
-				 ( cent->currentState.aiChar == AICHAR_HELGA ) ||
-				 ( cent->currentState.aiChar == AICHAR_HEINRICH ) ) {
-				//VectorScale( velocity, 4, velocity );
-				size = 0.6 + 0.4 * random();
-				if ( ( cent->currentState.aiChar == AICHAR_HELGA ) || ( cent->currentState.aiChar == AICHAR_HEINRICH ) ) {
-					//size *= 3.0;
-					velocity[0] = crandom() * GIB_VELOCITY * 1.0;
-					velocity[1] = crandom() * GIB_VELOCITY * 1.0;
-					velocity[2] = GIB_JUMP + crandom() * GIB_VELOCITY;
-					// additional gibs
-					CG_LaunchGib( cent, origin, angles, velocity, ci->gibModels[gibIndex], size, 1 );
-					CG_LaunchGib( cent, origin, angles, velocity, ci->gibModels[gibIndex], size, 1 );
-				} else {
-					CG_LaunchGib( cent, origin, angles, velocity, ci->gibModels[gibIndex], size, 1 + (int)( 2.0 * ( size - 0.4 ) ) );
-				}
-			} else {
+				VectorSubtract( origin, re->origin, dir );
+				VectorNormalize( dir );
+
+				// spawn a gib
+				velocity[0] = dir[0] * ( 0.5 + random() ) * GIB_VELOCITY * 0.3;
+				velocity[1] = dir[1] * ( 0.5 + random() ) * GIB_VELOCITY * 0.3;
+				velocity[2] = GIB_JUMP + dir[2] * ( 0.5 + random() ) * GIB_VELOCITY * 0.5;
+
+				VectorMA( velocity, GIB_VELOCITY, gdir, velocity );
+				AxisToAngles( axis, angles );
+
 				CG_LaunchGib( cent, origin, angles, velocity, ci->gibModels[gibIndex], 1.0, 0 );
-			}
 
-			for ( junction = 0; junction < MAXJUNCTIONS; junction++ )
-			{
-				if ( !Q_stricmp( gibTags[gibIndex], JunctiongibTags[junction] ) ) {
-					VectorCopy( origin, junctionOrigin[junction] );
-					newjunction[junction] = qtrue;
+				for ( junction = 0; junction < MAXJUNCTIONS; junction++ )
+				{
+					if ( !Q_stricmp( gibTags[gibIndex], JunctiongibTags[junction] ) ) {
+						VectorCopy( origin, junctionOrigin[junction] );
+						newjunction[junction] = qtrue;
+					}
 				}
 			}
 		}
-	}
 
-
-	for ( i = 0; i < MAXJUNCTIONS; i++ )
-	{
-		if ( newjunction[i] == qtrue ) {
-			for ( j = 0; j < MAXJUNCTIONS; j++ )
-			{
-				if ( !Q_stricmp( JunctiongibTags[j], ConnectTags[i] ) ) {
-					if ( newjunction[j] == qtrue ) {
-						// spawn a blood cloud somewhere on the vec from
-						VectorSubtract( junctionOrigin[i], junctionOrigin[j], dir );
-
-						// ok now lets spawn a little blood
-						if ( cent->currentState.aiChar == AICHAR_ZOMBIE ) {
-							CG_ParticleBloodCloudZombie( cent, junctionOrigin[i], dir );
-						} else {
+		for ( i = 0; i < MAXJUNCTIONS; i++ )
+		{
+			if ( newjunction[i] == qtrue ) {
+				for ( j = 0; j < MAXJUNCTIONS; j++ )
+				{
+					if ( !Q_stricmp( JunctiongibTags[j], ConnectTags[i] ) ) {
+						if ( newjunction[j] == qtrue ) {
+							// spawn a blood cloud somewhere on the vec from
+							VectorSubtract( junctionOrigin[i], junctionOrigin[j], dir );
 							CG_ParticleBloodCloud( cent, junctionOrigin[i], dir );
-						}
-
-						// RF, also spawn some blood in this direction
-						VectorMA( junctionOrigin[i], 2.0, dir, origin );
-						if ( cent->currentState.aiChar == AICHAR_ZOMBIE ) {
-							CG_ParticleBloodCloudZombie( cent, origin, dir );
-						} else {
-							CG_ParticleBloodCloud( cent, origin, dir );
-						}
-
-						// Zombies spawn more bones
-						if ( ( cent->currentState.aiChar == AICHAR_ZOMBIE ) ||
-							 ( cent->currentState.aiChar == AICHAR_HEINRICH ) ||
-							 ( cent->currentState.aiChar == AICHAR_HELGA ) ) {
-							// spawn a gib
-							VectorCopy( junctionOrigin[i], origin );
-
-							if ( ( cent->currentState.aiChar == AICHAR_HELGA ) || ( cent->currentState.aiChar == AICHAR_HEINRICH ) ) {
-								//size *= 3.0;
-								velocity[0] = crandom() * GIB_VELOCITY * 2.0;
-								velocity[1] = crandom() * GIB_VELOCITY * 2.0;
-								velocity[2] = GIB_JUMP + random() * GIB_VELOCITY;
-							} else {
-								velocity[0] = dir[0] * ( 0.5 + random() ) * GIB_VELOCITY * 0.3;
-								velocity[1] = dir[1] * ( 0.5 + random() ) * GIB_VELOCITY * 0.3;
-								velocity[2] = GIB_JUMP + dir[2] * ( 0.5 + random() ) * GIB_VELOCITY * 0.5;
-								VectorMA( velocity, GIB_VELOCITY, gdir, velocity );
-							}
-
-							vectoangles( dir, angles );
-
-							VectorScale( velocity, 3, velocity );
-							size = 0.6 + 0.4 * random();
-							if ( ( cent->currentState.aiChar == AICHAR_HELGA ) || ( cent->currentState.aiChar == AICHAR_HEINRICH ) ) {
-								CG_LaunchGib( cent, origin, angles, velocity, ci->gibModels[rand() % 4], size, 1 );
-							} else {
-								CG_LaunchGib( cent, origin, angles, velocity, ci->gibModels[rand() % 4], size, 1 + (int)( 2.0 * ( size - 0.4 ) ) );
-							}
 						}
 					}
 				}
 			}
 		}
-	}
 
-	if ( !count ) {
+		// Ridah, spawn a bunch of blood dots around the place
+		#define GIB_BLOOD_DOTS  3
+		for ( i = 0, count = 0; i < GIB_BLOOD_DOTS * 2; i++ ) {
+			// TTimo: unused
+			//static vec3_t mins = {-10,-10,-10};
+			//static vec3_t maxs = { 10, 10, 10};
 
-		//	CG_Printf("falling back to old-style gibs\n");
+			if ( i > 0 ) {
+				velocity[0] = ( ( i % 2 ) * 2 - 1 ) * ( 40 + 40 * random() );
+				velocity[1] = ( ( ( i / 2 ) % 2 ) * 2 - 1 ) * ( 40 + 40 * random() );
+				velocity[2] = ( ( ( i < GIB_BLOOD_DOTS ) * 2 ) - 1 ) * 40;
+			} else {
+				VectorClear( velocity );
+				velocity[2] = -64;
+			}
 
-		// old style gibs
+			VectorAdd( playerOrigin, velocity, origin );
 
-		VectorCopy( playerOrigin, origin );
-		velocity[0] = crandom() * GIB_VELOCITY;
-		velocity[1] = crandom() * GIB_VELOCITY;
-		velocity[2] = GIB_JUMP + crandom() * GIB_VELOCITY;
-		if ( rand() & 1 ) {
-			CG_LaunchGib( cent, origin, vec3_origin, velocity, cgs.media.gibSkull, 1.0, 0 );
-		} else {
-			CG_LaunchGib( cent, origin, vec3_origin, velocity, cgs.media.gibBrain, 1.0, 0 );
-		}
-
-		// allow gibs to be turned off for speed
-		if ( !cg_gibs.integer ) {
-			return;
-		}
-
-		VectorCopy( playerOrigin, origin );
-		velocity[0] = crandom() * GIB_VELOCITY;
-		velocity[1] = crandom() * GIB_VELOCITY;
-		velocity[2] = GIB_JUMP + crandom() * GIB_VELOCITY;
-		CG_LaunchGib( cent, origin, vec3_origin, velocity, cgs.media.gibAbdomen, 1.0, 0 );
-
-		VectorCopy( playerOrigin, origin );
-		velocity[0] = crandom() * GIB_VELOCITY;
-		velocity[1] = crandom() * GIB_VELOCITY;
-		velocity[2] = GIB_JUMP + crandom() * GIB_VELOCITY;
-		CG_LaunchGib( cent, origin, vec3_origin, velocity, cgs.media.gibArm, 1.0, 0 );
-
-		VectorCopy( playerOrigin, origin );
-		velocity[0] = crandom() * GIB_VELOCITY;
-		velocity[1] = crandom() * GIB_VELOCITY;
-		velocity[2] = GIB_JUMP + crandom() * GIB_VELOCITY;
-		CG_LaunchGib( cent, origin, vec3_origin, velocity, cgs.media.gibChest, 1.0, 0 );
-
-		VectorCopy( playerOrigin, origin );
-		velocity[0] = crandom() * GIB_VELOCITY;
-		velocity[1] = crandom() * GIB_VELOCITY;
-		velocity[2] = GIB_JUMP + crandom() * GIB_VELOCITY;
-		CG_LaunchGib( cent, origin, vec3_origin, velocity, cgs.media.gibFist, 1.0, 0 );
-
-		VectorCopy( playerOrigin, origin );
-		velocity[0] = crandom() * GIB_VELOCITY;
-		velocity[1] = crandom() * GIB_VELOCITY;
-		velocity[2] = GIB_JUMP + crandom() * GIB_VELOCITY;
-		CG_LaunchGib( cent, origin, vec3_origin, velocity, cgs.media.gibFoot, 1.0, 0 );
-
-		VectorCopy( playerOrigin, origin );
-		velocity[0] = crandom() * GIB_VELOCITY;
-		velocity[1] = crandom() * GIB_VELOCITY;
-		velocity[2] = GIB_JUMP + crandom() * GIB_VELOCITY;
-		CG_LaunchGib( cent, origin, vec3_origin, velocity, cgs.media.gibForearm, 1.0, 0 );
-
-		VectorCopy( playerOrigin, origin );
-		velocity[0] = crandom() * GIB_VELOCITY;
-		velocity[1] = crandom() * GIB_VELOCITY;
-		velocity[2] = GIB_JUMP + crandom() * GIB_VELOCITY;
-		CG_LaunchGib( cent, origin, vec3_origin, velocity, cgs.media.gibIntestine, 1.0, 0 );
-
-		VectorCopy( playerOrigin, origin );
-		velocity[0] = crandom() * GIB_VELOCITY;
-		velocity[1] = crandom() * GIB_VELOCITY;
-		velocity[2] = GIB_JUMP + crandom() * GIB_VELOCITY;
-		CG_LaunchGib( cent, origin, vec3_origin, velocity, cgs.media.gibLeg, 1.0, 0 );
-	}
-
-
-//----(SA)	toss the hat
-	if ( !( cent->currentState.eFlags & EF_HEADSHOT ) ) { // (SA) already lost hat while living
-		CG_LoseHat( cent, tv( 0, 0, 1 ) );
-	}
-//----(SA)	end
-
-	// Ridah, spawn a bunch of blood dots around the place
-	#define GIB_BLOOD_DOTS  4
-	for ( i = 0, count = 0; i < GIB_BLOOD_DOTS * 2; i++ ) {
-		//static vec3_t mins = {-10,-10,-10}; // TTimo: unused
-		//static vec3_t maxs = { 10, 10, 10}; // TTimo: unused
-
-		if ( i > 0 ) {
-			velocity[0] = ( ( i % 2 ) * 2 - 1 ) * ( 40 + 40 * random() );
-			velocity[1] = ( ( ( i / 2 ) % 2 ) * 2 - 1 ) * ( 40 + 40 * random() );
-			velocity[2] = ( ( ( i < GIB_BLOOD_DOTS ) * 2 ) - 1 ) * 40;
-		} else {
-			VectorClear( velocity );
-			velocity[2] = -64;
-		}
-
-		VectorAdd( playerOrigin, velocity, origin );
-
-		CG_Trace( &trace, playerOrigin, NULL, NULL, origin, -1, CONTENTS_SOLID );
-		if ( trace.fraction < 1.0 ) {
-			BG_GetMarkDir( velocity, trace.plane.normal, velocity );
-			CG_ImpactMark( cgs.media.bloodDotShaders[rand() % 5], trace.endpos, velocity, random() * 360,
-						   1,1,1,1, qtrue, 30, qfalse, cg_bloodTime.integer * 1000 );
-			if ( count++ > GIB_BLOOD_DOTS ) {
-				break;
+			CG_Trace( &trace, playerOrigin, NULL, NULL, origin, -1, CONTENTS_SOLID );
+			if ( trace.fraction < 1.0 ) {
+				BG_GetMarkDir( velocity, trace.plane.normal, velocity );
+				CG_ImpactMark( cgs.media.bloodDotShaders[rand() % 5], trace.endpos, velocity, random() * 360,
+							   1,1,1,1, qtrue, 30, qfalse, cg_bloodTime.integer * 1000 );
+				if ( count++ > GIB_BLOOD_DOTS ) {
+					break;
+				}
 			}
 		}
 	}
 
+	if ( !( cent->currentState.eFlags & EF_HEADSHOT ) ) { // (SA) already lost hat while living
+		CG_LoseHat( cent, tv( 0, 0, 1 ) );
+	}
 }
 
 
@@ -1298,13 +1169,12 @@ void CG_Spotlight( centity_t *cent, float *color, vec3_t realstart, vec3_t light
 	vec3_t endCenter;
 	polyVert_t coreverts[4];
 	trace_t tr;
-	//float alpha;
+	float alpha;
 	float radius = 0.0f;
 	float coreEndRadius;
 	qboolean capStart = qtrue;
 	float hitDist;          // the actual distance of the trace impact	(0 is no hit)
 	float beamLen;          // actual distance of the drawn beam
-	float startAlpha;
 	float endAlpha = 0.0f;
 	vec4_t colorNorm;       // normalized color vector
 	refEntity_t ent;
@@ -1350,7 +1220,7 @@ void CG_Spotlight( centity_t *cent, float *color, vec3_t realstart, vec3_t light
 		if ( flags & SL_TRACEWORLDONLY ) {
 			CG_Trace( &tr, start, NULL, NULL, traceEnd, -1, CONTENTS_SOLID );
 		} else {
-			CG_Trace( &tr, start, NULL, NULL, traceEnd, -1, MASK_SHOT & ~CONTENTS_BODY );
+			CG_Trace( &tr, start, NULL, NULL, traceEnd, -1, MASK_SHOT );
 		}
 //		CG_Trace( &tr, start, NULL, NULL, traceEnd, -1, MASK_ALL &~(CONTENTS_MONSTERCLIP|CONTENTS_AREAPORTAL|CONTENTS_CLUSTERPORTAL));
 	}
@@ -1365,8 +1235,6 @@ void CG_Spotlight( centity_t *cent, float *color, vec3_t realstart, vec3_t light
 		hitDist = 0;
 		beamLen = range;
 	}
-
-	startAlpha  = color[3] * 255.0f;
 
 	if ( flags & SL_LOCKUV ) {
 		if ( beamLen < range ) {
@@ -1384,36 +1252,22 @@ void CG_Spotlight( centity_t *cent, float *color, vec3_t realstart, vec3_t light
 
 
 // model at base
-	//if(cgs.media.spotLightLightModel) {
+	if ( cent->currentState.modelindex ) {
 		memset( &ent, 0, sizeof( ent ) );
 		ent.frame = 0;
 		ent.oldframe = 0;
 		ent.backlerp = 0;
 		VectorCopy( cent->lerpOrigin, ent.origin );
 		VectorCopy( cent->lerpOrigin, ent.oldorigin );
-		//ent.hModel = cgs.gameModels[cent->currentState.modelindex];
-		if ( cent->currentState.frame == 1 ) {
-			ent.hModel = cgs.media.spotLightLightModelBroke;
-		} else {
-			ent.hModel = cgs.media.spotLightLightModel;
-		}
-
+		ent.hModel = cgs.gameModels[cent->currentState.modelindex];
+		//AnglesToAxis( cent->lerpAngles, ent.axis );
 		vectoangles( lightDir, angles );
-		angles[ROLL] = 0.0f;        // clear out roll so it doesn't interfere
 		AnglesToAxis( angles, ent.axis );
 		trap_R_AddRefEntityToScene( &ent );
-
-		ent.hModel = cgs.media.spotLightBaseModel;
-		angles[PITCH] = 0.0f;       // flatten out pitch so it only yaws
-		AnglesToAxis( angles, ent.axis );
-		trap_R_AddRefEntityToScene( &ent );
+		memcpy( &cent->refEnt, &ent, sizeof( refEntity_t ) );
 
 		// push start out a bit so the beam fits to the front of the base model
 		VectorMA( start, 14, lightDir, start );
-	//}
-
-	if ( cent->currentState.frame == 1 ) {    // dead
-		return;
 	}
 
 //// BEAM
@@ -1444,8 +1298,8 @@ void CG_Spotlight( centity_t *cent, float *color, vec3_t realstart, vec3_t light
 		VectorNormalize( coreright );
 
 		memset( &coreverts[0], 0, 4 * sizeof( polyVert_t ) );
-		VectorMA( start, startWidth * 0.8f, coreright, coreverts[0].xyz );
-		VectorMA( start, -startWidth * 0.8f, coreright, coreverts[1].xyz );
+		VectorMA( start, startWidth * 0.5f, coreright, coreverts[0].xyz );
+		VectorMA( start, -startWidth * 0.5f, coreright, coreverts[1].xyz );
 		VectorMA( endCenter, -coreEndRadius * CORESCALE, coreright, coreverts[2].xyz );
 		VectorAdd( start, coreverts[2].xyz, coreverts[2].xyz );
 		VectorMA( endCenter, coreEndRadius * CORESCALE, coreright, coreverts[3].xyz );
@@ -1455,9 +1309,9 @@ void CG_Spotlight( centity_t *cent, float *color, vec3_t realstart, vec3_t light
 			coreverts[i].modulate[0] = color[0] * 200.0f;
 			coreverts[i].modulate[1] = color[1] * 200.0f;
 			coreverts[i].modulate[2] = color[2] * 200.0f;
-			coreverts[i].modulate[3] = startAlpha;
+			coreverts[i].modulate[3] = color[3] * 200.0f;
 			if ( i > 1 ) {
-				coreverts[i].modulate[3] = endAlpha;
+				coreverts[i].modulate[3] = 0;
 			}
 		}
 
@@ -1489,7 +1343,7 @@ void CG_Spotlight( centity_t *cent, float *color, vec3_t realstart, vec3_t light
 		verts[j].modulate[0] = color[0] * 255.0f;
 		verts[j].modulate[1] = color[1] * 255.0f;
 		verts[j].modulate[2] = color[2] * 255.0f;
-		verts[j].modulate[3] = startAlpha;
+		verts[j].modulate[3] = color[3] * 255.0f;
 		j++;
 
 		VectorCopy( end_points[i], verts[j].xyz );
@@ -1516,7 +1370,7 @@ void CG_Spotlight( centity_t *cent, float *color, vec3_t realstart, vec3_t light
 		verts[j].modulate[0] = color[0] * 255.0f;
 		verts[j].modulate[1] = color[1] * 255.0f;
 		verts[j].modulate[2] = color[2] * 255.0f;
-		verts[j].modulate[3] = startAlpha;
+		verts[j].modulate[3] = color[3] * 255.0f;
 
 		if ( capStart ) {
 			VectorCopy( start_points[i], plugVerts[i].xyz );
@@ -1525,7 +1379,7 @@ void CG_Spotlight( centity_t *cent, float *color, vec3_t realstart, vec3_t light
 			plugVerts[i].modulate[0] = color[0] * 255.0f;
 			plugVerts[i].modulate[1] = color[1] * 255.0f;
 			plugVerts[i].modulate[2] = color[2] * 255.0f;
-			plugVerts[i].modulate[3] = startAlpha;
+			plugVerts[i].modulate[3] = color[3] * 255.0f;
 		}
 	}
 
@@ -1542,14 +1396,13 @@ void CG_Spotlight( centity_t *cent, float *color, vec3_t realstart, vec3_t light
 
 	if ( !( flags & SL_NOIMPACT ) ) {
 		if ( hitDist ) {
-			vec3_t impactPos;
 			VectorMA( startvec, hitDist, conevec, endvec );
 
-			radius = 1.5f * coreEndRadius * ( hitDist / beamLen );
+			alpha = 0.3f;
+			radius = coreEndRadius * ( hitDist / beamLen );
 
 			VectorNegate( lightDir, proj );
-			VectorMA( tr.endpos, -0.5f * radius, lightDir, impactPos );   // back away a little from the hit
-			CG_ImpactMark( cgs.media.spotLightShader, impactPos, proj, 0, colorNorm[0], colorNorm[1], colorNorm[2], 0.3f, qfalse, radius, qtrue, -1 );
+			CG_ImpactMark( cgs.media.spotLightShader, tr.endpos, proj, 0, colorNorm[0], colorNorm[1], colorNorm[2], alpha, qfalse, radius, qtrue, -1 );
 		}
 	}
 
@@ -1592,7 +1445,7 @@ void CG_Spotlight( centity_t *cent, float *color, vec3_t realstart, vec3_t light
 		}
 
 		if ( lightInEyes ) {   // the dot check succeeded, now do a trace
-			CG_Trace( &tr, start, NULL, NULL, camloc, -1, MASK_SOLID );
+			CG_Trace( &tr, start, NULL, NULL, camloc, -1, MASK_ALL & ~( CONTENTS_MONSTERCLIP | CONTENTS_AREAPORTAL | CONTENTS_CLUSTERPORTAL ) );
 			if ( tr.fraction != 1 ) {
 				lightInEyes = qfalse;
 			}
@@ -1605,10 +1458,10 @@ void CG_Spotlight( centity_t *cent, float *color, vec3_t realstart, vec3_t light
 				coronasize *= ( 512.0f / dist );
 			}
 
-			trap_R_AddCoronaToScene( start, colorNorm[0], colorNorm[1], colorNorm[2], coronasize, cent->currentState.number, 3 );    // 1&2 ('visible' & 'spotlightflare')
+			trap_R_AddCoronaToScene( start, colorNorm[0], colorNorm[1], colorNorm[2], coronasize, cent->currentState.number, qtrue );
 		} else {
 			// even though it's off, still need to add it, but turned off so it can fade in/out properly
-			trap_R_AddCoronaToScene( start, colorNorm[0], colorNorm[1], colorNorm[2], 0, cent->currentState.number, 2 ); // 0&2 ('not visible' & 'spotlightflare')
+			trap_R_AddCoronaToScene( start, colorNorm[0], colorNorm[1], colorNorm[2], 0, cent->currentState.number, qfalse );
 		}
 	}
 

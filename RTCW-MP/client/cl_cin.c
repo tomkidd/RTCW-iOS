@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -53,8 +53,6 @@ If you have questions concerning this license or the applicable additional terms
 #define DEFAULT_CIN_WIDTH   512
 #define DEFAULT_CIN_HEIGHT  512
 
-#define LETTERBOX_OFFSET 105
-
 #define ROQ_QUAD            0x1000
 #define ROQ_QUAD_INFO       0x1001
 #define ROQ_CODEBOOK        0x1002
@@ -68,8 +66,6 @@ If you have questions concerning this license or the applicable additional terms
 #define MAX_VIDEO_HANDLES   16
 
 extern int s_soundtime;
-
-#define CIN_STREAM 0    //DAJ const for the sound stream used for cinematics
 
 static void RoQ_init( void );
 
@@ -109,7 +105,7 @@ typedef struct {
 	char fileName[MAX_OSPATH];
 	int CIN_WIDTH, CIN_HEIGHT;
 	int xpos, ypos, width, height;
-	qboolean looping, holdAtEnd, dirty, alterGameState, silent, shader, letterBox, sound;
+	qboolean looping, holdAtEnd, dirty, alterGameState, silent, shader;
 	fileHandle_t iFile;
 	e_status status;
 	int startTime;
@@ -211,7 +207,7 @@ static void RllSetupTable( void ) {
 //-----------------------------------------------------------------------------
 long RllDecodeMonoToMono( unsigned char *from,short *to,unsigned int size,char signedOutput,unsigned short flag ) {
 	unsigned int z;
-	short prev; //DAJ was int
+	int prev;
 
 	if ( signedOutput ) {
 		prev =  flag - 0x8000;
@@ -242,7 +238,7 @@ long RllDecodeMonoToMono( unsigned char *from,short *to,unsigned int size,char s
 //-----------------------------------------------------------------------------
 long RllDecodeMonoToStereo( unsigned char *from,short *to,unsigned int size,char signedOutput,unsigned short flag ) {
 	unsigned int z;
-	short prev; //DAJ was int
+	int prev;
 
 	if ( signedOutput ) {
 		prev =  flag - 0x8000;
@@ -275,7 +271,7 @@ long RllDecodeMonoToStereo( unsigned char *from,short *to,unsigned int size,char
 long RllDecodeStereoToStereo( unsigned char *from,short *to,unsigned int size,char signedOutput, unsigned short flag ) {
 	unsigned int z;
 	unsigned char *zz = from;
-	short prevL, prevR;     //DAJ was int
+	int prevL, prevR;
 
 	if ( signedOutput ) {
 		prevL = ( flag & 0xff00 ) - 0x8000;
@@ -311,7 +307,7 @@ long RllDecodeStereoToStereo( unsigned char *from,short *to,unsigned int size,ch
 //-----------------------------------------------------------------------------
 long RllDecodeStereoToMono( unsigned char *from,short *to,unsigned int size,char signedOutput, unsigned short flag ) {
 	unsigned int z;
-	short prevL, prevR;     //DAJ was int
+	int prevL,prevR;
 
 	if ( signedOutput ) {
 		prevL = ( flag & 0xff00 ) - 0x8000;
@@ -1190,7 +1186,6 @@ redump:
 		if ( !cinTable[currentHandle].silent ) {
 			ssize = RllDecodeMonoToStereo( framedata, sbuf, cinTable[currentHandle].RoQFrameSize, 0, (unsigned short)cinTable[currentHandle].roq_flags );
 			S_RawSamples(0, ssize, 22050, 2, 1, (byte *)sbuf, 1.0f, -1);
-			cinTable[currentHandle].sound = 1;
 		}
 		break;
 	case    ZA_SOUND_STEREO:
@@ -1198,11 +1193,10 @@ redump:
 			if ( cinTable[currentHandle].numQuads == -1 ) {
 				S_Update();
 				Com_DPrintf( "S_Update: Setting rawend to %i\n", s_soundtime );
-				s_rawend[CIN_STREAM] = s_soundtime;         //DAJ added [CIN_STREAM]
+				s_rawend[0] = s_soundtime;
 			}
 			ssize = RllDecodeStereoToStereo( framedata, sbuf, cinTable[currentHandle].RoQFrameSize, 0, (unsigned short)cinTable[currentHandle].roq_flags );
 			S_RawSamples(0, ssize, 22050, 2, 2, (byte *)sbuf, 1.0f, -1);
-			cinTable[currentHandle].sound = 1;
 		}
 		break;
 	case    ROQ_QUAD_INFO:
@@ -1386,7 +1380,6 @@ Fetch and decompress the pending frame
 e_status CIN_RunCinematic( int handle ) {
 	int start = 0;
 	int thisTime = 0;
-	int played = 0;
 
 	if ( handle < 0 || handle >= MAX_VIDEO_HANDLES || cinTable[handle].status == FMV_EOF ) {
 		return FMV_EOF;
@@ -1419,33 +1412,17 @@ e_status CIN_RunCinematic( int handle ) {
 	if ( cinTable[currentHandle].shader && ( thisTime - cinTable[currentHandle].lastTime ) > 100 ) {
 		cinTable[currentHandle].startTime += thisTime - cinTable[currentHandle].lastTime;
 	}
-//----(SA)	modified to use specified fps for roq's
-	cinTable[currentHandle].tfps = ( ( ( CL_ScaledMilliseconds() - cinTable[currentHandle].startTime ) * cinTable[currentHandle].roqFPS ) / 1000 );
+	cinTable[currentHandle].tfps = ( ( ( CL_ScaledMilliseconds() - cinTable[currentHandle].startTime ) * 3 ) / 100 );
 
 	start = cinTable[currentHandle].startTime;
 	while ( ( cinTable[currentHandle].tfps != cinTable[currentHandle].numQuads ) && ( cinTable[currentHandle].status == FMV_PLAY ) )
 	{
 		RoQInterrupt();
 		if ( start != cinTable[currentHandle].startTime ) {
-			cinTable[currentHandle].tfps = ( ( ( CL_ScaledMilliseconds() - cinTable[currentHandle].startTime ) * cinTable[currentHandle].roqFPS ) / 1000 );
-
+			cinTable[currentHandle].tfps = ( ( ( CL_ScaledMilliseconds() - cinTable[currentHandle].startTime ) * 3 ) / 100 );
 			start = cinTable[currentHandle].startTime;
 		}
-		played = 1;
 	}
-
-//DAJ added [CIN_STREAM]'s
-	if ( played && cinTable[currentHandle].sound ) {
-		if ( s_rawend[CIN_STREAM] < s_soundtime && ( s_soundtime - s_rawend[CIN_STREAM] ) < 100 ) {
-			cinTable[currentHandle].startTime -= ( s_soundtime - s_rawend[CIN_STREAM] );
-			do {
-				RoQInterrupt();
-			} while ( s_rawend[CIN_STREAM] < s_soundtime &&  cinTable[currentHandle].status == FMV_PLAY );
-		}
-	}
-
-
-//----(SA)	end
 
 	cinTable[currentHandle].lastTime = thisTime;
 
@@ -1517,8 +1494,6 @@ int CIN_PlayCinematic( const char *arg, int x, int y, int w, int h, int systemBi
 	cinTable[currentHandle].playonwalls = 1;
 	cinTable[currentHandle].silent = ( systemBits & CIN_silent ) != 0;
 	cinTable[currentHandle].shader = ( systemBits & CIN_shader ) != 0;
-	cinTable[currentHandle].letterBox = ( systemBits & CIN_letterBox ) != 0;
-	cinTable[currentHandle].sound = 0;
 
 	if ( cinTable[currentHandle].alterGameState ) {
 		// close the menu
@@ -1663,22 +1638,6 @@ void CIN_DrawCinematic( int handle ) {
 	buf = cinTable[handle].buf;
 	SCR_AdjustFrom640( &x, &y, &w, &h );
 
-
-	if ( cinTable[handle].letterBox ) {
-		float barheight;
-		float vh;
-		vh = (float)cls.glconfig.vidHeight;
-
-		barheight = ( (float)LETTERBOX_OFFSET / 480.0f ) * vh;  //----(SA)	added
-
-		re.SetColor( &colorBlack[0] );
-//		re.DrawStretchPic( 0, 0, SCREEN_WIDTH, LETTERBOX_OFFSET, 0, 0, 0, 0, cls.whiteShader );
-//		re.DrawStretchPic( 0, SCREEN_HEIGHT-LETTERBOX_OFFSET, SCREEN_WIDTH, LETTERBOX_OFFSET, 0, 0, 0, 0, cls.whiteShader );
-		//----(SA)	adjust for 640x480
-		re.DrawStretchPic( 0, 0, w, barheight, 0, 0, 0, 0, cls.whiteShader );
-		re.DrawStretchPic( 0, vh - barheight - 1, w, barheight + 1, 0, 0, 0, 0, cls.whiteShader );
-	}
-
 	if ( cinTable[handle].dirty && ( cinTable[handle].CIN_WIDTH != cinTable[handle].drawX || cinTable[handle].CIN_HEIGHT != cinTable[handle].drawY ) ) {
 		int *buf2;
 
@@ -1719,18 +1678,10 @@ void CL_PlayCinematic_f( void ) {
 	if ( s && s[0] == '2' ) {
 		bits |= CIN_loop;
 	}
-	if ( s && s[0] == '3' ) {
-		bits |= CIN_letterBox;
-	}
 
 	S_StopAllSounds();
 
-	if ( bits & CIN_letterBox ) {
-		CL_handle = CIN_PlayCinematic( arg, 0, LETTERBOX_OFFSET, SCREEN_WIDTH, SCREEN_HEIGHT - ( LETTERBOX_OFFSET * 2 ), bits );
-	} else {
-		CL_handle = CIN_PlayCinematic( arg, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, bits );
-	}
-
+	CL_handle = CIN_PlayCinematic( arg, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, bits );
 	if ( CL_handle >= 0 ) {
 		do {
 			SCR_RunCinematic();

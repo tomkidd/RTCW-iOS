@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -31,7 +31,6 @@ If you have questions concerning this license or the applicable additional terms
 #include "client.h"
 
 #include "../botlib/botlib.h"
-#include "../renderer/tr_local.h"
 
 #ifdef USE_MUMBLE
 #include "libmumblelink.h"
@@ -45,8 +44,11 @@ extern qboolean getCameraInfo( int camNum, int time, vec3_t *origin, vec3_t *ang
 
 // RF, this is only used when running a local server
 extern void SV_SendMoveSpeedsToGame( int entnum, char *text );
-extern qboolean SV_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **modelInfo );
 
+// NERVE - SMF
+void Key_GetBindingBuf( int keynum, char *buf, int buflen );
+void Key_KeynumToStringBuf( int keynum, char *buf, int buflen );
+// -NERVE - SMF
 
 /*
 ====================
@@ -185,11 +187,23 @@ qboolean    CL_GetSnapshot( int snapshotNumber, snapshot_t *snapshot ) {
 CL_SetUserCmdValue
 ==============
 */
-void CL_SetUserCmdValue( int userCmdValue, int holdableValue, float sensitivityScale, int cld ) {
+void CL_SetUserCmdValue( int userCmdValue, int holdableValue, float sensitivityScale, int mpSetup, int mpIdentClient ) {
 	cl.cgameUserCmdValue        = userCmdValue;
 	cl.cgameUserHoldableValue   = holdableValue;
 	cl.cgameSensitivity         = sensitivityScale;
-	cl.cgameCld                 = cld;
+	cl.cgameMpSetup             = mpSetup;              // NERVE - SMF
+	cl.cgameMpIdentClient       = mpIdentClient;        // NERVE - SMF
+}
+
+/*
+==================
+CL_SetClientLerpOrigin
+==================
+*/
+void CL_SetClientLerpOrigin( float x, float y, float z ) {
+	cl.cgameClientLerpOrigin[0] = x;
+	cl.cgameClientLerpOrigin[1] = y;
+	cl.cgameClientLerpOrigin[2] = z;
 }
 
 /*
@@ -275,6 +289,7 @@ qboolean CL_GetServerCommand( int serverCommandNumber ) {
 	char    *s;
 	char    *cmd;
 	static char bigConfigString[BIG_INFO_STRING];
+	int argc;
 
 	// if we have irretrievably lost a reliable command, drop the connection
 	if ( serverCommandNumber <= clc.serverCommandSequence - MAX_RELIABLE_COMMANDS ) {
@@ -295,14 +310,22 @@ qboolean CL_GetServerCommand( int serverCommandNumber ) {
 	s = clc.serverCommands[ serverCommandNumber & ( MAX_RELIABLE_COMMANDS - 1 ) ];
 	clc.lastExecutedServerCommand = serverCommandNumber;
 
-	Com_DPrintf( "serverCommand: %i : %s\n", serverCommandNumber, s );
+	if ( cl_showServerCommands->integer ) {         // NERVE - SMF
+		Com_DPrintf( "serverCommand: %i : %s\n", serverCommandNumber, s );
+	}
 
 rescan:
 	Cmd_TokenizeString( s );
 	cmd = Cmd_Argv( 0 );
+	argc = Cmd_Argc();
 
 	if ( !strcmp( cmd, "disconnect" ) ) {
-		Com_Error( ERR_SERVERDISCONNECT,"Server disconnected" );
+		// NERVE - SMF - allow server to indicate why they were disconnected
+		if ( argc >= 2 ) {
+			Com_Error( ERR_SERVERDISCONNECT, "Server disconnected - %s", Cmd_Argv( 1 ) );
+		} else {
+			Com_Error( ERR_SERVERDISCONNECT, "Server disconnected" );
+		}
 	}
 
 	if ( !strcmp( cmd, "bcs0" ) ) {
@@ -382,6 +405,53 @@ rescan:
 	return qtrue;
 }
 
+// DHM - Nerve :: Copied from server to here
+/*
+====================
+CL_SetExpectedHunkUsage
+
+  Sets com_expectedhunkusage, so the client knows how to draw the percentage bar
+====================
+*/
+void CL_SetExpectedHunkUsage( const char *mapname ) {
+	int handle;
+	char *memlistfile = "hunkusage.dat";
+	char *buf;
+	char *buftrav;
+	char *token;
+	int len;
+
+	len = FS_FOpenFileByMode( memlistfile, &handle, FS_READ );
+	if ( len >= 0 ) { // the file exists, so read it in, strip out the current entry for this map, and save it out, so we can append the new value
+
+		buf = (char *)Z_Malloc( len + 1 );
+		memset( buf, 0, len + 1 );
+
+		FS_Read( (void *)buf, len, handle );
+		FS_FCloseFile( handle );
+
+		// now parse the file, filtering out the current map
+		buftrav = buf;
+		while ( ( token = COM_Parse( &buftrav ) ) && token[0] ) {
+			if ( !Q_strcasecmp( token, (char *)mapname ) ) {
+				// found a match
+				token = COM_Parse( &buftrav );  // read the size
+				if ( token && token[0] ) {
+					// this is the usage
+					Cvar_Set( "com_expectedhunkusage", token );
+					Z_Free( buf );
+					return;
+				}
+			}
+		}
+
+		Z_Free( buf );
+	}
+	// just set it to a negative number,so the cgame knows not to draw the percent bar
+	Cvar_Set( "com_expectedhunkusage", "-1" );
+}
+
+// dhm - nerve
 
 /*
 ====================
@@ -392,6 +462,16 @@ Just adds default parameters that cgame doesn't need to know about
 */
 void CL_CM_LoadMap( const char *mapname ) {
 	int checksum;
+
+	// DHM - Nerve :: If we are not running the server, then set expected usage here
+	if ( !com_sv_running->integer ) {
+		CL_SetExpectedHunkUsage( mapname );
+	} else
+	{
+		// TTimo
+		// catch here when a local server is started to avoid outdated com_errorDiagnoseIP
+		Cvar_Set( "com_errorDiagnoseIP", "" );
+	}
 
 	CM_LoadMap( mapname, qtrue, &checksum );
 }
@@ -533,18 +613,10 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		// FIXME MrE: handling of looping sounds changed
 		S_AddLoopingSound( args[1], VMA( 2 ), VMA( 3 ), args[4], args[5], args[6] );
 		return 0;
-// not in use
-//	case CG_S_ADDREALLOOPINGSOUND:
-//		S_AddLoopingSound( args[1], VMA(2), VMA(3), args[4], args[5], args[6] );
-//		//S_AddRealLoopingSound( args[1], VMA(2), VMA(3), args[4], args[5] );
-//		return 0;
-
-//----(SA)	added
-	case CG_S_STOPSTREAMINGSOUND:
-		S_StopEntStreamingSound( args[1] );
+	case CG_S_ADDREALLOOPINGSOUND:
+		S_AddLoopingSound( args[1], VMA( 2 ), VMA( 3 ), args[4], args[5], args[6] );
+		//S_AddRealLoopingSound( args[1], VMA(2), VMA(3), args[4], args[5] );
 		return 0;
-//----(SA)	end
-
 	case CG_S_STOPLOOPINGSOUND:
 		// RF, not functional anymore, since we reverted to old looping code
 		//S_StopLoopingSound( args[1] );
@@ -560,23 +632,12 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		S_Respatialize( args[1], VMA( 2 ), VMA( 3 ), args[4] );
 		return 0;
 	case CG_S_REGISTERSOUND:
-#ifdef DOOMSOUND    ///// (SA) DOOMSOUND
-		return S_RegisterSound( VMA( 1 ) );
-#else
 		return S_RegisterSound( VMA( 1 ), qfalse );
-#endif  ///// (SA) DOOMSOUND
 	case CG_S_STARTBACKGROUNDTRACK:
-//		S_StartBackgroundTrack( VMA( 1 ), VMA( 2 ), args[3] );  //----(SA)	added fadeup time
 		S_StartBackgroundTrack( VMA( 1 ), VMA( 2 ) );
-		return 0;
-	case CG_S_FADESTREAMINGSOUND:
-		S_FadeStreamingSound( VMF( 1 ), args[2], args[3] ); //----(SA)	added music/all-streaming options
 		return 0;
 	case CG_S_STARTSTREAMINGSOUND:
 		S_StartStreamingSound( VMA( 1 ), VMA( 2 ), args[3], args[4], args[5] );
-		return 0;
-	case CG_S_FADEALLSOUNDS:
-		S_FadeAllSounds( VMF( 1 ), args[2] );   //----(SA)	added
 		return 0;
 	case CG_R_LOADWORLDMAP:
 		re.LoadWorld( VMA( 1 ) );
@@ -613,9 +674,6 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_R_ADDPOLYSTOSCENE:
 		re.AddPolysToScene( args[1], args[2], VMA( 3 ), args[4] );
 		return 0;
-	case CG_RB_ZOMBIEFXADDNEWHIT:
-		re.ZombieFXAddNewHit( args[1], VMA( 2 ), VMA( 3 ) );
-		return 0;
 		// done.
 //	case CG_R_LIGHTFORPOINT:
 //		return re.LightForPoint( VMA(1), VMA(2), VMA(3), VMA(4) );
@@ -639,6 +697,9 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return 0;
 	case CG_R_DRAWSTRETCHPIC:
 		re.DrawStretchPic( VMF( 1 ), VMF( 2 ), VMF( 3 ), VMF( 4 ), VMF( 5 ), VMF( 6 ), VMF( 7 ), VMF( 8 ), args[9] );
+		return 0;
+	case CG_R_DRAWROTATEDPIC:
+		re.DrawRotatedPic( VMF( 1 ), VMF( 2 ), VMF( 3 ), VMF( 4 ), VMF( 5 ), VMF( 6 ), VMF( 7 ), VMF( 8 ), args[9], VMF( 10 ) );
 		return 0;
 	case CG_R_DRAWSTRETCHPIC_GRADIENT:
 		re.DrawStretchPicGradient( VMF( 1 ), VMF( 2 ), VMF( 3 ), VMF( 4 ), VMF( 5 ), VMF( 6 ), VMF( 7 ), VMF( 8 ), args[9], VMA( 10 ), args[11] );
@@ -666,7 +727,10 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_GETUSERCMD:
 		return CL_GetUserCmd( args[1], VMA( 2 ) );
 	case CG_SETUSERCMDVALUE:
-		CL_SetUserCmdValue( args[1], args[2], VMF( 3 ), args[4] );    //----(SA)	modified	// NERVE - SMF - added fourth arg [cld]
+		CL_SetUserCmdValue( args[1], args[2], VMF( 3 ), args[4], args[5] );
+		return 0;
+	case CG_SETCLIENTLERPORIGIN:
+		CL_SetClientLerpOrigin( VMF( 1 ), VMF( 2 ), VMF( 3 ) );
 		return 0;
 	case CG_MEMORY_REMAINING:
 		return Hunk_MemoryRemaining();
@@ -764,20 +828,8 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return loadCamera( args[1], VMA( 2 ) );
 
 	case CG_STARTCAMERA:
-		if ( args[1] == 0 ) {  // CAM_PRIMARY
-			cl.cameraMode = qtrue;  //----(SA)	added
-		}
 		startCamera( args[1], args[2] );
 		return 0;
-
-//----(SA)	added
-	case CG_STOPCAMERA:
-		if ( args[1] == 0 ) {  // CAM_PRIMARY
-			cl.cameraMode = qfalse;
-		}
-//		stopCamera(args[1]);
-		return 0;
-//----(SA)	end
 
 	case CG_GETCAMERAINFO:
 		return getCameraInfo( args[1], args[2], VMA( 3 ), VMA( 4 ), VMA( 5 ) );
@@ -786,11 +838,6 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return re.GetEntityToken( VMA( 1 ), args[2] );
 
 	case CG_INGAME_POPUP:
-		if ( VMA( 1 ) && !Q_stricmp( VMA( 1 ), "briefing" ) ) {  //----(SA) added
-			VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_BRIEFING );
-			return 0;
-		}
-
 		if ( clc.state == CA_ACTIVE && !clc.demoplaying ) {
 			// NERVE - SMF
 			if ( VMA( 1 ) && !Q_stricmp( VMA( 1 ), "UIMENU_WM_PICKTEAM" ) ) {
@@ -799,8 +846,12 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_WM_PICKPLAYER );
 			} else if ( VMA( 1 ) && !Q_stricmp( VMA( 1 ), "UIMENU_WM_QUICKMESSAGE" ) )    {
 				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_WM_QUICKMESSAGE );
+			} else if ( VMA( 1 ) && !Q_stricmp( VMA( 1 ), "UIMENU_WM_QUICKMESSAGEALT" ) )    {
+				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_WM_QUICKMESSAGEALT );
 			} else if ( VMA( 1 ) && !Q_stricmp( VMA( 1 ), "UIMENU_WM_LIMBO" ) )    {
 				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_WM_LIMBO );
+			} else if ( VMA( 1 ) && !Q_stricmp( VMA( 1 ), "UIMENU_WM_AUTOUPDATE" ) )    {
+				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_WM_AUTOUPDATE );
 			}
 			// -NERVE - SMF
 			else if ( VMA( 1 ) && !Q_stricmp( VMA( 1 ), "hbook1" ) ) {   //----(SA)
@@ -809,8 +860,6 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_BOOK2 );
 			} else if ( VMA( 1 ) && !Q_stricmp( VMA( 1 ), "hbook3" ) )    { //----(SA)
 				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_BOOK3 );
-			} else if ( VMA( 1 ) && !Q_stricmp( VMA( 1 ), "pregame" ) )    { //----(SA) added
-				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_PREGAME );
 			} else {
 				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_CLIPBOARD );
 			}
@@ -819,7 +868,13 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 
 		// NERVE - SMF
 	case CG_INGAME_CLOSEPOPUP:
-		VM_Call( uivm, UI_KEY_EVENT, K_ESCAPE, qtrue );
+		// if popup menu is up, then close it
+		if ( VMA( 1 ) && !Q_stricmp( VMA( 1 ), "UIMENU_WM_LIMBO" ) ) {
+			if ( VM_Call( uivm, UI_GET_ACTIVE_MENU ) == UIMENU_WM_LIMBO ) {
+				VM_Call( uivm, UI_KEY_EVENT, K_ESCAPE, qtrue );
+				VM_Call( uivm, UI_KEY_EVENT, K_ESCAPE, qtrue );
+			}
+		}
 		return 0;
 
 	case CG_LIMBOCHAT:
@@ -827,26 +882,23 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 			CL_AddToLimboChat( VMA( 1 ) );
 		}
 		return 0;
+
+	case CG_KEY_GETBINDINGBUF:
+		Key_GetBindingBuf( args[1], VMA( 2 ), args[3] );
+		return 0;
+
+	case CG_KEY_SETBINDING:
+		Key_SetBinding( args[1], VMA( 2 ) );
+		return 0;
+
+	case CG_KEY_KEYNUMTOSTRINGBUF:
+		Key_KeynumToStringBuf( args[1], VMA( 2 ), args[3] );
+		return 0;
+
+	case CG_TRANSLATE_STRING:
+		CL_TranslateString( VMA( 1 ), VMA( 2 ) );
+		return 0;
 		// - NERVE - SMF
-
-	case CG_GETMODELINFO:
-		if ( VM_IsNative( cgvm ) ) {
-			return SV_GetModelInfo( args[1], VMA( 2 ), VMA( 3 ) );
-		} else {
-			// The intention of the syscall is to set a CGame pointer to Game VM memory
-			// to reduce memory usage and load time. This is not possible for CGame QVM
-			// due to QVM pointers being an offset in QVM's memory and each QVM using a
-			// separate memory block. There is additional issues if Game VM is a DLL,
-			// see SV_GetModelInfo().
-			// It seems like the best solution is to just make CGame QVM load the animation
-			// file for itself. --zturtleman
-			return qfalse;
-		}
-
-	// New in IORTCW
-	case CG_ALLOC:
-		return VM_Alloc( args[1] );
-
 	default:
 		Com_Error( ERR_DROP, "Bad cgame system trap: %ld", (long int) args[0] );
 	}
@@ -916,6 +968,13 @@ void CL_UpdateLevelHunkUsage( void ) {
 			}
 		}
 
+#ifdef __MACOS__    //DAJ MacOS file typing
+		{
+			extern _MSL_IMP_EXP_C long _fcreator, _ftype;
+			_ftype = 'TEXT';
+			_fcreator = 'WlfS';
+		}
+#endif
 		handle = FS_FOpenFileWrite( memlistfile );
 		if ( handle < 0 ) {
 			Com_Error( ERR_DROP, "cannot create %s\n", memlistfile );
@@ -933,7 +992,7 @@ void CL_UpdateLevelHunkUsage( void ) {
 	// now append the current map to the current file
 	FS_FOpenFileByMode( memlistfile, &handle, FS_APPEND );
 	if ( handle < 0 ) {
-		Com_Error( ERR_DROP, "c1! cannot write to hunkusage.dat, check disk full\n" );
+		Com_Error( ERR_DROP, "cannot write to hunkusage.dat, check disk full\n" );
 	}
 	Com_sprintf( outstr, sizeof( outstr ), "%s %i\n", cl.mapname, memusage );
 	FS_Write( outstr, strlen( outstr ), handle );
@@ -957,7 +1016,6 @@ void CL_InitCGame( void ) {
 	const char          *info;
 	const char          *mapname;
 	int t1, t2;
-	vmInterpret_t interpret;
 
 	t1 = Sys_Milliseconds();
 
@@ -970,19 +1028,7 @@ void CL_InitCGame( void ) {
 	Com_sprintf( cl.mapname, sizeof( cl.mapname ), "maps/%s.bsp", mapname );
 
 	// load the dll or bytecode
-#ifdef IOS
-    interpret = VMI_BYTECODE;
-#else
-    interpret = Cvar_VariableValue("vm_cgame");
-	if(cl_connectedToPureServer)
-	{
-		// if sv_pure is set we only allow qvms to be loaded
-		if(interpret != VMI_COMPILED && interpret != VMI_BYTECODE)
-			interpret = VMI_COMPILED;
-	}
-#endif
-
-	cgvm = VM_Create( "cgame", CL_CgameSystemCalls, interpret );
+	cgvm = VM_Create( "cgame", CL_CgameSystemCalls, Cvar_VariableValue("vm_cgame") );
 	if ( !cgvm ) {
 		Com_Error( ERR_DROP, "VM_Create on cgame failed" );
 	}
@@ -1018,7 +1064,7 @@ void CL_InitCGame( void ) {
 	Con_ClearNotify();
 
 	// Ridah, update the memory usage file
-    CL_UpdateLevelHunkUsage();
+	CL_UpdateLevelHunkUsage();
 }
 
 
@@ -1133,7 +1179,7 @@ void CL_FirstSnapshot( void ) {
 		return;
 	}
 	clc.state = CA_ACTIVE;
-    
+
 	// set the timedelta so we are exactly on this first frame
 	cl.serverTimeDelta = cl.snap.serverTime - cls.realtime;
 	cl.oldServerTime = cl.snap.serverTime;
@@ -1252,8 +1298,8 @@ void CL_SetCGameTime( void ) {
 		tn = cl_timeNudge->integer;
 		if ( tn < -30 ) {
 			tn = -30;
-		} else if ( tn > 30 ) {
-			tn = 30;
+		} else if ( tn > 0 ) {
+			tn = 0;
 		}
 
 		cl.serverTime = cls.realtime + cl.serverTimeDelta - tn;

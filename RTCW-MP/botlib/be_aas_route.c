@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -68,8 +68,6 @@ If you have questions concerning this license or the applicable additional terms
 
 //maximum number of routing updates each frame
 #define MAX_FRAMEROUTINGUPDATES     100
-
-extern aas_t aasworlds[MAX_AAS_WORLDS];
 
 
 /*
@@ -393,7 +391,7 @@ unsigned short int AAS_AreaTravelTime( int areanum, vec3_t start, vec3_t end ) {
 	//normal walk area
 	else {dist *= DISTANCEFACTOR_WALK;}
 	//
-	intdist = (int) ceil( dist );
+	intdist = (int) dist;
 	//make sure the distance isn't zero
 	if ( intdist <= 0 ) {
 		intdist = 1;
@@ -873,7 +871,7 @@ void AAS_CreateAllRoutingCache( void ) {
 				continue;
 			}
 			AAS_AreaTravelTimeToGoalArea( j, ( *aasworld ).areawaypoints[j], i, tfl );
-			( *aasworld ).frameroutingupdates = 0;
+			//( *aasworld ).frameroutingupdates = 0;
 		} //end for
 	} //end for
 } //end of the function AAS_CreateAllRoutingCache
@@ -939,7 +937,7 @@ typedef struct routecacheheader_s
 } routecacheheader_t;
 
 #define RCID                        ( ( 'C' << 24 ) + ( 'R' << 16 ) + ( 'E' << 8 ) + 'M' )
-#define RCVERSION                   15
+#define RCVERSION                   12
 
 void AAS_DecompressVis( byte *in, int numareas, byte *decompressed );
 int AAS_CompressVis( byte *vis, int numareas, byte *dest );
@@ -1862,25 +1860,6 @@ int AAS_AreaTravelTimeToGoalArea( int areanum, vec3_t origin, int goalareanum, i
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-int AAS_AreaTravelTimeToGoalAreaCheckLoop( int areanum, vec3_t origin, int goalareanum, int travelflags, int loopareanum ) {
-	int traveltime, reachnum = 0;
-	aas_reachability_t *reach;
-
-	if ( AAS_AreaRouteToGoalArea( areanum, origin, goalareanum, travelflags, &traveltime, &reachnum ) ) {
-		reach = &( *aasworld ).reachability[reachnum];
-		if ( loopareanum && reach->areanum == loopareanum ) {
-			return 0;   // going here will cause a looped route
-		}
-		return traveltime;
-	}
-	return 0;
-} //end of the function AAS_AreaTravelTimeToGoalArea
-//===========================================================================
-//
-// Parameter:			-
-// Returns:				-
-// Changes Globals:		-
-//===========================================================================
 int AAS_AreaReachabilityToGoalArea( int areanum, vec3_t origin, int goalareanum, int travelflags ) {
 	int traveltime, reachnum = 0;
 
@@ -2124,21 +2103,15 @@ void AAS_CreateVisibility( void ) {
 	byte *buf;
 	byte *validareas;
 	int numvalid = 0;
-	byte *areaTable = NULL;
-	int numAreas, numAreaBits;
 
-	numAreas = ( *aasworld ).numareas;
-	numAreaBits = ( ( numAreas + 8 ) >> 3 );
-	areaTable = (byte *) GetClearedMemory( numAreas * numAreaBits * sizeof( byte ) );
+	buf = (byte *) GetClearedMemory( ( *aasworld ).numareas * 2 * sizeof( byte ) );   // in case it ends up bigger than the decompressedvis, which is rare but possible
+	validareas = (byte *) GetClearedMemory( ( *aasworld ).numareas * sizeof( byte ) );
 
-	buf = (byte *) GetClearedMemory( numAreas * 2 * sizeof( byte ) );   // in case it ends up bigger than the decompressedvis, which is rare but possible
-	validareas = (byte *) GetClearedMemory( numAreas * sizeof( byte ) );
-
-	( *aasworld ).areavisibility = (byte **) GetClearedMemory( numAreas * sizeof( byte * ) );
-	( *aasworld ).decompressedvis = (byte *) GetClearedMemory( numAreas * sizeof( byte ) );
-	( *aasworld ).areawaypoints = (vec3_t *) GetClearedMemory( numAreas * sizeof( vec3_t ) );
-	totalsize = numAreas * sizeof( byte * );
-	for ( i = 1; i < numAreas; i++ )
+	( *aasworld ).areavisibility = (byte **) GetClearedMemory( ( *aasworld ).numareas * sizeof( byte * ) );
+	( *aasworld ).decompressedvis = (byte *) GetClearedMemory( ( *aasworld ).numareas * sizeof( byte ) );
+	( *aasworld ).areawaypoints = (vec3_t *) GetClearedMemory( ( *aasworld ).numareas * sizeof( vec3_t ) );
+	totalsize = ( *aasworld ).numareas * sizeof( byte * );
+	for ( i = 1; i < ( *aasworld ).numareas; i++ )
 	{
 		if ( !AAS_AreaReachability( i ) ) {
 			continue;
@@ -2149,7 +2122,7 @@ void AAS_CreateVisibility( void ) {
 		endpos[2] -= 256;
 		AAS_PresenceTypeBoundingBox( PRESENCE_NORMAL, mins, maxs );
 //		maxs[2] = 0;
-		trace = AAS_Trace( ( *aasworld ).areas[i].center, mins, maxs, endpos, -1, CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_MONSTERCLIP );
+		trace = AAS_Trace( ( *aasworld ).areas[i].center, mins, maxs, endpos, -1, CONTENTS_SOLID );
 		if ( !trace.startsolid && trace.fraction < 1 && AAS_PointAreaNum( trace.endpos ) == i ) {
 			VectorCopy( trace.endpos, ( *aasworld ).areawaypoints[i] );
 			validareas[i] = 1;
@@ -2159,52 +2132,44 @@ void AAS_CreateVisibility( void ) {
 		}
 	}
 
-	for ( i = 1; i < numAreas; i++ )
+	for ( i = 1; i < ( *aasworld ).numareas; i++ )
 	{
 		if ( !validareas[i] ) {
 			continue;
 		}
 
-		for ( j = 1; j < numAreas; j++ )
+		if ( !AAS_AreaReachability( i ) ) {
+			continue;
+		}
+
+		for ( j = 1; j < ( *aasworld ).numareas; j++ )
 		{
-			( *aasworld ).decompressedvis[j] = 0;
 			if ( i == j ) {
 				( *aasworld ).decompressedvis[j] = 1;
-				if ( areaTable ) {
-					areaTable[ ( i * numAreaBits ) + ( j >> 3 ) ] |= ( 1 << ( j & 7 ) );
-				}
 				continue;
 			}
-			if ( !validareas[j] ) {
+			if ( !validareas[j] || !AAS_AreaReachability( j ) ) {
+				( *aasworld ).decompressedvis[j] = 0;
 				continue;
 			} //end if
-			  // if we have already checked this combination, copy the result
-			if ( areaTable && ( i > j ) ) {
-				// use the reverse result stored in the table
-				if ( areaTable[ ( j * numAreaBits ) + ( i >> 3 ) ] & ( 1 << ( i & 7 ) ) ) {
-					( *aasworld ).decompressedvis[j] = 1;
-				}
-				// done, move to the next area
-				continue;
-			}
 
-			// RF, check PVS first, since it's much faster
-			if ( !AAS_inPVS( ( *aasworld ).areawaypoints[i], ( *aasworld ).areawaypoints[j] ) ) {
-				continue;
-			}
+			// Ridah, this always returns false?!
+			//if (AAS_inPVS( (*aasworld).areawaypoints[i], (*aasworld).areawaypoints[j] ))
 			trace = AAS_Trace( ( *aasworld ).areawaypoints[i], NULL, NULL, ( *aasworld ).areawaypoints[j], -1, CONTENTS_SOLID );
 			if ( trace.fraction >= 1 ) {
+				//if (botimport.inPVS( (*aasworld).areawaypoints[i], (*aasworld).areawaypoints[j] ))
 				( *aasworld ).decompressedvis[j] = 1;
 			} //end if
+			else
+			{
+				( *aasworld ).decompressedvis[j] = 0;
+			} //end else
 		} //end for
-		size = AAS_CompressVis( ( *aasworld ).decompressedvis, numAreas, buf );
+		size = AAS_CompressVis( ( *aasworld ).decompressedvis, ( *aasworld ).numareas, buf );
 		( *aasworld ).areavisibility[i] = (byte *) GetMemory( size );
 		memcpy( ( *aasworld ).areavisibility[i], buf, size );
 		totalsize += size;
 	} //end for
-	if ( areaTable ) {
-		FreeMemory( areaTable );
-	}
 	botimport.Print( PRT_MESSAGE, "AAS_CreateVisibility: compressed vis size = %i\n", totalsize );
 } //end of the function AAS_CreateVisibility
 //===========================================================================
@@ -2225,20 +2190,15 @@ int AAS_NearestHideArea( int srcnum, vec3_t origin, int areanum, int enemynum, v
 	vec3_t enemyVec;
 	qboolean startVisible;
 	vec3_t v1, v2, p;
-	#define MAX_HIDEAREA_LOOPS  3000
+	#define MAX_HIDEAREA_LOOPS  4000
 	static float lastTime;
-	static int loopCount;
+	int count = 0;
 	//
-	if ( srcnum < 0 ) {   // hack to force run this call
-		srcnum = -srcnum - 1;
-		lastTime = 0;
-	}
 	// don't run this more than once per frame
-	if ( lastTime == AAS_Time() && loopCount >= MAX_HIDEAREA_LOOPS ) {
+	if ( lastTime == AAS_Time() ) {
 		return 0;
 	}
 	lastTime = AAS_Time();
-	loopCount = 0;
 	//
 	if ( !( *aasworld ).hidetraveltimes ) {
 		( *aasworld ).hidetraveltimes = (unsigned short int *) GetClearedMemory( ( *aasworld ).numareas * sizeof( unsigned short int ) );
@@ -2297,10 +2257,6 @@ int AAS_NearestHideArea( int srcnum, vec3_t origin, int areanum, int enemynum, v
 			if ( AAS_AreaContentsTravelFlag( reach->areanum ) & badtravelflags ) {
 				continue;
 			}
-			// dont pass through ladder areas
-			if ( ( *aasworld ).areasettings[reach->areanum].areaflags & AREA_LADDER ) {
-				continue;
-			}
 			//
 			if ( ( *aasworld ).areasettings[reach->areanum].areaflags & AREA_DISABLED ) {
 				continue;
@@ -2316,8 +2272,6 @@ int AAS_NearestHideArea( int srcnum, vec3_t origin, int areanum, int enemynum, v
 			t = curupdate->tmptraveltime +
 				AAS_AreaTravelTime( curupdate->areanum, curupdate->start, reach->start ) +
 				reach->traveltime;
-			// inc the loopCount, we are starting to use a bit of cpu time
-			loopCount++;
 			// if this isn't the fastest route to this area, ignore
 			if ( ( *aasworld ).hidetraveltimes[nextareanum] && ( *aasworld ).hidetraveltimes[nextareanum] < t ) {
 				continue;
@@ -2399,7 +2353,7 @@ int AAS_NearestHideArea( int srcnum, vec3_t origin, int areanum, int enemynum, v
 				}
 				//
 				// getting down to here is bad for cpu usage
-				if ( loopCount++ > MAX_HIDEAREA_LOOPS ) {
+				if ( count++ > MAX_HIDEAREA_LOOPS ) {
 					//botimport.Print(PRT_MESSAGE, "AAS_NearestHideArea: exceeded max loops, aborting\n" );
 					continue;
 				}
@@ -2469,13 +2423,13 @@ int AAS_FindAttackSpotWithinRange( int srcnum, int rangenum, int enemynum, float
 		memset( ( *aasworld ).visCache, 0, ( *aasworld ).numareas * sizeof( byte ) );
 	} //end else
 	  //
+	srcarea = AAS_BestReachableEntityArea( srcnum );
+	rangearea = AAS_BestReachableEntityArea( rangenum );
+	enemyarea = AAS_BestReachableEntityArea( enemynum );
+	//
 	AAS_EntityOrigin( srcnum, srcorg );
 	AAS_EntityOrigin( rangenum, rangeorg );
 	AAS_EntityOrigin( enemynum, enemyorg );
-	//
-	srcarea = BotFuzzyPointReachabilityArea( srcorg );
-	rangearea = BotFuzzyPointReachabilityArea( rangeorg );
-	enemyarea = BotFuzzyPointReachabilityArea( enemyorg );
 	//
 	besttraveltime = 0;
 	bestarea = 0;
@@ -2516,10 +2470,6 @@ int AAS_FindAttackSpotWithinRange( int srcnum, int rangenum, int enemynum, float
 			}
 			//
 			if ( AAS_AreaContentsTravelFlag( reach->areanum ) & badtravelflags ) {
-				continue;
-			}
-			// dont pass through ladder areas
-			if ( ( *aasworld ).areasettings[reach->areanum].areaflags & AREA_LADDER ) {
 				continue;
 			}
 			//
@@ -2602,71 +2552,3 @@ int AAS_FindAttackSpotWithinRange( int srcnum, int rangenum, int enemynum, float
 	}
 	return bestarea;
 } //end of the function AAS_NearestHideArea
-
-//===========================================================================
-//
-// Parameter:			-
-// Returns:				-
-// Changes Globals:		-
-//===========================================================================
-qboolean AAS_GetRouteFirstVisPos( vec3_t srcpos, vec3_t destpos, int travelflags, vec3_t retpos ) {
-	int srcarea, destarea, travarea;
-	vec3_t travpos;
-	int ftraveltime, freachnum, lasttraveltime;
-	aas_reachability_t reach;
-	int loops = 0;
-#define MAX_GETROUTE_VISPOS_LOOPS   200
-	//
-	// SRCPOS: enemy
-	// DESTPOS: self
-	// RETPOS: first area that is visible from destpos, in route from srcpos to destpos
-	srcarea = BotFuzzyPointReachabilityArea( srcpos );
-	if ( !srcarea ) {
-		return qfalse;
-	}
-	destarea = BotFuzzyPointReachabilityArea( destpos );
-	if ( !destarea ) {
-		return qfalse;
-	}
-	if ( destarea == srcarea ) {
-		VectorCopy( srcpos, retpos );
-		return qtrue;
-	}
-	//
-	//if the srcarea can see the destarea
-	if ( AAS_AreaVisible( srcarea, destarea ) ) {
-		VectorCopy( srcpos, retpos );
-		return qtrue;
-	}
-	// if this area doesn't have a vis list, ignore it
-	if ( !( *aasworld ).areavisibility[destarea] ) {
-		return qfalse;
-	}
-	//
-	travarea = srcarea;
-	VectorCopy( srcpos, travpos );
-	lasttraveltime = -1;
-	while ( ( loops++ < MAX_GETROUTE_VISPOS_LOOPS ) && AAS_AreaRouteToGoalArea( travarea, travpos, destarea, travelflags, &ftraveltime, &freachnum ) ) {
-		if ( lasttraveltime >= 0 && ftraveltime >= lasttraveltime ) {
-			return qfalse;  // we may be in a loop
-		}
-		lasttraveltime = ftraveltime;
-		//
-		AAS_ReachabilityFromNum( freachnum, &reach );
-		if ( reach.areanum == destarea ) {
-			VectorCopy( travpos, retpos );
-			return qtrue;
-		}
-		//if the reach area can see the destarea
-		if ( AAS_AreaVisible( reach.areanum, destarea ) ) {
-			VectorCopy( reach.end, retpos );
-			return qtrue;
-		}
-		//
-		travarea = reach.areanum;
-		VectorCopy( reach.end, travpos );
-	}
-	//
-	// unsuccessful
-	return qfalse;
-}

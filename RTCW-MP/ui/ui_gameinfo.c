@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -46,9 +46,8 @@ static char     *ui_botInfos[MAX_BOTS];
 static int ui_numArenas;
 static char     *ui_arenaInfos[MAX_ARENAS];
 
-// TTimo: unused
-//static int		ui_numSinglePlayerArenas;
-//static int		ui_numSpecialSinglePlayerArenas;
+//static int		ui_numSinglePlayerArenas; // TTimo: unused
+//static int		ui_numSpecialSinglePlayerArenas; // TTimo: unused
 
 /*
 ===============
@@ -141,7 +140,7 @@ UI_LoadArenas
 */
 void UI_LoadArenas( void ) {
 	int numdirs;
-	vmCvar_t arenasFile;
+//	vmCvar_t	arenasFile;
 	char filename[128];
 	char dirlist[1024];
 	char*       dirptr;
@@ -150,13 +149,15 @@ void UI_LoadArenas( void ) {
 
 	ui_numArenas = 0;
 
-	trap_Cvar_Register( &arenasFile, "g_arenasFile", "", CVAR_INIT | CVAR_ROM );
-	if ( *arenasFile.string ) {
-		UI_LoadArenasFromFile( arenasFile.string );
-	} else {
-		UI_LoadArenasFromFile( "scripts/arenas.txt" );
+/*	NERVE - SMF - commented out
+	trap_Cvar_Register( &arenasFile, "g_arenasFile", "", CVAR_INIT|CVAR_ROM );
+	if( *arenasFile.string ) {
+		UI_LoadArenasFromFile(arenasFile.string);
 	}
-
+	else {
+		UI_LoadArenasFromFile("scripts/arenas.txt");
+	}
+*/
 	// get all arenas from .arena files
 	numdirs = trap_FS_GetFileList( "scripts", ".arena", dirlist, 1024 );
 	dirptr  = dirlist;
@@ -166,7 +167,7 @@ void UI_LoadArenas( void ) {
 		strcat( filename, dirptr );
 		UI_LoadArenasFromFile( filename );
 	}
-	trap_Print( va( "%i arenas parsed\n", ui_numArenas ) );
+//	trap_DPrint( va( "%i arenas parsed\n", ui_numArenas ) ); // JPW NERVE pulled per atvi req
 	if ( UI_OutOfMemory() ) {
 		trap_Print( S_COLOR_YELLOW "WARNING: not enough memory in pool to load all arenas\n" );
 	}
@@ -178,8 +179,8 @@ UI_LoadArenasIntoMapList
 ===============
 */
 void UI_LoadArenasIntoMapList( void ) {
-	int			n;
-	char		*type;
+	int n;
+	char *type, *str;
 
 	uiInfo.mapCount = 0;
 
@@ -193,6 +194,32 @@ void UI_LoadArenasIntoMapList( void ) {
 		uiInfo.mapList[uiInfo.mapCount].imageName = String_Alloc( va( "levelshots/%s", uiInfo.mapList[uiInfo.mapCount].mapLoadName ) );
 		uiInfo.mapList[uiInfo.mapCount].typeBits = 0;
 
+		// NERVE - SMF
+		// set timelimit
+		str = Info_ValueForKey( ui_arenaInfos[n], "Timelimit" );
+		if ( *str ) {
+			uiInfo.mapList[uiInfo.mapCount].Timelimit = atoi( str );
+		} else {
+			uiInfo.mapList[uiInfo.mapCount].Timelimit = 0;
+		}
+
+		// set axis respawn time
+		str = Info_ValueForKey( ui_arenaInfos[n], "AxisRespawnTime" );
+		if ( *str ) {
+			uiInfo.mapList[uiInfo.mapCount].AxisRespawnTime = atoi( str );
+		} else {
+			uiInfo.mapList[uiInfo.mapCount].AxisRespawnTime = 0;
+		}
+
+		// set allied respawn time
+		str = Info_ValueForKey( ui_arenaInfos[n], "AlliedRespawnTime" );
+		if ( *str ) {
+			uiInfo.mapList[uiInfo.mapCount].AlliedRespawnTime = atoi( str );
+		} else {
+			uiInfo.mapList[uiInfo.mapCount].AlliedRespawnTime = 0;
+		}
+		// -NERVE - SMF
+
 		type = Info_ValueForKey( ui_arenaInfos[n], "type" );
 		// if no type specified, it will be treated as "ffa"
 		if ( *type ) {
@@ -205,6 +232,17 @@ void UI_LoadArenasIntoMapList( void ) {
 			if ( strstr( type, "ctf" ) ) {
 				uiInfo.mapList[uiInfo.mapCount].typeBits |= ( 1 << GT_CTF );
 			}
+			// NERVE - SMF
+			if ( strstr( type, "wolfmp" ) ) {
+				uiInfo.mapList[uiInfo.mapCount].typeBits |= ( 1 << GT_WOLF );
+			}
+			if ( strstr( type, "wolfsw" ) ) {
+				uiInfo.mapList[uiInfo.mapCount].typeBits |= ( 1 << GT_WOLF_STOPWATCH );
+			}
+			if ( strstr( type, "wolfcp" ) ) {
+				uiInfo.mapList[uiInfo.mapCount].typeBits |= ( 1 << GT_WOLF_CP );
+			}
+			// -NERVE - SMF
 #ifdef MISSIONPACK
 			if ( strstr( type, "oneflag" ) ) {
 				uiInfo.mapList[uiInfo.mapCount].typeBits |= ( 1 << GT_1FCTF );

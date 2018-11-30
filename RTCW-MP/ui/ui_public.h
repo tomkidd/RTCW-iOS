@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -56,7 +56,6 @@ typedef enum {
 	UI_CMD_EXECUTETEXT,
 	UI_FS_FOPENFILE,
 	UI_FS_READ,
-	UI_FS_SEEK, //----(SA)	added
 	UI_FS_WRITE,
 	UI_FS_FCLOSEFILE,
 	UI_FS_GETFILELIST,
@@ -82,8 +81,6 @@ typedef enum {
 	UI_CM_LOADMODEL,
 	UI_S_REGISTERSOUND,
 	UI_S_STARTLOCALSOUND,
-	UI_S_FADESTREAMINGSOUND,    //----(SA)	added
-	UI_S_FADEALLSOUNDS,         //----(SA)	added
 	UI_KEY_KEYNUMTOSTRINGBUF,
 	UI_KEY_GETBINDINGBUF,
 	UI_KEY_SETBINDING,
@@ -143,6 +140,12 @@ typedef enum {
 	UI_LAN_SERVERISVISIBLE,
 	UI_LAN_COMPARESERVERS,
 	UI_CL_GETLIMBOSTRING,           // NERVE - SMF
+	UI_SET_PBCLSTATUS,              // DHM - Nerve
+	UI_CHECKAUTOUPDATE,             // DHM - Nerve
+	UI_GET_AUTOUPDATE,              // DHM - Nerve
+	UI_CL_TRANSLATE_STRING,
+	UI_OPENURL,
+	UI_SET_PBSVSTATUS,              // TTimo
 
 	UI_MEMSET = 100,
 	UI_MEMCPY,
@@ -152,10 +155,7 @@ typedef enum {
 	UI_ATAN2,
 	UI_SQRT,
 	UI_FLOOR,
-	UI_CEIL,
-
-	// New in IORTCW
-	UI_ALLOC = 900
+	UI_CEIL
 
 } uiImport_t;
 
@@ -164,10 +164,8 @@ typedef enum {
 	UIMENU_MAIN,
 	UIMENU_INGAME,
 	UIMENU_NEED_CD,
-	UIMENU_ENDGAME, //----(SA)	added
 	UIMENU_BAD_CD_KEY,
 	UIMENU_TEAM,
-	UIMENU_PREGAME, //----(SA)	added
 	UIMENU_POSTGAME,
 	UIMENU_NOTEBOOK,
 	UIMENU_CLIPBOARD,
@@ -175,11 +173,12 @@ typedef enum {
 	UIMENU_BOOK1,           //----(SA)	added
 	UIMENU_BOOK2,           //----(SA)	added
 	UIMENU_BOOK3,           //----(SA)	added
-	UIMENU_WM_PICKTEAM,     // NERVE - SMF - for multiplayer only
-	UIMENU_WM_PICKPLAYER,   // NERVE - SMF - for multiplayer only
-	UIMENU_WM_QUICKMESSAGE, // NERVE - SMF
-	UIMENU_WM_LIMBO,        // NERVE - SMF
-	UIMENU_BRIEFING         //----(SA)	added
+	UIMENU_WM_PICKTEAM,         // NERVE - SMF
+	UIMENU_WM_PICKPLAYER,       // NERVE - SMF
+	UIMENU_WM_QUICKMESSAGE,     // NERVE - SMF
+	UIMENU_WM_QUICKMESSAGEALT,  // NERVE - SMF
+	UIMENU_WM_LIMBO,            // NERVE - SMF
+	UIMENU_WM_AUTOUPDATE        // NERVE - DHM
 } uiMenuCommand_t;
 
 #define SORT_HOST           0
@@ -187,9 +186,7 @@ typedef enum {
 #define SORT_CLIENTS        2
 #define SORT_GAME           3
 #define SORT_PING           4
-
-#define SORT_SAVENAME       0
-#define SORT_SAVETIME       1
+#define SORT_PUNKBUSTER     5
 
 typedef enum {
 	UI_GETAPIVERSION = 0,   // system reserved
@@ -204,7 +201,7 @@ typedef enum {
 //	void	UI_KeyEvent( int key );
 
 	UI_MOUSE_EVENT,
-//  void    UI_MouseEvent( int dx, int dy, qboolean absolute );
+//	void	UI_MouseEvent( int dx, int dy );
 
 	UI_REFRESH,
 //	void	UI_Refresh( int time );
@@ -223,10 +220,11 @@ typedef enum {
 
 	UI_DRAW_CONNECT_SCREEN,
 //	void	UI_DrawConnectScreen( qboolean overlay );
-	UI_HASUNIQUECDKEY
+	UI_HASUNIQUECDKEY,
 // if !overlay, the background will be drawn, otherwise it will be
 // overlayed over whatever the cgame has drawn.
 // a GetClientState syscall will be made to get the current strings
+	UI_CHECKEXECKEY     // NERVE - SMF
 } uiExport_t;
 
 #endif

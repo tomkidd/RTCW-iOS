@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -180,6 +180,10 @@ CG_AddTrailJunc
 int CG_AddTrailJunc( int headJuncIndex, qhandle_t shader, int spawnTime, int sType, vec3_t pos, int trailLife, float alphaStart, float alphaEnd, float startWidth, float endWidth, int flags, vec3_t colorStart, vec3_t colorEnd, float sRatio, float animSpeed ) {
 	trailJunc_t *j, *headJunc;
 
+	if ( headJuncIndex < 0 || headJuncIndex >= MAX_TRAILJUNCS ) {
+		return 0;
+	}
+
 	if ( headJuncIndex > 0 ) {
 		headJunc = &trailJuncs[headJuncIndex - 1];
 
@@ -250,6 +254,10 @@ CG_AddSparkJunc
 int CG_AddSparkJunc( int headJuncIndex, qhandle_t shader, vec3_t pos, int trailLife, float alphaStart, float alphaEnd, float startWidth, float endWidth ) {
 	trailJunc_t *j, *headJunc;
 
+	if ( headJuncIndex < 0 || headJuncIndex >= MAX_TRAILJUNCS ) {
+		return 0;
+	}
+
 	if ( headJuncIndex > 0 ) {
 		headJunc = &trailJuncs[headJuncIndex - 1];
 
@@ -301,6 +309,10 @@ int CG_AddSmokeJunc( int headJuncIndex, qhandle_t shader, vec3_t pos, int trailL
 #define ST_RATIO    4.0     // sprite image: width / height
 	trailJunc_t *j, *headJunc;
 
+	if ( headJuncIndex < 0 || headJuncIndex >= MAX_TRAILJUNCS ) {
+		return 0;
+	}
+
 	if ( headJuncIndex > 0 ) {
 		headJunc = &trailJuncs[headJuncIndex - 1];
 
@@ -325,10 +337,13 @@ int CG_AddSmokeJunc( int headJuncIndex, qhandle_t shader, vec3_t pos, int trailL
 	j->spawnTime = cg.time;
 	j->endTime = cg.time + trailLife;
 
-//	VectorSet( j->colorStart, 0.2, 0.2, 0.2 );
-	VectorSet( j->colorStart, 0.0, 0.0, 0.0 );
-//	VectorSet( j->colorEnd, 0.1, 0.1, 0.1 );
-	VectorSet( j->colorEnd, 0.0, 0.0, 0.0 );
+	if ( cgs.gametype >= GT_WOLF ) {
+		VectorSet( j->colorStart, 0.7, 0.7, 0.7 );
+		VectorSet( j->colorEnd, 0.0, 0.0, 0.0 );
+	} else {
+		VectorSet( j->colorStart, 0.0, 0.0, 0.0 );
+		VectorSet( j->colorEnd, 0.0, 0.0, 0.0 );
+	}
 
 	j->alphaStart = alpha;
 	j->alphaEnd = 0.0;
@@ -405,12 +420,17 @@ CG_KillTrail
 */
 void CG_KillTrail( trailJunc_t *t ) {
 	trailJunc_t *next;
-
+	if ( !t->inuse && t->freed ) {
+		return;
+	}
 	next = t->nextJunc;
-
-	// kill the trail here
+	if ( next < &trailJuncs[0] || next >= &trailJuncs[MAX_TRAILJUNCS] ) {
+		next = NULL;
+	}
 	t->nextJunc = NULL;
-
+	if ( next->nextJunc && next->nextJunc == t ) {
+		next->nextJunc = NULL;
+	}
 	if ( next ) {
 		CG_FreeTrailJunc( next );
 	}

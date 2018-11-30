@@ -67,24 +67,7 @@ char *Sys_DefaultHomePath(void)
 	char *p2;
 #endif
 
-#ifdef IOS
-    if (*homePath)
-        return homePath;
-    
-    if ((p1 = getenv("HOME")) != NULL) {
-        Q_strncpyz(homePath, p1, sizeof(homePath));
-        
-        Q_strcat(homePath, sizeof(homePath), "/");
-        
-        if (mkdir(homePath, 0777)) {
-            if (errno != EEXIST)
-                Sys_Error("Unable to create directory \"%s\", error is %s(%d)\n", homePath, strerror(errno), errno);
-        }
-        return homePath;
-    }
-    return ""; // assume current dir
-#else
-    if( !*homePath && com_homepath != NULL )
+	if( !*homePath && com_homepath != NULL )
 	{
 #ifdef __APPLE__
 		if( ( p1 = getenv( "HOME" ) ) != NULL )
@@ -132,7 +115,6 @@ char *Sys_DefaultHomePath(void)
 #endif // __APPLE__
 	}
 
-#endif
 	return homePath;
 }
 
@@ -171,36 +153,6 @@ char *Sys_GogPath( void )
 {
 	// GOG also doesn't let you install RTCW on Mac/Linux
 	return gogPath;
-}
-#endif
-
-
-#ifdef IOS
-/*
- =================
- Sys_StripAppBundle
- 
- Discovers if passed dir is suffixed with the directory structure of an iOS
- .app bundle. If it is, the .app directory structure is stripped off the end and
- the result is returned. If not, dir is returned untouched.
- =================
- */
-char *Sys_StripAppBundle( char *dir )
-{
-    static char cwd[MAX_OSPATH];
-    
-    Q_strncpyz(cwd, dir, sizeof(cwd));
-    if(!strstr(Sys_Basename(cwd), ".app"))
-        return dir;
-    Q_strncpyz(cwd, Sys_Dirname(cwd), sizeof(cwd));
-    return cwd;
-}
-
-
-void Sys_SetHomeDir( const char* newHomeDir )
-{
-    Q_strncpyz(homePath, newHomeDir, sizeof(homePath));
-    Q_strcat(homePath, sizeof(homePath), "/");
 }
 #endif
 
@@ -285,12 +237,10 @@ Sys_LowPhysicalMemory
 TODO
 ==================
 */
-#ifndef IOS
 qboolean Sys_LowPhysicalMemory( void )
 {
 	return qfalse;
 }
-#endif
 
 /*
 ==================
@@ -899,15 +849,6 @@ dialogResult_t Sys_Dialog( dialogType_t type, const char *message, const char *t
 }
 #endif
 
-#ifdef IOS
-/*
- ==============
- Sys_Dialog
- ==============
- */
-dialogResult_t Sys_Dialog( dialogType_t type, const char *message, const char *title ) { return NULL; }
-#endif
-
 /*
 ==============
 Sys_GLimpSafeInit
@@ -1055,7 +996,7 @@ Sys_GetDLLName
 ==============
 */
 char* Sys_GetDLLName( const char *name ) {
-	return va("%s.sp." ARCH_STRING DLL_EXT, name);
+	return va("%s.mp." ARCH_STRING DLL_EXT, name);
 }
 
 /*
@@ -1067,10 +1008,28 @@ int Sys_GetHighQualityCPU() {
 	return 1;
 }
 
+/*
+==================
+chmod OR on a file
+==================
+*/
+void Sys_Chmod( char *file, int mode ) {
+	struct stat s_buf;
+	int perm;
+	if ( stat( file, &s_buf ) != 0 ) {
+		Com_Printf( "stat('%s')  failed: errno %d\n", file, errno );
+		return;
+	}
+	perm = s_buf.st_mode | mode;
+	if ( chmod( file, perm ) != 0 ) {
+		Com_Printf( "chmod('%s', %d) failed: errno %d\n", file, perm, errno );
+	}
+	Com_DPrintf( "chmod +%d '%s'\n", mode, file );
+}
+
+
 #define MAX_CMD 1024
 static char exit_cmdline[MAX_CMD] = "";
-void Sys_DoStartProcess( char *cmdline );
-
 /*
 ==================
 Sys_DoStartProcess
@@ -1090,7 +1049,6 @@ UGLY HACK:
 ==================
 */
 void Sys_DoStartProcess( char *cmdline ) {
-#ifndef IOS
 	switch ( fork() )
 	{
 	case - 1:
@@ -1109,11 +1067,11 @@ void Sys_DoStartProcess( char *cmdline ) {
 		else
 		{
 			execl( cmdline, cmdline, NULL );
+			printf( "execl failed: %s\n", strerror( errno ) );
 		}
 		_exit( 0 );
 		break;
 	}
-#endif
 }
 
 /*
@@ -1143,7 +1101,7 @@ void Sys_StartProcess( char *cmdline, qboolean doexit ) {
 Sys_OpenURL
 =================
 */
-void Sys_OpenURL( char *url, qboolean doexit ) {
+void Sys_OpenURL( const char *url, qboolean doexit ) {
 	char *basepath, *homepath, *pwdpath;
 	char fname[20];
 	char fn[MAX_OSPATH];

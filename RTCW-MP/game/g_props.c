@@ -1,25 +1,25 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
@@ -37,7 +37,6 @@ int snd_ceramicbreak;
 int snd_chaircreak;
 int snd_chairthrow;
 int snd_chairhitground;
-int chair_metalbreak;
 
 // JOSEPH 1-28-00
 void DropToFloorG( gentity_t *ent ) {
@@ -144,6 +143,7 @@ void SP_props_box_32( gentity_t *self ) {
 
 	self->clipmask   = CONTENTS_SOLID;
 	self->r.contents = CONTENTS_SOLID;
+	self->r.svFlags  = SVF_USE_CURRENT_ORIGIN;
 
 	VectorSet( self->r.mins, -16, -16, -16 );
 	VectorSet( self->r.maxs, 16, 16, 16 );
@@ -177,6 +177,7 @@ void SP_props_box_48( gentity_t *self ) {
 
 	self->clipmask   = CONTENTS_SOLID;
 	self->r.contents = CONTENTS_SOLID;
+	self->r.svFlags  = SVF_USE_CURRENT_ORIGIN;
 
 	VectorSet( self->r.mins, -24, -24, -24 );
 	VectorSet( self->r.maxs, 24, 24, 24 );
@@ -210,6 +211,7 @@ void SP_props_box_64( gentity_t *self ) {
 
 	self->clipmask   = CONTENTS_SOLID;
 	self->r.contents = CONTENTS_SOLID;
+	self->r.svFlags  = SVF_USE_CURRENT_ORIGIN;
 
 	VectorSet( self->r.mins, -32, -32, -32 );
 	VectorSet( self->r.maxs, 32, 32, 32 );
@@ -340,6 +342,7 @@ void SP_props_sparks( gentity_t *ent ) {
 	}
 
 	G_SetOrigin( ent, ent->s.origin );
+	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 	ent->s.eType = ET_GENERAL;
 
 	ent->think = sparks_angles_think;
@@ -382,6 +385,7 @@ this entity must be used to see the effect
 
 void SP_props_gunsparks( gentity_t *ent ) {
 	G_SetOrigin( ent, ent->s.origin );
+	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 	ent->s.eType = ET_GENERAL;
 
 	ent->think = sparks_angles_think;
@@ -426,6 +430,7 @@ void SP_SmokeDust( gentity_t *ent ) {
 	ent->use = smokedust_use;
 
 	G_SetOrigin( ent, ent->s.origin );
+	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 	ent->s.eType = ET_GENERAL;
 
 	if ( !ent->health ) {
@@ -484,6 +489,7 @@ void dust_angles_think( gentity_t *ent ) {
 void SP_Dust( gentity_t *ent ) {
 	ent->use = dust_use;
 	G_SetOrigin( ent, ent->s.origin );
+	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 	ent->s.eType = ET_GENERAL;
 
 	if ( ent->target ) {
@@ -507,6 +513,7 @@ void propExplosionLarge( gentity_t *ent ) {
 	bolt->nextthink = level.time + FRAMETIME;
 	bolt->think = G_ExplodeMissile;
 	bolt->s.eType = ET_MISSILE;
+	bolt->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 
 	bolt->s.weapon = WP_NONE;
 
@@ -527,12 +534,13 @@ void propExplosionLarge( gentity_t *ent ) {
 void propExplosion( gentity_t *ent ) {
 	gentity_t *bolt;
 
-	extern void G_ExplodeMissile( gentity_t *ent );
+	extern void G_ExplodeMissile( gentity_t * ent );
 	bolt = G_Spawn();
 	bolt->classname = "props_explosion";
 	bolt->nextthink = level.time + FRAMETIME;
 	bolt->think = G_ExplodeMissile;
 	bolt->s.eType = ET_MISSILE;
+	bolt->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 
 	bolt->s.weapon = WP_NONE;
 
@@ -607,6 +615,7 @@ void InitProp( gentity_t *ent ) {
 	ent->isProp = qtrue;
 
 	ent->moverState = MOVER_POS1;
+	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 	ent->s.eType = ET_MOVER;
 
 	G_SetOrigin( ent, ent->s.origin );
@@ -810,7 +819,6 @@ void SP_Props_Locker_Tall( gentity_t *ent ) {
 point entity
 health = default = 10
 wait = defaults to 5 how many shards to spawn ( try not to exceed 20 )
-model - specify a different model for the chair.  must have same frames as default for this ent
 
 shard =
 	shard_glass = 0,
@@ -824,7 +832,6 @@ shard =
 point entity
 health = default = 10
 wait = defaults to 5 how many shards to spawn ( try not to exceed 20 )
-model - specify a different model for the chair.  must have same frames as default for this ent
 
 shard =
 	shard_glass = 0,
@@ -838,7 +845,6 @@ shard =
 point entity
 health = default = 10
 wait = defaults to 5 how many shards to spawn ( try not to exceed 20 )
-model - specify a different model for the chair.  must have same frames as default for this ent
 
 shard =
 	shard_glass = 0,
@@ -853,7 +859,6 @@ shard =
 point entity
 health = default = 10
 wait = defaults to 5 how many shards to spawn ( try not to exceed 20 )
-model - specify a different model for the chair.  must have same frames as default for this ent
 
 shard =
 	shard_glass = 0,
@@ -867,7 +872,6 @@ shard =
 point entity
 health = default = 10
 wait = defaults to 5 how many shards to spawn ( try not to exceed 20 )
-model - specify a different model for the chair.  must have same frames as default for this ent
 
 shard =
 	shard_glass = 0,
@@ -893,7 +897,7 @@ void Just_Got_Thrown( gentity_t *self ) {
 			player = AICast_FindEntityForName( "player" );
 
 			if ( player && player != self->enemy ) {
-				G_Damage( self->enemy, self, player, NULL, NULL, 5, 0, MOD_CRUSH );
+				G_Damage( self->enemy, self, self, NULL, NULL, 5, 0, MOD_CRUSH );
 
 				self->die = Props_Chair_Die;
 
@@ -905,7 +909,7 @@ void Just_Got_Thrown( gentity_t *self ) {
 	} else
 	{
 		// RF, alert AI of sound event
-//		AICast_AudibleEvent( self->s.number, self->r.currentOrigin, 384 );
+		AICast_AudibleEvent( self->s.number, self->r.currentOrigin, 384 );
 
 		G_AddEvent( self, EV_GENERAL_SOUND, snd_chairhitground );
 		VectorSubtract( self->r.currentOrigin, self->s.origin2, vec );
@@ -916,7 +920,6 @@ void Just_Got_Thrown( gentity_t *self ) {
 			vec3_t end;
 			gentity_t   *traceEnt;
 			gentity_t   *player;
-			qboolean reGrab = qtrue;
 
 			VectorCopy( self->r.currentOrigin, end );
 			end[2] += 1;
@@ -928,23 +931,7 @@ void Just_Got_Thrown( gentity_t *self ) {
 			if ( trace.startsolid ) {
 				player = AICast_FindEntityForName( "player" );
 
-				// only player can catch
-				if ( traceEnt != player ) {
-					reGrab = qfalse;
-				}
-
-				// no catch when dead
-				if ( traceEnt->health <= 0 ) {
-					reGrab = qfalse;
-				}
-
-				// player can throw, then switch to a two handed weapon before catching.
-				// need to catch this (no pun intended)
-				if ( player->s.weapon && !( WEAPS_ONE_HANDED & ( 1 << ( player->s.weapon ) ) ) ) {
-					reGrab = qfalse;
-				}
-
-				if ( reGrab ) {
+				if ( traceEnt == player && traceEnt->health >= 0 ) {
 					// pick the chair back up
 					self->active = qtrue;
 					self->r.ownerNum = player->s.number;
@@ -956,10 +943,12 @@ void Just_Got_Thrown( gentity_t *self ) {
 					self->touch = 0;
 					self->die = Props_Chair_Die;
 					self->s.eType = ET_MOVER;
+					self->s.dmgFlags = HINT_CHAIR;  // so client knows what kind of mover it is for cursorhints
 
 					player->client->ps.eFlags |= EF_MELEE_ACTIVE;
 
 					trap_LinkEntity( self );
+
 					return;
 				} else {
 					len = 9999;
@@ -973,6 +962,7 @@ void Just_Got_Thrown( gentity_t *self ) {
 	self->touch = Props_Chair_Touch;
 	self->die = Props_Chair_Die;
 	self->s.eType = ET_MOVER;
+	self->s.dmgFlags = HINT_CHAIR;  // so client knows what kind of mover it is for cursorhints
 
 	self->nextthink = level.time + FRAMETIME;
 
@@ -1047,8 +1037,9 @@ void Props_Activated( gentity_t *self ) {
 
 		G_SetAngle( prop, prop_ang );
 
-		prop->clipmask   = CONTENTS_SOLID | CONTENTS_MISSILECLIP;
+		prop->clipmask   = CONTENTS_SOLID;
 		prop->r.contents = CONTENTS_SOLID;
+		prop->r.svFlags  = SVF_USE_CURRENT_ORIGIN;
 		prop->isProp = qtrue;
 
 		VectorSet( prop->r.mins, -12, -12, 0 );
@@ -1088,7 +1079,6 @@ void Props_Activated( gentity_t *self ) {
 		prop->die = Props_Chair_Die;
 
 		prop->r.ownerNum = owner->s.number;
-		prop->s.otherEntityNum = ENTITYNUM_WORLD;
 
 		trap_LinkEntity( prop );
 
@@ -1097,15 +1087,14 @@ void Props_Activated( gentity_t *self ) {
 		return;
 	} else
 	{
-		if (    !Q_stricmp( self->classname, "props_chair_hiback" ) ||
-				!Q_stricmp( self->classname, "props_chair_chat" ) ||
-				!Q_stricmp( self->classname, "props_chair_chatarm" ) ||
-				!Q_stricmp( self->classname, "props_chair_side" )
-				) {
+		if ( !Q_stricmp( self->classname, "props_chair_hiback" ) ) {
 			self->s.frame = 23;
 			self->s.density = 1;
-		} else if ( !Q_stricmp( self->classname, "props_chair" ) ) {
+		} else if ( !Q_stricmp( self->classname, "props_chair" ) )       {
 			self->s.frame = 28;
+			self->s.density = 1;
+		} else if ( !Q_stricmp( self->classname, "props_chair_side" ) )       {
+			self->s.frame = 23;
 			self->s.density = 1;
 		}
 	}
@@ -1125,8 +1114,6 @@ void Props_Activated( gentity_t *self ) {
 	VectorCopy( dest, self->s.pos.trBase );
 
 	self->s.eType = ET_PROP;
-
-	self->s.otherEntityNum = owner->s.number + 1;
 
 	trap_LinkEntity( self );
 
@@ -1261,13 +1248,10 @@ void Prop_Check_Ground( gentity_t *self ) {
 	VectorCopy( self->r.mins, mins );
 	VectorCopy( self->r.maxs, maxs );
 
-//	trap_Trace( &tr, start, mins, maxs, end, self->s.number, MASK_SHOT );
-	trap_Trace( &tr, start, mins, maxs, end, self->s.number, MASK_MISSILESHOT );
+	trap_Trace( &tr, start, mins, maxs, end, self->s.number, MASK_SHOT );
 
 	if ( tr.fraction == 1 ) {
 		self->s.groundEntityNum = -1;
-	} else {
-		self->s.groundEntityNum = tr.entityNum;
 	}
 
 }
@@ -1292,9 +1276,9 @@ void Props_Chair_Touch( gentity_t *self, gentity_t *other, trace_t *trace ) {
 
 	has_moved = Prop_Touch( self, other, v );
 
-	if ( /*!has_moved &&*/ ( other->r.svFlags & SVF_CASTAI ) ) {
+	if ( !has_moved && ( other->r.svFlags & SVF_CASTAI ) ) {
 		// RF, alert AI of sound event
-//		AICast_AudibleEvent( self->s.number, self->r.currentOrigin, 384 );
+		AICast_AudibleEvent( self->s.number, self->r.currentOrigin, 384 );
 
 		// other could play kick animation here
 		Props_Chair_Die( self, other, other, 100, 0 );
@@ -1305,7 +1289,7 @@ void Props_Chair_Touch( gentity_t *self, gentity_t *other, trace_t *trace ) {
 
 	if ( level.time > self->random && has_moved ) {
 		// RF, alert AI of sound event
-//		AICast_AudibleEvent( self->s.number, self->r.currentOrigin, 384 );
+		AICast_AudibleEvent( self->s.number, self->r.currentOrigin, 384 );
 
 		G_AddEvent( self, EV_GENERAL_SOUND, snd_chaircreak );
 		self->random = level.time + 1000 + ( rand() % 200 );
@@ -1451,10 +1435,8 @@ void Prop_Break_Sound( gentity_t *ent ) {
 void Props_Chair_Die( gentity_t *ent, gentity_t *inflictor, gentity_t *attacker, int damage, int mod ) {
 	int quantity;
 	int type;
-	int deathSound;
 
-	// if (ent->active)
-	{
+	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
 		gentity_t *player;
 
 		player = AICast_FindEntityForName( "player" );
@@ -1476,6 +1458,7 @@ void Props_Chair_Die( gentity_t *ent, gentity_t *inflictor, gentity_t *attacker,
 
 	ent->health = ent->duration;
 	ent->delay = damage;
+	ent->takedamage = qfalse;
 //	ent->enemy = inflictor;
 
 	quantity = ent->wait;
@@ -1483,23 +1466,7 @@ void Props_Chair_Die( gentity_t *ent, gentity_t *inflictor, gentity_t *attacker,
 
 	Spawn_Shard( ent, inflictor, quantity, type );
 
-//	Prop_Break_Sound (ent);
-	switch ( ent->count ) {
-	case shard_wood:
-		deathSound = snd_boardbreak;
-		break;
-	case shard_metal:
-		deathSound = chair_metalbreak;
-		break;
-	default:
-		deathSound = 0;
-		break;
-	}
-
-	if ( deathSound ) {
-		G_AddEvent( ent, EV_GENERAL_SOUND, deathSound );
-	}
-
+	Prop_Break_Sound( ent );
 
 	trap_UnlinkEntity( ent );
 
@@ -1546,7 +1513,9 @@ void SP_Props_Chair( gentity_t *ent ) {
 
 	ent->clipmask   = CONTENTS_SOLID;
 	ent->r.contents = CONTENTS_SOLID;
+	ent->r.svFlags  = SVF_USE_CURRENT_ORIGIN;
 	ent->s.eType = ET_MOVER;
+	ent->s.dmgFlags = HINT_CHAIR;   // so client knows what kind of mover it is for cursorhints
 
 	ent->isProp = qtrue;
 
@@ -1563,10 +1532,9 @@ void SP_Props_Chair( gentity_t *ent ) {
 	ent->duration = ent->health;
 
 	if ( !ent->count ) {
-//		ent->count = 1;
-		ent->count = shard_metal; // metal break sound
-
+		ent->count = 1;
 	}
+
 	ent->think = Props_Chair_Think;
 	ent->nextthink = level.time + FRAMETIME;
 
@@ -1576,29 +1544,20 @@ void SP_Props_Chair( gentity_t *ent ) {
 	trap_LinkEntity( ent );
 
 	snd_boardbreak = G_SoundIndex( "sound/world/boardbreak.wav" );
+	snd_glassbreak = G_SoundIndex( "sound/world/glassbreak.wav" );
+	snd_metalbreak = G_SoundIndex( "sound/world/metalbreak.wav" );
+	snd_ceramicbreak = G_SoundIndex( "sound/world/ceramicbreak.wav" );
 	snd_chaircreak = G_SoundIndex( "sound/world/chaircreak.wav" );
-	chair_metalbreak = G_SoundIndex( "sound/world/metal_chair_break.wav" );
 
 }
 
-
-
-//----(SA)	modified
-
-// can be one of two types, but they have the same animations/etc, so re-use what you can
-/*
-==============
-SP_Props_GenericChair
-==============
-*/
-void SP_Props_GenericChair( gentity_t *ent ) {
+void SP_Props_ChairHiback( gentity_t *ent ) {
 	int mass;
 
-	ent->delay = 0; // inherits damage value
+	// ent->s.modelindex = G_ModelIndex( "models/furniture/chair/hiback.md3" );
+	ent->s.modelindex = G_ModelIndex( "models/furniture/chair/hiback5.md3" );
 
-	if ( ent->model ) {
-		ent->s.modelindex = G_ModelIndex( ent->model );
-	}
+	ent->delay = 0; // inherits damage value
 
 	if ( G_SpawnInt( "mass", "5", &mass ) ) {
 		ent->wait = mass;
@@ -1608,9 +1567,123 @@ void SP_Props_GenericChair( gentity_t *ent ) {
 
 	ent->clipmask   = CONTENTS_SOLID;
 	ent->r.contents = CONTENTS_SOLID;
-	ent->s.eType    = ET_MOVER;
+	ent->r.svFlags  = SVF_USE_CURRENT_ORIGIN;
+	ent->s.eType = ET_MOVER;
+	ent->s.dmgFlags = HINT_CHAIR;   // so client knows what kind of mover it is for cursorhints
 
-	ent->isProp     = qtrue;
+	ent->isProp = qtrue;
+
+	VectorSet( ent->r.mins, -12, -12, 0 );
+	VectorSet( ent->r.maxs, 12, 12, 48 );
+
+	G_SetOrigin( ent, ent->s.origin );
+	G_SetAngle( ent, ent->s.angles );
+
+	if ( !ent->health ) {
+		ent->health = 10;
+	}
+
+	ent->duration = ent->health;
+
+	if ( !ent->count ) {
+		ent->count = 1;
+	}
+
+	ent->think = Props_Chair_Think;
+	ent->nextthink = level.time + FRAMETIME;
+
+	ent->touch = Props_Chair_Touch;
+	ent->die = Props_Chair_Die;
+	ent->takedamage = qtrue;
+	trap_LinkEntity( ent );
+
+	snd_boardbreak = G_SoundIndex( "sound/world/boardbreak.wav" );
+	snd_glassbreak = G_SoundIndex( "sound/world/glassbreak.wav" );
+	snd_metalbreak = G_SoundIndex( "sound/world/metalbreak.wav" );
+	snd_ceramicbreak = G_SoundIndex( "sound/world/ceramicbreak.wav" );
+	snd_chaircreak = G_SoundIndex( "sound/world/chaircreak.wav" );
+}
+
+void SP_Props_ChairSide( gentity_t *ent ) {
+	int mass;
+
+	ent->s.modelindex = G_ModelIndex( "models/furniture/chair/sidechair3.md3" );
+
+	ent->delay = 0; // inherits damage value
+
+	if ( G_SpawnInt( "mass", "5", &mass ) ) {
+		ent->wait = mass;
+	} else {
+		ent->wait = 5;
+	}
+
+	ent->clipmask   = CONTENTS_SOLID;
+	ent->r.contents = CONTENTS_SOLID;
+	ent->r.svFlags  = SVF_USE_CURRENT_ORIGIN;
+	ent->s.eType = ET_MOVER;
+	ent->s.dmgFlags = HINT_CHAIR;   // so client knows what kind of mover it is for cursorhints
+
+	ent->isProp = qtrue;
+
+	VectorSet( ent->r.mins, -12, -12, 0 );
+	VectorSet( ent->r.maxs, 12, 12, 48 );
+
+	G_SetOrigin( ent, ent->s.origin );
+	G_SetAngle( ent, ent->s.angles );
+
+	if ( !ent->health ) {
+		ent->health = 10;
+	}
+
+	ent->duration = ent->health;
+
+	if ( !ent->count ) {
+		ent->count = 1;
+	}
+
+	ent->think = Props_Chair_Think;
+	ent->nextthink = level.time + FRAMETIME;
+
+	ent->touch = Props_Chair_Touch;
+	ent->die = Props_Chair_Die;
+	ent->takedamage = qtrue;
+	trap_LinkEntity( ent );
+
+	snd_boardbreak = G_SoundIndex( "sound/world/boardbreak.wav" );
+	snd_glassbreak = G_SoundIndex( "sound/world/glassbreak.wav" );
+	snd_metalbreak = G_SoundIndex( "sound/world/metalbreak.wav" );
+	snd_ceramicbreak = G_SoundIndex( "sound/world/ceramicbreak.wav" );
+	snd_chaircreak = G_SoundIndex( "sound/world/chaircreak.wav" );
+	snd_chairthrow = G_SoundIndex( "sound/props/throw/chairthudgrunt.wav" );
+	snd_chairhitground = G_SoundIndex( "sound/props/chair/chairthud.wav" );
+}
+
+//----(SA)	modified
+
+// can be one of two types, but they have the same animations/etc, so re-use what you can
+/*
+==============
+SP_Props_ChateauChair
+==============
+*/
+void SP_Props_ChateauChair( gentity_t *ent ) {
+	int mass;
+
+	ent->delay = 0; // inherits damage value
+
+	if ( G_SpawnInt( "mass", "5", &mass ) ) {
+		ent->wait = mass;
+	} else {
+		ent->wait = 5;
+	}
+
+	ent->clipmask   = CONTENTS_SOLID;
+	ent->r.contents = CONTENTS_SOLID;
+	ent->r.svFlags  = SVF_USE_CURRENT_ORIGIN;
+	ent->s.eType = ET_MOVER;
+	ent->s.dmgFlags = HINT_CHAIR;   // so client knows what kind of mover it is for cursorhints
+
+	ent->isProp = qtrue;
 
 	VectorSet( ent->r.mins, -12, -12, 0 );
 	VectorSet( ent->r.maxs, 12, 12, 48 );
@@ -1652,59 +1725,20 @@ SP_Props_ChairChat
 ==============
 */
 void SP_Props_ChairChat( gentity_t *ent ) {
-	if ( !ent->model ) {
-		ent->model = "models/furniture/chair/chair_chat.md3";
-	}
-	SP_Props_GenericChair( ent );
-
-	ent->count = shard_wood; // wood break sound
+	ent->s.modelindex = G_ModelIndex( "models/furniture/chair/chair_chat.md3" );
+	SP_Props_ChateauChair( ent );
 }
-
 /*
 ==============
 SP_Props_ChairChatArm
 ==============
 */
 void SP_Props_ChairChatArm( gentity_t *ent ) {
-	if ( !ent->model ) {
-		ent->model = "models/furniture/chair/chair_chatarm.md3";
-	}
-	SP_Props_GenericChair( ent );
-
-	ent->count = shard_wood; // wood break sound
+	ent->s.modelindex = G_ModelIndex( "models/furniture/chair/chair_chatarm.md3" );
+	SP_Props_ChateauChair( ent );
 }
 
-/*
-==============
-SP_Props_ChairSide
-==============
-*/
-void SP_Props_ChairSide( gentity_t *ent ) {
-	if ( !ent->model ) {
-		ent->model = "models/furniture/chair/sidechair3.md3";
-	}
-	SP_Props_GenericChair( ent );
-
-	ent->count = shard_wood; // wood break sound
-}
-
-/*
-==============
-SP_Props_ChairHiback
-==============
-*/
-void SP_Props_ChairHiback( gentity_t *ent ) {
-	if ( !ent->model ) {
-		ent->model = "models/furniture/chair/hiback5.md3";
-	}
-	SP_Props_GenericChair( ent );
-
-	ent->count = shard_wood; // wood break sound
-}
-
-
-// end chairs
-
+//----(SA)	end
 
 
 void Use_DamageInflictor( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
@@ -1730,6 +1764,7 @@ then it will be removed
 */
 void SP_Props_DamageInflictor( gentity_t *ent ) {
 	G_SetOrigin( ent, ent->s.origin );
+	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 	ent->s.eType = ET_GENERAL;
 
 	ent->use = Use_DamageInflictor;
@@ -1767,6 +1802,7 @@ void Use_Props_Shard_Generator( gentity_t *ent, gentity_t *other, gentity_t *act
 
 void SP_props_shard_generator( gentity_t *ent ) {
 	G_SetOrigin( ent, ent->s.origin );
+	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 	ent->s.eType = ET_GENERAL;
 	ent->use = Use_Props_Shard_Generator;
 
@@ -1809,6 +1845,7 @@ void SP_Props_Desklamp( gentity_t *ent ) {
 
 	ent->clipmask   = CONTENTS_SOLID;
 	ent->r.contents = CONTENTS_SOLID;
+	ent->r.svFlags  = SVF_USE_CURRENT_ORIGIN;
 	ent->s.eType = ET_MOVER;
 
 	ent->isProp = qtrue;
@@ -1928,13 +1965,16 @@ void smoker_think( gentity_t *ent ) {
 void SP_OilSlick( gentity_t *ent ) {
 	gentity_t *tent;
 
+	if ( ent->target ) {
+		G_Find( NULL, FOFS( targetname ), ent->target );
+	}
+
 	tent = G_TempEntity( ent->r.currentOrigin, EV_OILSLICK );
 	VectorCopy( ent->r.currentOrigin, tent->s.origin );
 	tent->s.angles2[0] = 16;
 	tent->s.angles2[1] = 48;
 	tent->s.angles2[2] = 10000;
 	tent->s.density = ent->s.number;
-
 }
 
 void OilParticles_think( gentity_t *ent ) {
@@ -2073,15 +2113,9 @@ void Props_Barrel_Die( gentity_t *ent, gentity_t *inflictor, gentity_t *attacker
 	int quantity;
 	int type;
 	vec3_t dir;
-	gentity_t *smoker;
 
 	if ( ent->spawnflags & 1 ) {
-		smoker = G_Spawn();
-		smoker->nextthink = level.time + FRAMETIME;
-		smoker->think = smoker_think;
-		smoker->count = 150 + rand() % 100;
-		G_SetOrigin( smoker, ent->r.currentOrigin );
-		trap_LinkEntity( smoker );
+		ent->s.eFlags = EF_SMOKINGBLACK;
 	}
 
 	G_UseTargets( ent, NULL );
@@ -2199,6 +2233,7 @@ void SP_Props_Flamebarrel( gentity_t *ent ) {
 
 	ent->clipmask   = CONTENTS_SOLID;
 	ent->r.contents = CONTENTS_SOLID;
+	ent->r.svFlags  = SVF_USE_CURRENT_ORIGIN;
 	ent->s.eType = ET_MOVER;
 
 	ent->isProp = qtrue;
@@ -2335,6 +2370,7 @@ void SP_crate_64( gentity_t *self ) {
 
 	self->clipmask   = CONTENTS_SOLID;
 	self->r.contents = CONTENTS_SOLID;
+	self->r.svFlags  = SVF_USE_CURRENT_ORIGIN;
 
 	VectorSet( self->r.mins, -32, -32, 0 );
 	VectorSet( self->r.maxs, 32, 32, 64 );
@@ -2377,6 +2413,7 @@ void SP_crate_32( gentity_t *self ) {
 
 	self->clipmask   = CONTENTS_SOLID;
 	self->r.contents = CONTENTS_SOLID;
+	self->r.svFlags  = SVF_USE_CURRENT_ORIGIN;
 
 	VectorSet( self->r.mins, -16, -16, 0 );
 	VectorSet( self->r.maxs, 16, 16, 32 );
@@ -3342,6 +3379,7 @@ void SP_props_decoration( gentity_t *ent ) {
 		ent->think = props_decoration_animate;
 	}
 
+	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 
 	G_SetOrigin( ent, ent->s.origin );
 	G_SetAngle( ent, ent->s.angles );
@@ -3701,6 +3739,7 @@ void SP_props_statue( gentity_t *ent ) {
 
 	ent->touch = props_statue_touch;
 
+	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
 
 	G_SetOrigin( ent, ent->s.origin );
 	G_SetAngle( ent, ent->s.angles );
@@ -3862,7 +3901,7 @@ void props_locker_spawn_item( gentity_t *ent ) {
 	}
 
 //	drop = Drop_Item (ent, item, 0, qtrue);
-	drop = LaunchItem( item, ent->r.currentOrigin, tv( 0, 0, 20 ) );
+	drop = LaunchItem( item, ent->r.currentOrigin, tv( 0, 0, 20 ), ent->s.number );
 
 
 	if ( !drop ) {
@@ -3916,7 +3955,7 @@ the default sounds are:
 "wait"	 denotes how long the wait is going to be before the locked sound is played again default is 1 sec
 "health" default is 1
 
-"spawnitem" - will spawn this item upon death use the pickup_name ie. '9mm'
+"spawnitem" - will spawn this item unpon death use the pickup_name ei 9mm
 
 "type" - type of debris ("glass", "wood", "metal", "gibs", "brick", "rock", "fabric") default is "wood"
 "mass" - defaults to 75.  This determines how much debris is emitted.  You get one large chunk per 100 of mass (up to 8) and one small chunk per 25 of mass (up to 16).  So 800 gives the most.
@@ -4015,14 +4054,12 @@ void SP_props_footlocker( gentity_t *self ) {
 
 }
 
-/*QUAKED props_flamethrower (.6 .7 .3) (-8 -8 -8) (8 8 8) TRACKING NOSOUND
+/*QUAKED props_flamethrower (.6 .7 .3) (-8 -8 -8) (8 8 8) TRACKING
 the effect occurs when this entity is used
 needs to aim at a info_notnull
 "duration" how long the effect is going to last for example 1.2 sec 2.7 sec
 "random" how long of a random variance so the effect isnt exactly the same each time for example 1.1 sec or 0.2 sec
 "size" valid ranges are 1.0 to 0.1
-
-NOSOUND - silent (duh)
 */
 void props_flamethrower_think( gentity_t *ent ) {
 	vec3_t vec, angles;
@@ -4047,8 +4084,7 @@ void props_flamethrower_think( gentity_t *ent ) {
 	}
 
 	if ( ( ent->timestamp + ent->duration ) > level.time ) {
-		//G_AddEvent (ent, EV_FLAMETHROWER_EFFECT, 0);
-		ent->s.eFlags |= EF_FIRING;
+		G_AddEvent( ent, EV_FLAMETHROWER_EFFECT, 0 );
 
 		ent->nextthink = level.time + 50;
 
@@ -4066,8 +4102,6 @@ void props_flamethrower_think( gentity_t *ent ) {
 			ent->timestamp = level.time + rnd;
 			ent->nextthink = ent->timestamp + 50;
 		}
-	} else {
-		ent->s.eFlags &= ~EF_FIRING;
 	}
 
 }
@@ -4077,7 +4111,6 @@ void props_flamethrower_use( gentity_t *ent, gentity_t *other, gentity_t *activa
 	int rnd;
 
 	if ( ent->spawnflags & 2 ) {
-		ent->s.eFlags &= ~EF_FIRING;
 		ent->spawnflags &= ~2;
 		ent->think = 0;      // (SA) wasn't working
 		ent->nextthink = 0;
@@ -4120,7 +4153,6 @@ void props_flamethrower_init( gentity_t *ent ) {
 		vectoangles( vec, angles );
 //		VectorCopy (angles, ent->r.currentAngles);	//----(SA)
 		VectorCopy( angles, ent->s.apos.trBase );
-		VectorCopy( angles, ent->s.angles ); // RF, added to fix wierd release build issues
 	}
 
 	trap_LinkEntity( ent );
@@ -4151,10 +4183,4 @@ void SP_props_flamethrower( gentity_t *ent ) {
 	}
 	ent->accuracy = dsize;
 
-	if ( ent->spawnflags & 2 ) { // SILENT
-		ent->s.density = 1;
-	}
-
-	ent->s.eType = ET_FLAMETHROWER_PROP;
-	ent->r.svFlags |= SVF_BROADCAST;
 }

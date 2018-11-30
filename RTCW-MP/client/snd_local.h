@@ -73,8 +73,6 @@ typedef struct {
 	byte		*buffer;
 } dma_t;
 
-extern unsigned char s_entityTalkAmplitude[MAX_CLIENTS];
-
 #define START_SAMPLE_IMMEDIATE	0x7fffffff
 
 #define MAX_DOPPLER_SCALE 50.0f //arbitrary
@@ -140,10 +138,7 @@ typedef struct
 	void (*StartBackgroundTrack)( const char *intro, const char *loop );
 	void (*StopBackgroundTrack)( void );
 	void (*StartStreamingSound)( const char *intro, const char *loop, int entnum, int channel, int attenuation );
-	void (*StopEntStreamingSound)( int entNum );
 	int (*GetVoiceAmplitude)( int entityNum );
-	void (*FadeStreamingSound)( float targetVol, int time, int ssNum );
-	void (*FadeAllSounds)( float targetVol, int time );
 	void (*RawSamples)(int stream, int samples, int rate, int width, int channels, const byte *data, float volume, int entityNum);
 	void (*StopAllSounds)( void );
 	void (*ClearLoopingSounds)( qboolean killall );

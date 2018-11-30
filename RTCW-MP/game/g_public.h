@@ -1,33 +1,31 @@
 /*
 ===========================================================================
 
-Return to Castle Wolfenstein single player GPL Source Code
+Return to Castle Wolfenstein multiplayer GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Return to Castle Wolfenstein single player GPL Source Code (RTCW SP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
 
-RTCW SP Source Code is free software: you can redistribute it and/or modify
+RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RTCW SP Source Code is distributed in the hope that it will be useful,
+RTCW MP Source Code is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with RTCW SP Source Code.  If not, see <http://www.gnu.org/licenses/>.
+along with RTCW MP Source Code.  If not, see <http://www.gnu.org/licenses/>.
 
-In addition, the RTCW SP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW SP Source Code.  If not, please request a copy in writing from id Software at the address below.
+In addition, the RTCW MP Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the RTCW MP Source Code.  If not, please request a copy in writing from id Software at the address below.
 
 If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
 ===========================================================================
 */
 
-// Copyright (C) 1999-2000 Id Software, Inc.
-//
 
 // g_public.h -- game module information visible to server
 
@@ -98,6 +96,8 @@ typedef struct {
 	// entity[ent->r.ownerNum].r.ownerNum == passEntityNum	(don't interact with other missiles from owner)
 	int ownerNum;
 	int eventTime;
+
+	int worldflags;             // DHM - Nerve
 } entityShared_t;
 
 
@@ -123,9 +123,6 @@ typedef enum {
 
 	G_ERROR,        // ( const char *string );
 	// abort the game
-
-	G_ENDGAME,      // ( void );	//----(SA)	added
-	// exit to main menu and start "endgame" menu
 
 	G_MILLISECONDS, // ( void );
 	// get current time for profiling reasons
@@ -297,7 +294,6 @@ typedef enum {
 	BOTLIB_AAS_RT_SHOWROUTE,
 	BOTLIB_AAS_RT_GETHIDEPOS,
 	BOTLIB_AAS_FINDATTACKSPOTWITHINRANGE,
-	BOTLIB_AAS_GETROUTEFIRSTVISPOS,
 	BOTLIB_AAS_SETAASBLOCKINGENTITY,
 	// done.
 
@@ -424,12 +420,8 @@ typedef enum {
 	BOTLIB_PC_LOAD_SOURCE,
 	BOTLIB_PC_FREE_SOURCE,
 	BOTLIB_PC_READ_TOKEN,
-	BOTLIB_PC_SOURCE_FILE_AND_LINE,
+	BOTLIB_PC_SOURCE_FILE_AND_LINE
 
-	G_FS_COPY_FILE,  //DAJ
-
-	// New in IORTCW
-	G_ALLOC = 900
 } gameImport_t;
 
 
@@ -466,15 +458,14 @@ typedef enum {
 	// The game can issue trap_argc() / trap_argv() commands to get the command
 	// and parameters.  Return qfalse if the game doesn't recognize it as a command.
 
-	BOTAI_START_FRAME,              // ( int time );
+	BOTAI_START_FRAME               // ( int time );
 
 	// Ridah, Cast AI
-	AICAST_VISIBLEFROMPOS,
-	AICAST_CHECKATTACKATPOS,
+	,AICAST_VISIBLEFROMPOS
+	,AICAST_CHECKATTACKATPOS
 	// done.
 
-	GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT,
-	GAME_GETMODELINFO
+	,GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT
 
 } gameExport_t;
 

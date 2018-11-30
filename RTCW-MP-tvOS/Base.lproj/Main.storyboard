@@ -18,7 +18,7 @@
         <!--Main Menu View Controller-->
         <scene sceneID="CXV-mc-6oD">
             <objects>
-                <viewController id="dWF-vJ-0ad" customClass="MainMenuViewController" customModule="RTCW_SP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="dWF-vJ-0ad" customClass="MainMenuViewController" customModule="RTCW_MP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="3S1-LQ-i9x"/>
                         <viewControllerLayoutGuide type="bottom" id="f69-OA-Ncu"/>
@@ -113,7 +113,7 @@
         <!--Options View Controller-->
         <scene sceneID="lHn-iP-3B6">
             <objects>
-                <viewController id="hki-ak-9xy" customClass="OptionsViewController" customModule="RTCW_SP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="hki-ak-9xy" customClass="OptionsViewController" customModule="RTCW_MP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="w5n-E0-2eb"/>
                         <viewControllerLayoutGuide type="bottom" id="oWW-B1-Ses"/>
@@ -184,7 +184,7 @@
         <!--Delegate-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="GameViewController" customModule="RTCW_SP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="GameViewController" customModule="RTCW_MP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="YtN-7M-4gl"/>
                         <viewControllerLayoutGuide type="bottom" id="xdP-pg-zgh"/>
@@ -206,49 +206,10 @@
             </objects>
             <point key="canvasLocation" x="824" y="-1405"/>
         </scene>
-        <!--Tiers List View Controller-->
-        <scene sceneID="ojQ-Rf-YIS">
-            <objects>
-                <viewController id="ytm-JD-gql" customClass="TiersListViewController" customModule="RTCW_SP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="2yB-zP-IUx"/>
-                        <viewControllerLayoutGuide type="bottom" id="WxH-9O-Ngu"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="iMo-fD-Gqy">
-                        <rect key="frame" x="0.0" y="0.0" width="1920" height="1080"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="0Dt-1U-06w">
-                                <rect key="frame" x="110" y="80" width="1700" height="920"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <connections>
-                                    <outlet property="dataSource" destination="ytm-JD-gql" id="7Pp-n7-ZnB"/>
-                                    <outlet property="delegate" destination="ytm-JD-gql" id="00X-SF-ZFD"/>
-                                </connections>
-                            </tableView>
-                        </subviews>
-                        <color key="backgroundColor" red="0.66666668650000005" green="0.66666668650000005" blue="0.66666668650000005" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                        <constraints>
-                            <constraint firstItem="0Dt-1U-06w" firstAttribute="top" secondItem="AGw-Jl-Opm" secondAttribute="top" constant="20" id="Zen-4Y-vAc"/>
-                            <constraint firstItem="AGw-Jl-Opm" firstAttribute="trailing" secondItem="0Dt-1U-06w" secondAttribute="trailing" constant="20" id="h3Z-jc-The"/>
-                            <constraint firstItem="AGw-Jl-Opm" firstAttribute="bottom" secondItem="0Dt-1U-06w" secondAttribute="bottom" constant="20" id="kXc-U3-IPe"/>
-                            <constraint firstItem="0Dt-1U-06w" firstAttribute="leading" secondItem="AGw-Jl-Opm" secondAttribute="leading" constant="20" id="s67-mp-Qu0"/>
-                        </constraints>
-                        <viewLayoutGuide key="safeArea" id="AGw-Jl-Opm"/>
-                    </view>
-                    <connections>
-                        <outlet property="tiersList" destination="0Dt-1U-06w" id="7af-Bl-jCN"/>
-                        <segue destination="dBM-hw-OcU" kind="show" identifier="DifficultySegue" id="PHD-FA-JnK"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="YnK-hw-hKD" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="915" y="-129"/>
-        </scene>
         <!--Server Browser View Controller-->
         <scene sceneID="98B-oY-pEO">
             <objects>
-                <viewController id="gOE-px-5yC" customClass="ServerBrowserViewController" customModule="RTCW_SP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="gOE-px-5yC" customClass="ServerBrowserViewController" customModule="RTCW_MP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="MPJ-Js-qjw"/>
                         <viewControllerLayoutGuide type="bottom" id="OjR-kq-fif"/>
@@ -350,7 +311,7 @@
         <!--Server Filter View Controller-->
         <scene sceneID="Xhm-jx-Yto">
             <objects>
-                <viewController id="LuR-jY-oBi" customClass="ServerFilterViewController" customModule="RTCW_SP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="LuR-jY-oBi" customClass="ServerFilterViewController" customModule="RTCW_MP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="NvO-OC-IXt"/>
                         <viewControllerLayoutGuide type="bottom" id="jS7-6l-io2"/>
@@ -502,7 +463,7 @@
         <!--Difficulty View Controller-->
         <scene sceneID="dsk-0B-TIF">
             <objects>
-                <viewController id="dBM-hw-OcU" customClass="DifficultyViewController" customModule="RTCW_SP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="DifficultyVC" id="dBM-hw-OcU" customClass="DifficultyViewController" customModule="RTCW_MP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="nl1-vC-LEY"/>
                         <viewControllerLayoutGuide type="bottom" id="qac-Vu-e9m"/>
@@ -598,7 +559,7 @@
         <!--Server Info View Controller-->
         <scene sceneID="jF4-t5-Hpj">
             <objects>
-                <viewController id="i2Z-g0-ZUh" customClass="ServerInfoViewController" customModule="RTCW_SP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="i2Z-g0-ZUh" customClass="ServerInfoViewController" customModule="RTCW_MP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="oRm-XN-GUO"/>
                         <viewControllerLayoutGuide type="bottom" id="u4n-Ki-H0d"/>
@@ -713,6 +674,6 @@
         <image name="rtcw_sp_background" width="1440" height="540"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="s2L-3L-53o"/>
+        <segue reference="CVW-g3-IVQ"/>
     </inferredMetricsTieBreakers>
 </document>

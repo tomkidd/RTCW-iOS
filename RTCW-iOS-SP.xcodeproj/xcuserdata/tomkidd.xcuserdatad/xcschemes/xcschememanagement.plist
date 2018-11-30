@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>RTCW-SP-iOS Simulator.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>RTCW-SP-iOS.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>0</integer>
+		</dict>
+		<key>RTCW-SP-tvOS Simulator.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+		<key>RTCW-SP-tvOS.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>cgame.sp.arm64.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>6</integer>
+		</dict>
+		<key>qagame.sp.arm64.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>A1565F212109F30E00FA9BC9</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>A179BFE2210142F900D3C611</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>A1902E9E2108237E008823BB</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>A1902F5E210939B9008823BB</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>A1C7CB2E2196407300315028</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+	</dict>
+</dict>
+</plist>

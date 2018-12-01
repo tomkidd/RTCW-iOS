@@ -177,11 +177,11 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         var argv: [String?] = [Bundle.main.resourcePath! + "/rtcw", "+set", "com_basegame", "Main"]
 
 //        if !selectedMap.isEmpty {
-//            argv.append("+map")
-//        argv.append("cutscene1")
+            argv.append("+map")
+        argv.append("escape1")
 //        argv.append("cutscene1 ;")
-//            argv.append("+g_spSkill")
-//            argv.append(String(selectedDifficulty))
+            argv.append("+g_spSkill")
+            argv.append(String(selectedDifficulty))
 //        }
         
         if selectedServer != nil {

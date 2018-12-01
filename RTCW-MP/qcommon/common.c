@@ -44,7 +44,7 @@ int demo_protocols[] =
 #define MAX_NUM_ARGVS   50
 
 #define MIN_DEDICATED_COMHUNKMEGS 1
-#define MIN_COMHUNKMEGS 128 // JPW NERVE changed this to 42 for MP, was 56 for team arena and 75 for wolfSP
+#define MIN_COMHUNKMEGS 256 // JPW NERVE changed this to 42 for MP, was 56 for team arena and 75 for wolfSP
 #define DEF_COMHUNKMEGS 256 // RF, increased this, some maps are exceeding 56mb // JPW NERVE changed this for multiplayer back to 42, 56 for depot/mp_cpdepot, 42 for everything else
 #define DEF_COMZONEMEGS 32 // JPW NERVE cut this back too was 30
 #define DEF_COMHUNKMEGS_S	XSTRING(DEF_COMHUNKMEGS)
@@ -2244,7 +2244,10 @@ int Com_EventLoop( void ) {
 				CL_CharEvent( ev.evValue );
 			break;
 			case SE_MOUSE:
-				CL_MouseEvent( ev.evValue, ev.evValue2, ev.evTime );
+                CL_MouseEvent( ev.evValue, ev.evValue2, ev.evTime, qfalse );
+            break;
+            case SE_MOUSE_ABS:
+                CL_MouseEvent( ev.evValue, ev.evValue2, ev.evTime, qtrue );
 			break;
 			case SE_JOYSTICK_AXIS:
 				CL_JoystickEvent( ev.evValue, ev.evValue2, ev.evTime );

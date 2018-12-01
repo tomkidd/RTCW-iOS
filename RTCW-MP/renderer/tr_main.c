@@ -106,7 +106,7 @@ void R_Fog( glfog_t *curfog ) {
 		qglFogf( GL_FOG_END, curfog->end );
 	}
 
-#ifndef USE_OPENGLES
+#if !defined(USE_OPENGLES) && !defined(IOS)
 // TTimo - from SP NV fog code
 	// NV fog mode
 	if ( glConfig.NVFogAvailable ) {

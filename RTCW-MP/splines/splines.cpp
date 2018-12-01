@@ -27,7 +27,10 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 #include "q_splineshared.h"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include "splines.h"
+#pragma clang diagnostic pop
 
 extern "C" {
 int FS_Write( const void *buffer, int len, fileHandle_t f );

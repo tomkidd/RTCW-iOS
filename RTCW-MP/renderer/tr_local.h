@@ -34,7 +34,11 @@ If you have questions concerning this license or the applicable additional terms
 #include "../qcommon/qfiles.h"
 #include "../qcommon/qcommon.h"
 #include "tr_public.h"
+#ifdef IOS
+#include "../ios/qgl.h"
+#else
 #include "qgl.h"
+#endif
 #include "iqm.h"
 
 #define GLE(ret, name, ...) extern name##proc * qgl##name;
@@ -53,6 +57,9 @@ QGL_3_0_PROCS;
 #endif
 #define GL_RGBA4				0x8056
 #define GL_RGB5					0x8050
+#define GL_INDEX_TYPE        GL_UNSIGNED_SHORT
+typedef unsigned short glIndex_t;
+#elif IOS
 #define GL_INDEX_TYPE		GL_UNSIGNED_SHORT
 typedef unsigned short glIndex_t;
 #else
@@ -1436,11 +1443,23 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 */
 
 void	GLimp_Init( qboolean fixedFunction );
+#ifdef IOS
+void            GLimp_SetMode(float rotation);
+#endif // IOS
 void	GLimp_Shutdown( void );
+void            GLimp_AcquireGL( void );
+#ifdef IOS
+void            GLimp_ReleaseGL( void );
+#endif // IOS
 void	GLimp_EndFrame( void );
 
+qboolean        GLimp_SpawnRenderThread( void (*function)( void ) );
+void            *GLimp_RendererSleep( void );
+void            GLimp_FrontEndSleep( void );
+void            GLimp_WakeRenderer( void *data );
+
 void	GLimp_LogComment( char *comment );
-void	GLimp_Minimize(void);
+//void    GLimp_Minimize(void);
 
 void	GLimp_SetGamma( unsigned char red[256],
 					 unsigned char green[256],

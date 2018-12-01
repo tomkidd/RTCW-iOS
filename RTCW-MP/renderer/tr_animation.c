@@ -1182,7 +1182,7 @@ void RB_SurfaceAnim( mdsSurface_t *surface ) {
 
 	DBG_SHOWTIME
 
-#ifndef USE_OPENGLES
+#if !defined(USE_OPENGLES) && !defined(IOS)
 	if ( r_bonesDebug->integer ) {
 		if ( r_bonesDebug->integer < 3 ) {
 			// DEBUG: show the bones as a stick figure with axis at each bone

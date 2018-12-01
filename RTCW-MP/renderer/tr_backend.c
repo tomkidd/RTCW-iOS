@@ -27,7 +27,11 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 #include "tr_local.h"
+#ifdef IOS
+#include "../ios/qgl.h"
+#else
 #include "qgl.h"
+#endif
 
 backEndData_t  *backEndData;
 backEndState_t backEnd;
@@ -533,7 +537,11 @@ void RB_BeginDrawingView( void ) {
 	// clip to the plane of the portal
 	if ( backEnd.viewParms.isPortal ) {
 		float plane[4];
-		GLdouble plane2[4];
+#ifdef IOS
+        float        plane2[4];
+#else
+        GLdouble    plane2[4];
+#endif
 
 		plane[0] = backEnd.viewParms.portalPlane.normal[0];
 		plane[1] = backEnd.viewParms.portalPlane.normal[1];
@@ -739,7 +747,9 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	RB_ShadowFinish();
 
 	// add light flares on lights that aren't obscured
+#ifndef IOS
 	RB_RenderFlares();
+#endif // !IOS
 
 }
 
@@ -881,7 +891,7 @@ void RE_UploadCinematic( int w, int h, int cols, int rows, const byte *data, int
 	if ( cols != tr.scratchImage[client]->width || rows != tr.scratchImage[client]->height ) {
 		tr.scratchImage[client]->width = tr.scratchImage[client]->uploadWidth = cols;
 		tr.scratchImage[client]->height = tr.scratchImage[client]->uploadHeight = rows;
-#ifdef USE_OPENGLES
+#if defined(USE_OPENGLES) || defined(IOS)
 		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
 #else
 		qglTexImage2D( GL_TEXTURE_2D, 0, 3, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
@@ -1360,6 +1370,7 @@ const void  *RB_SwapBuffers( const void *data ) {
 
 	// we measure overdraw by reading back the stencil buffer and
 	// counting up the number of increments that have happened
+#ifndef IOS
 #ifndef USE_OPENGLES
 	if ( r_measureOverdraw->integer ) {
 		int i;
@@ -1376,6 +1387,7 @@ const void  *RB_SwapBuffers( const void *data ) {
 		backEnd.pc.c_overDraw += sum;
 		ri.Hunk_FreeTempMemory( stencilReadback );
 	}
+#endif
 #endif
 
 

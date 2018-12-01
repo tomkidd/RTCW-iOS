@@ -380,6 +380,11 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	tr.frameCount++;
 	tr.frameSceneNum = 0;
 
+
+#ifdef IOS
+    GLimp_AcquireGL();
+#endif
+    
 	//
 	// do overdraw measurement
 	//
@@ -427,7 +432,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	// NVidia stuff
 	//
 
-#ifndef USE_OPENGLES
+#if !defined(USE_OPENGLES) && !defined(IOS)
 	// fog control
 	if ( glConfig.NVFogAvailable && r_nv_fogdist_mode->modified ) {
 		r_nv_fogdist_mode->modified = qfalse;

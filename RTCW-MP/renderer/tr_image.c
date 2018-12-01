@@ -180,7 +180,7 @@ void R_ImageList_f( void ) {
 
 		switch(image->internalFormat)
 		{
-#ifndef USE_OPENGLES
+#if !defined(USE_OPENGLES) && !defined(IOS)
 			case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT:
 				format = "sDXT1";
 				// 64 bits per 16 pixels, so 4 bits per pixel
@@ -217,8 +217,10 @@ void R_ImageList_f( void ) {
 				estSize /= 2;
 				break;
 #endif
+#if !defined(IOS)
 			case GL_RGBA4:
-#ifndef USE_OPENGLES
+#endif
+#if !defined(USE_OPENGLES) && !defined(IOS)
 			case GL_RGBA8:
 #endif
 			case GL_RGBA:
@@ -226,31 +228,33 @@ void R_ImageList_f( void ) {
 				// 4 bytes per pixel
 				estSize *= 4;
 				break;
-#ifndef USE_OPENGLES
-			case GL_LUMINANCE8:
+#if !defined(USE_OPENGLES) && !defined(IOS)
+            case GL_LUMINANCE8:
 #endif
-			case GL_LUMINANCE:
-				format = "L    ";
-				// 1 byte per pixel?
-				break;
-			case GL_RGB5:
-#ifndef USE_OPENGLES
-			case GL_RGB8:
+            case GL_LUMINANCE:
+                format = "L    ";
+                // 1 byte per pixel?
+                break;
+#if !defined(IOS)
+            case GL_RGB5:
 #endif
-			case GL_RGB:
-				format = "RGB  ";
-				// 3 bytes per pixel?
-				estSize *= 3;
-				break;
-#ifndef USE_OPENGLES
-			case GL_LUMINANCE8_ALPHA8:
+#if !defined(USE_OPENGLES) && !defined(IOS)
+            case GL_RGB8:
 #endif
-			case GL_LUMINANCE_ALPHA:
-				format = "LA   ";
-				// 2 bytes per pixel?
-				estSize *= 2;
-				break;
-#ifndef USE_OPENGLES
+            case GL_RGB:
+                format = "RGB  ";
+                // 3 bytes per pixel?
+                estSize *= 3;
+                break;
+#if !defined(USE_OPENGLES) && !defined(IOS)
+            case GL_LUMINANCE8_ALPHA8:
+#endif
+            case GL_LUMINANCE_ALPHA:
+                format = "LA   ";
+                // 2 bytes per pixel?
+                estSize *= 2;
+                break;
+#if !defined(USE_OPENGLES) && !defined(IOS)
 			case GL_SRGB_EXT:
 			case GL_SRGB8_EXT:
 				format = "sRGB ";
@@ -837,6 +841,7 @@ static void Upload32(   unsigned *data,
 		}
 	}
 
+#ifndef IOS
 	if(lightMap)
 	{
 		if(r_greyscale->integer)
@@ -846,6 +851,7 @@ static void Upload32(   unsigned *data,
 	}
 	else
 	{
+#endif
 		for ( i = 0; i < c; i++ )
 		{
 			if ( scan[i * 4 + 0] > rMax ) {
@@ -863,6 +869,7 @@ static void Upload32(   unsigned *data,
 			}
 		}
 		// select proper internal format
+#ifndef IOS
 		if ( samples == 3 )
 		{
 
@@ -944,7 +951,10 @@ static void Upload32(   unsigned *data,
 			}
 		}
 	}
-
+#else
+    internalFormat = GL_RGBA;
+#endif
+    
 	// copy or resample data as appropriate for first MIP level
 #ifdef USE_OPENGLES
 	if ( ( scaled_width == width ) && 
@@ -1077,16 +1087,20 @@ done:
 #endif
 
 	if ( mipmap ) {
+#ifndef IOS
 		if ( textureFilterAnisotropic )
 			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
 					(GLint)Com_Clamp( 1, maxAnisotropy, r_ext_max_anisotropy->integer ) );
+#endif
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max );
 	}
 	else
 	{
+#ifndef IOS
 		if ( textureFilterAnisotropic )
 			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1 );
+#endif
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	}

@@ -415,7 +415,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1808"
             endingLineNumber = "1808"
-            landmarkName = "Hunk_AllocDebug"
+            landmarkName = "Z_TagMallocDebug"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -431,7 +431,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1805"
             endingLineNumber = "1805"
-            landmarkName = "Hunk_AllocDebug"
+            landmarkName = "Z_TagMallocDebug"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -527,7 +527,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1319"
             endingLineNumber = "1319"
-            landmarkName = "Hunk_AllocDebug"
+            landmarkName = "Z_TagMallocDebug"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -543,7 +543,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "870"
             endingLineNumber = "870"
-            landmarkName = "CL_UpdateLevelHunkUsage"
+            landmarkName = "CL_CgameSystemCalls"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -559,8 +559,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "919"
             endingLineNumber = "919"
-            landmarkName = "CL_UpdateLevelHunkUsage"
-            landmarkType = "9">
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

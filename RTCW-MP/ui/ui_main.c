@@ -266,7 +266,7 @@ vmCvar_t ui_teamArenaFirstRun;
 void _UI_Init( qboolean );
 void _UI_Shutdown( void );
 void _UI_KeyEvent( int key, qboolean down );
-void _UI_MouseEvent( int dx, int dy );
+void _UI_MouseEvent(int dx, int dy, qboolean absolute);
 void _UI_Refresh( int realtime );
 qboolean _UI_IsFullscreen( void );
 
@@ -288,7 +288,7 @@ Q_EXPORT intptr_t vmMain( intptr_t command, intptr_t arg0, intptr_t arg1, intptr
 		return 0;
 
 	case UI_MOUSE_EVENT:
-		_UI_MouseEvent( arg0, arg1 );
+        _UI_MouseEvent(arg0, arg1, arg2);
 		return 0;
 
 	case UI_REFRESH:
@@ -7138,16 +7138,21 @@ void _UI_KeyEvent( int key, qboolean down ) {
 UI_MouseEvent
 =================
 */
-void _UI_MouseEvent( int dx, int dy ) {
-	// update mouse screen position
-	uiInfo.uiDC.cursorx += dx;
-	if ( uiInfo.uiDC.cursorx < 0 ) {
-		uiInfo.uiDC.cursorx = 0;
-	} else if ( uiInfo.uiDC.cursorx > SCREEN_WIDTH ) {
-		uiInfo.uiDC.cursorx = SCREEN_WIDTH;
-	}
-
-	uiInfo.uiDC.cursory += dy;
+void _UI_MouseEvent(int dx, int dy, qboolean absolute) {
+    
+    // update mouse screen position
+    if (absolute) uiInfo.uiDC.cursorx = dx;
+    else uiInfo.uiDC.cursorx += dx;
+    
+    if ( uiInfo.uiDC.cursorx < 0 ) {
+        uiInfo.uiDC.cursorx = 0;
+    } else if ( uiInfo.uiDC.cursorx > SCREEN_WIDTH ) {
+        uiInfo.uiDC.cursorx = SCREEN_WIDTH;
+    }
+    
+    if (absolute) uiInfo.uiDC.cursory = dy;
+    else uiInfo.uiDC.cursory += dy;
+    
 	if ( uiInfo.uiDC.cursory < 0 ) {
 		uiInfo.uiDC.cursory = 0;
 	} else if ( uiInfo.uiDC.cursory > SCREEN_HEIGHT ) {

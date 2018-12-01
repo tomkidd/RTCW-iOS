@@ -31,6 +31,10 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "../botlib/botlib.h"
 
+#ifdef IOS
+#include "../renderer/tr_local.h"
+#endif
+
 extern botlib_export_t *botlib_export;
 
 vm_t *uivm;
@@ -1159,9 +1163,16 @@ CL_InitUI
 
 void CL_InitUI( void ) {
 	int v;
+    vmInterpret_t        interpret;
 
-	// load the dll or bytecode
-	uivm = VM_Create( "ui", CL_UISystemCalls, Cvar_VariableValue("vm_ui") );
+#ifdef IOS
+    interpret = VMI_BYTECODE;
+#else
+    interpret = Cvar_VariableValue("vm_ui");
+#endif
+
+    // load the dll or bytecode
+	uivm = VM_Create( "ui", CL_UISystemCalls, interpret );
 	if ( !uivm ) {
 		Com_Error( ERR_FATAL, "VM_Create on UI failed" );
 	}

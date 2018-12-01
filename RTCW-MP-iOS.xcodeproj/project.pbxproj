@@ -1643,22 +1643,22 @@
 		A1366931217E885D00E0AC0B /* splines */ = {
 			isa = PBXGroup;
 			children = (
-				A1366932217E885D00E0AC0B /* splines.cpp */,
-				A1366933217E885D00E0AC0B /* math_matrix.cpp */,
-				A1366934217E885D00E0AC0B /* util_str.h */,
-				A1366935217E885D00E0AC0B /* math_quaternion.cpp */,
-				A1366936217E885D00E0AC0B /* q_shared.cpp */,
-				A1366937217E885D00E0AC0B /* splines.h */,
-				A1366938217E885D00E0AC0B /* math_vector.h */,
-				A1366939217E885D00E0AC0B /* math_vector.cpp */,
-				A136693A217E885D00E0AC0B /* math_angles.h */,
-				A136693B217E885D00E0AC0B /* util_list.h */,
-				A136693C217E885D00E0AC0B /* math_quaternion.h */,
-				A136693D217E885D00E0AC0B /* math_matrix.h */,
-				A136693E217E885D00E0AC0B /* q_parse.cpp */,
 				A136693F217E885D00E0AC0B /* math_angles.cpp */,
-				A1366940217E885D00E0AC0B /* util_str.cpp */,
+				A136693A217E885D00E0AC0B /* math_angles.h */,
+				A1366933217E885D00E0AC0B /* math_matrix.cpp */,
+				A136693D217E885D00E0AC0B /* math_matrix.h */,
+				A1366935217E885D00E0AC0B /* math_quaternion.cpp */,
+				A136693C217E885D00E0AC0B /* math_quaternion.h */,
+				A1366939217E885D00E0AC0B /* math_vector.cpp */,
+				A1366938217E885D00E0AC0B /* math_vector.h */,
+				A136693E217E885D00E0AC0B /* q_parse.cpp */,
+				A1366936217E885D00E0AC0B /* q_shared.cpp */,
 				A1366941217E885D00E0AC0B /* q_splineshared.h */,
+				A1366932217E885D00E0AC0B /* splines.cpp */,
+				A1366937217E885D00E0AC0B /* splines.h */,
+				A136693B217E885D00E0AC0B /* util_list.h */,
+				A1366940217E885D00E0AC0B /* util_str.cpp */,
+				A1366934217E885D00E0AC0B /* util_str.h */,
 			);
 			path = splines;
 			sourceTree = "<group>";

@@ -375,6 +375,22 @@ void CL_KeyMove( usercmd_t *cmd ) {
 	forward = 0;
 	side = 0;
 	up = 0;
+#ifdef IOS
+    if ( kb[KB_STRAFE].active ) {
+        side += movespeed * CL_KeyState (&kb[KB_RIGHT]);
+        side -= movespeed * CL_KeyState (&kb[KB_LEFT]);
+    }
+    
+    side += cl_joyscale_x[0] * 4.0f * CL_KeyState (&kb[KB_RIGHT]);
+    side -= cl_joyscale_x[1] * 4.0f * CL_KeyState (&kb[KB_LEFT]);
+    
+    
+    up = movespeed * CL_KeyState (&kb[KB_UP]);
+    up -= movespeed * CL_KeyState (&kb[KB_DOWN]);
+    
+    forward += cl_joyscale_y[0] * 4.0f * CL_KeyState (&kb[KB_FORWARD]);
+    forward -= cl_joyscale_y[1] * 4.0f * CL_KeyState (&kb[KB_BACK]);
+#else
 	if ( kb[KB_STRAFE].active ) {
 		side += movespeed * CL_KeyState( &kb[KB_RIGHT] );
 		side -= movespeed * CL_KeyState( &kb[KB_LEFT] );
@@ -400,7 +416,8 @@ void CL_KeyMove( usercmd_t *cmd ) {
 
 	forward += movespeed * CL_KeyState( &kb[KB_FORWARD] );
 	forward -= movespeed * CL_KeyState( &kb[KB_BACK] );
-
+    #endif
+    
 	// Rafael Kick
 	kick = CL_KeyState( &kb[KB_KICK] );
 	// done
@@ -422,14 +439,14 @@ void CL_KeyMove( usercmd_t *cmd ) {
 CL_MouseEvent
 =================
 */
-void CL_MouseEvent( int dx, int dy, int time ) {
+void CL_MouseEvent( int dx, int dy, int time, qboolean absolute ) {
 	if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
 		// NERVE - SMF - if we just want to pass it along to game
 		if ( cl_bypassMouseInput->integer == 1 ) {
 			cl.mouseDx[cl.mouseIndex] += dx;
 			cl.mouseDy[cl.mouseIndex] += dy;
 		} else {
-			VM_Call( uivm, UI_MOUSE_EVENT, dx, dy );
+            VM_Call( uivm, UI_MOUSE_EVENT, dx, dy, absolute );
 		}
 
 	} else if (Key_GetCatcher( ) & KEYCATCH_CGAME) {
@@ -1115,6 +1132,9 @@ void CL_InitInput( void ) {
 
 	cl_nodelta = Cvar_Get( "cl_nodelta", "0", 0 );
 	cl_debugMove = Cvar_Get( "cl_debugMove", "0", 0 );
+    
+    // DEBUG
+    kb[KB_STRAFE].active = qtrue;
 }
 
 /*

@@ -207,6 +207,11 @@ int max_polys;
 cvar_t  *r_maxpolyverts;
 int max_polyverts;
 
+#ifndef GLimp_Minimize
+static void GLimp_Minimize(void) {
+}
+#endif
+
 #ifndef USE_OPENGLES
 //----(SA)	added
 void ( APIENTRY * qglPNTrianglesiATI )( GLenum pname, GLint param );
@@ -987,7 +992,7 @@ void GL_SetDefaultState( void ) {
 	qglDisable( GL_CULL_FACE );
 	qglDisable( GL_BLEND );
 
-#ifndef USE_OPENGLES
+#if !defined(USE_OPENGLES) && !defined(IOS)
 //----(SA)	added.
 	// ATI pn_triangles
 	if ( qglPNTrianglesiATI ) {
@@ -1079,7 +1084,7 @@ void GfxInfo_f( void ) {
 	ri.Printf( PRINT_ALL, "GL_RENDERER: %s\n", glConfig.renderer_string );
 	ri.Printf( PRINT_ALL, "GL_VERSION: %s\n", glConfig.version_string );
 	ri.Printf( PRINT_ALL, "GL_EXTENSIONS: " );
-#ifndef USE_OPENGLES
+#if !defined(USE_OPENGLES) && !defined(IOS)
 	if ( qglGetStringi )
 	{
 		GLint numExtensions;

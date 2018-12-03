@@ -29,6 +29,7 @@ class DifficultyViewController: UIViewController {
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         (segue.destination as! GameViewController).selectedDifficulty = selectedDifficulty
+        (segue.destination as! GameViewController).selectedMap = "cutscene1"
     }
 
     override func viewDidLoad() {

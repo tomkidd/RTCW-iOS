@@ -174,7 +174,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
 //        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+name", defaults.string(forKey: "playerName")]
 
 //        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+set", "com_introplayed", "1"]
-        var argv: [String?] = [Bundle.main.resourcePath! + "/rtcw", "+set", "com_basegame", "Main"]
+        var argv: [String?] = [Bundle.main.resourcePath! + "/rtcw", "+set", "com_basegame", "Main", "+name", defaults.string(forKey: "playerName")]
 
 //        if !selectedMap.isEmpty {
 //            argv.append("+map")

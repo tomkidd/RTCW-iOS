@@ -25,6 +25,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     var joysticksInitialized = false
     
     var selectedServer:Server?
+    var selectedMap = ""
     
     var selectedDifficulty = 0
     
@@ -40,7 +41,14 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     var fireButton: UIButton!
     var jumpButton: UIButton!
     var useButton: UIButton!
+    
+    @IBOutlet weak var buttonStack: UIStackView!
     @IBOutlet weak var tildeButton: UIButton!
+    @IBOutlet weak var expandButton: UIButton!
+    @IBOutlet weak var escapeButton: UIButton!
+    @IBOutlet weak var quickSaveButton: UIButton!
+    @IBOutlet weak var quickLoadButton: UIButton!
+    var buttonStackExpanded = false
     #endif
     
     let defaults = UserDefaults()
@@ -94,6 +102,19 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         #if os(iOS)
         self.navigationController?.navigationItem.backBarButtonItem?.isEnabled = false
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
+        
+        tildeButton.layer.borderColor = UIColor.white.cgColor
+        tildeButton.layer.borderWidth = 1
+        tildeButton.alpha = 0
+        escapeButton.layer.borderColor = UIColor.white.cgColor
+        escapeButton.layer.borderWidth = 1
+        escapeButton.alpha = 0
+        quickSaveButton.layer.borderColor = UIColor.white.cgColor
+        quickSaveButton.layer.borderWidth = 1
+        quickSaveButton.alpha = 0
+        quickLoadButton.layer.borderColor = UIColor.white.cgColor
+        quickLoadButton.layer.borderWidth = 1
+        quickLoadButton.alpha = 0
         #endif
         
         #if os(tvOS)
@@ -176,13 +197,12 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
 //        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+set", "com_introplayed", "1"]
         var argv: [String?] = [Bundle.main.resourcePath! + "/rtcw", "+set", "com_basegame", "Main"]
 
-//        if !selectedMap.isEmpty {
-            argv.append("+map")
-        argv.append("escape1")
-//        argv.append("cutscene1 ;")
+        if !selectedMap.isEmpty {
+            argv.append("+spmap")
+            argv.append("cutscene1")
             argv.append("+g_spSkill")
             argv.append(String(selectedDifficulty))
-//        }
+        }
         
         if selectedServer != nil {
             argv.append("+connect")
@@ -243,11 +263,44 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         CL_AddReliableCommand("snd_restart", qfalse)
     }
     
+    @IBAction func expand(_ sender: Any) {
+        buttonStackExpanded = !buttonStackExpanded
+        
+        UIView.animate(withDuration: 0.5) {
+            self.expandButton.setTitle(self.buttonStackExpanded ? "<" : ">", for: .normal)
+            self.escapeButton.isHidden = !self.buttonStackExpanded
+            self.escapeButton.alpha = self.buttonStackExpanded ? 1 : 0
+            self.tildeButton.isHidden = !self.buttonStackExpanded
+            self.tildeButton.alpha = self.buttonStackExpanded ? 1 : 0
+            self.quickLoadButton.isHidden = !self.buttonStackExpanded
+            self.quickLoadButton.alpha = self.buttonStackExpanded ? 1 : 0
+            self.quickSaveButton.isHidden = !self.buttonStackExpanded
+            self.quickSaveButton.alpha = self.buttonStackExpanded ? 1 : 0
+        }
+        
+    }
+    
     @IBAction func tilde(_ sender: UIButton) {
         CL_KeyEvent(Int32(K_CONSOLE.rawValue), qtrue, UInt32(Sys_Milliseconds()))
         CL_KeyEvent(Int32(K_CONSOLE.rawValue), qfalse, UInt32(Sys_Milliseconds()))
     }
     
+    @IBAction func escape(_ sender: UIButton) {
+        CL_KeyEvent(Int32(K_ESCAPE.rawValue), qtrue, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(K_ESCAPE.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
+    @IBAction func quickSave(_ sender: UIButton) {
+    CL_KeyEvent(Int32(K_F5.rawValue), qtrue, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(K_F5.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
+    @IBAction func quickLoad(_ sender: UIButton) {
+        CL_KeyEvent(Int32(K_F9.rawValue), qtrue, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(K_F9.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
+
     @IBAction func nextWeapon(sender: UIButton) {
         CL_KeyEvent(Int32(K_MWHEELUP.rawValue), qtrue, UInt32(Sys_Milliseconds()))
         CL_KeyEvent(Int32(K_MWHEELUP.rawValue), qfalse, UInt32(Sys_Milliseconds()))
@@ -362,7 +415,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
                 useButton.isHidden = true
                 prevWeaponButton.isHidden = true
                 nextWeaponButton.isHidden = true
-                tildeButton.isHidden = true
+//                buttonStack.isHidden = true
             } else {
                 joystick1.isHidden = false
                 fireButton.isHidden = false
@@ -370,7 +423,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
                 useButton.isHidden = false
                 prevWeaponButton.isHidden = false
                 nextWeaponButton.isHidden = false
-                tildeButton.isHidden = false
+//                buttonStack.isHidden = false
             }
             #endif
             

@@ -24,7 +24,6 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     
     var joysticksInitialized = false
     
-    var selectedServer:Server?
     var selectedMap = ""
     var selectedSavedGame = ""
 
@@ -214,11 +213,6 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
             argv.append(selectedSavedGame)
         }
         
-        if selectedServer != nil {
-            argv.append("+connect")
-            argv.append("\(selectedServer!.ip):\(selectedServer!.port)")
-        }
-
         argv.append(nil)
         
         let argc:Int32 = Int32(argv.count - 1)

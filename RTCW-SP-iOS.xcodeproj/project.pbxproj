@@ -793,48 +793,6 @@
 		A190301B21093C63008823BB /* con_tty.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C1C42101472C00D3C611 /* con_tty.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A190301C21093C63008823BB /* sys_unix.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C1C62101472C00D3C611 /* sys_unix.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A190301D21093C6B008823BB /* sys_main.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C1BE2101472C00D3C611 /* sys_main.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A196B6A72115F7C50031CEB8 /* Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68B2115F7C50031CEB8 /* Server.swift */; };
-		A196B6A82115F7C50031CEB8 /* Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68B2115F7C50031CEB8 /* Server.swift */; };
-		A196B6AB2115F7C50031CEB8 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68D2115F7C50031CEB8 /* Player.swift */; };
-		A196B6AC2115F7C50031CEB8 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68D2115F7C50031CEB8 /* Player.swift */; };
-		A196B6AD2115F7C50031CEB8 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68E2115F7C50031CEB8 /* Coordinator.swift */; };
-		A196B6AE2115F7C50031CEB8 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68E2115F7C50031CEB8 /* Coordinator.swift */; };
-		A196B6AF2115F7C50031CEB8 /* ServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6902115F7C50031CEB8 /* ServerController.swift */; };
-		A196B6B02115F7C50031CEB8 /* ServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6902115F7C50031CEB8 /* ServerController.swift */; };
-		A196B6B12115F7C50031CEB8 /* GSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6942115F7C50031CEB8 /* GSCoordinator.swift */; };
-		A196B6B22115F7C50031CEB8 /* GSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6942115F7C50031CEB8 /* GSCoordinator.swift */; };
-		A196B6B32115F7C50031CEB8 /* GSMasterServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6952115F7C50031CEB8 /* GSMasterServerController.swift */; };
-		A196B6B42115F7C50031CEB8 /* GSMasterServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6952115F7C50031CEB8 /* GSMasterServerController.swift */; };
-		A196B6B52115F7C50031CEB8 /* GSServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6962115F7C50031CEB8 /* GSServerController.swift */; };
-		A196B6B62115F7C50031CEB8 /* GSServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6962115F7C50031CEB8 /* GSServerController.swift */; };
-		A196B6B72115F7C50031CEB8 /* Q3Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6992115F7C50031CEB8 /* Q3Coordinator.swift */; };
-		A196B6B82115F7C50031CEB8 /* Q3Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6992115F7C50031CEB8 /* Q3Coordinator.swift */; };
-		A196B6B92115F7C50031CEB8 /* Q3Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69A2115F7C50031CEB8 /* Q3Server.swift */; };
-		A196B6BA2115F7C50031CEB8 /* Q3Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69A2115F7C50031CEB8 /* Q3Server.swift */; };
-		A196B6BB2115F7C50031CEB8 /* Q3ServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69B2115F7C50031CEB8 /* Q3ServerController.swift */; };
-		A196B6BC2115F7C50031CEB8 /* Q3ServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69B2115F7C50031CEB8 /* Q3ServerController.swift */; };
-		A196B6BD2115F7C50031CEB8 /* Q3Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69C2115F7C50031CEB8 /* Q3Player.swift */; };
-		A196B6BE2115F7C50031CEB8 /* Q3Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69C2115F7C50031CEB8 /* Q3Player.swift */; };
-		A196B6BF2115F7C50031CEB8 /* Q3Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69D2115F7C50031CEB8 /* Q3Parser.swift */; };
-		A196B6C02115F7C50031CEB8 /* Q3Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69D2115F7C50031CEB8 /* Q3Parser.swift */; };
-		A196B6C12115F7C50031CEB8 /* Q3Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69E2115F7C50031CEB8 /* Q3Operation.swift */; };
-		A196B6C22115F7C50031CEB8 /* Q3Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69E2115F7C50031CEB8 /* Q3Operation.swift */; };
-		A196B6C32115F7C50031CEB8 /* Q3MasterServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69F2115F7C50031CEB8 /* Q3MasterServerController.swift */; };
-		A196B6C42115F7C50031CEB8 /* Q3MasterServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69F2115F7C50031CEB8 /* Q3MasterServerController.swift */; };
-		A196B6C52115F7C50031CEB8 /* QueryOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A02115F7C50031CEB8 /* QueryOperation.swift */; };
-		A196B6C62115F7C50031CEB8 /* QueryOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A02115F7C50031CEB8 /* QueryOperation.swift */; };
-		A196B6C72115F7C50031CEB8 /* String+Q3Name.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A22115F7C50031CEB8 /* String+Q3Name.swift */; };
-		A196B6C82115F7C50031CEB8 /* String+Q3Name.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A22115F7C50031CEB8 /* String+Q3Name.swift */; };
-		A196B6C92115F7C50031CEB8 /* MasterServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A32115F7C50031CEB8 /* MasterServerController.swift */; };
-		A196B6CA2115F7C50031CEB8 /* MasterServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A32115F7C50031CEB8 /* MasterServerController.swift */; };
-		A196B6CB2115F7C50031CEB8 /* SupportedGames.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A42115F7C50031CEB8 /* SupportedGames.swift */; };
-		A196B6CC2115F7C50031CEB8 /* SupportedGames.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A42115F7C50031CEB8 /* SupportedGames.swift */; };
-		A196B6CD2115F7C50031CEB8 /* Parsable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A52115F7C50031CEB8 /* Parsable.swift */; };
-		A196B6CE2115F7C50031CEB8 /* Parsable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A52115F7C50031CEB8 /* Parsable.swift */; };
-		A196B6CF2115F7C50031CEB8 /* SQLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A62115F7C50031CEB8 /* SQLError.swift */; };
-		A196B6D02115F7C50031CEB8 /* SQLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A62115F7C50031CEB8 /* SQLError.swift */; };
-		A196B6DA2115FDB70031CEB8 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6D92115FDB70031CEB8 /* Game.swift */; };
-		A196B6DB2115FDB70031CEB8 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6D92115FDB70031CEB8 /* Game.swift */; };
 		A196B6F12117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */; };
 		A196B6F22117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A196B6F42117ECD10031CEB8 /* CocoaAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */; };
@@ -847,50 +805,8 @@
 		A196B70B2117EF820031CEB8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7062117EF750031CEB8 /* AudioToolbox.framework */; };
 		A196B70C2117EF820031CEB8 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7052117EF750031CEB8 /* AVFoundation.framework */; };
 		A196B70D2117EF820031CEB8 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7072117EF750031CEB8 /* GLKit.framework */; };
-		A196B70E2117F0420031CEB8 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68E2115F7C50031CEB8 /* Coordinator.swift */; };
-		A196B70F2117F0420031CEB8 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6D92115FDB70031CEB8 /* Game.swift */; };
-		A196B7102117F0420031CEB8 /* ServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6902115F7C50031CEB8 /* ServerController.swift */; };
-		A196B7112117F0420031CEB8 /* GSMasterServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6952115F7C50031CEB8 /* GSMasterServerController.swift */; };
-		A196B7122117F0420031CEB8 /* GSServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6962115F7C50031CEB8 /* GSServerController.swift */; };
-		A196B7132117F0420031CEB8 /* Q3Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6992115F7C50031CEB8 /* Q3Coordinator.swift */; };
-		A196B7142117F0420031CEB8 /* Q3Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69A2115F7C50031CEB8 /* Q3Server.swift */; };
-		A196B7152117F0420031CEB8 /* Q3ServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69B2115F7C50031CEB8 /* Q3ServerController.swift */; };
-		A196B7162117F0420031CEB8 /* Q3Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69C2115F7C50031CEB8 /* Q3Player.swift */; };
-		A196B7172117F0420031CEB8 /* Q3Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69D2115F7C50031CEB8 /* Q3Parser.swift */; };
-		A196B7182117F0420031CEB8 /* Q3Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69E2115F7C50031CEB8 /* Q3Operation.swift */; };
-		A196B7192117F0420031CEB8 /* Q3MasterServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69F2115F7C50031CEB8 /* Q3MasterServerController.swift */; };
-		A196B71A2117F0420031CEB8 /* QueryOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A02115F7C50031CEB8 /* QueryOperation.swift */; };
-		A196B71B2117F0420031CEB8 /* String+Q3Name.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A22115F7C50031CEB8 /* String+Q3Name.swift */; };
-		A196B71C2117F0420031CEB8 /* MasterServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A32115F7C50031CEB8 /* MasterServerController.swift */; };
-		A196B71D2117F0420031CEB8 /* Parsable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A52115F7C50031CEB8 /* Parsable.swift */; };
-		A196B71E2117F0420031CEB8 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68D2115F7C50031CEB8 /* Player.swift */; };
-		A196B71F2117F0420031CEB8 /* Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68B2115F7C50031CEB8 /* Server.swift */; };
-		A196B7202117F0420031CEB8 /* SQLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A62115F7C50031CEB8 /* SQLError.swift */; };
-		A196B7212117F0420031CEB8 /* SupportedGames.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A42115F7C50031CEB8 /* SupportedGames.swift */; };
-		A196B7222117F0430031CEB8 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68E2115F7C50031CEB8 /* Coordinator.swift */; };
-		A196B7232117F0430031CEB8 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6D92115FDB70031CEB8 /* Game.swift */; };
-		A196B7242117F0430031CEB8 /* ServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6902115F7C50031CEB8 /* ServerController.swift */; };
-		A196B7252117F0430031CEB8 /* GSMasterServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6952115F7C50031CEB8 /* GSMasterServerController.swift */; };
-		A196B7262117F0430031CEB8 /* GSServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6962115F7C50031CEB8 /* GSServerController.swift */; };
-		A196B7272117F0430031CEB8 /* Q3Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6992115F7C50031CEB8 /* Q3Coordinator.swift */; };
-		A196B7282117F0430031CEB8 /* Q3Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69A2115F7C50031CEB8 /* Q3Server.swift */; };
-		A196B7292117F0430031CEB8 /* Q3ServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69B2115F7C50031CEB8 /* Q3ServerController.swift */; };
-		A196B72A2117F0430031CEB8 /* Q3Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69C2115F7C50031CEB8 /* Q3Player.swift */; };
-		A196B72B2117F0430031CEB8 /* Q3Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69D2115F7C50031CEB8 /* Q3Parser.swift */; };
-		A196B72C2117F0430031CEB8 /* Q3Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69E2115F7C50031CEB8 /* Q3Operation.swift */; };
-		A196B72D2117F0430031CEB8 /* Q3MasterServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B69F2115F7C50031CEB8 /* Q3MasterServerController.swift */; };
-		A196B72E2117F0430031CEB8 /* QueryOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A02115F7C50031CEB8 /* QueryOperation.swift */; };
-		A196B72F2117F0430031CEB8 /* String+Q3Name.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A22115F7C50031CEB8 /* String+Q3Name.swift */; };
-		A196B7302117F0430031CEB8 /* MasterServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A32115F7C50031CEB8 /* MasterServerController.swift */; };
-		A196B7312117F0430031CEB8 /* Parsable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A52115F7C50031CEB8 /* Parsable.swift */; };
-		A196B7322117F0430031CEB8 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68D2115F7C50031CEB8 /* Player.swift */; };
-		A196B7332117F0430031CEB8 /* Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68B2115F7C50031CEB8 /* Server.swift */; };
-		A196B7342117F0430031CEB8 /* SQLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A62115F7C50031CEB8 /* SQLError.swift */; };
-		A196B7352117F0430031CEB8 /* SupportedGames.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A42115F7C50031CEB8 /* SupportedGames.swift */; };
 		A196B7392117F0610031CEB8 /* FontAwesome.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7362117F0610031CEB8 /* FontAwesome.framework */; };
 		A196B73A2117F0610031CEB8 /* CocoaAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */; };
-		A196B73C2117F0800031CEB8 /* GSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6942115F7C50031CEB8 /* GSCoordinator.swift */; };
-		A196B73D2117F0810031CEB8 /* GSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6942115F7C50031CEB8 /* GSCoordinator.swift */; };
 		A196B73E2117F1480031CEB8 /* FontAwesome.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; };
 		A196B73F2117F1480031CEB8 /* FontAwesome.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A196B7402117F18D0031CEB8 /* FontAwesome.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; };
@@ -1509,27 +1425,6 @@
 		A1902F66210939BA008823BB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A1902F68210939BC008823BB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1902F6A210939BC008823BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A196B68B2115F7C50031CEB8 /* Server.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Server.swift; sourceTree = "<group>"; };
-		A196B68D2115F7C50031CEB8 /* Player.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
-		A196B68E2115F7C50031CEB8 /* Coordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Coordinator.swift; sourceTree = "<group>"; };
-		A196B6902115F7C50031CEB8 /* ServerController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServerController.swift; sourceTree = "<group>"; };
-		A196B6942115F7C50031CEB8 /* GSCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSCoordinator.swift; sourceTree = "<group>"; };
-		A196B6952115F7C50031CEB8 /* GSMasterServerController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSMasterServerController.swift; sourceTree = "<group>"; };
-		A196B6962115F7C50031CEB8 /* GSServerController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSServerController.swift; sourceTree = "<group>"; };
-		A196B6992115F7C50031CEB8 /* Q3Coordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Q3Coordinator.swift; sourceTree = "<group>"; };
-		A196B69A2115F7C50031CEB8 /* Q3Server.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Q3Server.swift; sourceTree = "<group>"; };
-		A196B69B2115F7C50031CEB8 /* Q3ServerController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Q3ServerController.swift; sourceTree = "<group>"; };
-		A196B69C2115F7C50031CEB8 /* Q3Player.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Q3Player.swift; sourceTree = "<group>"; };
-		A196B69D2115F7C50031CEB8 /* Q3Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Q3Parser.swift; sourceTree = "<group>"; };
-		A196B69E2115F7C50031CEB8 /* Q3Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Q3Operation.swift; sourceTree = "<group>"; };
-		A196B69F2115F7C50031CEB8 /* Q3MasterServerController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Q3MasterServerController.swift; sourceTree = "<group>"; };
-		A196B6A02115F7C50031CEB8 /* QueryOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryOperation.swift; sourceTree = "<group>"; };
-		A196B6A22115F7C50031CEB8 /* String+Q3Name.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+Q3Name.swift"; sourceTree = "<group>"; };
-		A196B6A32115F7C50031CEB8 /* MasterServerController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MasterServerController.swift; sourceTree = "<group>"; };
-		A196B6A42115F7C50031CEB8 /* SupportedGames.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SupportedGames.swift; sourceTree = "<group>"; };
-		A196B6A52115F7C50031CEB8 /* Parsable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parsable.swift; sourceTree = "<group>"; };
-		A196B6A62115F7C50031CEB8 /* SQLError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLError.swift; sourceTree = "<group>"; };
-		A196B6D92115FDB70031CEB8 /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
 		A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CocoaAsyncSocket.framework; sourceTree = "<group>"; };
 		A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FontAwesome.framework; path = Carthage/Build/iOS/FontAwesome.framework; sourceTree = "<group>"; };
 		A196B6FB2117EEF00031CEB8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -1744,7 +1639,6 @@
 				A1902F582108B4E4008823BB /* MFiGameController.swift */,
 				A15AA924211B43A400DE867F /* OptionsViewController.swift */,
 				A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */,
-				A196B68A2115F7A10031CEB8 /* ServerBrowser */,
 			);
 			path = "RTCW-SP-iOS";
 			sourceTree = "<group>";
@@ -2382,90 +2276,6 @@
 			path = "RTCW-SP-tvOS";
 			sourceTree = "<group>";
 		};
-		A196B68A2115F7A10031CEB8 /* ServerBrowser */ = {
-			isa = PBXGroup;
-			children = (
-				A196B68E2115F7C50031CEB8 /* Coordinator.swift */,
-				A196B68F2115F7C50031CEB8 /* Internals */,
-				A196B6A52115F7C50031CEB8 /* Parsable.swift */,
-				A196B68D2115F7C50031CEB8 /* Player.swift */,
-				A196B68B2115F7C50031CEB8 /* Server.swift */,
-				A196B6A62115F7C50031CEB8 /* SQLError.swift */,
-				A196B6A42115F7C50031CEB8 /* SupportedGames.swift */,
-			);
-			path = ServerBrowser;
-			sourceTree = "<group>";
-		};
-		A196B68F2115F7C50031CEB8 /* Internals */ = {
-			isa = PBXGroup;
-			children = (
-				A196B6D92115FDB70031CEB8 /* Game.swift */,
-				A196B6902115F7C50031CEB8 /* ServerController.swift */,
-				A196B6912115F7C50031CEB8 /* GameProtocols */,
-				A196B6A02115F7C50031CEB8 /* QueryOperation.swift */,
-				A196B6A12115F7C50031CEB8 /* Utilities */,
-				A196B6A32115F7C50031CEB8 /* MasterServerController.swift */,
-			);
-			path = Internals;
-			sourceTree = "<group>";
-		};
-		A196B6912115F7C50031CEB8 /* GameProtocols */ = {
-			isa = PBXGroup;
-			children = (
-				A196B6922115F7C50031CEB8 /* GameSpy */,
-				A196B6972115F7C50031CEB8 /* Quake3 */,
-			);
-			path = GameProtocols;
-			sourceTree = "<group>";
-		};
-		A196B6922115F7C50031CEB8 /* GameSpy */ = {
-			isa = PBXGroup;
-			children = (
-				A196B6932115F7C50031CEB8 /* Coordinator */,
-				A196B6952115F7C50031CEB8 /* GSMasterServerController.swift */,
-				A196B6962115F7C50031CEB8 /* GSServerController.swift */,
-			);
-			path = GameSpy;
-			sourceTree = "<group>";
-		};
-		A196B6932115F7C50031CEB8 /* Coordinator */ = {
-			isa = PBXGroup;
-			children = (
-				A196B6942115F7C50031CEB8 /* GSCoordinator.swift */,
-			);
-			path = Coordinator;
-			sourceTree = "<group>";
-		};
-		A196B6972115F7C50031CEB8 /* Quake3 */ = {
-			isa = PBXGroup;
-			children = (
-				A196B6982115F7C50031CEB8 /* Coordinator */,
-				A196B69A2115F7C50031CEB8 /* Q3Server.swift */,
-				A196B69B2115F7C50031CEB8 /* Q3ServerController.swift */,
-				A196B69C2115F7C50031CEB8 /* Q3Player.swift */,
-				A196B69D2115F7C50031CEB8 /* Q3Parser.swift */,
-				A196B69E2115F7C50031CEB8 /* Q3Operation.swift */,
-				A196B69F2115F7C50031CEB8 /* Q3MasterServerController.swift */,
-			);
-			path = Quake3;
-			sourceTree = "<group>";
-		};
-		A196B6982115F7C50031CEB8 /* Coordinator */ = {
-			isa = PBXGroup;
-			children = (
-				A196B6992115F7C50031CEB8 /* Q3Coordinator.swift */,
-			);
-			path = Coordinator;
-			sourceTree = "<group>";
-		};
-		A196B6A12115F7C50031CEB8 /* Utilities */ = {
-			isa = PBXGroup;
-			children = (
-				A196B6A22115F7C50031CEB8 /* String+Q3Name.swift */,
-			);
-			path = Utilities;
-			sourceTree = "<group>";
-		};
 		A196B6F92117EE6E0031CEB8 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -2693,11 +2503,8 @@
 				A1565F332109F30E00FA9BC9 /* vm_interpreted.c in Sources */,
 				A1565F352109F30E00FA9BC9 /* jcsample.c in Sources */,
 				A1565F362109F30E00FA9BC9 /* jcmainct.c in Sources */,
-				A196B71A2117F0420031CEB8 /* QueryOperation.swift in Sources */,
 				A1565F372109F30E00FA9BC9 /* con_tty.c in Sources */,
 				A1565F382109F30E00FA9BC9 /* huffman.c in Sources */,
-				A196B7142117F0420031CEB8 /* Q3Server.swift in Sources */,
-				A196B7132117F0420031CEB8 /* Q3Coordinator.swift in Sources */,
 				A1565F392109F30E00FA9BC9 /* jdinput.c in Sources */,
 				A1565F3B2109F30E00FA9BC9 /* jdtrans.c in Sources */,
 				A13669D1217E89E900E0AC0B /* tr_init.c in Sources */,
@@ -2711,7 +2518,6 @@
 				A1565F442109F30E00FA9BC9 /* be_aas_sample.c in Sources */,
 				A1565F452109F30E00FA9BC9 /* jfdctflt.c in Sources */,
 				A13669CD217E89E900E0AC0B /* tr_scene.c in Sources */,
-				A196B71F2117F0420031CEB8 /* Server.swift in Sources */,
 				A1565F462109F30E00FA9BC9 /* common.c in Sources */,
 				A1366A05217E89E900E0AC0B /* tr_shade_calc.c in Sources */,
 				A136699D217E89E900E0AC0B /* tr_sky.c in Sources */,
@@ -2720,16 +2526,11 @@
 				A1565F492109F30E00FA9BC9 /* be_ai_goal.c in Sources */,
 				A1565F4A2109F30E00FA9BC9 /* cl_console.c in Sources */,
 				A13669F1217E89E900E0AC0B /* tr_shadows.c in Sources */,
-				A196B7152117F0420031CEB8 /* Q3ServerController.swift in Sources */,
 				A1565F4B2109F30E00FA9BC9 /* cl_scrn.c in Sources */,
-				A196B71B2117F0420031CEB8 /* String+Q3Name.swift in Sources */,
 				A1565F4C2109F30E00FA9BC9 /* qal.c in Sources */,
 				A1565F4D2109F30E00FA9BC9 /* jutils.c in Sources */,
-				A196B7202117F0420031CEB8 /* SQLError.swift in Sources */,
-				A196B70E2117F0420031CEB8 /* Coordinator.swift in Sources */,
 				A1565F4F2109F30E00FA9BC9 /* cl_main.c in Sources */,
 				A1366954217E885D00E0AC0B /* math_vector.cpp in Sources */,
-				A196B7102117F0420031CEB8 /* ServerController.swift in Sources */,
 				A1565F502109F30E00FA9BC9 /* jcdctmgr.c in Sources */,
 				A1565F512109F30E00FA9BC9 /* ioapi.c in Sources */,
 				A1565F522109F30E00FA9BC9 /* cl_input.c in Sources */,
@@ -2746,23 +2547,17 @@
 				A13669E1217E89E900E0AC0B /* tr_image.c in Sources */,
 				A1565F5A2109F30E00FA9BC9 /* be_ai_weap.c in Sources */,
 				A13669FD217E89E900E0AC0B /* tr_altivec.c in Sources */,
-				A196B7162117F0420031CEB8 /* Q3Player.swift in Sources */,
 				A17EE19F211A610200811AE1 /* DifficultyViewController.swift in Sources */,
 				A1565F5B2109F30E00FA9BC9 /* net_ip.c in Sources */,
 				A1565F5C2109F30E00FA9BC9 /* snd_openal.c in Sources */,
-				A196B71E2117F0420031CEB8 /* Player.swift in Sources */,
 				A1565F5E2109F30E00FA9BC9 /* snd_codec.c in Sources */,
 				A1565F5F2109F30E00FA9BC9 /* jfdctfst.c in Sources */,
-				A196B7192117F0420031CEB8 /* Q3MasterServerController.swift in Sources */,
-				A196B7112117F0420031CEB8 /* GSMasterServerController.swift in Sources */,
 				A1565F612109F30E00FA9BC9 /* jccoefct.c in Sources */,
-				A196B7182117F0420031CEB8 /* Q3Operation.swift in Sources */,
 				A1366958217E885D00E0AC0B /* q_parse.cpp in Sources */,
 				A1366999217E89E900E0AC0B /* tr_model.c in Sources */,
 				A1565F642109F30E00FA9BC9 /* jmemnobs.c in Sources */,
 				A1565F652109F30E00FA9BC9 /* jcmaster.c in Sources */,
 				A1565F662109F30E00FA9BC9 /* ios_input.m in Sources */,
-				A196B7172117F0420031CEB8 /* Q3Parser.swift in Sources */,
 				A13669AD217E89E900E0AC0B /* tr_bsp.c in Sources */,
 				A13669E5217E89E900E0AC0B /* tr_noise.c in Sources */,
 				A1565F672109F30E00FA9BC9 /* jdarith.c in Sources */,
@@ -2781,7 +2576,6 @@
 				A136695C217E885D00E0AC0B /* math_angles.cpp in Sources */,
 				A1565F742109F30E00FA9BC9 /* snd_codec_wav.c in Sources */,
 				A1565F752109F30E00FA9BC9 /* be_aas_route.c in Sources */,
-				A196B70F2117F0420031CEB8 /* Game.swift in Sources */,
 				A1565F762109F30E00FA9BC9 /* unzip.c in Sources */,
 				A1565F772109F30E00FA9BC9 /* cl_net_chan.c in Sources */,
 				A1366A0D217E89E900E0AC0B /* tr_cmds.c in Sources */,
@@ -2809,7 +2603,6 @@
 				A1366A09217E89E900E0AC0B /* tr_marks.c in Sources */,
 				A13669E9217E89E900E0AC0B /* tr_flares.c in Sources */,
 				A13669D5217E89E900E0AC0B /* tr_shade.c in Sources */,
-				A196B71D2117F0420031CEB8 /* Parsable.swift in Sources */,
 				A1565F8F2109F30E00FA9BC9 /* l_libvar.c in Sources */,
 				A1565F902109F30E00FA9BC9 /* msg.c in Sources */,
 				A1565F922109F30E00FA9BC9 /* jcprepct.c in Sources */,
@@ -2826,11 +2619,9 @@
 				A1565F9A2109F30E00FA9BC9 /* net_chan.c in Sources */,
 				A1366960217E885D00E0AC0B /* util_str.cpp in Sources */,
 				A1565F9B2109F30E00FA9BC9 /* jdmarker.c in Sources */,
-				A196B71C2117F0420031CEB8 /* MasterServerController.swift in Sources */,
 				A1565F9E2109F30E00FA9BC9 /* jdapimin.c in Sources */,
 				A13669DD217E89E900E0AC0B /* tr_image_jpg.c in Sources */,
 				A13669F5217E89E900E0AC0B /* tr_light.c in Sources */,
-				A196B7212117F0420031CEB8 /* SupportedGames.swift in Sources */,
 				A1565F9F2109F30E00FA9BC9 /* cl_ui.c in Sources */,
 				A1565FA02109F30E00FA9BC9 /* be_aas_cluster.c in Sources */,
 				A1565FA32109F30E00FA9BC9 /* snd_mem.c in Sources */,
@@ -2842,7 +2633,6 @@
 				A1565FAA2109F30E00FA9BC9 /* cl_curl.c in Sources */,
 				A13669A5217E89E900E0AC0B /* tr_bloom.c in Sources */,
 				A1565FAB2109F30E00FA9BC9 /* cm_test.c in Sources */,
-				A196B73C2117F0800031CEB8 /* GSCoordinator.swift in Sources */,
 				A1565FAD2109F30E00FA9BC9 /* be_ai_gen.c in Sources */,
 				A136690B217E7AF200E0AC0B /* be_aas_routetable.c in Sources */,
 				A13669C9217E89E900E0AC0B /* tr_image_bmp.c in Sources */,
@@ -2880,7 +2670,6 @@
 				A1565FCB2109F30E00FA9BC9 /* jdapistd.c in Sources */,
 				A1565FCC2109F30E00FA9BC9 /* cl_cin.c in Sources */,
 				A1565FCD2109F30E00FA9BC9 /* sys_main.c in Sources */,
-				A196B7122117F0420031CEB8 /* GSServerController.swift in Sources */,
 				A1565FCE2109F30E00FA9BC9 /* jdhuff.c in Sources */,
 				A13669C5217E89E900E0AC0B /* tr_world.c in Sources */,
 			);
@@ -2891,7 +2680,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				A13669E3217E89E900E0AC0B /* tr_noise.c in Sources */,
-				A196B6A72115F7C50031CEB8 /* Server.swift in Sources */,
 				A179C30F2101472E00D3C611 /* jcdctmgr.c in Sources */,
 				A179C2E42101472E00D3C611 /* be_aas_main.c in Sources */,
 				A13669A3217E89E900E0AC0B /* tr_bloom.c in Sources */,
@@ -2912,30 +2700,23 @@
 				A13669F3217E89E900E0AC0B /* tr_light.c in Sources */,
 				A179C49B2101472F00D3C611 /* files.c in Sources */,
 				A15AA92A211B470200DE867F /* MainMenuViewController.swift in Sources */,
-				A196B6DA2115FDB70031CEB8 /* Game.swift in Sources */,
 				A1366946217E885D00E0AC0B /* math_matrix.cpp in Sources */,
-				A196B6C92115F7C50031CEB8 /* MasterServerController.swift in Sources */,
 				A1510399210B7A390087EA86 /* JoyStickView.swift in Sources */,
 				A179C2FC2101472E00D3C611 /* jdapistd.c in Sources */,
 				A179C2DE2101472E00D3C611 /* be_aas_entity.c in Sources */,
 				A179C49A2101472F00D3C611 /* net_ip.c in Sources */,
 				A179C3572101472E00D3C611 /* snd_adpcm.c in Sources */,
 				A179C3192101472E00D3C611 /* jmemmgr.c in Sources */,
-				A196B6AD2115F7C50031CEB8 /* Coordinator.swift in Sources */,
 				A179C2D92101472E00D3C611 /* be_ai_gen.c in Sources */,
 				A179C31E2101472E00D3C611 /* jctrans.c in Sources */,
-				A196B6BF2115F7C50031CEB8 /* Q3Parser.swift in Sources */,
 				A179C30C2101472E00D3C611 /* jccolor.c in Sources */,
-				A196B6B92115F7C50031CEB8 /* Q3Server.swift in Sources */,
 				A179C3542101472E00D3C611 /* cl_input.c in Sources */,
 				A13669CF217E89E900E0AC0B /* tr_init.c in Sources */,
 				A179C3012101472E00D3C611 /* jfdctflt.c in Sources */,
 				A1366909217E7AF200E0AC0B /* be_aas_routetable.c in Sources */,
-				A196B6CB2115F7C50031CEB8 /* SupportedGames.swift in Sources */,
 				A179C3022101472E00D3C611 /* jcparam.c in Sources */,
 				A13669DB217E89E900E0AC0B /* tr_image_jpg.c in Sources */,
 				A179C35F2101472E00D3C611 /* snd_codec_wav.c in Sources */,
-				A196B6CF2115F7C50031CEB8 /* SQLError.swift in Sources */,
 				A179C4922101472F00D3C611 /* common.c in Sources */,
 				A13669C3217E89E900E0AC0B /* tr_world.c in Sources */,
 				A1366956217E885D00E0AC0B /* q_parse.cpp in Sources */,
@@ -2951,7 +2732,6 @@
 				A179C2E82101472E00D3C611 /* be_ai_char.c in Sources */,
 				A13669AB217E89E900E0AC0B /* tr_bsp.c in Sources */,
 				A179C3622101472E00D3C611 /* snd_main.c in Sources */,
-				A196B6C32115F7C50031CEB8 /* Q3MasterServerController.swift in Sources */,
 				A179C3172101472E00D3C611 /* jcomapi.c in Sources */,
 				A179C3F82101472F00D3C611 /* sys_unix.c in Sources */,
 				A179C2F92101472E00D3C611 /* jdinput.c in Sources */,
@@ -2959,13 +2739,11 @@
 				A179C3212101472E00D3C611 /* jdmainct.c in Sources */,
 				A161C9F021B6299E009FAFD4 /* SavedGameViewController.swift in Sources */,
 				A179C4A22101472F00D3C611 /* huffman.c in Sources */,
-				A196B6C12115F7C50031CEB8 /* Q3Operation.swift in Sources */,
 				A179C2DD2101472E00D3C611 /* l_script.c in Sources */,
 				A179C3122101472E00D3C611 /* jcapistd.c in Sources */,
 				A15AA925211B43A400DE867F /* OptionsViewController.swift in Sources */,
 				A179C4A92101472F00D3C611 /* cvar.c in Sources */,
 				A1902E9221029767008823BB /* ios_snddma.m in Sources */,
-				A196B6AF2115F7C50031CEB8 /* ServerController.swift in Sources */,
 				A179C4AC2101472F00D3C611 /* cm_patch.c in Sources */,
 				A179C3092101472E00D3C611 /* jcarith.c in Sources */,
 				A13669B7217E89E900E0AC0B /* tr_image_png.c in Sources */,
@@ -2981,7 +2759,6 @@
 				A179C3082101472E00D3C611 /* jmemnobs.c in Sources */,
 				A151039C210B7A890087EA86 /* CoreGraphics+Additions.swift in Sources */,
 				A13669D3217E89E900E0AC0B /* tr_shade.c in Sources */,
-				A196B6CD2115F7C50031CEB8 /* Parsable.swift in Sources */,
 				A179C3072101472E00D3C611 /* jchuff.c in Sources */,
 				A179C3142101472E00D3C611 /* jaricom.c in Sources */,
 				A179C4942101472F00D3C611 /* msg.c in Sources */,
@@ -2990,14 +2767,11 @@
 				A13669FF217E89E900E0AC0B /* tr_mesh.c in Sources */,
 				A179C3042101472E00D3C611 /* jfdctint.c in Sources */,
 				A136695A217E885D00E0AC0B /* math_angles.cpp in Sources */,
-				A196B6B52115F7C50031CEB8 /* GSServerController.swift in Sources */,
 				A179C34F2101472E00D3C611 /* cl_parse.c in Sources */,
 				A179C4AB2101472F00D3C611 /* puff.c in Sources */,
 				A179C2FA2101472E00D3C611 /* jdtrans.c in Sources */,
-				A196B6C72115F7C50031CEB8 /* String+Q3Name.swift in Sources */,
 				A179C31F2101472E00D3C611 /* jidctflt.c in Sources */,
 				A179C3062101472E00D3C611 /* jcmainct.c in Sources */,
-				A196B6BB2115F7C50031CEB8 /* Q3ServerController.swift in Sources */,
 				A179C3652101472E00D3C611 /* sv_snapshot.c in Sources */,
 				A179C2FB2101472E00D3C611 /* jcmaster.c in Sources */,
 				A13669A7217E89E900E0AC0B /* tr_image_tga.c in Sources */,
@@ -3019,14 +2793,12 @@
 				A13669E7217E89E900E0AC0B /* tr_flares.c in Sources */,
 				A179C36C2101472E00D3C611 /* sv_world.c in Sources */,
 				A1902E992103F323008823BB /* ios_main.m in Sources */,
-				A196B6B32115F7C50031CEB8 /* GSMasterServerController.swift in Sources */,
 				A136699F217E89E900E0AC0B /* tr_surface.c in Sources */,
 				A1366993217E89E900E0AC0B /* tr_curve.c in Sources */,
 				A179C31B2101472E00D3C611 /* jquant2.c in Sources */,
 				A179C2E22101472E00D3C611 /* be_aas_bspq3.c in Sources */,
 				A136698F217E89E900E0AC0B /* tr_model_iqm.c in Sources */,
 				A1902E9421029767008823BB /* ios_input.m in Sources */,
-				A196B6BD2115F7C50031CEB8 /* Q3Player.swift in Sources */,
 				A179C3202101472E00D3C611 /* jcinit.c in Sources */,
 				A179C4A82101472F00D3C611 /* cm_trace.c in Sources */,
 				A179C3052101472E00D3C611 /* jcsample.c in Sources */,
@@ -3035,7 +2807,6 @@
 				A179C36A2101472E00D3C611 /* sv_game.c in Sources */,
 				A179C49E2101472F00D3C611 /* cm_load.c in Sources */,
 				A1366942217E885D00E0AC0B /* splines.cpp in Sources */,
-				A196B6B72115F7C50031CEB8 /* Q3Coordinator.swift in Sources */,
 				A179C2DA2101472E00D3C611 /* be_ai_chat.c in Sources */,
 				A179C49C2101472F00D3C611 /* ioapi.c in Sources */,
 				A13669C7217E89E900E0AC0B /* tr_image_bmp.c in Sources */,
@@ -3046,11 +2817,9 @@
 				A13669FB217E89E900E0AC0B /* tr_altivec.c in Sources */,
 				A179C3522101472E00D3C611 /* cl_cgame.c in Sources */,
 				A179C3002101472E00D3C611 /* jdcolor.c in Sources */,
-				A196B6B12115F7C50031CEB8 /* GSCoordinator.swift in Sources */,
 				A1366997217E89E900E0AC0B /* tr_model.c in Sources */,
 				A179C4932101472F00D3C611 /* md4.c in Sources */,
 				A179C3F72101472F00D3C611 /* con_tty.c in Sources */,
-				A196B6AB2115F7C50031CEB8 /* Player.swift in Sources */,
 				A136699B217E89E900E0AC0B /* tr_sky.c in Sources */,
 				A179C34A2101472E00D3C611 /* cl_scrn.c in Sources */,
 				A179C2E72101472E00D3C611 /* be_ai_goal.c in Sources */,
@@ -3085,7 +2854,6 @@
 				A1366952217E885D00E0AC0B /* math_vector.cpp in Sources */,
 				A179C3692101472E00D3C611 /* sv_net_chan.c in Sources */,
 				A179C3162101472E00D3C611 /* jdmaster.c in Sources */,
-				A196B6C52115F7C50031CEB8 /* QueryOperation.swift in Sources */,
 				A179C2F72101472E00D3C611 /* jdatasrc.c in Sources */,
 				A179C30B2101472E00D3C611 /* jcprepct.c in Sources */,
 				A179C2E92101472E00D3C611 /* be_aas_reach.c in Sources */,
@@ -3118,16 +2886,13 @@
 				A1902EAA2108237E008823BB /* jdcoefct.c in Sources */,
 				A1902EAB2108237E008823BB /* jdarith.c in Sources */,
 				A1902EAC2108237E008823BB /* vm.c in Sources */,
-				A196B6DB2115FDB70031CEB8 /* Game.swift in Sources */,
 				A1902EAD2108237E008823BB /* be_aas_routealt.c in Sources */,
 				A151039D210B7A890087EA86 /* CoreGraphics+Additions.swift in Sources */,
 				A1902EAE2108237E008823BB /* files.c in Sources */,
 				A1902EB02108237E008823BB /* jdapistd.c in Sources */,
 				A1902EB12108237E008823BB /* be_aas_entity.c in Sources */,
-				A196B6CE2115F7C50031CEB8 /* Parsable.swift in Sources */,
 				A1902EB22108237E008823BB /* net_ip.c in Sources */,
 				A1902EB32108237E008823BB /* snd_adpcm.c in Sources */,
-				A196B6B82115F7C50031CEB8 /* Q3Coordinator.swift in Sources */,
 				A1902EB42108237E008823BB /* jmemmgr.c in Sources */,
 				A1902EB52108237E008823BB /* be_ai_gen.c in Sources */,
 				A1902EB62108237E008823BB /* jctrans.c in Sources */,
@@ -3141,9 +2906,7 @@
 				A136690A217E7AF200E0AC0B /* be_aas_routetable.c in Sources */,
 				A1902EC02108237E008823BB /* cl_cin.c in Sources */,
 				A1902EC12108237E008823BB /* net_chan.c in Sources */,
-				A196B6BA2115F7C50031CEB8 /* Q3Server.swift in Sources */,
 				A13669B8217E89E900E0AC0B /* tr_image_png.c in Sources */,
-				A196B6AC2115F7C50031CEB8 /* Player.swift in Sources */,
 				A1902EC22108237E008823BB /* cl_ui.c in Sources */,
 				A1366953217E885D00E0AC0B /* math_vector.cpp in Sources */,
 				A1902EC62108237E008823BB /* l_crc.c in Sources */,
@@ -3175,10 +2938,8 @@
 				A1902F5A2108B4E4008823BB /* MFiGameController.swift in Sources */,
 				A1902EDA2108237E008823BB /* ios_snddma.m in Sources */,
 				A1902EDB2108237E008823BB /* cm_patch.c in Sources */,
-				A196B6CC2115F7C50031CEB8 /* SupportedGames.swift in Sources */,
 				A1902EDC2108237E008823BB /* jcarith.c in Sources */,
 				A1902EDE2108237E008823BB /* jfdctfst.c in Sources */,
-				A196B6CA2115F7C50031CEB8 /* MasterServerController.swift in Sources */,
 				A15103A8210D76F50087EA86 /* DifficultyViewController.swift in Sources */,
 				A13669B0217E89E900E0AC0B /* tr_cmesh.c in Sources */,
 				A1902EDF2108237E008823BB /* cm_polylib.c in Sources */,
@@ -3199,7 +2960,6 @@
 				A1902EEB2108237E008823BB /* jfdctint.c in Sources */,
 				A1902EEC2108237E008823BB /* cl_parse.c in Sources */,
 				A1902EED2108237E008823BB /* puff.c in Sources */,
-				A196B6C82115F7C50031CEB8 /* String+Q3Name.swift in Sources */,
 				A1902EEE2108237E008823BB /* jdtrans.c in Sources */,
 				A13669D0217E89E900E0AC0B /* tr_init.c in Sources */,
 				A1902EEF2108237E008823BB /* jidctflt.c in Sources */,
@@ -3220,7 +2980,6 @@
 				A1366A04217E89E900E0AC0B /* tr_shade_calc.c in Sources */,
 				A1902EFB2108237E008823BB /* be_ai_weap.c in Sources */,
 				A1902EFC2108237E008823BB /* sys_main.c in Sources */,
-				A196B6B22115F7C50031CEB8 /* GSCoordinator.swift in Sources */,
 				A136695F217E885D00E0AC0B /* util_str.cpp in Sources */,
 				A1902EFE2108237E008823BB /* jdsample.c in Sources */,
 				A1902EFF2108237E008823BB /* unzip.c in Sources */,
@@ -3231,7 +2990,6 @@
 				A1902F062108237E008823BB /* ios_main.m in Sources */,
 				A1902F072108237E008823BB /* jquant2.c in Sources */,
 				A1902F082108237E008823BB /* be_aas_bspq3.c in Sources */,
-				A196B6C02115F7C50031CEB8 /* Q3Parser.swift in Sources */,
 				A13669C0217E89E900E0AC0B /* tr_backend.c in Sources */,
 				A1902F0B2108237E008823BB /* ios_input.m in Sources */,
 				A1902F0C2108237E008823BB /* jcinit.c in Sources */,
@@ -3239,7 +2997,6 @@
 				A1902F0F2108237E008823BB /* jcsample.c in Sources */,
 				A1902F102108237E008823BB /* vm_interpreted.c in Sources */,
 				A1902F112108237E008823BB /* jddctmgr.c in Sources */,
-				A196B6D02115F7C50031CEB8 /* SQLError.swift in Sources */,
 				A1902F122108237E008823BB /* sv_game.c in Sources */,
 				A1902F142108237E008823BB /* cm_load.c in Sources */,
 				A15AA926211B43A400DE867F /* OptionsViewController.swift in Sources */,
@@ -3247,7 +3004,6 @@
 				A13669E8217E89E900E0AC0B /* tr_flares.c in Sources */,
 				A1902F162108237E008823BB /* ioapi.c in Sources */,
 				A1902F172108237E008823BB /* sv_bot.c in Sources */,
-				A196B6AE2115F7C50031CEB8 /* Coordinator.swift in Sources */,
 				A1902F182108237E008823BB /* l_precomp.c in Sources */,
 				A13669E0217E89E900E0AC0B /* tr_image.c in Sources */,
 				A1902F192108237E008823BB /* be_aas_cluster.c in Sources */,
@@ -3263,17 +3019,13 @@
 				A1902F222108237E008823BB /* jidctint.c in Sources */,
 				A1902F232108237E008823BB /* snd_openal.c in Sources */,
 				A13669FC217E89E900E0AC0B /* tr_altivec.c in Sources */,
-				A196B6BE2115F7C50031CEB8 /* Q3Player.swift in Sources */,
 				A1902F242108237E008823BB /* sv_init.c in Sources */,
 				A1366994217E89E900E0AC0B /* tr_curve.c in Sources */,
 				A1902F252108237E008823BB /* snd_mem.c in Sources */,
 				A1902F262108237E008823BB /* q_math.c in Sources */,
 				A1902F272108237E008823BB /* be_aas_route.c in Sources */,
-				A196B6C42115F7C50031CEB8 /* Q3MasterServerController.swift in Sources */,
 				A1902F282108237E008823BB /* vm_none.c in Sources */,
-				A196B6C62115F7C50031CEB8 /* QueryOperation.swift in Sources */,
 				A1902F292108237E008823BB /* be_aas_file.c in Sources */,
-				A196B6C22115F7C50031CEB8 /* Q3Operation.swift in Sources */,
 				A1902F2A2108237E008823BB /* ios_glsmp_null.c in Sources */,
 				A1902F2B2108237E008823BB /* AppDelegate.swift in Sources */,
 				A1902F2C2108237E008823BB /* l_memory.c in Sources */,
@@ -3281,13 +3033,10 @@
 				A1902F2F2108237E008823BB /* be_aas_optimize.c in Sources */,
 				A1902F302108237E008823BB /* sv_client.c in Sources */,
 				A13669C4217E89E900E0AC0B /* tr_world.c in Sources */,
-				A196B6B02115F7C50031CEB8 /* ServerController.swift in Sources */,
 				A1902F312108237E008823BB /* snd_codec.c in Sources */,
 				A13669AC217E89E900E0AC0B /* tr_bsp.c in Sources */,
-				A196B6A82115F7C50031CEB8 /* Server.swift in Sources */,
 				A1902F322108237E008823BB /* l_log.c in Sources */,
 				A1902F332108237E008823BB /* snapvector.c in Sources */,
-				A196B6B62115F7C50031CEB8 /* GSServerController.swift in Sources */,
 				A1902F342108237E008823BB /* be_ai_move.c in Sources */,
 				A1902F352108237E008823BB /* snd_wavelet.c in Sources */,
 				A151039A210B7A390087EA86 /* JoyStickView.swift in Sources */,
@@ -3298,8 +3047,6 @@
 				A1366957217E885D00E0AC0B /* q_parse.cpp in Sources */,
 				A1902F3A2108237E008823BB /* jcmarker.c in Sources */,
 				A1902F3B2108237E008823BB /* sv_net_chan.c in Sources */,
-				A196B6B42115F7C50031CEB8 /* GSMasterServerController.swift in Sources */,
-				A196B6BC2115F7C50031CEB8 /* Q3ServerController.swift in Sources */,
 				A1902F3D2108237E008823BB /* jdmaster.c in Sources */,
 				A1902F3E2108237E008823BB /* jdatasrc.c in Sources */,
 				A1902F402108237E008823BB /* jcprepct.c in Sources */,
@@ -3330,13 +3077,11 @@
 				A190301521093C4C008823BB /* sv_init.c in Sources */,
 				A1366A02217E89E900E0AC0B /* tr_mesh.c in Sources */,
 				A1902F8521093B34008823BB /* be_ai_chat.c in Sources */,
-				A196B72C2117F0430031CEB8 /* Q3Operation.swift in Sources */,
 				A1366996217E89E900E0AC0B /* tr_curve.c in Sources */,
 				A190301A21093C63008823BB /* con_log.c in Sources */,
 				A1902FA421093B86008823BB /* snd_dma.c in Sources */,
 				A1902FA921093B86008823BB /* snd_wavelet.c in Sources */,
 				A1902F8821093B34008823BB /* be_ai_move.c in Sources */,
-				A196B7312117F0430031CEB8 /* Parsable.swift in Sources */,
 				A1902FAB21093BA4008823BB /* ios_glsmp_null.c in Sources */,
 				A1902FF121093BFF008823BB /* vm_interpreted.c in Sources */,
 				A1902FBE21093BBE008823BB /* jcsample.c in Sources */,
@@ -3346,7 +3091,6 @@
 				A1902FE621093BE8008823BB /* huffman.c in Sources */,
 				A13669A2217E89E900E0AC0B /* tr_surface.c in Sources */,
 				A1902FC921093BBE008823BB /* jdinput.c in Sources */,
-				A196B7322117F0430031CEB8 /* Player.swift in Sources */,
 				A161C9F321B6299E009FAFD4 /* SavedGameViewController.swift in Sources */,
 				A1902FD021093BBE008823BB /* jdtrans.c in Sources */,
 				A1366945217E885D00E0AC0B /* splines.cpp in Sources */,
@@ -3355,7 +3099,6 @@
 				A1902F7F21093B34008823BB /* be_aas_optimize.c in Sources */,
 				A1902FB021093BBE008823BB /* jcapimin.c in Sources */,
 				A1366A06217E89E900E0AC0B /* tr_shade_calc.c in Sources */,
-				A196B7352117F0430031CEB8 /* SupportedGames.swift in Sources */,
 				A1902FA121093B86008823BB /* snd_adpcm.c in Sources */,
 				A13669E2217E89E900E0AC0B /* tr_image.c in Sources */,
 				A190301821093C4C008823BB /* sv_snapshot.c in Sources */,
@@ -3376,7 +3119,6 @@
 				A1902F9B21093B6D008823BB /* cl_main.c in Sources */,
 				A1902FB521093BBE008823BB /* jcdctmgr.c in Sources */,
 				A1902FE721093BE8008823BB /* ioapi.c in Sources */,
-				A196B7332117F0430031CEB8 /* Server.swift in Sources */,
 				A1902F9921093B6D008823BB /* cl_input.c in Sources */,
 				A1902F9421093B67008823BB /* cl_avi.c in Sources */,
 				A1902F7521093AAF008823BB /* GameViewController.swift in Sources */,
@@ -3392,11 +3134,8 @@
 				A1902F8F21093B34008823BB /* l_log.c in Sources */,
 				A1902F8921093B34008823BB /* be_ai_weap.c in Sources */,
 				A1902FEC21093BFF008823BB /* net_ip.c in Sources */,
-				A196B7242117F0430031CEB8 /* ServerController.swift in Sources */,
 				A1902FA821093B86008823BB /* snd_openal.c in Sources */,
 				A1902F7621093AD1008823BB /* ftola.c in Sources */,
-				A196B72F2117F0430031CEB8 /* String+Q3Name.swift in Sources */,
-				A196B72B2117F0430031CEB8 /* Q3Parser.swift in Sources */,
 				A1902FA321093B86008823BB /* snd_codec.c in Sources */,
 				A1902FD321093BBE008823BB /* jfdctfst.c in Sources */,
 				A1366959217E885D00E0AC0B /* q_parse.cpp in Sources */,
@@ -3415,11 +3154,7 @@
 				A1902FCF21093BBE008823BB /* jdsample.c in Sources */,
 				A13669A6217E89E900E0AC0B /* tr_bloom.c in Sources */,
 				A1902F9221093B34008823BB /* l_script.c in Sources */,
-				A196B72D2117F0430031CEB8 /* Q3MasterServerController.swift in Sources */,
-				A196B7262117F0430031CEB8 /* GSServerController.swift in Sources */,
-				A196B7222117F0430031CEB8 /* Coordinator.swift in Sources */,
 				A1902FC721093BBE008823BB /* jddctmgr.c in Sources */,
-				A196B7272117F0430031CEB8 /* Q3Coordinator.swift in Sources */,
 				A136699E217E89E900E0AC0B /* tr_sky.c in Sources */,
 				A190301221093C4C008823BB /* sv_ccmds.c in Sources */,
 				A1902FDB21093BBE008823BB /* jquant2.c in Sources */,
@@ -3448,7 +3183,6 @@
 				A1902F8421093B34008823BB /* be_ai_char.c in Sources */,
 				A1902F8D21093B34008823BB /* l_crc.c in Sources */,
 				A1902F7B21093B34008823BB /* be_aas_entity.c in Sources */,
-				A196B7232117F0430031CEB8 /* Game.swift in Sources */,
 				A1902F9521093B67008823BB /* cl_cgame.c in Sources */,
 				A1902F8C21093B34008823BB /* be_interface.c in Sources */,
 				A1902F7721093AD9008823BB /* snapvector.c in Sources */,
@@ -3460,11 +3194,9 @@
 				A1902FE221093BE8008823BB /* cmd.c in Sources */,
 				A1902FA521093B86008823BB /* snd_main.c in Sources */,
 				A1366949217E885D00E0AC0B /* math_matrix.cpp in Sources */,
-				A196B7342117F0430031CEB8 /* SQLError.swift in Sources */,
 				A13669F2217E89E900E0AC0B /* tr_shadows.c in Sources */,
 				A13669AE217E89E900E0AC0B /* tr_bsp.c in Sources */,
 				A1902F6F21093A45008823BB /* AppDelegate.swift in Sources */,
-				A196B7282117F0430031CEB8 /* Q3Server.swift in Sources */,
 				A1902FB121093BBE008823BB /* jcapistd.c in Sources */,
 				A13669CA217E89E900E0AC0B /* tr_image_bmp.c in Sources */,
 				A1902FC421093BBE008823BB /* jdatasrc.c in Sources */,
@@ -3475,7 +3207,6 @@
 				A1902FC021093BBE008823BB /* jdapimin.c in Sources */,
 				A13669B6217E89E900E0AC0B /* tr_animation.c in Sources */,
 				A1366A0A217E89E900E0AC0B /* tr_marks.c in Sources */,
-				A196B7292117F0430031CEB8 /* Q3ServerController.swift in Sources */,
 				A1902F9F21093B6D008823BB /* cl_ui.c in Sources */,
 				A1902F7921093B34008823BB /* be_aas_cluster.c in Sources */,
 				A1902FA621093B86008823BB /* snd_mem.c in Sources */,
@@ -3483,17 +3214,14 @@
 				A13669F6217E89E900E0AC0B /* tr_light.c in Sources */,
 				A1902F9D21093B6D008823BB /* cl_parse.c in Sources */,
 				A1902FCA21093BBE008823BB /* jdmainct.c in Sources */,
-				A196B72A2117F0430031CEB8 /* Q3Player.swift in Sources */,
 				A190301421093C4C008823BB /* sv_game.c in Sources */,
 				A1902F7421093AAB008823BB /* MFiGameController.swift in Sources */,
-				A196B7252117F0430031CEB8 /* GSMasterServerController.swift in Sources */,
 				A13669FE217E89E900E0AC0B /* tr_altivec.c in Sources */,
 				A1902F9821093B67008823BB /* cl_curl.c in Sources */,
 				A1902FE021093BE8008823BB /* cm_test.c in Sources */,
 				A1902F8621093B34008823BB /* be_ai_gen.c in Sources */,
 				A1902FE121093BE8008823BB /* cm_trace.c in Sources */,
 				A1902FD121093BBE008823BB /* jerror.c in Sources */,
-				A196B73D2117F0810031CEB8 /* GSCoordinator.swift in Sources */,
 				A1902FC321093BBE008823BB /* jdatadst.c in Sources */,
 				A1366955217E885D00E0AC0B /* math_vector.cpp in Sources */,
 				A190301121093C4C008823BB /* sv_bot.c in Sources */,
@@ -3503,7 +3231,6 @@
 				A1902F8221093B34008823BB /* be_aas_routealt.c in Sources */,
 				A1902FB721093BBE008823BB /* jcinit.c in Sources */,
 				A1902FA721093B86008823BB /* snd_mix.c in Sources */,
-				A196B7302117F0430031CEB8 /* MasterServerController.swift in Sources */,
 				A1902FAF21093BBE008823BB /* jaricom.c in Sources */,
 				A190301921093C4C008823BB /* sv_world.c in Sources */,
 				A1902FAD21093BA4008823BB /* ios_main.m in Sources */,
@@ -3512,7 +3239,6 @@
 				A1902FD621093BBE008823BB /* jidctfst.c in Sources */,
 				A1902F64210939BA008823BB /* ViewController.swift in Sources */,
 				A136690C217E7AF200E0AC0B /* be_aas_routetable.c in Sources */,
-				A196B72E2117F0430031CEB8 /* QueryOperation.swift in Sources */,
 				A1902FCC21093BBE008823BB /* jdmaster.c in Sources */,
 				A1902F9121093B34008823BB /* l_precomp.c in Sources */,
 				A1366961217E885D00E0AC0B /* util_str.cpp in Sources */,

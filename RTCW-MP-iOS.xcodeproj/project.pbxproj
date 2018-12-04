@@ -182,10 +182,6 @@
 		A15103A0210D50D50087EA86 /* dpquake.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A151039E210D50D40087EA86 /* dpquake.ttf */; };
 		A15103A1210D50DC0087EA86 /* dpquake.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A151039E210D50D40087EA86 /* dpquake.ttf */; };
 		A15103A2210D50DC0087EA86 /* dpquake.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A151039E210D50D40087EA86 /* dpquake.ttf */; };
-		A15103A4210D5DFF0087EA86 /* TiersListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */; };
-		A15103A5210D5DFF0087EA86 /* TiersListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */; };
-		A15103A7210D76F50087EA86 /* DifficultyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A6210D76F50087EA86 /* DifficultyViewController.swift */; };
-		A15103A8210D76F50087EA86 /* DifficultyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A6210D76F50087EA86 /* DifficultyViewController.swift */; };
 		A1565F232109F30E00FA9BC9 /* cvar.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2B52101472E00D3C611 /* cvar.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F242109F30E00FA9BC9 /* md4.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2952101472E00D3C611 /* md4.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F252109F30E00FA9BC9 /* vm.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2A12101472E00D3C611 /* vm.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -498,10 +494,6 @@
 		A179C4AB2101472F00D3C611 /* puff.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2B72101472E00D3C611 /* puff.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A179C4AC2101472F00D3C611 /* cm_patch.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2BB2101472E00D3C611 /* cm_patch.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A17EE19C2118876D00811AE1 /* ServerFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A17EE19D211A60F800811AE1 /* TiersListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */; };
-		A17EE19E211A60F800811AE1 /* TiersListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */; };
-		A17EE19F211A610200811AE1 /* DifficultyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A6210D76F50087EA86 /* DifficultyViewController.swift */; };
-		A17EE1A0211A610200811AE1 /* DifficultyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A6210D76F50087EA86 /* DifficultyViewController.swift */; };
 		A17EE1A1211A611400811AE1 /* ServerBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6872115F5680031CEB8 /* ServerBrowserViewController.swift */; };
 		A17EE1A2211A611500811AE1 /* ServerBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6872115F5680031CEB8 /* ServerBrowserViewController.swift */; };
 		A17EE1A3211A611E00811AE1 /* ServerListViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E121167B890031CEB8 /* ServerListViewCell.swift */; };
@@ -1104,8 +1096,6 @@
 		A1510398210B7A390087EA86 /* JoyStickView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoyStickView.swift; sourceTree = "<group>"; };
 		A151039B210B7A890087EA86 /* CoreGraphics+Additions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreGraphics+Additions.swift"; sourceTree = "<group>"; };
 		A151039E210D50D40087EA86 /* dpquake.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = dpquake.ttf; sourceTree = "<group>"; };
-		A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiersListViewController.swift; sourceTree = "<group>"; };
-		A15103A6210D76F50087EA86 /* DifficultyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DifficultyViewController.swift; sourceTree = "<group>"; };
 		A1565FDA2109F30E00FA9BC9 /* RTCW-MP-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-MP-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_iOS.a; path = Quake3/libs/ios/libcurl_iOS.a; sourceTree = "<group>"; };
 		A1565FE1210A0D3E00FA9BC9 /* libcurl_tvOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_tvOS.a; path = Quake3/libs/tvos/libcurl_tvOS.a; sourceTree = "<group>"; };
@@ -1766,7 +1756,6 @@
 				A179BFED210142FB00D3C611 /* Assets.xcassets */,
 				A1902E982103EFC7008823BB /* bridging.h */,
 				A151039B210B7A890087EA86 /* CoreGraphics+Additions.swift */,
-				A15103A6210D76F50087EA86 /* DifficultyViewController.swift */,
 				A151039E210D50D40087EA86 /* dpquake.ttf */,
 				A179BFE8210142FA00D3C611 /* GameViewController.swift */,
 				A179BFF2210142FB00D3C611 /* Info.plist */,
@@ -1782,7 +1771,6 @@
 				A196B6E7211683510031CEB8 /* ServerInfoViewController.swift */,
 				A196B6E121167B890031CEB8 /* ServerListViewCell.swift */,
 				A196B6E221167B890031CEB8 /* ServerListViewCell.xib */,
-				A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */,
 			);
 			path = "RTCW-MP-iOS";
 			sourceTree = "<group>";
@@ -2792,7 +2780,6 @@
 				A1565F5A2109F30E00FA9BC9 /* be_ai_weap.c in Sources */,
 				A13669FD217E89E900E0AC0B /* tr_altivec.c in Sources */,
 				A196B7162117F0420031CEB8 /* Q3Player.swift in Sources */,
-				A17EE19F211A610200811AE1 /* DifficultyViewController.swift in Sources */,
 				A1565F5B2109F30E00FA9BC9 /* net_ip.c in Sources */,
 				A1565F5C2109F30E00FA9BC9 /* snd_openal.c in Sources */,
 				A196B71E2117F0420031CEB8 /* Player.swift in Sources */,
@@ -2889,7 +2876,6 @@
 				A1565FAA2109F30E00FA9BC9 /* cl_curl.c in Sources */,
 				A13669A5217E89E900E0AC0B /* tr_bloom.c in Sources */,
 				A1565FAB2109F30E00FA9BC9 /* cm_test.c in Sources */,
-				A17EE19D211A60F800811AE1 /* TiersListViewController.swift in Sources */,
 				A196B73C2117F0800031CEB8 /* GSCoordinator.swift in Sources */,
 				A1565FAD2109F30E00FA9BC9 /* be_ai_gen.c in Sources */,
 				A136690B217E7AF200E0AC0B /* be_aas_routetable.c in Sources */,
@@ -3023,7 +3009,6 @@
 				A179C49F2101472F00D3C611 /* cm_polylib.c in Sources */,
 				A179C2E32101472E00D3C611 /* be_aas_sample.c in Sources */,
 				A1902F592108B4E4008823BB /* MFiGameController.swift in Sources */,
-				A15103A7210D76F50087EA86 /* DifficultyViewController.swift in Sources */,
 				A179C2FF2101472E00D3C611 /* jdmerge.c in Sources */,
 				A179C3102101472E00D3C611 /* jutils.c in Sources */,
 				A179C2FE2101472E00D3C611 /* jdmarker.c in Sources */,
@@ -3112,7 +3097,6 @@
 				A179C31C2101472E00D3C611 /* jidctint.c in Sources */,
 				A179C3602101472E00D3C611 /* snd_openal.c in Sources */,
 				A13669D7217E89E900E0AC0B /* tr_font.c in Sources */,
-				A15103A4210D5DFF0087EA86 /* TiersListViewController.swift in Sources */,
 				A179C3672101472E00D3C611 /* sv_init.c in Sources */,
 				A179C35E2101472E00D3C611 /* snd_mem.c in Sources */,
 				A179C4982101472F00D3C611 /* q_math.c in Sources */,
@@ -3163,7 +3147,6 @@
 				A13669D8217E89E900E0AC0B /* tr_font.c in Sources */,
 				A1902EA22108237E008823BB /* jdpostct.c in Sources */,
 				A1902EA32108237E008823BB /* be_aas_move.c in Sources */,
-				A15103A5210D5DFF0087EA86 /* TiersListViewController.swift in Sources */,
 				A1902EA52108237E008823BB /* be_ai_weight.c in Sources */,
 				A1902EA62108237E008823BB /* cmd.c in Sources */,
 				A1902EA72108237E008823BB /* ios_glimp.m in Sources */,
@@ -3234,7 +3217,6 @@
 				A1902EDC2108237E008823BB /* jcarith.c in Sources */,
 				A1902EDE2108237E008823BB /* jfdctfst.c in Sources */,
 				A196B6CA2115F7C50031CEB8 /* MasterServerController.swift in Sources */,
-				A15103A8210D76F50087EA86 /* DifficultyViewController.swift in Sources */,
 				A13669B0217E89E900E0AC0B /* tr_cmesh.c in Sources */,
 				A1902EDF2108237E008823BB /* cm_polylib.c in Sources */,
 				A196B6E9211683510031CEB8 /* ServerInfoViewController.swift in Sources */,
@@ -3381,7 +3363,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1902FE421093BE8008823BB /* cvar.c in Sources */,
-				A17EE1A0211A610200811AE1 /* DifficultyViewController.swift in Sources */,
 				A1902FE821093BFF008823BB /* md4.c in Sources */,
 				A1902FF321093BFF008823BB /* vm.c in Sources */,
 				A1902FCD21093BBE008823BB /* jdmerge.c in Sources */,
@@ -3557,7 +3538,6 @@
 				A17EE1A2211A611500811AE1 /* ServerBrowserViewController.swift in Sources */,
 				A1902FE121093BE8008823BB /* cm_trace.c in Sources */,
 				A1902FD121093BBE008823BB /* jerror.c in Sources */,
-				A17EE19E211A60F800811AE1 /* TiersListViewController.swift in Sources */,
 				A196B73D2117F0810031CEB8 /* GSCoordinator.swift in Sources */,
 				A1902FC321093BBE008823BB /* jdatadst.c in Sources */,
 				A1366955217E885D00E0AC0B /* math_vector.cpp in Sources */,

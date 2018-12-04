@@ -155,7 +155,6 @@
                                     <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
                                 <connections>
-                                    <action selector="difficulty2:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="kZ4-XA-hMA"/>
                                     <action selector="getServerInfo:" destination="gOE-px-5yC" eventType="primaryActionTriggered" id="QPY-KC-rbz"/>
                                     <action selector="savePlayerName:" destination="hki-ak-9xy" eventType="primaryActionTriggered" id="7BO-B0-ABR"/>
                                 </connections>
@@ -249,7 +248,6 @@
                                     <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
                                 <connections>
-                                    <action selector="difficulty2:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="iuN-4R-ZmY"/>
                                     <action selector="getServerInfo:" destination="gOE-px-5yC" eventType="primaryActionTriggered" id="Eu2-Mf-KGT"/>
                                 </connections>
                             </button>
@@ -460,102 +458,6 @@
             </objects>
             <point key="canvasLocation" x="3085" y="3224"/>
         </scene>
-        <!--Difficulty View Controller-->
-        <scene sceneID="dsk-0B-TIF">
-            <objects>
-                <viewController storyboardIdentifier="DifficultyVC" id="dBM-hw-OcU" customClass="DifficultyViewController" customModule="RTCW_MP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="nl1-vC-LEY"/>
-                        <viewControllerLayoutGuide type="bottom" id="qac-Vu-e9m"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="IRp-sc-De8">
-                        <rect key="frame" x="0.0" y="0.0" width="1920" height="1080"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fTq-wa-mWv">
-                                <rect key="frame" x="734" y="192" width="453" height="133"/>
-                                <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="88"/>
-                                <size key="titleShadowOffset" width="1" height="1"/>
-                                <state key="normal" title="I CAN WIN">
-                                    <color key="titleColor" red="1" green="0.0093617555430000002" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                    <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                </state>
-                                <connections>
-                                    <action selector="difficulty1:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="sXp-N8-w0R"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Lhf-IW-WTU">
-                                <rect key="frame" x="686" y="333" width="548" height="133"/>
-                                <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="88"/>
-                                <size key="titleShadowOffset" width="1" height="1"/>
-                                <state key="normal" title="BRING IT ON">
-                                    <color key="titleColor" red="1" green="0.0093617555430000002" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                    <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                </state>
-                                <connections>
-                                    <action selector="difficulty2:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="hZh-ZR-K1H"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SuW-sx-R42">
-                                <rect key="frame" x="583" y="474" width="755" height="133"/>
-                                <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="88"/>
-                                <size key="titleShadowOffset" width="1" height="1"/>
-                                <state key="normal" title="HURT ME PLENTY">
-                                    <color key="titleColor" red="1" green="0.0093617555430000002" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                    <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                </state>
-                                <connections>
-                                    <action selector="difficulty3:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="dhe-gB-RNA"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="u95-ZK-53H">
-                                <rect key="frame" x="708" y="615" width="505" height="133"/>
-                                <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="88"/>
-                                <size key="titleShadowOffset" width="1" height="1"/>
-                                <state key="normal" title="HARDCORE">
-                                    <color key="titleColor" red="1" green="0.0093617555430000002" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                    <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                </state>
-                                <connections>
-                                    <action selector="difficulty4:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="Xbo-oZ-10l"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3ar-zK-sKb">
-                                <rect key="frame" x="673" y="756" width="575" height="133"/>
-                                <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="88"/>
-                                <size key="titleShadowOffset" width="1" height="1"/>
-                                <state key="normal" title="NIGHTMARE!">
-                                    <color key="titleColor" red="1" green="0.0093617555430000002" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                    <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                </state>
-                                <connections>
-                                    <action selector="difficulty5:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="TRs-Em-Nrh"/>
-                                </connections>
-                            </button>
-                        </subviews>
-                        <color key="backgroundColor" red="0.66666668650000005" green="0.66666668650000005" blue="0.66666668650000005" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                        <constraints>
-                            <constraint firstItem="Lhf-IW-WTU" firstAttribute="top" secondItem="fTq-wa-mWv" secondAttribute="bottom" constant="8" id="A3f-HY-I0j"/>
-                            <constraint firstItem="SuW-sx-R42" firstAttribute="top" secondItem="Lhf-IW-WTU" secondAttribute="bottom" constant="8" id="CpD-KX-cEw"/>
-                            <constraint firstItem="3ar-zK-sKb" firstAttribute="centerX" secondItem="IRp-sc-De8" secondAttribute="centerX" id="Kg2-3S-Rb4"/>
-                            <constraint firstItem="SuW-sx-R42" firstAttribute="centerX" secondItem="IRp-sc-De8" secondAttribute="centerX" id="MMt-oY-vGw"/>
-                            <constraint firstItem="u95-ZK-53H" firstAttribute="top" secondItem="SuW-sx-R42" secondAttribute="bottom" constant="8" id="XPm-Kt-WKu"/>
-                            <constraint firstItem="Lhf-IW-WTU" firstAttribute="centerX" secondItem="IRp-sc-De8" secondAttribute="centerX" id="Z66-19-4MN"/>
-                            <constraint firstItem="fTq-wa-mWv" firstAttribute="centerX" secondItem="IRp-sc-De8" secondAttribute="centerX" id="irT-Ld-9yB"/>
-                            <constraint firstItem="SuW-sx-R42" firstAttribute="centerY" secondItem="IRp-sc-De8" secondAttribute="centerY" id="kQ3-bf-ZOR"/>
-                            <constraint firstItem="3ar-zK-sKb" firstAttribute="top" secondItem="u95-ZK-53H" secondAttribute="bottom" constant="8" id="qk8-AL-P4p"/>
-                            <constraint firstItem="u95-ZK-53H" firstAttribute="centerX" secondItem="IRp-sc-De8" secondAttribute="centerX" id="twA-QQ-S6M"/>
-                        </constraints>
-                        <viewLayoutGuide key="safeArea" id="7eJ-wf-jvn"/>
-                    </view>
-                    <connections>
-                        <segue destination="BYZ-38-t0r" kind="show" identifier="GameSegue" id="CVW-g3-IVQ"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="0Y4-bG-R7g" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="3494" y="-662"/>
-        </scene>
         <!--Server Info View Controller-->
         <scene sceneID="jF4-t5-Hpj">
             <objects>
@@ -577,7 +479,6 @@
                                     <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
                                 <connections>
-                                    <action selector="difficulty2:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="Vm3-xi-JvM"/>
                                     <segue destination="BYZ-38-t0r" kind="show" identifier="StartMultiplayerGameSegue" id="cZw-Gc-PNX"/>
                                 </connections>
                             </button>
@@ -674,6 +575,6 @@
         <image name="rtcw_mp_background" width="1440" height="540"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="CVW-g3-IVQ"/>
+        <segue reference="s2L-3L-53o"/>
     </inferredMetricsTieBreakers>
 </document>

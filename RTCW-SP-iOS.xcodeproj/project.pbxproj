@@ -182,8 +182,6 @@
 		A15103A0210D50D50087EA86 /* dpquake.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A151039E210D50D40087EA86 /* dpquake.ttf */; };
 		A15103A1210D50DC0087EA86 /* dpquake.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A151039E210D50D40087EA86 /* dpquake.ttf */; };
 		A15103A2210D50DC0087EA86 /* dpquake.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A151039E210D50D40087EA86 /* dpquake.ttf */; };
-		A15103A4210D5DFF0087EA86 /* TiersListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */; };
-		A15103A5210D5DFF0087EA86 /* TiersListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */; };
 		A15103A7210D76F50087EA86 /* DifficultyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A6210D76F50087EA86 /* DifficultyViewController.swift */; };
 		A15103A8210D76F50087EA86 /* DifficultyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A6210D76F50087EA86 /* DifficultyViewController.swift */; };
 		A1565F232109F30E00FA9BC9 /* cvar.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2B52101472E00D3C611 /* cvar.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -342,8 +340,6 @@
 		A1565FF2210A0F4900FA9BC9 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FEF210A0F4900FA9BC9 /* libcrypto.a */; };
 		A1565FF3210A0F4900FA9BC9 /* libnghttp2_tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FF0210A0F4900FA9BC9 /* libnghttp2_tvOS.a */; };
 		A1565FF4210A0F4900FA9BC9 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FF1210A0F4900FA9BC9 /* libssl.a */; };
-		A15AA922211A68E900DE867F /* ServerListViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = A15AA921211A68E900DE867F /* ServerListViewCell.xib */; };
-		A15AA923211A68E900DE867F /* ServerListViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = A15AA921211A68E900DE867F /* ServerListViewCell.xib */; };
 		A15AA925211B43A400DE867F /* OptionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA924211B43A400DE867F /* OptionsViewController.swift */; };
 		A15AA926211B43A400DE867F /* OptionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA924211B43A400DE867F /* OptionsViewController.swift */; };
 		A15AA927211B43A400DE867F /* OptionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA924211B43A400DE867F /* OptionsViewController.swift */; };
@@ -493,19 +489,8 @@
 		A179C4AA2101472F00D3C611 /* net_chan.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2B62101472E00D3C611 /* net_chan.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A179C4AB2101472F00D3C611 /* puff.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2B72101472E00D3C611 /* puff.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A179C4AC2101472F00D3C611 /* cm_patch.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2BB2101472E00D3C611 /* cm_patch.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A17EE19C2118876D00811AE1 /* ServerFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A17EE19D211A60F800811AE1 /* TiersListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */; };
-		A17EE19E211A60F800811AE1 /* TiersListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */; };
 		A17EE19F211A610200811AE1 /* DifficultyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A6210D76F50087EA86 /* DifficultyViewController.swift */; };
 		A17EE1A0211A610200811AE1 /* DifficultyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A6210D76F50087EA86 /* DifficultyViewController.swift */; };
-		A17EE1A1211A611400811AE1 /* ServerBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6872115F5680031CEB8 /* ServerBrowserViewController.swift */; };
-		A17EE1A2211A611500811AE1 /* ServerBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6872115F5680031CEB8 /* ServerBrowserViewController.swift */; };
-		A17EE1A3211A611E00811AE1 /* ServerListViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E121167B890031CEB8 /* ServerListViewCell.swift */; };
-		A17EE1A4211A611F00811AE1 /* ServerListViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E121167B890031CEB8 /* ServerListViewCell.swift */; };
-		A17EE1A5211A613E00811AE1 /* ServerInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E7211683510031CEB8 /* ServerInfoViewController.swift */; };
-		A17EE1A6211A613E00811AE1 /* ServerInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E7211683510031CEB8 /* ServerInfoViewController.swift */; };
-		A17EE1A7211A614200811AE1 /* ServerFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */; };
-		A17EE1A8211A614200811AE1 /* ServerFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */; };
 		A17EE1AA211A62BB00811AE1 /* CocoaAsyncSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A17EE1AC211A62ED00811AE1 /* CocoaAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */; };
 		A17EE1AD211A62ED00811AE1 /* CocoaAsyncSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -808,8 +793,6 @@
 		A190301B21093C63008823BB /* con_tty.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C1C42101472C00D3C611 /* con_tty.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A190301C21093C63008823BB /* sys_unix.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C1C62101472C00D3C611 /* sys_unix.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A190301D21093C6B008823BB /* sys_main.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C1BE2101472C00D3C611 /* sys_main.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A196B6882115F5680031CEB8 /* ServerBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6872115F5680031CEB8 /* ServerBrowserViewController.swift */; };
-		A196B6892115F5680031CEB8 /* ServerBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6872115F5680031CEB8 /* ServerBrowserViewController.swift */; };
 		A196B6A72115F7C50031CEB8 /* Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68B2115F7C50031CEB8 /* Server.swift */; };
 		A196B6A82115F7C50031CEB8 /* Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68B2115F7C50031CEB8 /* Server.swift */; };
 		A196B6AB2115F7C50031CEB8 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68D2115F7C50031CEB8 /* Player.swift */; };
@@ -852,12 +835,6 @@
 		A196B6D02115F7C50031CEB8 /* SQLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A62115F7C50031CEB8 /* SQLError.swift */; };
 		A196B6DA2115FDB70031CEB8 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6D92115FDB70031CEB8 /* Game.swift */; };
 		A196B6DB2115FDB70031CEB8 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6D92115FDB70031CEB8 /* Game.swift */; };
-		A196B6E321167B890031CEB8 /* ServerListViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E121167B890031CEB8 /* ServerListViewCell.swift */; };
-		A196B6E421167B890031CEB8 /* ServerListViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E121167B890031CEB8 /* ServerListViewCell.swift */; };
-		A196B6E521167B890031CEB8 /* ServerListViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = A196B6E221167B890031CEB8 /* ServerListViewCell.xib */; };
-		A196B6E621167B890031CEB8 /* ServerListViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = A196B6E221167B890031CEB8 /* ServerListViewCell.xib */; };
-		A196B6E8211683510031CEB8 /* ServerInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E7211683510031CEB8 /* ServerInfoViewController.swift */; };
-		A196B6E9211683510031CEB8 /* ServerInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E7211683510031CEB8 /* ServerInfoViewController.swift */; };
 		A196B6F12117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */; };
 		A196B6F22117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A196B6F42117ECD10031CEB8 /* CocoaAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */; };
@@ -918,7 +895,6 @@
 		A196B73F2117F1480031CEB8 /* FontAwesome.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A196B7402117F18D0031CEB8 /* FontAwesome.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; };
 		A196B7412117F18D0031CEB8 /* FontAwesome.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		A196B7432117FFA30031CEB8 /* ServerFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1105,7 +1081,6 @@
 		A1510398210B7A390087EA86 /* JoyStickView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoyStickView.swift; sourceTree = "<group>"; };
 		A151039B210B7A890087EA86 /* CoreGraphics+Additions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreGraphics+Additions.swift"; sourceTree = "<group>"; };
 		A151039E210D50D40087EA86 /* dpquake.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = dpquake.ttf; sourceTree = "<group>"; };
-		A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiersListViewController.swift; sourceTree = "<group>"; };
 		A15103A6210D76F50087EA86 /* DifficultyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DifficultyViewController.swift; sourceTree = "<group>"; };
 		A1565FDA2109F30E00FA9BC9 /* RTCW-SP-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-SP-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_iOS.a; path = Quake3/libs/ios/libcurl_iOS.a; sourceTree = "<group>"; };
@@ -1116,7 +1091,6 @@
 		A1565FEF210A0F4900FA9BC9 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = Quake3/libs/tvos/libcrypto.a; sourceTree = "<group>"; };
 		A1565FF0210A0F4900FA9BC9 /* libnghttp2_tvOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libnghttp2_tvOS.a; path = Quake3/libs/tvos/libnghttp2_tvOS.a; sourceTree = "<group>"; };
 		A1565FF1210A0F4900FA9BC9 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = Quake3/libs/tvos/libssl.a; sourceTree = "<group>"; };
-		A15AA921211A68E900DE867F /* ServerListViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ServerListViewCell.xib; sourceTree = "<group>"; };
 		A15AA924211B43A400DE867F /* OptionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsViewController.swift; sourceTree = "<group>"; };
 		A15AA929211B470200DE867F /* MainMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuViewController.swift; sourceTree = "<group>"; };
 		A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedGameViewController.swift; sourceTree = "<group>"; };
@@ -1535,7 +1509,6 @@
 		A1902F66210939BA008823BB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A1902F68210939BC008823BB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1902F6A210939BC008823BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A196B6872115F5680031CEB8 /* ServerBrowserViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerBrowserViewController.swift; sourceTree = "<group>"; };
 		A196B68B2115F7C50031CEB8 /* Server.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Server.swift; sourceTree = "<group>"; };
 		A196B68D2115F7C50031CEB8 /* Player.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 		A196B68E2115F7C50031CEB8 /* Coordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Coordinator.swift; sourceTree = "<group>"; };
@@ -1557,9 +1530,6 @@
 		A196B6A52115F7C50031CEB8 /* Parsable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parsable.swift; sourceTree = "<group>"; };
 		A196B6A62115F7C50031CEB8 /* SQLError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLError.swift; sourceTree = "<group>"; };
 		A196B6D92115FDB70031CEB8 /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
-		A196B6E121167B890031CEB8 /* ServerListViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerListViewCell.swift; sourceTree = "<group>"; };
-		A196B6E221167B890031CEB8 /* ServerListViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ServerListViewCell.xib; sourceTree = "<group>"; };
-		A196B6E7211683510031CEB8 /* ServerInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerInfoViewController.swift; sourceTree = "<group>"; };
 		A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CocoaAsyncSocket.framework; sourceTree = "<group>"; };
 		A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FontAwesome.framework; path = Carthage/Build/iOS/FontAwesome.framework; sourceTree = "<group>"; };
 		A196B6FB2117EEF00031CEB8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -1571,7 +1541,6 @@
 		A196B7072117EF750031CEB8 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS11.4.sdk/System/Library/Frameworks/GLKit.framework; sourceTree = DEVELOPER_DIR; };
 		A196B7362117F0610031CEB8 /* FontAwesome.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FontAwesome.framework; path = Carthage/Build/tvOS/FontAwesome.framework; sourceTree = "<group>"; };
 		A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaAsyncSocket.framework; path = Carthage/Build/tvOS/CocoaAsyncSocket.framework; sourceTree = "<group>"; };
-		A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerFilterViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1776,12 +1745,6 @@
 				A15AA924211B43A400DE867F /* OptionsViewController.swift */,
 				A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */,
 				A196B68A2115F7A10031CEB8 /* ServerBrowser */,
-				A196B6872115F5680031CEB8 /* ServerBrowserViewController.swift */,
-				A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */,
-				A196B6E7211683510031CEB8 /* ServerInfoViewController.swift */,
-				A196B6E121167B890031CEB8 /* ServerListViewCell.swift */,
-				A196B6E221167B890031CEB8 /* ServerListViewCell.xib */,
-				A15103A3210D5DFF0087EA86 /* TiersListViewController.swift */,
 			);
 			path = "RTCW-SP-iOS";
 			sourceTree = "<group>";
@@ -2415,7 +2378,6 @@
 				A1902F65210939BA008823BB /* Main.storyboard */,
 				A1902F68210939BC008823BB /* Assets.xcassets */,
 				A1902F6A210939BC008823BB /* Info.plist */,
-				A15AA921211A68E900DE867F /* ServerListViewCell.xib */,
 			);
 			path = "RTCW-SP-tvOS";
 			sourceTree = "<group>";
@@ -2668,7 +2630,6 @@
 			files = (
 				A1565FD42109F30E00FA9BC9 /* Assets.xcassets in Resources */,
 				A1565FD52109F30E00FA9BC9 /* Main.storyboard in Resources */,
-				A15AA922211A68E900DE867F /* ServerListViewCell.xib in Resources */,
 				A132709A219BBA0000165485 /* Main in Resources */,
 				A15103A1210D50DC0087EA86 /* dpquake.ttf in Resources */,
 			);
@@ -2678,7 +2639,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A196B6E521167B890031CEB8 /* ServerListViewCell.xib in Resources */,
 				A179BFF1210142FB00D3C611 /* LaunchScreen.storyboard in Resources */,
 				A151039F210D50D50087EA86 /* dpquake.ttf in Resources */,
 				A179BFEE210142FB00D3C611 /* Assets.xcassets in Resources */,
@@ -2691,7 +2651,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A196B6E621167B890031CEB8 /* ServerListViewCell.xib in Resources */,
 				A1902F4F2108237E008823BB /* LaunchScreen.storyboard in Resources */,
 				A15103A0210D50D50087EA86 /* dpquake.ttf in Resources */,
 				A1902F512108237E008823BB /* Assets.xcassets in Resources */,
@@ -2706,7 +2665,6 @@
 			files = (
 				A1902F69210939BC008823BB /* Assets.xcassets in Resources */,
 				A1902F67210939BA008823BB /* Main.storyboard in Resources */,
-				A15AA923211A68E900DE867F /* ServerListViewCell.xib in Resources */,
 				A132709B219BBA0000165485 /* Main in Resources */,
 				A15103A2210D50DC0087EA86 /* dpquake.ttf in Resources */,
 			);
@@ -2746,7 +2704,6 @@
 				A1565F3C2109F30E00FA9BC9 /* be_aas_move.c in Sources */,
 				A1565F3E2109F30E00FA9BC9 /* l_struct.c in Sources */,
 				A13669D9217E89E900E0AC0B /* tr_font.c in Sources */,
-				A17EE1A3211A611E00811AE1 /* ServerListViewCell.swift in Sources */,
 				A1565F402109F30E00FA9BC9 /* be_aas_optimize.c in Sources */,
 				A1565F412109F30E00FA9BC9 /* jcapimin.c in Sources */,
 				A1565F422109F30E00FA9BC9 /* snd_adpcm.c in Sources */,
@@ -2762,7 +2719,6 @@
 				A1565F482109F30E00FA9BC9 /* be_aas_reach.c in Sources */,
 				A1565F492109F30E00FA9BC9 /* be_ai_goal.c in Sources */,
 				A1565F4A2109F30E00FA9BC9 /* cl_console.c in Sources */,
-				A17EE1A7211A614200811AE1 /* ServerFilterViewController.swift in Sources */,
 				A13669F1217E89E900E0AC0B /* tr_shadows.c in Sources */,
 				A196B7152117F0420031CEB8 /* Q3ServerController.swift in Sources */,
 				A1565F4B2109F30E00FA9BC9 /* cl_scrn.c in Sources */,
@@ -2815,7 +2771,6 @@
 				A1366991217E89E900E0AC0B /* tr_model_iqm.c in Sources */,
 				A1565F6A2109F30E00FA9BC9 /* jdsample.c in Sources */,
 				A1565F6B2109F30E00FA9BC9 /* l_script.c in Sources */,
-				A17EE1A1211A611400811AE1 /* ServerBrowserViewController.swift in Sources */,
 				A13669F9217E89E900E0AC0B /* tr_main.c in Sources */,
 				A1565F6D2109F30E00FA9BC9 /* jddctmgr.c in Sources */,
 				A1565F6E2109F30E00FA9BC9 /* sv_ccmds.c in Sources */,
@@ -2862,7 +2817,6 @@
 				A13669A9217E89E900E0AC0B /* tr_image_tga.c in Sources */,
 				A1565F932109F30E00FA9BC9 /* ios_snddma.m in Sources */,
 				A13669B9217E89E900E0AC0B /* tr_image_png.c in Sources */,
-				A17EE1A5211A613E00811AE1 /* ServerInfoViewController.swift in Sources */,
 				A1565F952109F30E00FA9BC9 /* cmd.c in Sources */,
 				A1565F962109F30E00FA9BC9 /* snd_main.c in Sources */,
 				A1565F972109F30E00FA9BC9 /* AppDelegate.swift in Sources */,
@@ -2888,7 +2842,6 @@
 				A1565FAA2109F30E00FA9BC9 /* cl_curl.c in Sources */,
 				A13669A5217E89E900E0AC0B /* tr_bloom.c in Sources */,
 				A1565FAB2109F30E00FA9BC9 /* cm_test.c in Sources */,
-				A17EE19D211A60F800811AE1 /* TiersListViewController.swift in Sources */,
 				A196B73C2117F0800031CEB8 /* GSCoordinator.swift in Sources */,
 				A1565FAD2109F30E00FA9BC9 /* be_ai_gen.c in Sources */,
 				A136690B217E7AF200E0AC0B /* be_aas_routetable.c in Sources */,
@@ -2992,7 +2945,6 @@
 				A179C2EA2101472E00D3C611 /* l_crc.c in Sources */,
 				A179C2EC2101472E00D3C611 /* be_aas_debug.c in Sources */,
 				A179C2E12101472E00D3C611 /* l_libvar.c in Sources */,
-				A196B6E8211683510031CEB8 /* ServerInfoViewController.swift in Sources */,
 				A179C2F82101472E00D3C611 /* jdhuff.c in Sources */,
 				A179C2DB2101472E00D3C611 /* be_ea.c in Sources */,
 				A1366A0B217E89E900E0AC0B /* tr_cmds.c in Sources */,
@@ -3007,7 +2959,6 @@
 				A179C3212101472E00D3C611 /* jdmainct.c in Sources */,
 				A161C9F021B6299E009FAFD4 /* SavedGameViewController.swift in Sources */,
 				A179C4A22101472F00D3C611 /* huffman.c in Sources */,
-				A196B6882115F5680031CEB8 /* ServerBrowserViewController.swift in Sources */,
 				A196B6C12115F7C50031CEB8 /* Q3Operation.swift in Sources */,
 				A179C2DD2101472E00D3C611 /* l_script.c in Sources */,
 				A179C3122101472E00D3C611 /* jcapistd.c in Sources */,
@@ -3031,7 +2982,6 @@
 				A151039C210B7A890087EA86 /* CoreGraphics+Additions.swift in Sources */,
 				A13669D3217E89E900E0AC0B /* tr_shade.c in Sources */,
 				A196B6CD2115F7C50031CEB8 /* Parsable.swift in Sources */,
-				A196B7432117FFA30031CEB8 /* ServerFilterViewController.swift in Sources */,
 				A179C3072101472E00D3C611 /* jchuff.c in Sources */,
 				A179C3142101472E00D3C611 /* jaricom.c in Sources */,
 				A179C4942101472F00D3C611 /* msg.c in Sources */,
@@ -3055,7 +3005,6 @@
 				A179C2FD2101472E00D3C611 /* jcapimin.c in Sources */,
 				A179C36B2101472E00D3C611 /* sv_ccmds.c in Sources */,
 				A1366A03217E89E900E0AC0B /* tr_shade_calc.c in Sources */,
-				A196B6E321167B890031CEB8 /* ServerListViewCell.swift in Sources */,
 				A179BFE9210142FA00D3C611 /* GameViewController.swift in Sources */,
 				A13669BF217E89E900E0AC0B /* tr_backend.c in Sources */,
 				A179C2F12101472E00D3C611 /* be_interface.c in Sources */,
@@ -3111,7 +3060,6 @@
 				A179C31C2101472E00D3C611 /* jidctint.c in Sources */,
 				A179C3602101472E00D3C611 /* snd_openal.c in Sources */,
 				A13669D7217E89E900E0AC0B /* tr_font.c in Sources */,
-				A15103A4210D5DFF0087EA86 /* TiersListViewController.swift in Sources */,
 				A179C3672101472E00D3C611 /* sv_init.c in Sources */,
 				A179C35E2101472E00D3C611 /* snd_mem.c in Sources */,
 				A179C4982101472F00D3C611 /* q_math.c in Sources */,
@@ -3161,7 +3109,6 @@
 				A13669D8217E89E900E0AC0B /* tr_font.c in Sources */,
 				A1902EA22108237E008823BB /* jdpostct.c in Sources */,
 				A1902EA32108237E008823BB /* be_aas_move.c in Sources */,
-				A15103A5210D5DFF0087EA86 /* TiersListViewController.swift in Sources */,
 				A161C9F121B6299E009FAFD4 /* SavedGameViewController.swift in Sources */,
 				A1902EA52108237E008823BB /* be_ai_weight.c in Sources */,
 				A1902EA62108237E008823BB /* cmd.c in Sources */,
@@ -3218,7 +3165,6 @@
 				A1902ED22108237E008823BB /* jdinput.c in Sources */,
 				A13669F0217E89E900E0AC0B /* tr_shadows.c in Sources */,
 				A1902ED32108237E008823BB /* snd_dma.c in Sources */,
-				A196B6E421167B890031CEB8 /* ServerListViewCell.swift in Sources */,
 				A1366943217E885D00E0AC0B /* splines.cpp in Sources */,
 				A1902ED42108237E008823BB /* jdmainct.c in Sources */,
 				A1902ED52108237E008823BB /* huffman.c in Sources */,
@@ -3236,7 +3182,6 @@
 				A15103A8210D76F50087EA86 /* DifficultyViewController.swift in Sources */,
 				A13669B0217E89E900E0AC0B /* tr_cmesh.c in Sources */,
 				A1902EDF2108237E008823BB /* cm_polylib.c in Sources */,
-				A196B6E9211683510031CEB8 /* ServerInfoViewController.swift in Sources */,
 				A13669EC217E89E900E0AC0B /* tr_image_pcx.c in Sources */,
 				A1902EE02108237E008823BB /* be_aas_sample.c in Sources */,
 				A1902EE12108237E008823BB /* jdmerge.c in Sources */,
@@ -3258,7 +3203,6 @@
 				A1902EEE2108237E008823BB /* jdtrans.c in Sources */,
 				A13669D0217E89E900E0AC0B /* tr_init.c in Sources */,
 				A1902EEF2108237E008823BB /* jidctflt.c in Sources */,
-				A17EE19C2118876D00811AE1 /* ServerFilterViewController.swift in Sources */,
 				A1902EF02108237E008823BB /* jcmainct.c in Sources */,
 				A1902EF12108237E008823BB /* sv_snapshot.c in Sources */,
 				A13669F4217E89E900E0AC0B /* tr_light.c in Sources */,
@@ -3311,7 +3255,6 @@
 				A1902F1B2108237E008823BB /* cl_cgame.c in Sources */,
 				A1902F1C2108237E008823BB /* jdcolor.c in Sources */,
 				A1902F1D2108237E008823BB /* md4.c in Sources */,
-				A196B6892115F5680031CEB8 /* ServerBrowserViewController.swift in Sources */,
 				A1902F1E2108237E008823BB /* con_tty.c in Sources */,
 				A1902F1F2108237E008823BB /* cl_scrn.c in Sources */,
 				A13669F8217E89E900E0AC0B /* tr_main.c in Sources */,
@@ -3458,7 +3401,6 @@
 				A1902FD321093BBE008823BB /* jfdctfst.c in Sources */,
 				A1366959217E885D00E0AC0B /* q_parse.cpp in Sources */,
 				A1902FB321093BBE008823BB /* jccoefct.c in Sources */,
-				A17EE1A4211A611F00811AE1 /* ServerListViewCell.swift in Sources */,
 				A1902FD921093BBE008823BB /* jmemnobs.c in Sources */,
 				A1902FBA21093BBE008823BB /* jcmaster.c in Sources */,
 				A13669C2217E89E900E0AC0B /* tr_backend.c in Sources */,
@@ -3488,7 +3430,6 @@
 				A1902F8121093B34008823BB /* be_aas_route.c in Sources */,
 				A1902FF021093BFF008823BB /* unzip.c in Sources */,
 				A1902F9C21093B6D008823BB /* cl_net_chan.c in Sources */,
-				A17EE1A6211A613E00811AE1 /* ServerInfoViewController.swift in Sources */,
 				A1902FD521093BBE008823BB /* jidctflt.c in Sources */,
 				A190301321093C4C008823BB /* sv_client.c in Sources */,
 				A1902FB621093BBE008823BB /* jchuff.c in Sources */,
@@ -3530,7 +3471,6 @@
 				A1902FEB21093BFF008823BB /* net_chan.c in Sources */,
 				A1902FCB21093BBE008823BB /* jdmarker.c in Sources */,
 				A1366992217E89E900E0AC0B /* tr_model_iqm.c in Sources */,
-				A17EE1A8211A614200811AE1 /* ServerFilterViewController.swift in Sources */,
 				A13669DA217E89E900E0AC0B /* tr_font.c in Sources */,
 				A1902FC021093BBE008823BB /* jdapimin.c in Sources */,
 				A13669B6217E89E900E0AC0B /* tr_animation.c in Sources */,
@@ -3551,10 +3491,8 @@
 				A1902F9821093B67008823BB /* cl_curl.c in Sources */,
 				A1902FE021093BE8008823BB /* cm_test.c in Sources */,
 				A1902F8621093B34008823BB /* be_ai_gen.c in Sources */,
-				A17EE1A2211A611500811AE1 /* ServerBrowserViewController.swift in Sources */,
 				A1902FE121093BE8008823BB /* cm_trace.c in Sources */,
 				A1902FD121093BBE008823BB /* jerror.c in Sources */,
-				A17EE19E211A60F800811AE1 /* TiersListViewController.swift in Sources */,
 				A196B73D2117F0810031CEB8 /* GSCoordinator.swift in Sources */,
 				A1902FC321093BBE008823BB /* jdatadst.c in Sources */,
 				A1366955217E885D00E0AC0B /* math_vector.cpp in Sources */,

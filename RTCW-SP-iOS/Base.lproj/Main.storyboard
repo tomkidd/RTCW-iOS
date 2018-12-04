@@ -138,52 +138,47 @@
                         <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Player Name:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QMD-Yr-wr0">
-                                <rect key="frame" x="20" y="20" width="136" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Bold" family="Avenir Next Condensed" pointSize="25"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <textField opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Np4-cj-fcW">
-                                <rect key="frame" x="164" y="22" width="251" height="30"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <nil key="textColor"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits"/>
-                            </textField>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="zYv-uj-Kx5">
-                                <rect key="frame" x="423" y="17" width="55" height="41"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="21"/>
-                                <size key="titleShadowOffset" width="1" height="1"/>
-                                <state key="normal" title="SAVE">
-                                    <color key="titleColor" red="1" green="0.0093617555430000002" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                    <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                </state>
-                                <connections>
-                                    <action selector="savePlayerName:" destination="WvD-UG-yat" eventType="touchUpInside" id="lC2-29-5Po"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="klk-Sf-dON">
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="klk-Sf-dON">
                                 <rect key="frame" x="20" y="304" width="104" height="51"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="28"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="&lt; BACK">
-                                    <color key="titleColor" red="1" green="0.0093617555430000002" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                    <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <color key="titleShadowColor" red="0.60392156860000001" green="0.1176470588" blue="0.070588235289999995" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
                                 <connections>
                                     <segue destination="fNj-eU-b7P" kind="unwind" unwindAction="exitToMainMenuWithSegue:" id="bcp-we-BeJ"/>
                                 </connections>
                             </button>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lYF-ZB-K1r">
+                                <rect key="frame" x="64" y="20" width="51" height="31"/>
+                                <color key="onTintColor" red="0.60392156860000001" green="0.1176470588" blue="0.070588235289999995" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <connections>
+                                    <action selector="tiltAimingToggle:" destination="WvD-UG-yat" eventType="valueChanged" id="BUk-zv-Iyb"/>
+                                </connections>
+                            </switch>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tilt Aiming" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B64-dL-ipl">
+                                <rect key="frame" x="132" y="15" width="113" height="41"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Regular" family="Avenir Next Condensed" pointSize="30"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
-                        <color key="backgroundColor" red="0.76862745099999996" green="0.74901960779999999" blue="0.73725490199999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="klk-Sf-dON" secondAttribute="bottom" constant="20" id="2Ab-8e-XJE"/>
+                            <constraint firstItem="uzP-us-ASs" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="klk-Sf-dON" secondAttribute="trailing" symbolic="YES" id="2Xf-zs-13U"/>
+                            <constraint firstItem="klk-Sf-dON" firstAttribute="leading" secondItem="6Ha-7k-E9S" secondAttribute="leading" constant="20" id="Oui-cC-Pyb"/>
+                            <constraint firstItem="B64-dL-ipl" firstAttribute="centerY" secondItem="lYF-ZB-K1r" secondAttribute="centerY" id="ZF3-Zu-j8Q"/>
+                            <constraint firstItem="lYF-ZB-K1r" firstAttribute="top" secondItem="uzP-us-ASs" secondAttribute="top" constant="20" id="ZMD-LV-fEL"/>
+                            <constraint firstItem="lYF-ZB-K1r" firstAttribute="leading" secondItem="uzP-us-ASs" secondAttribute="leading" constant="20" id="gIi-Qs-rCs"/>
+                            <constraint firstItem="B64-dL-ipl" firstAttribute="leading" secondItem="lYF-ZB-K1r" secondAttribute="trailing" constant="19" id="hhn-tS-ulP"/>
+                            <constraint firstItem="uzP-us-ASs" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="B64-dL-ipl" secondAttribute="trailing" symbolic="YES" id="wCB-gq-Z9X"/>
+                        </constraints>
                         <viewLayoutGuide key="safeArea" id="uzP-us-ASs"/>
                     </view>
                     <connections>
-                        <outlet property="playerNameField" destination="Np4-cj-fcW" id="670-Yx-CBT"/>
+                        <outlet property="tiltAimingSwitch" destination="lYF-ZB-K1r" id="3OF-By-7Bk"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="fsP-CW-iiD" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -613,6 +608,6 @@
         <image name="rtcw_sp_logo" width="615" height="288"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="GHn-uz-vfU"/>
+        <segue reference="T1e-r3-Itb"/>
     </inferredMetricsTieBreakers>
 </document>

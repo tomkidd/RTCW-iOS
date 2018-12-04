@@ -57,6 +57,10 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     @IBOutlet weak var nextWeaponButton: UIButton!
     @IBOutlet weak var prevWeaponButton: UIButton!
     
+    #if os(iOS)
+    let motionManager: CMMotionManager = CMMotionManager()
+    #endif
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -225,6 +229,13 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         for ptr in cargs { free(UnsafeMutablePointer(mutating: ptr)) }
         
         gameInitialized = true
+        
+        #if os(iOS)
+        if defaults.integer(forKey: "tiltAiming") == 1 {
+            motionManager.startDeviceMotionUpdates()
+        }
+        #endif
+
     }
     
     @objc func menuButtonAction() {
@@ -406,11 +417,26 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
 
     // MARK: GLKViewControllerDelegate
     
+    func radiansToDegrees(_ radians: Double) -> Double {
+        return radians * (180.0 / Double.pi)
+    }
+    
     func glkViewControllerUpdate(_ controller: GLKViewController) {
         cl.viewangles.1 -= MFiGameController.yawValue
         cl.viewangles.0 -= MFiGameController.pitchValue
         
         if gameInitialized {
+            
+            #if os(iOS)
+            if defaults.integer(forKey: "tiltAiming") == 1 {
+                if let data = motionManager.deviceMotion {
+                    
+                    cl.viewangles.0 = -Float((data.attitude.roll - 1.5) * 45)
+                    //print("roll: \(data.attitude.roll) cl.viewangles.0: \(cl.viewangles.0)")
+                }
+            }
+            #endif
+
             Com_Frame();
             
             #if os(iOS)

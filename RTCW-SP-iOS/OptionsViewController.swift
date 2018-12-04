@@ -12,12 +12,16 @@ class OptionsViewController: UIViewController {
     
     let defaults = UserDefaults()
     
+    #if os(iOS)
     @IBOutlet weak var tiltAimingSwitch: UISwitch!
+    #endif
 
     override func viewDidLoad() {
         super.viewDidLoad()
                 
+        #if os(iOS)
         tiltAimingSwitch.isOn = defaults.integer(forKey: "tiltAiming") == 1
+        #endif
 
         // Do any additional setup after loading the view.
     }

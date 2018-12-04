@@ -280,6 +280,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         CL_AddReliableCommand("snd_restart", qfalse)
     }
     
+    #if os(iOS)
     @IBAction func expand(_ sender: Any) {
         buttonStackExpanded = !buttonStackExpanded
         
@@ -296,6 +297,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         }
         
     }
+    #endif
     
     @IBAction func tilde(_ sender: UIButton) {
         CL_KeyEvent(Int32(K_CONSOLE.rawValue), qtrue, UInt32(Sys_Milliseconds()))

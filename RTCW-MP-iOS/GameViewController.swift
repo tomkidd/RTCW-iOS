@@ -43,6 +43,10 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     @IBOutlet weak var tildeButton: UIButton!
     #endif
     
+    #if os(iOS)
+    let motionManager: CMMotionManager = CMMotionManager()
+    #endif
+    
     let defaults = UserDefaults()
     
     @IBOutlet weak var nextWeaponButton: UIButton!
@@ -198,6 +202,12 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         
         for ptr in cargs { free(UnsafeMutablePointer(mutating: ptr)) }
         
+        #if os(iOS)
+        if defaults.integer(forKey: "tiltAiming") == 1 {
+            motionManager.startDeviceMotionUpdates()
+        }
+        #endif
+        
         gameInitialized = true
     }
     
@@ -352,6 +362,17 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         cl.viewangles.0 -= MFiGameController.pitchValue
         
         if gameInitialized {
+            
+            #if os(iOS)
+            if defaults.integer(forKey: "tiltAiming") == 1 {
+                if let data = motionManager.deviceMotion {
+                    
+                    cl.viewangles.0 = -Float((data.attitude.roll - 1.5) * 45)
+                    //print("roll: \(data.attitude.roll) cl.viewangles.0: \(cl.viewangles.0)")
+                }
+            }
+            #endif
+            
             Com_Frame();
             
             #if os(iOS)

@@ -26,7 +26,8 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     
     var selectedServer:Server?
     var selectedMap = ""
-    
+    var selectedSavedGame = ""
+
     var selectedDifficulty = 0
     
     var gameInitialized = false
@@ -132,7 +133,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         
         //        Sys_SetHomeDir(Bundle.main.resourcePath!)
         Sys_SetHomeDir(documentsDir)
-
+        
         // KB_STRAFE?
 //        kb.8.active = qtrue
         
@@ -202,6 +203,11 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
             argv.append("cutscene1")
             argv.append("+g_spSkill")
             argv.append(String(selectedDifficulty))
+        }
+
+        if !selectedSavedGame.isEmpty {
+            argv.append("+loadgame")
+            argv.append(selectedSavedGame)
         }
         
         if selectedServer != nil {

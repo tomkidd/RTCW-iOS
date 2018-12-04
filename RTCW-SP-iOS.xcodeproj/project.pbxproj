@@ -352,6 +352,10 @@
 		A15AA92B211B470200DE867F /* MainMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA929211B470200DE867F /* MainMenuViewController.swift */; };
 		A15AA92C211B470200DE867F /* MainMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA929211B470200DE867F /* MainMenuViewController.swift */; };
 		A15AA92D211B470200DE867F /* MainMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA929211B470200DE867F /* MainMenuViewController.swift */; };
+		A161C9F021B6299E009FAFD4 /* SavedGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */; };
+		A161C9F121B6299E009FAFD4 /* SavedGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */; };
+		A161C9F221B6299E009FAFD4 /* SavedGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */; };
+		A161C9F321B6299E009FAFD4 /* SavedGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */; };
 		A179BFE7210142FA00D3C611 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A179BFE6210142FA00D3C611 /* AppDelegate.swift */; };
 		A179BFE9210142FA00D3C611 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A179BFE8210142FA00D3C611 /* GameViewController.swift */; };
 		A179BFEC210142FA00D3C611 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A179BFEA210142FA00D3C611 /* Main.storyboard */; };
@@ -1115,6 +1119,7 @@
 		A15AA921211A68E900DE867F /* ServerListViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ServerListViewCell.xib; sourceTree = "<group>"; };
 		A15AA924211B43A400DE867F /* OptionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsViewController.swift; sourceTree = "<group>"; };
 		A15AA929211B470200DE867F /* MainMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuViewController.swift; sourceTree = "<group>"; };
+		A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedGameViewController.swift; sourceTree = "<group>"; };
 		A179BFE3210142FA00D3C611 /* RTCW-SP-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-SP-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A179BFE6210142FA00D3C611 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A179BFE8210142FA00D3C611 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
@@ -1769,6 +1774,7 @@
 				A15AA929211B470200DE867F /* MainMenuViewController.swift */,
 				A1902F582108B4E4008823BB /* MFiGameController.swift */,
 				A15AA924211B43A400DE867F /* OptionsViewController.swift */,
+				A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */,
 				A196B68A2115F7A10031CEB8 /* ServerBrowser */,
 				A196B6872115F5680031CEB8 /* ServerBrowserViewController.swift */,
 				A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */,
@@ -2837,6 +2843,7 @@
 				A1565F812109F30E00FA9BC9 /* q_math.c in Sources */,
 				A1565F822109F30E00FA9BC9 /* jdcoefct.c in Sources */,
 				A1565F832109F30E00FA9BC9 /* jdpostct.c in Sources */,
+				A161C9F221B6299E009FAFD4 /* SavedGameViewController.swift in Sources */,
 				A1565F842109F30E00FA9BC9 /* ios_glimp.m in Sources */,
 				A1565F862109F30E00FA9BC9 /* be_ai_char.c in Sources */,
 				A1565F872109F30E00FA9BC9 /* l_crc.c in Sources */,
@@ -2998,6 +3005,7 @@
 				A179C2F92101472E00D3C611 /* jdinput.c in Sources */,
 				A179C34D2101472E00D3C611 /* snd_dma.c in Sources */,
 				A179C3212101472E00D3C611 /* jdmainct.c in Sources */,
+				A161C9F021B6299E009FAFD4 /* SavedGameViewController.swift in Sources */,
 				A179C4A22101472F00D3C611 /* huffman.c in Sources */,
 				A196B6882115F5680031CEB8 /* ServerBrowserViewController.swift in Sources */,
 				A196B6C12115F7C50031CEB8 /* Q3Operation.swift in Sources */,
@@ -3154,6 +3162,7 @@
 				A1902EA22108237E008823BB /* jdpostct.c in Sources */,
 				A1902EA32108237E008823BB /* be_aas_move.c in Sources */,
 				A15103A5210D5DFF0087EA86 /* TiersListViewController.swift in Sources */,
+				A161C9F121B6299E009FAFD4 /* SavedGameViewController.swift in Sources */,
 				A1902EA52108237E008823BB /* be_ai_weight.c in Sources */,
 				A1902EA62108237E008823BB /* cmd.c in Sources */,
 				A1902EA72108237E008823BB /* ios_glimp.m in Sources */,
@@ -3395,6 +3404,7 @@
 				A13669A2217E89E900E0AC0B /* tr_surface.c in Sources */,
 				A1902FC921093BBE008823BB /* jdinput.c in Sources */,
 				A196B7322117F0430031CEB8 /* Player.swift in Sources */,
+				A161C9F321B6299E009FAFD4 /* SavedGameViewController.swift in Sources */,
 				A1902FD021093BBE008823BB /* jdtrans.c in Sources */,
 				A1366945217E885D00E0AC0B /* splines.cpp in Sources */,
 				A1902F7E21093B34008823BB /* be_aas_move.c in Sources */,

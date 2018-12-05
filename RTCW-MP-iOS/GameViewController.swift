@@ -111,9 +111,12 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         
         #endif
         
+        #if os(tvOS)
+        let documentsDir = try! FileManager().url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true).path
+        #else
         let documentsDir = try! FileManager().url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true).path
+        #endif
         
-        //        Sys_SetHomeDir(Bundle.main.resourcePath!)
         Sys_SetHomeDir(documentsDir)
 
         // KB_STRAFE?

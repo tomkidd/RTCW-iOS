@@ -49,6 +49,7 @@ void Sys_Error(const char *error, ...) {
 #else
 //    [(Q3Application *)[Q3Application sharedApplication] presentErrorMessage : errorString];
     [(AppDelegate *)UIApplication.sharedApplication.delegate presentErrorMessageWithErrorMessage: errorString];
+    NSLog(errorString);
 
 #endif // IOS_USE_THREADS
     

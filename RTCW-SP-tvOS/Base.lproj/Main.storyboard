@@ -55,7 +55,7 @@
                                     <color key="titleShadowColor" red="1" green="0.0093617555430000002" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
                                 <connections>
-                                    <segue destination="BYZ-38-t0r" kind="show" id="s2L-3L-53o"/>
+                                    <segue destination="dBM-hw-OcU" kind="show" id="4jr-B5-4YD"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Jtn-oD-jOT">
@@ -259,12 +259,12 @@
                         <constraints>
                             <constraint firstItem="OlM-0b-IFw" firstAttribute="bottom" secondItem="rso-ux-2dW" secondAttribute="bottom" id="2NQ-Qn-i73"/>
                             <constraint firstItem="rso-ux-2dW" firstAttribute="leading" secondItem="Bq1-aI-fE7" secondAttribute="leading" constant="20" id="H9V-80-h1e"/>
-                            <constraint firstItem="xcQ-ut-mNp" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="rso-ux-2dW" secondAttribute="trailing" symbolic="YES" id="HsC-o0-m0i"/>
+                            <constraint firstItem="xcQ-ut-mNp" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="rso-ux-2dW" secondAttribute="trailing" constant="60" symbolic="YES" id="HsC-o0-m0i"/>
                             <constraint firstAttribute="trailing" secondItem="xcQ-ut-mNp" secondAttribute="trailing" constant="77" id="ZOG-Ss-RiH"/>
-                            <constraint firstItem="OlM-0b-IFw" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="rso-ux-2dW" secondAttribute="trailing" symbolic="YES" id="aha-HK-nLr"/>
+                            <constraint firstItem="OlM-0b-IFw" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="rso-ux-2dW" secondAttribute="trailing" constant="60" symbolic="YES" id="aha-HK-nLr"/>
                             <constraint firstItem="xcQ-ut-mNp" firstAttribute="top" secondItem="rso-ux-2dW" secondAttribute="top" id="eMf-yT-rtm"/>
                             <constraint firstItem="Bq1-aI-fE7" firstAttribute="trailing" secondItem="OlM-0b-IFw" secondAttribute="trailing" constant="224" id="efc-JA-BG0"/>
-                            <constraint firstItem="rso-ux-2dW" firstAttribute="top" secondItem="MPJ-Js-qjw" secondAttribute="bottom" constant="20" id="nq0-Mu-KtU"/>
+                            <constraint firstItem="rso-ux-2dW" firstAttribute="top" secondItem="Bq1-aI-fE7" secondAttribute="top" constant="20" id="nq0-Mu-KtU"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="Bq1-aI-fE7"/>
                     </view>

@@ -10,7 +10,7 @@
     {
       "orientation" : "landscape",
       "idiom" : "tv",
-      "filename" : "quake_3_tv_launch.png",
+      "filename" : "rtcw_mp_tv_launch.png",
       "extent" : "full-screen",
       "minimum-system-version" : "9.0",
       "scale" : "1x"

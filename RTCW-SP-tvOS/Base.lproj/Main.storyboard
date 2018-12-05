@@ -9,11 +9,6 @@
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
-    <customFonts key="customFonts">
-        <array key="dpquake.ttf">
-            <string>DpQuake</string>
-        </array>
-    </customFonts>
     <scenes>
         <!--Main Menu View Controller-->
         <scene sceneID="CXV-mc-6oD">
@@ -28,26 +23,20 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rtcw_sp_background" translatesAutoresizingMaskIntoConstraints="NO" id="J3f-2W-XPP">
-                                <rect key="frame" x="-313" y="0.0" width="2880" height="1080"/>
+                                <rect key="frame" x="-356" y="0.0" width="2880" height="1080"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="J3f-2W-XPP" secondAttribute="height" multiplier="8:3" id="Fqb-c1-Nxa"/>
                                 </constraints>
                             </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Q U A K E  I I I  A R E N A" textAlignment="right" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iW9-Ha-ihQ">
-                                <rect key="frame" x="1006" y="145" width="804" height="68"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rtcw_sp_logo" translatesAutoresizingMaskIntoConstraints="NO" id="XwJ-2a-WSJ">
+                                <rect key="frame" x="1254" y="19" width="615" height="288"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="68" id="Dw9-m8-S3X"/>
-                                    <constraint firstAttribute="height" constant="68" id="abX-Hm-uFg"/>
-                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="290" id="cfX-Po-91Q"/>
+                                    <constraint firstAttribute="width" constant="615" id="qgs-1s-6zD"/>
+                                    <constraint firstAttribute="height" constant="288" id="zUs-Jt-b0T"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" name="DpQuake" family="DpQuake" pointSize="50"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                                <color key="shadowColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <size key="shadowOffset" width="2" height="2"/>
-                            </label>
+                            </imageView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PKP-Tz-OUu">
-                                <rect key="frame" x="1674" y="221" width="136" height="86"/>
+                                <rect key="frame" x="1733" y="327" width="136" height="86"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="54"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="PLAY">
@@ -59,7 +48,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Jtn-oD-jOT">
-                                <rect key="frame" x="1478" y="315" width="332" height="86"/>
+                                <rect key="frame" x="1537" y="421" width="332" height="86"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="54"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="LOAD GAME">
@@ -71,7 +60,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ZLE-kg-9a1">
-                                <rect key="frame" x="1560" y="409" width="250" height="86"/>
+                                <rect key="frame" x="1619" y="515" width="250" height="86"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="54"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="OPTIONS">
@@ -86,21 +75,19 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="ZLE-kg-9a1" firstAttribute="trailing" secondItem="Jtn-oD-jOT" secondAttribute="trailing" id="2nV-AB-9SG"/>
+                            <constraint firstItem="XwJ-2a-WSJ" firstAttribute="top" secondItem="uuz-Jq-TKC" secondAttribute="top" constant="19" id="54R-Pt-uyg"/>
                             <constraint firstItem="Jtn-oD-jOT" firstAttribute="trailing" secondItem="PKP-Tz-OUu" secondAttribute="trailing" id="GI1-tu-Ka2"/>
                             <constraint firstItem="J3f-2W-XPP" firstAttribute="top" secondItem="uuz-Jq-TKC" secondAttribute="top" id="NhV-4c-CSg"/>
                             <constraint firstItem="Jtn-oD-jOT" firstAttribute="top" secondItem="PKP-Tz-OUu" secondAttribute="bottom" constant="8" id="Odg-S5-Vjz"/>
+                            <constraint firstItem="PKP-Tz-OUu" firstAttribute="trailing" secondItem="XwJ-2a-WSJ" secondAttribute="trailing" id="PTv-RF-X5U"/>
+                            <constraint firstItem="PKP-Tz-OUu" firstAttribute="top" secondItem="XwJ-2a-WSJ" secondAttribute="bottom" constant="20" id="QNr-4w-N9Z"/>
                             <constraint firstItem="ZLE-kg-9a1" firstAttribute="top" secondItem="Jtn-oD-jOT" secondAttribute="bottom" constant="8" id="VN4-mv-G2G"/>
                             <constraint firstItem="PKP-Tz-OUu" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="uuz-Jq-TKC" secondAttribute="leading" constant="60" symbolic="YES" id="Xgd-8i-5xm"/>
-                            <constraint firstItem="iW9-Ha-ihQ" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="uuz-Jq-TKC" secondAttribute="leading" constant="20" symbolic="YES" id="ee5-Bt-sgA"/>
                             <constraint firstAttribute="bottom" secondItem="J3f-2W-XPP" secondAttribute="bottom" id="iXV-7J-x1r"/>
-                            <constraint firstItem="Oxh-jv-n6m" firstAttribute="trailing" secondItem="iW9-Ha-ihQ" secondAttribute="trailing" constant="20" id="jks-0E-Rw2"/>
-                            <constraint firstItem="PKP-Tz-OUu" firstAttribute="top" secondItem="iW9-Ha-ihQ" secondAttribute="bottom" constant="8" id="kWb-MR-bYd"/>
+                            <constraint firstAttribute="trailing" secondItem="XwJ-2a-WSJ" secondAttribute="trailing" constant="51" id="je5-t7-cDB"/>
                             <constraint firstItem="Jtn-oD-jOT" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="uuz-Jq-TKC" secondAttribute="leading" constant="60" symbolic="YES" id="m7A-5P-n9d"/>
                             <constraint firstItem="ZLE-kg-9a1" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="uuz-Jq-TKC" secondAttribute="leading" constant="60" symbolic="YES" id="mqE-fp-HWH"/>
-                            <constraint firstItem="PKP-Tz-OUu" firstAttribute="trailing" secondItem="iW9-Ha-ihQ" secondAttribute="trailing" id="otc-RL-D7u"/>
-                            <constraint firstItem="Oxh-jv-n6m" firstAttribute="trailing" secondItem="iW9-Ha-ihQ" secondAttribute="trailing" constant="20" id="ucK-Ar-YPj"/>
-                            <constraint firstItem="J3f-2W-XPP" firstAttribute="leading" secondItem="uuz-Jq-TKC" secondAttribute="leading" constant="-313" id="yfI-ew-rVU"/>
-                            <constraint firstItem="iW9-Ha-ihQ" firstAttribute="top" secondItem="Oxh-jv-n6m" secondAttribute="top" id="zcA-Ji-oaW"/>
+                            <constraint firstItem="J3f-2W-XPP" firstAttribute="leading" secondItem="uuz-Jq-TKC" secondAttribute="leading" constant="-356" id="yfI-ew-rVU"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="Oxh-jv-n6m"/>
                     </view>
@@ -156,7 +143,6 @@
                                 </state>
                                 <connections>
                                     <action selector="difficulty2:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="kZ4-XA-hMA"/>
-                                    <action selector="getServerInfo:" destination="gOE-px-5yC" eventType="primaryActionTriggered" id="QPY-KC-rbz"/>
                                     <action selector="savePlayerName:" destination="hki-ak-9xy" eventType="primaryActionTriggered" id="7BO-B0-ABR"/>
                                 </connections>
                             </button>
@@ -219,19 +205,20 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="rso-ux-2dW">
-                                <rect key="frame" x="110" y="165" width="1318" height="775"/>
+                                <rect key="frame" x="110" y="165" width="1200" height="775"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="775" id="3dZ-yd-Bcl"/>
-                                    <constraint firstAttribute="width" constant="1318" id="dpG-mc-W3O"/>
+                                    <constraint firstAttribute="width" constant="1200" id="dpG-mc-W3O"/>
                                 </constraints>
+                                <color key="sectionIndexColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <connections>
                                     <outlet property="dataSource" destination="gOE-px-5yC" id="FCr-eb-EYo"/>
                                     <outlet property="delegate" destination="gOE-px-5yC" id="d55-EA-Fpt"/>
                                 </connections>
                             </tableView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xcQ-ut-mNp">
-                                <rect key="frame" x="1488" y="165" width="355" height="67"/>
+                                <rect key="frame" x="1330" y="165" width="355" height="67"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="40"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="Show Autosaves...">
@@ -243,7 +230,7 @@
                                 </connections>
                             </button>
                             <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OlM-0b-IFw">
-                                <rect key="frame" x="1492" y="873" width="114" height="67"/>
+                                <rect key="frame" x="1330" y="873" width="114" height="67"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="40"/>
                                 <size key="titleShadowOffset" width="1" height="1"/>
                                 <state key="normal" title="LOAD">
@@ -259,17 +246,16 @@
                         <constraints>
                             <constraint firstItem="OlM-0b-IFw" firstAttribute="bottom" secondItem="rso-ux-2dW" secondAttribute="bottom" id="2NQ-Qn-i73"/>
                             <constraint firstItem="rso-ux-2dW" firstAttribute="leading" secondItem="Bq1-aI-fE7" secondAttribute="leading" constant="20" id="H9V-80-h1e"/>
-                            <constraint firstItem="xcQ-ut-mNp" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="rso-ux-2dW" secondAttribute="trailing" constant="60" symbolic="YES" id="HsC-o0-m0i"/>
-                            <constraint firstAttribute="trailing" secondItem="xcQ-ut-mNp" secondAttribute="trailing" constant="77" id="ZOG-Ss-RiH"/>
-                            <constraint firstItem="OlM-0b-IFw" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="rso-ux-2dW" secondAttribute="trailing" constant="60" symbolic="YES" id="aha-HK-nLr"/>
+                            <constraint firstItem="Bq1-aI-fE7" firstAttribute="trailing" secondItem="OlM-0b-IFw" secondAttribute="trailing" constant="386" id="NEb-rd-889"/>
+                            <constraint firstItem="Bq1-aI-fE7" firstAttribute="trailing" secondItem="xcQ-ut-mNp" secondAttribute="trailing" constant="145" id="OZj-Ui-Urb"/>
+                            <constraint firstItem="OlM-0b-IFw" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="xcQ-ut-mNp" secondAttribute="leading" id="VMU-UQ-QCl"/>
                             <constraint firstItem="xcQ-ut-mNp" firstAttribute="top" secondItem="rso-ux-2dW" secondAttribute="top" id="eMf-yT-rtm"/>
-                            <constraint firstItem="Bq1-aI-fE7" firstAttribute="trailing" secondItem="OlM-0b-IFw" secondAttribute="trailing" constant="224" id="efc-JA-BG0"/>
+                            <constraint firstItem="xcQ-ut-mNp" firstAttribute="leading" secondItem="rso-ux-2dW" secondAttribute="trailing" constant="20" id="i6U-Wt-kJB"/>
                             <constraint firstItem="rso-ux-2dW" firstAttribute="top" secondItem="Bq1-aI-fE7" secondAttribute="top" constant="20" id="nq0-Mu-KtU"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="Bq1-aI-fE7"/>
                     </view>
                     <connections>
-                        <outlet property="fightButton" destination="OlM-0b-IFw" id="RIG-Al-KCo"/>
                         <outlet property="loadGameButton" destination="OlM-0b-IFw" id="Cgc-Yy-hJj"/>
                         <outlet property="savesList" destination="rso-ux-2dW" id="TTQ-NE-vda"/>
                         <outlet property="showAutosavesButton" destination="xcQ-ut-mNp" id="J1o-3C-rk5"/>
@@ -368,6 +354,7 @@
     </scenes>
     <resources>
         <image name="rtcw_sp_background" width="1440" height="540"/>
+        <image name="rtcw_sp_logo" width="615" height="288"/>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="iNL-X1-YNe"/>

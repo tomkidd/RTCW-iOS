@@ -35,6 +35,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     var GUIMouseOffset = CGSize(width: 0, height: 0)
     var mouseScale = CGPoint(x: 0, y: 0)
     let factor = UIScreen.main.scale
+    var crouching = false
 
     #if os(iOS)
     var joystick1: JoyStickView!
@@ -48,6 +49,7 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     @IBOutlet weak var escapeButton: UIButton!
     @IBOutlet weak var quickSaveButton: UIButton!
     @IBOutlet weak var quickLoadButton: UIButton!
+    @IBOutlet weak var crouchButton: UIButton!
     var buttonStackExpanded = false
     #endif
     
@@ -273,8 +275,9 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         CL_KeyEvent(Int32(102), qfalse, UInt32(Sys_Milliseconds()))
     }
     
-    @IBAction func snd_restart(_ sender: UIButton) {
-        CL_AddReliableCommand("snd_restart", qfalse)
+    @IBAction func crouch(_ sender: UIButton) {
+        crouching = !crouching
+        CL_KeyEvent(Int32(99), crouching ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
     }
     
     #if os(iOS)

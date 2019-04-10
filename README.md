@@ -2,8 +2,6 @@
 
 #  Return to Castle Wolfenstein for iOS and tvOS for Apple TV
 
-&nbsp;
-
 This is my port of Return to Castle Wolfenstein for iOS. I have also made a target and version for tvOS to run on Apple TV.
 
 ![screenshot](https://raw.githubusercontent.com/tomkidd/RTCW-iOS/master/ss_rtcw.png)

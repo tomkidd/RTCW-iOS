@@ -1,6 +1,12 @@
+<img align="left" width="100" height="100" src="https://raw.githubusercontent.com/tomkidd/RTCW-iOS/master/icon_rtcw.png">  
+
 #  Return to Castle Wolfenstein for iOS and tvOS for Apple TV
 
+&nbsp;
+
 This is my port of Return to Castle Wolfenstein for iOS. I have also made a target and version for tvOS to run on Apple TV.
+
+![screenshot](https://raw.githubusercontent.com/tomkidd/RTCW-iOS/master/ss_rtcw.png)
 
 Features
 
@@ -26,5 +32,7 @@ This repo was based on the work from my previous *Quake III: Arena* port (more i
 [Video of RTCW running on an iPhone X](https://www.youtube.com/watch?v=75qh0H0y2Vw)
 
 [Video of RTCW running on an Apple TV](https://www.youtube.com/watch?v=47HscfTEzvw)
+
+I have also made apps for [*Wolfenstein 3-D*](https://github.com/tomkidd/Wolf3D-iOS), [*DOOM*, *DOOM II* and *Final DOOM*](https://github.com/tomkidd/DOOM-iOS), [*Quake*](https://github.com/tomkidd/Quake-iOS), [*Quake II*](https://github.com/tomkidd/Quake2-iOS), [*Quake III: Arena*](https://github.com/tomkidd/Quake3-iOS) and [*DOOM 3*](https://github.com/tomkidd/DOOM3-iOS).
 
 Have fun. For any questions I can be reached at tomkidd@gmail.com

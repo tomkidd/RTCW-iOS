@@ -491,12 +491,6 @@
 		A179C4AC2101472F00D3C611 /* cm_patch.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2BB2101472E00D3C611 /* cm_patch.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A17EE19F211A610200811AE1 /* DifficultyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A6210D76F50087EA86 /* DifficultyViewController.swift */; };
 		A17EE1A0211A610200811AE1 /* DifficultyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A6210D76F50087EA86 /* DifficultyViewController.swift */; };
-		A17EE1AA211A62BB00811AE1 /* CocoaAsyncSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		A17EE1AC211A62ED00811AE1 /* CocoaAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */; };
-		A17EE1AD211A62ED00811AE1 /* CocoaAsyncSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		A17EE1AF211A630600811AE1 /* FontAwesome.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7362117F0610031CEB8 /* FontAwesome.framework */; };
-		A17EE1B0211A630600811AE1 /* FontAwesome.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7362117F0610031CEB8 /* FontAwesome.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		A17EE1B2211A630900811AE1 /* FontAwesome.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7362117F0610031CEB8 /* FontAwesome.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A1902E9121029767008823BB /* ios_glsmp_null.c in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8921029766008823BB /* ios_glsmp_null.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1902E9221029767008823BB /* ios_snddma.m in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8A21029766008823BB /* ios_snddma.m */; };
 		A1902E9421029767008823BB /* ios_input.m in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8C21029767008823BB /* ios_input.m */; };
@@ -793,10 +787,6 @@
 		A190301B21093C63008823BB /* con_tty.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C1C42101472C00D3C611 /* con_tty.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A190301C21093C63008823BB /* sys_unix.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C1C62101472C00D3C611 /* sys_unix.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A190301D21093C6B008823BB /* sys_main.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C1BE2101472C00D3C611 /* sys_main.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A196B6F12117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */; };
-		A196B6F22117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		A196B6F42117ECD10031CEB8 /* CocoaAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */; };
-		A196B6F52117ECD10031CEB8 /* CocoaAsyncSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A196B7012117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */; };
 		A196B7022117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */; };
 		A196B7082117EF820031CEB8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7062117EF750031CEB8 /* AudioToolbox.framework */; };
@@ -805,12 +795,6 @@
 		A196B70B2117EF820031CEB8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7062117EF750031CEB8 /* AudioToolbox.framework */; };
 		A196B70C2117EF820031CEB8 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7052117EF750031CEB8 /* AVFoundation.framework */; };
 		A196B70D2117EF820031CEB8 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7072117EF750031CEB8 /* GLKit.framework */; };
-		A196B7392117F0610031CEB8 /* FontAwesome.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7362117F0610031CEB8 /* FontAwesome.framework */; };
-		A196B73A2117F0610031CEB8 /* CocoaAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */; };
-		A196B73E2117F1480031CEB8 /* FontAwesome.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; };
-		A196B73F2117F1480031CEB8 /* FontAwesome.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		A196B7402117F18D0031CEB8 /* FontAwesome.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; };
-		A196B7412117F18D0031CEB8 /* FontAwesome.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -820,8 +804,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				A17EE1AA211A62BB00811AE1 /* CocoaAsyncSocket.framework in Embed Frameworks */,
-				A17EE1B0211A630600811AE1 /* FontAwesome.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -832,8 +814,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				A17EE1AD211A62ED00811AE1 /* CocoaAsyncSocket.framework in Embed Frameworks */,
-				A17EE1B2211A630900811AE1 /* FontAwesome.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -844,8 +824,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				A196B6F52117ECD10031CEB8 /* CocoaAsyncSocket.framework in Embed Frameworks */,
-				A196B73F2117F1480031CEB8 /* FontAwesome.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -856,8 +834,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				A196B6F22117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Embed Frameworks */,
-				A196B7412117F18D0031CEB8 /* FontAwesome.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1425,8 +1401,6 @@
 		A1902F66210939BA008823BB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A1902F68210939BC008823BB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1902F6A210939BC008823BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CocoaAsyncSocket.framework; sourceTree = "<group>"; };
-		A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FontAwesome.framework; path = Carthage/Build/iOS/FontAwesome.framework; sourceTree = "<group>"; };
 		A196B6FB2117EEF00031CEB8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		A196B6FD2117EF080031CEB8 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
@@ -1434,8 +1408,6 @@
 		A196B7052117EF750031CEB8 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS11.4.sdk/System/Library/Frameworks/AVFoundation.framework; sourceTree = DEVELOPER_DIR; };
 		A196B7062117EF750031CEB8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS11.4.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
 		A196B7072117EF750031CEB8 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS11.4.sdk/System/Library/Frameworks/GLKit.framework; sourceTree = DEVELOPER_DIR; };
-		A196B7362117F0610031CEB8 /* FontAwesome.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FontAwesome.framework; path = Carthage/Build/tvOS/FontAwesome.framework; sourceTree = "<group>"; };
-		A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaAsyncSocket.framework; path = Carthage/Build/tvOS/CocoaAsyncSocket.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1443,7 +1415,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A196B73A2117F0610031CEB8 /* CocoaAsyncSocket.framework in Frameworks */,
 				A1565FF2210A0F4900FA9BC9 /* libcrypto.a in Frameworks */,
 				A1565FF3210A0F4900FA9BC9 /* libnghttp2_tvOS.a in Frameworks */,
 				A196B7092117EF820031CEB8 /* AVFoundation.framework in Frameworks */,
@@ -1451,7 +1422,6 @@
 				A196B70A2117EF820031CEB8 /* GLKit.framework in Frameworks */,
 				A1565FF4210A0F4900FA9BC9 /* libssl.a in Frameworks */,
 				A1565FE2210A0D3E00FA9BC9 /* libcurl_tvOS.a in Frameworks */,
-				A17EE1AF211A630600811AE1 /* FontAwesome.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1460,9 +1430,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1565FEB210A0E6F00FA9BC9 /* libnghttp2_iOS.a in Frameworks */,
-				A196B7402117F18D0031CEB8 /* FontAwesome.framework in Frameworks */,
 				A1565FE8210A0E4A00FA9BC9 /* libssl.a in Frameworks */,
-				A196B6F12117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Frameworks */,
 				A1565FE9210A0E4A00FA9BC9 /* libcrypto.a in Frameworks */,
 				A1565FE4210A0DEF00FA9BC9 /* libcurl_iOS.a in Frameworks */,
 				A196B7012117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */,
@@ -1474,9 +1442,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1565FEC210A0EB500FA9BC9 /* libcrypto.a in Frameworks */,
-				A196B73E2117F1480031CEB8 /* FontAwesome.framework in Frameworks */,
 				A1565FED210A0EB500FA9BC9 /* libnghttp2_iOS.a in Frameworks */,
-				A196B6F42117ECD10031CEB8 /* CocoaAsyncSocket.framework in Frameworks */,
 				A1565FEE210A0EB500FA9BC9 /* libssl.a in Frameworks */,
 				A1565FE5210A0E0500FA9BC9 /* libcurl_iOS.a in Frameworks */,
 				A196B7022117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */,
@@ -1487,9 +1453,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A17EE1AC211A62ED00811AE1 /* CocoaAsyncSocket.framework in Frameworks */,
 				A1510395210A44310087EA86 /* libcrypto.a in Frameworks */,
-				A196B7392117F0610031CEB8 /* FontAwesome.framework in Frameworks */,
 				A1565FE3210A0D5000FA9BC9 /* libcurl_tvOS.a in Frameworks */,
 				A196B70C2117EF820031CEB8 /* AVFoundation.framework in Frameworks */,
 				A196B70B2117EF820031CEB8 /* AudioToolbox.framework in Frameworks */,
@@ -2281,8 +2245,6 @@
 			children = (
 				A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */,
 				A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */,
-				A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */,
-				A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */,
 				A196B6FD2117EF080031CEB8 /* GLKit.framework */,
 				A1565FE7210A0E4A00FA9BC9 /* libcrypto.a */,
 				A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */,
@@ -2296,8 +2258,6 @@
 		A196B6FA2117EE750031CEB8 /* tvOS */ = {
 			isa = PBXGroup;
 			children = (
-				A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */,
-				A196B7362117F0610031CEB8 /* FontAwesome.framework */,
 				A196B7062117EF750031CEB8 /* AudioToolbox.framework */,
 				A196B7052117EF750031CEB8 /* AVFoundation.framework */,
 				A196B7072117EF750031CEB8 /* GLKit.framework */,
@@ -2397,18 +2357,18 @@
 				ORGANIZATIONNAME = "Tom Kidd";
 				TargetAttributes = {
 					A1565F212109F30E00FA9BC9 = {
-						LastSwiftMigration = 1000;
+						LastSwiftMigration = 1020;
 					};
 					A179BFE2210142F900D3C611 = {
 						CreatedOnToolsVersion = 9.4.1;
-						LastSwiftMigration = 1000;
+						LastSwiftMigration = 1020;
 					};
 					A1902E9E2108237E008823BB = {
-						LastSwiftMigration = 1000;
+						LastSwiftMigration = 1020;
 					};
 					A1902F5E210939B9008823BB = {
 						CreatedOnToolsVersion = 9.4.1;
-						LastSwiftMigration = 1010;
+						LastSwiftMigration = 1020;
 					};
 				};
 			};
@@ -3319,7 +3279,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 11.4;
 			};
@@ -3358,7 +3318,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 11.4;
 			};
@@ -3512,7 +3472,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.RTCW-SP-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -3552,7 +3512,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.RTCW-SP-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -3592,7 +3552,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "RTCW_SP_iOS-Swift.h";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -3633,7 +3593,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "RTCW_SP_iOS-Swift.h";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -3671,7 +3631,7 @@
 				SDKROOT = appletvos;
 				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "RTCW_SP_tvOS-Swift.h";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 11.4;
 			};
@@ -3711,7 +3671,7 @@
 				SDKROOT = appletvos;
 				SWIFT_OBJC_BRIDGING_HEADER = "RTCW-SP-iOS/bridging.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "RTCW_SP_tvOS-Swift.h";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 11.4;
 			};

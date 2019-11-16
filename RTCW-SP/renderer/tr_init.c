@@ -34,6 +34,7 @@ glconfig_t  glConfig;
 qboolean    textureFilterAnisotropic = qfalse;
 int         maxAnisotropy = 0;
 float       displayAspect = 0.0f;
+qboolean    haveClampToEdge = qfalse;
 
 glstate_t glState;
 

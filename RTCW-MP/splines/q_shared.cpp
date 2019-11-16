@@ -164,7 +164,7 @@ qboolean COM_BitCheck( const int array[], int bitNum ) {
 		bitNum -= 32;
 	}
 
-	return (qboolean)( ( array[i] & ( 1 << bitNum ) ) != 0 );  // (SA) heh, whoops. :)
+	return ( ( array[i] & ( 1 << bitNum ) ) != 0 );  // (SA) heh, whoops. :)
 }
 
 /*
@@ -237,7 +237,7 @@ float   LittleFloat( float l ) {return _LittleFloat( l );}
 
 void CopyShortSwap(void *dest, void *src)
 {
-	byte *to = (byte*)dest, *from = (byte*)src;
+	byte *to = dest, *from = src;
 
 	to[0] = from[1];
 	to[1] = from[0];
@@ -245,7 +245,7 @@ void CopyShortSwap(void *dest, void *src)
 
 void CopyLongSwap(void *dest, void *src)
 {
-	byte *to = (byte*)dest, *from = (byte*)src;
+	byte *to = dest, *from = src;
 
 	to[0] = from[3];
 	to[1] = from[2];
@@ -860,12 +860,12 @@ qboolean Q_isanumber( const char *s )
 
 	d = strtod( s, &p );
 
-    return (qboolean)(*p == '\0');
+	return *p == '\0';
 }
 
 qboolean Q_isintegral( float f )
 {
-    return (qboolean)((int)f == f);
+	return (int)f == f;
 }
 
 #ifdef _MSC_VER

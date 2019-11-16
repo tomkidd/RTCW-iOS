@@ -703,6 +703,12 @@ typedef struct {
 	drawVert_t      *verts;
 } srfTriangles_t;
 
+typedef struct {
+	vec3_t translate;
+	quat_t rotate;
+	vec3_t scale;
+} iqmTransform_t;
+
 // inter-quake-model
 typedef struct {
 	int		num_vertexes;
@@ -736,8 +742,9 @@ typedef struct {
 
 	char		*jointNames;
 	int		*jointParents;
-	float		*jointMats;
-	float		*poseMats;
+	float		*bindJoints; // [num_joints * 12]
+	float		*invBindJoints; // [num_joints * 12]
+	iqmTransform_t	*poses; // [num_frames * num_poses]
 	float		*bounds;
 } iqmData_t;
 
@@ -1129,6 +1136,7 @@ extern glstate_t glState;           // outside of TR since it shouldn't be clear
 extern qboolean  textureFilterAnisotropic;
 extern int       maxAnisotropy;
 extern float     displayAspect;
+extern qboolean  haveClampToEdge;
 
 //
 // cvars
@@ -1907,6 +1915,7 @@ void RE_TakeVideoFrame( int width, int height,
 
 void R_DrawElements( int numIndexes, const glIndex_t *indexes );
 void VectorArrayNormalize( vec4_t *normals, unsigned int count );
+void R_BindAnimatedImage( textureBundle_t *bundle );
 
 #ifdef idppc_altivec
 void LerpMeshVertexes_altivec( md3Surface_t *surf, float backlerp );

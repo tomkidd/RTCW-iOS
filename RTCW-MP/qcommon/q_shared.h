@@ -511,6 +511,8 @@ extern vec3_t axisDefault[3];
 
 int Q_isnan(float x);
 
+// there's probably a smarter way to do this -tkidd
+#ifndef IOS
 #if idx64
   extern long qftolsse(float f);
   extern int qvmftolsse(void);
@@ -531,6 +533,20 @@ int Q_isnan(float x);
   extern long (QDECL *Q_ftol)(float f);
   extern int (QDECL *Q_VMftol)(void);
   extern void (QDECL *Q_SnapVector)(vec3_t vec);
+#else
+  // Q_ftol must expand to a function name so the pluggable renderer can take
+  // its address
+  #define Q_ftol lrintf
+  #define Q_SnapVector(vec)\
+    do\
+    {\
+        vec3_t *temp = (vec);\
+        \
+        (*temp)[0] = round((*temp)[0]);\
+        (*temp)[1] = round((*temp)[1]);\
+        (*temp)[2] = round((*temp)[2]);\
+    } while(0)
+#endif
 #else
   // Q_ftol must expand to a function name so the pluggable renderer can take
   // its address

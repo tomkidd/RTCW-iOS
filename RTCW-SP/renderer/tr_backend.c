@@ -27,11 +27,6 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 #include "tr_local.h"
-#ifdef IOS
-#include "../ios/qgl.h"
-#else
-#include "qgl.h"
-#endif
 
 backEndData_t  *backEndData;
 backEndState_t backEnd;

@@ -104,7 +104,6 @@
 		A1565F2D2109F30E00FA9BC9 /* snd_dma.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0CC2101471000D3C611 /* snd_dma.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F2F2109F30E00FA9BC9 /* snd_wavelet.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0E72101471000D3C611 /* snd_wavelet.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F302109F30E00FA9BC9 /* be_ai_move.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0532101470F00D3C611 /* be_ai_move.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A1565F322109F30E00FA9BC9 /* ios_glsmp_null.c in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8921029766008823BB /* ios_glsmp_null.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F332109F30E00FA9BC9 /* vm_interpreted.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2AC2101472E00D3C611 /* vm_interpreted.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F352109F30E00FA9BC9 /* jcsample.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C06E2101470F00D3C611 /* jcsample.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F362109F30E00FA9BC9 /* jcmainct.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C06F2101470F00D3C611 /* jcmainct.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -147,7 +146,6 @@
 		A1565F612109F30E00FA9BC9 /* jccoefct.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C06C2101470F00D3C611 /* jccoefct.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F642109F30E00FA9BC9 /* jmemnobs.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0712101470F00D3C611 /* jmemnobs.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F652109F30E00FA9BC9 /* jcmaster.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0642101470F00D3C611 /* jcmaster.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A1565F662109F30E00FA9BC9 /* ios_input.m in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8C21029767008823BB /* ios_input.m */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F672109F30E00FA9BC9 /* jdarith.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0812101470F00D3C611 /* jdarith.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F682109F30E00FA9BC9 /* jctrans.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C08D2101470F00D3C611 /* jctrans.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F692109F30E00FA9BC9 /* jcomapi.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0862101470F00D3C611 /* jcomapi.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -175,7 +173,6 @@
 		A1565F812109F30E00FA9BC9 /* q_math.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C29C2101472E00D3C611 /* q_math.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F822109F30E00FA9BC9 /* jdcoefct.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0912101470F00D3C611 /* jdcoefct.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F832109F30E00FA9BC9 /* jdpostct.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0942101470F00D3C611 /* jdpostct.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A1565F842109F30E00FA9BC9 /* ios_glimp.m in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8E21029767008823BB /* ios_glimp.m */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F862109F30E00FA9BC9 /* be_ai_char.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C03E2101470F00D3C611 /* be_ai_char.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F872109F30E00FA9BC9 /* l_crc.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0432101470F00D3C611 /* l_crc.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F882109F30E00FA9BC9 /* be_aas_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0292101470F00D3C611 /* be_aas_entity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -185,10 +182,8 @@
 		A1565F8F2109F30E00FA9BC9 /* l_libvar.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0332101470F00D3C611 /* l_libvar.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F902109F30E00FA9BC9 /* msg.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2972101472E00D3C611 /* msg.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F922109F30E00FA9BC9 /* jcprepct.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0742101470F00D3C611 /* jcprepct.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A1565F932109F30E00FA9BC9 /* ios_snddma.m in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8A21029766008823BB /* ios_snddma.m */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F952109F30E00FA9BC9 /* cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2AB2101472E00D3C611 /* cmd.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F962109F30E00FA9BC9 /* snd_main.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0E82101471000D3C611 /* snd_main.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A1565F972109F30E00FA9BC9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A179BFE6210142FA00D3C611 /* AppDelegate.swift */; };
 		A1565F982109F30E00FA9BC9 /* jcapistd.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C07D2101470F00D3C611 /* jcapistd.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F992109F30E00FA9BC9 /* jdatasrc.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0602101470F00D3C611 /* jdatasrc.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F9A2109F30E00FA9BC9 /* net_chan.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2B62101472E00D3C611 /* net_chan.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -201,7 +196,6 @@
 		A1565FA52109F30E00FA9BC9 /* cl_parse.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0CE2101471000D3C611 /* cl_parse.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565FA62109F30E00FA9BC9 /* jdmainct.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0902101470F00D3C611 /* jdmainct.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565FA82109F30E00FA9BC9 /* sv_game.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0F12101471000D3C611 /* sv_game.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A1565FA92109F30E00FA9BC9 /* MFiGameController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1902F582108B4E4008823BB /* MFiGameController.swift */; };
 		A1565FAA2109F30E00FA9BC9 /* cl_curl.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0CD2101471000D3C611 /* cl_curl.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565FAB2109F30E00FA9BC9 /* cm_test.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C29D2101472E00D3C611 /* cm_test.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565FAD2109F30E00FA9BC9 /* be_ai_gen.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C01D2101470F00D3C611 /* be_ai_gen.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -216,7 +210,6 @@
 		A1565FB72109F30E00FA9BC9 /* snd_mix.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0CA2101471000D3C611 /* snd_mix.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565FB82109F30E00FA9BC9 /* jaricom.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0802101470F00D3C611 /* jaricom.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565FB92109F30E00FA9BC9 /* sv_world.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0F42101471000D3C611 /* sv_world.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A1565FBA2109F30E00FA9BC9 /* ios_main.m in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8B21029767008823BB /* ios_main.m */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565FBB2109F30E00FA9BC9 /* be_ai_weight.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C04A2101470F00D3C611 /* be_ai_weight.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565FBC2109F30E00FA9BC9 /* jidctfst.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C05F2101470F00D3C611 /* jidctfst.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565FBD2109F30E00FA9BC9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1902F63210939BA008823BB /* ViewController.swift */; };
@@ -253,7 +246,6 @@
 		A161C9E821B1FC6D009FAFD4 /* pbmd5.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9E521B1FC0B009FAFD4 /* pbmd5.c */; };
 		A161C9EB21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */; };
 		A161C9ED21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */; };
-		A179BFE7210142FA00D3C611 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A179BFE6210142FA00D3C611 /* AppDelegate.swift */; };
 		A179BFE9210142FA00D3C611 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A179BFE8210142FA00D3C611 /* GameViewController.swift */; };
 		A179BFEC210142FA00D3C611 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A179BFEA210142FA00D3C611 /* Main.storyboard */; };
 		A179BFEE210142FB00D3C611 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A179BFED210142FB00D3C611 /* Assets.xcassets */; };
@@ -397,12 +389,18 @@
 		A17EE1AA211A62BB00811AE1 /* CocoaAsyncSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A17EE1AF211A630600811AE1 /* FontAwesome.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7362117F0610031CEB8 /* FontAwesome.framework */; };
 		A17EE1B0211A630600811AE1 /* FontAwesome.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7362117F0610031CEB8 /* FontAwesome.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		A1902E9121029767008823BB /* ios_glsmp_null.c in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8921029766008823BB /* ios_glsmp_null.c */; settings = {COMPILER_FLAGS = "-w"; }; };
-		A1902E9221029767008823BB /* ios_snddma.m in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8A21029766008823BB /* ios_snddma.m */; };
-		A1902E9421029767008823BB /* ios_input.m in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8C21029767008823BB /* ios_input.m */; };
-		A1902E9521029767008823BB /* ios_glimp.m in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8E21029767008823BB /* ios_glimp.m */; };
-		A1902E992103F323008823BB /* ios_main.m in Sources */ = {isa = PBXBuildFile; fileRef = A1902E8B21029767008823BB /* ios_main.m */; };
-		A1902F592108B4E4008823BB /* MFiGameController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1902F582108B4E4008823BB /* MFiGameController.swift */; };
+		A17FF23523824C1A0003D2E5 /* sdl_glimp.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23023824C1A0003D2E5 /* sdl_glimp.c */; };
+		A17FF23623824C1A0003D2E5 /* sdl_glimp.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23023824C1A0003D2E5 /* sdl_glimp.c */; };
+		A17FF23723824C1A0003D2E5 /* sdl_snd.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23123824C1A0003D2E5 /* sdl_snd.c */; };
+		A17FF23823824C1A0003D2E5 /* sdl_snd.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23123824C1A0003D2E5 /* sdl_snd.c */; };
+		A17FF23923824C1A0003D2E5 /* sdl_input.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23223824C1A0003D2E5 /* sdl_input.c */; };
+		A17FF23A23824C1A0003D2E5 /* sdl_input.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23223824C1A0003D2E5 /* sdl_input.c */; };
+		A17FF23D23824FDB0003D2E5 /* sys_ios.m in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23C23824FDB0003D2E5 /* sys_ios.m */; };
+		A17FF23E23824FDB0003D2E5 /* sys_ios.m in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23C23824FDB0003D2E5 /* sys_ios.m */; };
+		A17FF2442382533F0003D2E5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A17FF2432382533F0003D2E5 /* AppDelegate.m */; };
+		A17FF2452382533F0003D2E5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A17FF2432382533F0003D2E5 /* AppDelegate.m */; };
+		A17FF24B2382590F0003D2E5 /* SDL_uikitviewcontroller+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17FF24A2382590F0003D2E5 /* SDL_uikitviewcontroller+Additions.swift */; };
+		A17FF25D2383AAAA0003D2E5 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */; };
 		A196B6882115F5680031CEB8 /* ServerBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6872115F5680031CEB8 /* ServerBrowserViewController.swift */; };
 		A196B6A72115F7C50031CEB8 /* Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68B2115F7C50031CEB8 /* Server.swift */; };
 		A196B6AB2115F7C50031CEB8 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68D2115F7C50031CEB8 /* Player.swift */; };
@@ -459,7 +457,26 @@
 		A196B7402117F18D0031CEB8 /* FontAwesome.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; };
 		A196B7412117F18D0031CEB8 /* FontAwesome.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A196B7432117FFA30031CEB8 /* ServerFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */; };
+		A1E66CFD2381DEF100D69D7C /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1E66CFA2381DECC00D69D7C /* libSDL2.a */; };
+		A1E66CFE2381DEF800D69D7C /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1E66CFC2381DECC00D69D7C /* libSDL2.a */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A1E66CF92381DECC00D69D7C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1E66CF12381DECC00D69D7C /* SDL.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FD6526630DE8FCCB002AD96B;
+			remoteInfo = "libSDL-iOS";
+		};
+		A1E66CFB2381DECC00D69D7C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1E66CF12381DECC00D69D7C /* SDL.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FAB598141BB5C1B100BE72C5;
+			remoteInfo = "libSDL-tvOS";
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		A17EE1AB211A62BB00811AE1 /* Embed Frameworks */ = {
@@ -624,7 +641,6 @@
 		A161C9E521B1FC0B009FAFD4 /* pbmd5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pbmd5.c; sourceTree = "<group>"; };
 		A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sv_wallhack.c; sourceTree = "<group>"; };
 		A179BFE3210142FA00D3C611 /* RTCW-MP-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-MP-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		A179BFE6210142FA00D3C611 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A179BFE8210142FA00D3C611 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		A179BFEB210142FA00D3C611 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A179BFED210142FB00D3C611 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -1020,17 +1036,17 @@
 		A179C2B92101472E00D3C611 /* cm_polylib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_polylib.h; sourceTree = "<group>"; };
 		A179C2BA2101472E00D3C611 /* vm_powerpc_asm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vm_powerpc_asm.h; sourceTree = "<group>"; };
 		A179C2BB2101472E00D3C611 /* cm_patch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_patch.c; sourceTree = "<group>"; };
-		A1902E8821028F97008823BB /* qgl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qgl.h; sourceTree = "<group>"; };
-		A1902E8921029766008823BB /* ios_glsmp_null.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ios_glsmp_null.c; sourceTree = "<group>"; };
-		A1902E8A21029766008823BB /* ios_snddma.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ios_snddma.m; sourceTree = "<group>"; };
-		A1902E8B21029767008823BB /* ios_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ios_main.m; sourceTree = "<group>"; };
-		A1902E8C21029767008823BB /* ios_input.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ios_input.m; sourceTree = "<group>"; };
-		A1902E8D21029767008823BB /* ios_glimp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ios_glimp.h; sourceTree = "<group>"; };
-		A1902E8E21029767008823BB /* ios_glimp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ios_glimp.m; sourceTree = "<group>"; };
-		A1902E8F21029767008823BB /* ios_local.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ios_local.h; sourceTree = "<group>"; };
-		A1902E9021029767008823BB /* ios_qgl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ios_qgl.h; sourceTree = "<group>"; };
+		A17FF22E23824C1A0003D2E5 /* sdl_icon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sdl_icon.h; sourceTree = "<group>"; };
+		A17FF22F23824C1A0003D2E5 /* sdl_gamma.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sdl_gamma.c; sourceTree = "<group>"; };
+		A17FF23023824C1A0003D2E5 /* sdl_glimp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sdl_glimp.c; sourceTree = "<group>"; };
+		A17FF23123824C1A0003D2E5 /* sdl_snd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sdl_snd.c; sourceTree = "<group>"; };
+		A17FF23223824C1A0003D2E5 /* sdl_input.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sdl_input.c; sourceTree = "<group>"; };
+		A17FF23C23824FDB0003D2E5 /* sys_ios.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = sys_ios.m; sourceTree = "<group>"; };
+		A17FF2422382533F0003D2E5 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		A17FF2432382533F0003D2E5 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		A17FF24A2382590F0003D2E5 /* SDL_uikitviewcontroller+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SDL_uikitviewcontroller+Additions.swift"; sourceTree = "<group>"; };
+		A17FF2652383AABC0003D2E5 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS13.2.sdk/System/Library/Frameworks/AVFoundation.framework; sourceTree = DEVELOPER_DIR; };
 		A1902E982103EFC7008823BB /* bridging.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bridging.h; sourceTree = "<group>"; };
-		A1902F582108B4E4008823BB /* MFiGameController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MFiGameController.swift; sourceTree = "<group>"; };
 		A1902F61210939BA008823BB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A1902F63210939BA008823BB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		A1902F66210939BA008823BB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -1073,6 +1089,7 @@
 		A196B7362117F0610031CEB8 /* FontAwesome.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FontAwesome.framework; path = Carthage/Build/tvOS/FontAwesome.framework; sourceTree = "<group>"; };
 		A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaAsyncSocket.framework; path = Carthage/Build/tvOS/CocoaAsyncSocket.framework; sourceTree = "<group>"; };
 		A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerFilterViewController.swift; sourceTree = "<group>"; };
+		A1E66CF12381DECC00D69D7C /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = SDL/SDL.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1080,6 +1097,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1E66CFE2381DEF800D69D7C /* libSDL2.a in Frameworks */,
 				A196B73A2117F0610031CEB8 /* CocoaAsyncSocket.framework in Frameworks */,
 				A1565FF2210A0F4900FA9BC9 /* libcrypto.a in Frameworks */,
 				A1565FF3210A0F4900FA9BC9 /* libnghttp2_tvOS.a in Frameworks */,
@@ -1098,8 +1116,10 @@
 			files = (
 				A1565FEB210A0E6F00FA9BC9 /* libnghttp2_iOS.a in Frameworks */,
 				A196B7402117F18D0031CEB8 /* FontAwesome.framework in Frameworks */,
+				A17FF25D2383AAAA0003D2E5 /* AVFoundation.framework in Frameworks */,
 				A1565FE8210A0E4A00FA9BC9 /* libssl.a in Frameworks */,
 				A196B6F12117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Frameworks */,
+				A1E66CFD2381DEF100D69D7C /* libSDL2.a in Frameworks */,
 				A1565FE9210A0E4A00FA9BC9 /* libcrypto.a in Frameworks */,
 				A1565FE4210A0DEF00FA9BC9 /* libcurl_iOS.a in Frameworks */,
 				A196B7012117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */,
@@ -1229,7 +1249,8 @@
 		A179BFE5210142FA00D3C611 /* RTCW-MP-iOS */ = {
 			isa = PBXGroup;
 			children = (
-				A179BFE6210142FA00D3C611 /* AppDelegate.swift */,
+				A17FF2422382533F0003D2E5 /* AppDelegate.h */,
+				A17FF2432382533F0003D2E5 /* AppDelegate.m */,
 				A179BFED210142FB00D3C611 /* Assets.xcassets */,
 				A1902E982103EFC7008823BB /* bridging.h */,
 				A151039B210B7A890087EA86 /* CoreGraphics+Additions.swift */,
@@ -1240,8 +1261,8 @@
 				A179BFEF210142FB00D3C611 /* LaunchScreen.storyboard */,
 				A179BFEA210142FA00D3C611 /* Main.storyboard */,
 				A15AA929211B470200DE867F /* MainMenuViewController.swift */,
-				A1902F582108B4E4008823BB /* MFiGameController.swift */,
 				A15AA924211B43A400DE867F /* OptionsViewController.swift */,
+				A17FF24A2382590F0003D2E5 /* SDL_uikitviewcontroller+Additions.swift */,
 				A196B68A2115F7A10031CEB8 /* ServerBrowser */,
 				A196B6872115F5680031CEB8 /* ServerBrowserViewController.swift */,
 				A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */,
@@ -1261,11 +1282,11 @@
 				A179BFFB2101470F00D3C611 /* cgame */,
 				A179C0C62101471000D3C611 /* client */,
 				A179C1C72101472C00D3C611 /* game */,
-				A1902E8721028F46008823BB /* ios */,
 				A179C05B2101470F00D3C611 /* jpeg-8c */,
 				A179C0142101470F00D3C611 /* null */,
 				A179C2912101472E00D3C611 /* qcommon */,
 				A1366967217E89E900E0AC0B /* renderer */,
+				A17FF22D23824C1A0003D2E5 /* sdl */,
 				A179C0E92101471000D3C611 /* server */,
 				A1366931217E885D00E0AC0B /* splines */,
 				A179C1BA2101472C00D3C611 /* sys */,
@@ -1558,6 +1579,7 @@
 				A179C1C02101472C00D3C611 /* con_passive.c */,
 				A179C1C42101472C00D3C611 /* con_tty.c */,
 				A179C1C12101472C00D3C611 /* con_win32.c */,
+				A17FF23C23824FDB0003D2E5 /* sys_ios.m */,
 				A179C1C52101472C00D3C611 /* sys_loadlib.h */,
 				A179C1BB2101472C00D3C611 /* sys_local.h */,
 				A179C1BE2101472C00D3C611 /* sys_main.c */,
@@ -1850,26 +1872,23 @@
 		A179C4AD2101853600D3C611 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A1E66CF12381DECC00D69D7C /* SDL.xcodeproj */,
 				A196B6F92117EE6E0031CEB8 /* iOS */,
 				A196B6FA2117EE750031CEB8 /* tvOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		A1902E8721028F46008823BB /* ios */ = {
+		A17FF22D23824C1A0003D2E5 /* sdl */ = {
 			isa = PBXGroup;
 			children = (
-				A1902E8D21029767008823BB /* ios_glimp.h */,
-				A1902E8E21029767008823BB /* ios_glimp.m */,
-				A1902E8921029766008823BB /* ios_glsmp_null.c */,
-				A1902E8C21029767008823BB /* ios_input.m */,
-				A1902E8F21029767008823BB /* ios_local.h */,
-				A1902E8B21029767008823BB /* ios_main.m */,
-				A1902E9021029767008823BB /* ios_qgl.h */,
-				A1902E8A21029766008823BB /* ios_snddma.m */,
-				A1902E8821028F97008823BB /* qgl.h */,
+				A17FF22E23824C1A0003D2E5 /* sdl_icon.h */,
+				A17FF22F23824C1A0003D2E5 /* sdl_gamma.c */,
+				A17FF23023824C1A0003D2E5 /* sdl_glimp.c */,
+				A17FF23123824C1A0003D2E5 /* sdl_snd.c */,
+				A17FF23223824C1A0003D2E5 /* sdl_input.c */,
 			);
-			path = ios;
+			path = sdl;
 			sourceTree = "<group>";
 		};
 		A1902F60210939BA008823BB /* RTCW-MP-tvOS */ = {
@@ -1989,6 +2008,7 @@
 		A196B6FA2117EE750031CEB8 /* tvOS */ = {
 			isa = PBXGroup;
 			children = (
+				A17FF2652383AABC0003D2E5 /* AVFoundation.framework */,
 				A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */,
 				A196B7362117F0610031CEB8 /* FontAwesome.framework */,
 				A196B7062117EF750031CEB8 /* AudioToolbox.framework */,
@@ -2000,6 +2020,15 @@
 				A1565FF1210A0F4900FA9BC9 /* libssl.a */,
 			);
 			name = tvOS;
+			sourceTree = "<group>";
+		};
+		A1E66CF22381DECC00D69D7C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A1E66CFA2381DECC00D69D7C /* libSDL2.a */,
+				A1E66CFC2381DECC00D69D7C /* libSDL2.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -2072,6 +2101,12 @@
 			mainGroup = A179BFDA210142F900D3C611;
 			productRefGroup = A179BFE4210142FA00D3C611 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = A1E66CF22381DECC00D69D7C /* Products */;
+					ProjectRef = A1E66CF12381DECC00D69D7C /* SDL.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				A179BFE2210142F900D3C611 /* RTCW-MP-iOS */,
@@ -2079,6 +2114,23 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		A1E66CFA2381DECC00D69D7C /* libSDL2.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSDL2.a;
+			remoteRef = A1E66CF92381DECC00D69D7C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		A1E66CFC2381DECC00D69D7C /* libSDL2.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSDL2.a;
+			remoteRef = A1E66CFB2381DECC00D69D7C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A1565FD32109F30E00FA9BC9 /* Resources */ = {
@@ -2126,7 +2178,6 @@
 				A161C9E821B1FC6D009FAFD4 /* pbmd5.c in Sources */,
 				A13669B5217E89E900E0AC0B /* tr_animation.c in Sources */,
 				A1565F302109F30E00FA9BC9 /* be_ai_move.c in Sources */,
-				A1565F322109F30E00FA9BC9 /* ios_glsmp_null.c in Sources */,
 				A1565F332109F30E00FA9BC9 /* vm_interpreted.c in Sources */,
 				A1565F352109F30E00FA9BC9 /* jcsample.c in Sources */,
 				A1565F362109F30E00FA9BC9 /* jcmainct.c in Sources */,
@@ -2177,6 +2228,7 @@
 				A1565F542109F30E00FA9BC9 /* GameViewController.swift in Sources */,
 				A1565F552109F30E00FA9BC9 /* jfdctint.c in Sources */,
 				A1565F562109F30E00FA9BC9 /* md5.c in Sources */,
+				A17FF23623824C1A0003D2E5 /* sdl_glimp.c in Sources */,
 				A136694C217E885D00E0AC0B /* math_quaternion.cpp in Sources */,
 				A1366995217E89E900E0AC0B /* tr_curve.c in Sources */,
 				A1565F572109F30E00FA9BC9 /* be_aas_main.c in Sources */,
@@ -2195,11 +2247,11 @@
 				A196B7112117F0420031CEB8 /* GSMasterServerController.swift in Sources */,
 				A1565F612109F30E00FA9BC9 /* jccoefct.c in Sources */,
 				A196B7182117F0420031CEB8 /* Q3Operation.swift in Sources */,
+				A17FF23E23824FDB0003D2E5 /* sys_ios.m in Sources */,
 				A1366958217E885D00E0AC0B /* q_parse.cpp in Sources */,
 				A1366999217E89E900E0AC0B /* tr_model.c in Sources */,
 				A1565F642109F30E00FA9BC9 /* jmemnobs.c in Sources */,
 				A1565F652109F30E00FA9BC9 /* jcmaster.c in Sources */,
-				A1565F662109F30E00FA9BC9 /* ios_input.m in Sources */,
 				A196B7172117F0420031CEB8 /* Q3Parser.swift in Sources */,
 				A13669AD217E89E900E0AC0B /* tr_bsp.c in Sources */,
 				A13669E5217E89E900E0AC0B /* tr_noise.c in Sources */,
@@ -2217,6 +2269,7 @@
 				A1565F702109F30E00FA9BC9 /* jidctint.c in Sources */,
 				A1565F712109F30E00FA9BC9 /* be_aas_bspq3.c in Sources */,
 				A1565F732109F30E00FA9BC9 /* be_aas_file.c in Sources */,
+				A17FF2452382533F0003D2E5 /* AppDelegate.m in Sources */,
 				A136695C217E885D00E0AC0B /* math_angles.cpp in Sources */,
 				A1565F742109F30E00FA9BC9 /* snd_codec_wav.c in Sources */,
 				A1565F752109F30E00FA9BC9 /* be_aas_route.c in Sources */,
@@ -2237,7 +2290,6 @@
 				A1565F812109F30E00FA9BC9 /* q_math.c in Sources */,
 				A1565F822109F30E00FA9BC9 /* jdcoefct.c in Sources */,
 				A1565F832109F30E00FA9BC9 /* jdpostct.c in Sources */,
-				A1565F842109F30E00FA9BC9 /* ios_glimp.m in Sources */,
 				A1565F862109F30E00FA9BC9 /* be_ai_char.c in Sources */,
 				A1565F872109F30E00FA9BC9 /* l_crc.c in Sources */,
 				A1565F882109F30E00FA9BC9 /* be_aas_entity.c in Sources */,
@@ -2253,12 +2305,10 @@
 				A1565F922109F30E00FA9BC9 /* jcprepct.c in Sources */,
 				A13669A1217E89E900E0AC0B /* tr_surface.c in Sources */,
 				A13669A9217E89E900E0AC0B /* tr_image_tga.c in Sources */,
-				A1565F932109F30E00FA9BC9 /* ios_snddma.m in Sources */,
 				A13669B9217E89E900E0AC0B /* tr_image_png.c in Sources */,
 				A17EE1A5211A613E00811AE1 /* ServerInfoViewController.swift in Sources */,
 				A1565F952109F30E00FA9BC9 /* cmd.c in Sources */,
 				A1565F962109F30E00FA9BC9 /* snd_main.c in Sources */,
-				A1565F972109F30E00FA9BC9 /* AppDelegate.swift in Sources */,
 				A1565F982109F30E00FA9BC9 /* jcapistd.c in Sources */,
 				A1565F992109F30E00FA9BC9 /* jdatasrc.c in Sources */,
 				A161C9ED21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */,
@@ -2278,7 +2328,6 @@
 				A1565FA52109F30E00FA9BC9 /* cl_parse.c in Sources */,
 				A1565FA62109F30E00FA9BC9 /* jdmainct.c in Sources */,
 				A1565FA82109F30E00FA9BC9 /* sv_game.c in Sources */,
-				A1565FA92109F30E00FA9BC9 /* MFiGameController.swift in Sources */,
 				A1565FAA2109F30E00FA9BC9 /* cl_curl.c in Sources */,
 				A13669A5217E89E900E0AC0B /* tr_bloom.c in Sources */,
 				A1565FAB2109F30E00FA9BC9 /* cm_test.c in Sources */,
@@ -2292,14 +2341,15 @@
 				A1565FB22109F30E00FA9BC9 /* sv_bot.c in Sources */,
 				A1565FB32109F30E00FA9BC9 /* jcmarker.c in Sources */,
 				A1565FB42109F30E00FA9BC9 /* jmemmgr.c in Sources */,
+				A17FF23823824C1A0003D2E5 /* sdl_snd.c in Sources */,
 				A1565FB52109F30E00FA9BC9 /* be_aas_routealt.c in Sources */,
 				A15AA92C211B470200DE867F /* MainMenuViewController.swift in Sources */,
+				A17FF23A23824C1A0003D2E5 /* sdl_input.c in Sources */,
 				A1565FB62109F30E00FA9BC9 /* jcinit.c in Sources */,
 				A1565FB72109F30E00FA9BC9 /* snd_mix.c in Sources */,
 				A1565FB82109F30E00FA9BC9 /* jaricom.c in Sources */,
 				A13669C1217E89E900E0AC0B /* tr_backend.c in Sources */,
 				A1565FB92109F30E00FA9BC9 /* sv_world.c in Sources */,
-				A1565FBA2109F30E00FA9BC9 /* ios_main.m in Sources */,
 				A13669ED217E89E900E0AC0B /* tr_image_pcx.c in Sources */,
 				A1366948217E885D00E0AC0B /* math_matrix.cpp in Sources */,
 				A1366A01217E89E900E0AC0B /* tr_mesh.c in Sources */,
@@ -2340,7 +2390,6 @@
 				A179C2EF2101472E00D3C611 /* be_ai_weight.c in Sources */,
 				A13669F7217E89E900E0AC0B /* tr_main.c in Sources */,
 				A179C4A32101472F00D3C611 /* cmd.c in Sources */,
-				A1902E9521029767008823BB /* ios_glimp.m in Sources */,
 				A13669DF217E89E900E0AC0B /* tr_image.c in Sources */,
 				A179C3582101472E00D3C611 /* cl_console.c in Sources */,
 				A13669CB217E89E900E0AC0B /* tr_scene.c in Sources */,
@@ -2350,12 +2399,14 @@
 				A179C49D2101472F00D3C611 /* vm.c in Sources */,
 				A179C2E02101472E00D3C611 /* be_aas_routealt.c in Sources */,
 				A13669F3217E89E900E0AC0B /* tr_light.c in Sources */,
+				A17FF23D23824FDB0003D2E5 /* sys_ios.m in Sources */,
 				A179C49B2101472F00D3C611 /* files.c in Sources */,
 				A15AA92A211B470200DE867F /* MainMenuViewController.swift in Sources */,
 				A196B6DA2115FDB70031CEB8 /* Game.swift in Sources */,
 				A1366946217E885D00E0AC0B /* math_matrix.cpp in Sources */,
 				A196B6C92115F7C50031CEB8 /* MasterServerController.swift in Sources */,
 				A1510399210B7A390087EA86 /* JoyStickView.swift in Sources */,
+				A17FF23723824C1A0003D2E5 /* sdl_snd.c in Sources */,
 				A179C2FC2101472E00D3C611 /* jdapistd.c in Sources */,
 				A179C2DE2101472E00D3C611 /* be_aas_entity.c in Sources */,
 				A179C49A2101472F00D3C611 /* net_ip.c in Sources */,
@@ -2402,19 +2453,19 @@
 				A196B6882115F5680031CEB8 /* ServerBrowserViewController.swift in Sources */,
 				A196B6C12115F7C50031CEB8 /* Q3Operation.swift in Sources */,
 				A179C2DD2101472E00D3C611 /* l_script.c in Sources */,
+				A17FF23523824C1A0003D2E5 /* sdl_glimp.c in Sources */,
 				A179C3122101472E00D3C611 /* jcapistd.c in Sources */,
 				A15AA925211B43A400DE867F /* OptionsViewController.swift in Sources */,
 				A179C4A92101472F00D3C611 /* cvar.c in Sources */,
-				A1902E9221029767008823BB /* ios_snddma.m in Sources */,
 				A196B6AF2115F7C50031CEB8 /* ServerController.swift in Sources */,
 				A179C4AC2101472F00D3C611 /* cm_patch.c in Sources */,
+				A17FF23923824C1A0003D2E5 /* sdl_input.c in Sources */,
 				A179C3092101472E00D3C611 /* jcarith.c in Sources */,
 				A13669B7217E89E900E0AC0B /* tr_image_png.c in Sources */,
 				A179C3132101472E00D3C611 /* jfdctfst.c in Sources */,
 				A13669AF217E89E900E0AC0B /* tr_cmesh.c in Sources */,
 				A179C49F2101472F00D3C611 /* cm_polylib.c in Sources */,
 				A179C2E32101472E00D3C611 /* be_aas_sample.c in Sources */,
-				A1902F592108B4E4008823BB /* MFiGameController.swift in Sources */,
 				A179C2FF2101472E00D3C611 /* jdmerge.c in Sources */,
 				A179C3102101472E00D3C611 /* jutils.c in Sources */,
 				A179C2FE2101472E00D3C611 /* jdmarker.c in Sources */,
@@ -2461,19 +2512,18 @@
 				A13669EF217E89E900E0AC0B /* tr_shadows.c in Sources */,
 				A13669E7217E89E900E0AC0B /* tr_flares.c in Sources */,
 				A179C36C2101472E00D3C611 /* sv_world.c in Sources */,
-				A1902E992103F323008823BB /* ios_main.m in Sources */,
 				A196B6B32115F7C50031CEB8 /* GSMasterServerController.swift in Sources */,
 				A136699F217E89E900E0AC0B /* tr_surface.c in Sources */,
 				A1366993217E89E900E0AC0B /* tr_curve.c in Sources */,
 				A179C31B2101472E00D3C611 /* jquant2.c in Sources */,
 				A179C2E22101472E00D3C611 /* be_aas_bspq3.c in Sources */,
 				A136698F217E89E900E0AC0B /* tr_model_iqm.c in Sources */,
-				A1902E9421029767008823BB /* ios_input.m in Sources */,
 				A196B6BD2115F7C50031CEB8 /* Q3Player.swift in Sources */,
 				A179C3202101472E00D3C611 /* jcinit.c in Sources */,
 				A179C4A82101472F00D3C611 /* cm_trace.c in Sources */,
 				A179C3052101472E00D3C611 /* jcsample.c in Sources */,
 				A179C4A42101472F00D3C611 /* vm_interpreted.c in Sources */,
+				A17FF24B2382590F0003D2E5 /* SDL_uikitviewcontroller+Additions.swift in Sources */,
 				A179C2F52101472E00D3C611 /* jddctmgr.c in Sources */,
 				A179C36A2101472E00D3C611 /* sv_game.c in Sources */,
 				A179C49E2101472F00D3C611 /* cm_load.c in Sources */,
@@ -2501,6 +2551,7 @@
 				A13669EB217E89E900E0AC0B /* tr_image_pcx.c in Sources */,
 				A179C30E2101472E00D3C611 /* jquant1.c in Sources */,
 				A179C31C2101472E00D3C611 /* jidctint.c in Sources */,
+				A17FF2442382533F0003D2E5 /* AppDelegate.m in Sources */,
 				A179C3602101472E00D3C611 /* snd_openal.c in Sources */,
 				A13669D7217E89E900E0AC0B /* tr_font.c in Sources */,
 				A179C3672101472E00D3C611 /* sv_init.c in Sources */,
@@ -2511,8 +2562,6 @@
 				A1366A07217E89E900E0AC0B /* tr_marks.c in Sources */,
 				A179C4962101472F00D3C611 /* vm_none.c in Sources */,
 				A179C2DC2101472E00D3C611 /* be_aas_file.c in Sources */,
-				A1902E9121029767008823BB /* ios_glsmp_null.c in Sources */,
-				A179BFE7210142FA00D3C611 /* AppDelegate.swift in Sources */,
 				A179C2ED2101472E00D3C611 /* l_memory.c in Sources */,
 				A179C3512101472E00D3C611 /* qal.c in Sources */,
 				A179C2DF2101472E00D3C611 /* be_aas_optimize.c in Sources */,
@@ -2593,9 +2642,11 @@
 					BOTLIB,
 					C_ONLY,
 					USE_CURL,
+					USE_OPENGLES,
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/SDL/**";
 				INFOPLIST_FILE = "$(SRCROOT)/RTCW-MP-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2632,9 +2683,11 @@
 					C_ONLY,
 					NDEBUG,
 					USE_CURL,
+					USE_OPENGLES,
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/SDL/**";
 				INFOPLIST_FILE = "$(SRCROOT)/RTCW-MP-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2784,9 +2837,11 @@
 					BOTLIB,
 					C_ONLY,
 					USE_CURL,
+					USE_OPENGLES,
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/SDL/**";
 				INFOPLIST_FILE = "$(SRCROOT)/RTCW-MP-iOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2824,9 +2879,11 @@
 					C_ONLY,
 					NDEBUG,
 					USE_CURL,
+					USE_OPENGLES,
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/SDL/**";
 				INFOPLIST_FILE = "$(SRCROOT)/RTCW-MP-iOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

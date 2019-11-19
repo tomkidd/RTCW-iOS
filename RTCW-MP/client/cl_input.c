@@ -375,22 +375,7 @@ void CL_KeyMove( usercmd_t *cmd ) {
 	forward = 0;
 	side = 0;
 	up = 0;
-#ifdef IOS
-    if ( kb[KB_STRAFE].active ) {
-        side += movespeed * CL_KeyState (&kb[KB_RIGHT]);
-        side -= movespeed * CL_KeyState (&kb[KB_LEFT]);
-    }
-    
-    side += cl_joyscale_x[0] * 4.0f * CL_KeyState (&kb[KB_RIGHT]);
-    side -= cl_joyscale_x[1] * 4.0f * CL_KeyState (&kb[KB_LEFT]);
-    
-    
-    up = movespeed * CL_KeyState (&kb[KB_UP]);
-    up -= movespeed * CL_KeyState (&kb[KB_DOWN]);
-    
-    forward += cl_joyscale_y[0] * 4.0f * CL_KeyState (&kb[KB_FORWARD]);
-    forward -= cl_joyscale_y[1] * 4.0f * CL_KeyState (&kb[KB_BACK]);
-#else
+
 	if ( kb[KB_STRAFE].active ) {
 		side += movespeed * CL_KeyState( &kb[KB_RIGHT] );
 		side -= movespeed * CL_KeyState( &kb[KB_LEFT] );
@@ -416,7 +401,6 @@ void CL_KeyMove( usercmd_t *cmd ) {
 
 	forward += movespeed * CL_KeyState( &kb[KB_FORWARD] );
 	forward -= movespeed * CL_KeyState( &kb[KB_BACK] );
-    #endif
     
 	// Rafael Kick
 	kick = CL_KeyState( &kb[KB_KICK] );

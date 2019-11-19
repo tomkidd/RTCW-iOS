@@ -73,6 +73,9 @@ typedef void *GLhandleARB;
 typedef char GLcharARB;
 #endif
 
+#define GL_MAX_TEXTURE_UNITS_ARB        0x84E2
+#define GL_NUM_EXTENSIONS 0x821D
+
 extern void (APIENTRYP qglActiveTextureARB) (GLenum texture);
 extern void (APIENTRYP qglClientActiveTextureARB) (GLenum texture);
 extern void (APIENTRYP qglMultiTexCoord2fARB) (GLenum target, GLfloat s, GLfloat t);

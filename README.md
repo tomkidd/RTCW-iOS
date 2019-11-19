@@ -27,6 +27,8 @@ You can read a lengthy blog article on how I did all this [here](https://schnapp
 
 This repo was based on the work from my previous *Quake III: Arena* port (more info and attributions [here](https://github.com/tomkidd/Quake3-iOS)) and [iortcw](https://github.com/iortcw/iortcw/), a feature-parity copy of ioquake3 with RTCW changes.  On-screen joystick code came from [this repo](https://github.com/bradhowes/Joystick) by Brad Howe. Code to query servers came from [Q3ServerBrowser](https://github.com/andreagiavatto/Q3ServerBrowser) on GitHub by Andrea Giavatto, using protocol 60 instead of 68.
 
+I have now modified the code to use [SDL for iOS](https://www.libsdl.org/), employing [OpenGL ES work](https://github.com/zturtleman/ioq3/tree/opengles1) from Zack Middleton. The original, GLKit-based version is available on the [legacy](https://github.com/tomkidd/RTCW-iOS/tree/legacy) branch. 
+
 [Video of RTCW running on an iPhone X](https://www.youtube.com/watch?v=75qh0H0y2Vw)
 
 [Video of RTCW running on an Apple TV](https://www.youtube.com/watch?v=47HscfTEzvw)

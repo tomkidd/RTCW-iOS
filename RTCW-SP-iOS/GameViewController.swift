@@ -6,24 +6,14 @@
 //  Copyright © 2018 Tom Kidd. All rights reserved.
 //
 
-import GLKit
 import GameController
 
 #if os(iOS)
 import CoreMotion
 #endif
 
-// todo: not sure if Quake 3 is gonna use these
-public var gameInterrupted : Bool = false
+class GameViewController: UIViewController {
 
-public var startGame : Bool = false
-
-class GameViewController: GLKViewController, GLKViewControllerDelegate {
-    
-    var context: EAGLContext!
-    
-    var joysticksInitialized = false
-    
     var selectedMap = ""
     var selectedSavedGame = ""
 
@@ -64,28 +54,8 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        self.context = EAGLContext(api: EAGLRenderingAPI.openGLES1)!
-        EAGLContext.setCurrent(self.context)
         
-        if self.context == nil {
-            print("Failed to create ES context")
-        }
-        
-        let view = self.view as! GLKView
-        view.context = self.context
-        view.delegate = self
-        self.delegate = self
-        view.enableSetNeedsDisplay = true
-        view.drawableDepthFormat = .format24
-        view.drawableMultisample = .multisampleNone
-        view.drawableColorFormat = .RGBA8888
-        view.drawableStencilFormat = .format8
-        view.bindDrawable()
-        self.preferredFramesPerSecond = 60
-        
-        (UIApplication.shared.delegate as! AppDelegate).gameViewController = self
-        
+        (UIApplication.shared.delegate as! AppDelegate).gameViewControllerView = self.view
         
         var size = view.layer.bounds.size;
         size.width = CGFloat(roundf(Float(size.width * factor)))
@@ -109,18 +79,18 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         self.navigationController?.navigationItem.backBarButtonItem?.isEnabled = false
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
         
-        tildeButton.layer.borderColor = UIColor.white.cgColor
-        tildeButton.layer.borderWidth = 1
-        tildeButton.alpha = 0
-        escapeButton.layer.borderColor = UIColor.white.cgColor
-        escapeButton.layer.borderWidth = 1
-        escapeButton.alpha = 0
-        quickSaveButton.layer.borderColor = UIColor.white.cgColor
-        quickSaveButton.layer.borderWidth = 1
-        quickSaveButton.alpha = 0
-        quickLoadButton.layer.borderColor = UIColor.white.cgColor
-        quickLoadButton.layer.borderWidth = 1
-        quickLoadButton.alpha = 0
+//        tildeButton.layer.borderColor = UIColor.white.cgColor
+//        tildeButton.layer.borderWidth = 1
+//        tildeButton.alpha = 0
+//        escapeButton.layer.borderColor = UIColor.white.cgColor
+//        escapeButton.layer.borderWidth = 1
+//        escapeButton.alpha = 0
+//        quickSaveButton.layer.borderColor = UIColor.white.cgColor
+//        quickSaveButton.layer.borderWidth = 1
+//        quickSaveButton.alpha = 0
+//        quickLoadButton.layer.borderColor = UIColor.white.cgColor
+//        quickLoadButton.layer.borderWidth = 1
+//        quickLoadButton.alpha = 0
         #endif
         
         #if os(tvOS)
@@ -142,82 +112,108 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         
         Sys_SetHomeDir(documentsDir)
         
-        // KB_STRAFE?
-//        kb.8.active = qtrue
-        
-        #if os(iOS)
-        
-        if !joysticksInitialized {
-            
-            let rect = view.frame
-            let size = CGSize(width: 100.0, height: 100.0)
-            let joystick1Frame = CGRect(origin: CGPoint(x: 50.0,
-                                                        y: (rect.height - size.height - 50.0)),
-                                        size: size)
-            joystick1 = JoyStickView(frame: joystick1Frame)
-            joystick1.delegate = self
-            
-            view.addSubview(joystick1)
-            
-            joystick1.movable = false
-            joystick1.alpha = 0.5
-            joystick1.baseAlpha = 0.5 // let the background bleed thru the base
-            joystick1.handleTintColor = UIColor.darkGray // Colorize the handle
-            
-            fireButton = UIButton(frame: CGRect(x: rect.width - 155, y: rect.height - 90, width: 75, height: 75))
-            fireButton.setTitle("FIRE", for: .normal)
-            fireButton.setBackgroundImage(UIImage(named: "JoyStickBase")!, for: .normal)
-            fireButton.addTarget(self, action: #selector(firePressed), for: .touchDown)
-            fireButton.addTarget(self, action: #selector(fireReleased), for: .touchUpInside)
-            fireButton.alpha = 0.5
-            
-            view.addSubview(fireButton)
-            
-            jumpButton = UIButton(frame: CGRect(x: rect.width - 90, y: rect.height - 135, width: 75, height: 75))
-            jumpButton.setTitle("JUMP", for: .normal)
-            jumpButton.setBackgroundImage(UIImage(named: "JoyStickBase")!, for: .normal)
-            jumpButton.addTarget(self, action: #selector(jumpPressed), for: .touchDown)
-            jumpButton.addTarget(self, action: #selector(jumpReleased), for: .touchUpInside)
-            jumpButton.alpha = 0.5
-            
-            view.addSubview(jumpButton)
-            
-            useButton = UIButton(frame: CGRect(x: rect.width - 90, y: rect.height - 210, width: 75, height: 75))
-            useButton.setTitle("USE", for: .normal)
-            useButton.setBackgroundImage(UIImage(named: "JoyStickBase")!, for: .normal)
-            useButton.addTarget(self, action: #selector(usePressed), for: .touchDown)
-            useButton.addTarget(self, action: #selector(useReleased), for: .touchUpInside)
-            useButton.alpha = 0.5
-            
-            view.addSubview(useButton)
-            
-            joysticksInitialized = true
-        }
-        
-        #endif
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
 
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        // from Beben 3 init code
-        
-//        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+name", defaults.string(forKey: "playerName")]
-
-//        var argv: [String?] = ["b3", "+set", "com_basegame", "Main", "+set", "com_introplayed", "1"]
         var argv: [String?] = [Bundle.main.resourcePath! + "/rtcw", "+set", "com_basegame", "Main"]
 
-        if !selectedMap.isEmpty {
+        if !self.selectedMap.isEmpty {
             argv.append("+spmap")
             argv.append("cutscene1")
             argv.append("+g_spSkill")
-            argv.append(String(selectedDifficulty))
+            argv.append(String(self.selectedDifficulty))
         }
 
-        if !selectedSavedGame.isEmpty {
+        if !self.selectedSavedGame.isEmpty {
             argv.append("+loadgame")
-            argv.append(selectedSavedGame)
+            argv.append(self.selectedSavedGame)
         }
         
+        let screenBounds = UIScreen.main.bounds
+        let screenScale:CGFloat = UIScreen.main.scale
+        let screenSize = CGSize(width: screenBounds.size.width * screenScale, height: screenBounds.size.height * screenScale)
+
+        argv.append("+set")
+        argv.append("r_mode")
+        argv.append("-1")
+
+        argv.append("+set")
+        argv.append("r_customwidth")
+        argv.append("\(screenSize.width)")
+
+        argv.append("+set")
+        argv.append("r_customheight")
+        argv.append("\(screenSize.height)")
+
+        argv.append("+set")
+        argv.append("s_sdlSpeed")
+        argv.append("44100")
+        
+        argv.append("+set")
+        argv.append("r_useHiDPI")
+        argv.append("1")
+        
+        argv.append("+set")
+        argv.append("in_joystick")
+        argv.append("1")
+        
+        argv.append("+set")
+        argv.append("in_joystickUseAnalog")
+        argv.append("1")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTTRIGGER")
+        argv.append("\"+attack\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_LEFTSTICK_UP")
+        argv.append("\"+forward\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_LEFTSTICK_DOWN")
+        argv.append("\"+back\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_LEFTSTICK_LEFT")
+        argv.append("\"+moveleft\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_LEFTSTICK_RIGHT")
+        argv.append("\"+moveright\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSTICK_UP")
+        argv.append("\"+lookup\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSTICK_DOWN")
+        argv.append("\"+lookdown\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSTICK_LEFT")
+        argv.append("\"+left\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSTICK_RIGHT")
+        argv.append("\"+right\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_A")
+        argv.append("\"+moveup\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_LEFTSHOULDER")
+        argv.append("\"weapnext\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSHOULDER")
+        argv.append("\"weapprev\"")
+        
+        #if DEBUG
+        argv.append("+set")
+        argv.append("developer")
+        argv.append("1")
+        #endif
+            
         argv.append(nil)
         
         let argc:Int32 = Int32(argv.count - 1)
@@ -227,14 +223,14 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         
         for ptr in cargs { free(UnsafeMutablePointer(mutating: ptr)) }
         
-        gameInitialized = true
+            self.gameInitialized = true
         
         #if os(iOS)
-        if defaults.integer(forKey: "tiltAiming") == 1 {
-            motionManager.startDeviceMotionUpdates()
+        if self.defaults.integer(forKey: "tiltAiming") == 1 {
+            self.motionManager.startDeviceMotionUpdates()
         }
         #endif
-
+        }
     }
     
     @objc func menuButtonAction() {
@@ -243,28 +239,22 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-        
-        if EAGLContext.current() == self.context {
-            EAGLContext.setCurrent(nil)
-        }
-
     }
     
     @objc func firePressed(sender: UIButton!) {
-        MFiGameController.KeyEvent(key: K_MOUSE1, down: true)
+        KeyEvent(key: K_MOUSE1, down: true)
     }
     
     @objc func fireReleased(sender: UIButton!) {
-        MFiGameController.KeyEvent(key: K_MOUSE1, down: false)
+        KeyEvent(key: K_MOUSE1, down: false)
     }
     
     @objc func jumpPressed(sender: UIButton!) {
-        MFiGameController.KeyEvent(key: K_SPACE, down: true)
+        KeyEvent(key: K_SPACE, down: true)
     }
     
     @objc func jumpReleased(sender: UIButton!) {
-        MFiGameController.KeyEvent(key: K_SPACE, down: false)
+        KeyEvent(key: K_SPACE, down: false)
     }
     
     @objc func usePressed(sender: UIButton!) {
@@ -330,13 +320,6 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
         CL_KeyEvent(Int32(K_MWHEELDOWN.rawValue), qfalse, UInt32(Sys_Milliseconds()))
     }
     
-    //MARK: GLKViewDelegate
-    
-    override func glkView(_ view: GLKView, drawIn rect: CGRect) {
-        
-        
-    }
-    
     func handleTouches(_ touches: Set<UITouch>) {
         for touch in touches {
             var mouseLocation = CGPoint(x: 0, y: 0)
@@ -396,106 +379,22 @@ class GameViewController: GLKViewController, GLKViewControllerDelegate {
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
-            MFiGameController.KeyEvent(key: K_MOUSE1, down: true)
-            MFiGameController.KeyEvent(key: K_MOUSE1, down: false)
+            KeyEvent(key: K_MOUSE1, down: true)
+            KeyEvent(key: K_MOUSE1, down: false)
         } else {
             super.touchesBegan(touches, with: event)
         }
     }
-    
-//    - (void)_handleMenuDragToPoint:(CGPoint)point {
-//    int deltaX = (point.x - (self.bounds.size.width-640)) * 640/480;
-//    int deltaY = point.y * 1.3;
-//    ri.Printf(PRINT_DEVELOPER, "%s: deltaX = %d, deltaY = %d\n", __PRETTY_FUNCTION__, deltaX, deltaY);
-//    CL_MouseEvent(deltaX, deltaY, Sys_Milliseconds(), qtrue);
-//    }
     
     func handleMenuDragToPoint(point: CGPoint) {
         let deltaX:Int32 = Int32((point.x/self.view.bounds.size.width) * 640)
         let deltaY:Int32 = Int32((point.y/self.view.bounds.size.height) * 480)
         CL_MouseEvent(deltaX, deltaY, Sys_Milliseconds(), qtrue)
     }
-
-
-    // MARK: GLKViewControllerDelegate
     
-    func radiansToDegrees(_ radians: Double) -> Double {
-        return radians * (180.0 / Double.pi)
-    }
-    
-    func glkViewControllerUpdate(_ controller: GLKViewController) {
-        cl.viewangles.1 -= MFiGameController.yawValue
-        cl.viewangles.0 -= MFiGameController.pitchValue
-        
-        if gameInitialized {
-            
-            #if os(iOS)
-            if defaults.integer(forKey: "tiltAiming") == 1 {
-                if let data = motionManager.deviceMotion {
-                    
-                    cl.viewangles.0 = -Float((data.attitude.roll - 1.5) * 45)
-                    //print("roll: \(data.attitude.roll) cl.viewangles.0: \(cl.viewangles.0)")
-                }
-            }
-            #endif
-
-            Com_Frame();
-            
-            #if os(iOS)
-            if Key_GetCatcher() & KEYCATCH_UI != 0 {
-                joystick1.isHidden = true
-                fireButton.isHidden = true
-                jumpButton.isHidden = true
-                useButton.isHidden = true
-                prevWeaponButton.isHidden = true
-                nextWeaponButton.isHidden = true
-//                buttonStack.isHidden = true
-            } else {
-                joystick1.isHidden = false
-                fireButton.isHidden = false
-                jumpButton.isHidden = false
-                useButton.isHidden = false
-                prevWeaponButton.isHidden = false
-                nextWeaponButton.isHidden = false
-//                buttonStack.isHidden = false
-            }
-            #endif
-            
-        
-        }
-
-    }
-
+    func KeyEvent(key: keyNum_t, down: Bool) {
+          CL_KeyEvent(Int32(key.rawValue), qboolean(rawValue: down ? 1 : 0), UInt32(Sys_Milliseconds()))
+  }
 
 }
-
-#if os(iOS)
-extension GameViewController: JoystickDelegate {
-    
-    func handleJoyStickPosition(x: CGFloat, y: CGFloat) {
-        
-        if y > 0 {
-            cl_joyscale_y.0 = Int32(abs(y) * 60)
-            MFiGameController.KeyEvent(key: K_UPARROW, down: true)
-            MFiGameController.KeyEvent(key: K_DOWNARROW, down: false)
-        } else if y < 0 {
-            cl_joyscale_y.1 = Int32(abs(y) * 60)
-            MFiGameController.KeyEvent(key: K_UPARROW, down: false)
-            MFiGameController.KeyEvent(key: K_DOWNARROW, down: true)
-        } else {
-            cl_joyscale_y.0 = 0
-            cl_joyscale_y.1 = 0
-            MFiGameController.KeyEvent(key: K_UPARROW, down: false)
-            MFiGameController.KeyEvent(key: K_DOWNARROW, down: false)
-        }
-
-        MFiGameController.yawValue = Float((x * 8))
-    }
-    
-    func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
-        //        print("angle: \(angle) displacement: \(displacement)")
-    }
-    
-}
-#endif
 

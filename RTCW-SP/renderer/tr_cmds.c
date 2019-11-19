@@ -340,10 +340,6 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	tr.frameCount++;
 	tr.frameSceneNum = 0;
 
-#ifdef IOS
-    GLimp_AcquireGL();
-#endif
-    
 	//
 	// do overdraw measurement
 	//

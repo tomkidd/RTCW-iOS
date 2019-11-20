@@ -465,7 +465,12 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 			);
 #endif
 
-	// If a window exists, note its display index
+#ifdef IOS
+        // fixes issue with launching mods
+        SDL_window = NULL;
+#endif
+
+    // If a window exists, note its display index
 	if( SDL_window != NULL )
 	{
 		display = SDL_GetWindowDisplayIndex( SDL_window );

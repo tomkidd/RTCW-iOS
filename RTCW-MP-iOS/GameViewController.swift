@@ -125,7 +125,6 @@ class GameViewController: UIViewController {
         argv.append("+set")
         argv.append("r_fullscreen")
         argv.append("1")
-            //
         
         argv.append("+set")
         argv.append("in_joystick")

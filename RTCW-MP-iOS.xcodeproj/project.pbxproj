@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -246,6 +246,10 @@
 		A161C9E821B1FC6D009FAFD4 /* pbmd5.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9E521B1FC0B009FAFD4 /* pbmd5.c */; };
 		A161C9EB21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */; };
 		A161C9ED21B1FC7C009FAFD4 /* sv_wallhack.c in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */; };
+		A16B761A24ABFC5E00D96F09 /* CocoaAsyncSocket in Frameworks */ = {isa = PBXBuildFile; productRef = A16B761924ABFC5E00D96F09 /* CocoaAsyncSocket */; };
+		A16B761D24ABFCB700D96F09 /* FontAwesome in Frameworks */ = {isa = PBXBuildFile; productRef = A16B761C24ABFCB700D96F09 /* FontAwesome */; };
+		A16B761F24ABFCCD00D96F09 /* CocoaAsyncSocket in Frameworks */ = {isa = PBXBuildFile; productRef = A16B761E24ABFCCD00D96F09 /* CocoaAsyncSocket */; };
+		A16B762124ABFCCD00D96F09 /* FontAwesome in Frameworks */ = {isa = PBXBuildFile; productRef = A16B762024ABFCCD00D96F09 /* FontAwesome */; };
 		A179BFE9210142FA00D3C611 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A179BFE8210142FA00D3C611 /* GameViewController.swift */; };
 		A179BFEC210142FA00D3C611 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A179BFEA210142FA00D3C611 /* Main.storyboard */; };
 		A179BFEE210142FB00D3C611 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A179BFED210142FB00D3C611 /* Assets.xcassets */; };
@@ -386,11 +390,8 @@
 		A17EE1A3211A611E00811AE1 /* ServerListViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E121167B890031CEB8 /* ServerListViewCell.swift */; };
 		A17EE1A5211A613E00811AE1 /* ServerInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E7211683510031CEB8 /* ServerInfoViewController.swift */; };
 		A17EE1A7211A614200811AE1 /* ServerFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */; };
-		A17EE1AA211A62BB00811AE1 /* CocoaAsyncSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		A17EE1AF211A630600811AE1 /* FontAwesome.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7362117F0610031CEB8 /* FontAwesome.framework */; };
-		A17EE1B0211A630600811AE1 /* FontAwesome.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7362117F0610031CEB8 /* FontAwesome.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		A17FF23523824C1A0003D2E5 /* sdl_glimp.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23023824C1A0003D2E5 /* sdl_glimp.c */; };
-		A17FF23623824C1A0003D2E5 /* sdl_glimp.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23023824C1A0003D2E5 /* sdl_glimp.c */; };
+		A17FF23523824C1A0003D2E5 /* sdl_glimp.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23023824C1A0003D2E5 /* sdl_glimp.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		A17FF23623824C1A0003D2E5 /* sdl_glimp.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23023824C1A0003D2E5 /* sdl_glimp.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A17FF23723824C1A0003D2E5 /* sdl_snd.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23123824C1A0003D2E5 /* sdl_snd.c */; };
 		A17FF23823824C1A0003D2E5 /* sdl_snd.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23123824C1A0003D2E5 /* sdl_snd.c */; };
 		A17FF23923824C1A0003D2E5 /* sdl_input.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF23223824C1A0003D2E5 /* sdl_input.c */; };
@@ -426,12 +427,9 @@
 		A196B6E321167B890031CEB8 /* ServerListViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E121167B890031CEB8 /* ServerListViewCell.swift */; };
 		A196B6E521167B890031CEB8 /* ServerListViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = A196B6E221167B890031CEB8 /* ServerListViewCell.xib */; };
 		A196B6E8211683510031CEB8 /* ServerInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6E7211683510031CEB8 /* ServerInfoViewController.swift */; };
-		A196B6F12117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */; };
-		A196B6F22117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A196B7012117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */; };
 		A196B7082117EF820031CEB8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7062117EF750031CEB8 /* AudioToolbox.framework */; };
 		A196B7092117EF820031CEB8 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7052117EF750031CEB8 /* AVFoundation.framework */; };
-		A196B70A2117EF820031CEB8 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7072117EF750031CEB8 /* GLKit.framework */; };
 		A196B70E2117F0420031CEB8 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68E2115F7C50031CEB8 /* Coordinator.swift */; };
 		A196B70F2117F0420031CEB8 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6D92115FDB70031CEB8 /* Game.swift */; };
 		A196B7102117F0420031CEB8 /* ServerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6902115F7C50031CEB8 /* ServerController.swift */; };
@@ -452,10 +450,7 @@
 		A196B71F2117F0420031CEB8 /* Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68B2115F7C50031CEB8 /* Server.swift */; };
 		A196B7202117F0420031CEB8 /* SQLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A62115F7C50031CEB8 /* SQLError.swift */; };
 		A196B7212117F0420031CEB8 /* SupportedGames.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A42115F7C50031CEB8 /* SupportedGames.swift */; };
-		A196B73A2117F0610031CEB8 /* CocoaAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */; };
 		A196B73C2117F0800031CEB8 /* GSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6942115F7C50031CEB8 /* GSCoordinator.swift */; };
-		A196B7402117F18D0031CEB8 /* FontAwesome.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; };
-		A196B7412117F18D0031CEB8 /* FontAwesome.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A196B7432117FFA30031CEB8 /* ServerFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */; };
 		A1E66CFD2381DEF100D69D7C /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1E66CFA2381DECC00D69D7C /* libSDL2.a */; };
 		A1E66CFE2381DEF800D69D7C /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1E66CFC2381DECC00D69D7C /* libSDL2.a */; };
@@ -479,26 +474,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		A17EE1AB211A62BB00811AE1 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				A17EE1AA211A62BB00811AE1 /* CocoaAsyncSocket.framework in Embed Frameworks */,
-				A17EE1B0211A630600811AE1 /* FontAwesome.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		A196B6F32117ECCD0031CEB8 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				A196B6F22117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Embed Frameworks */,
-				A196B7412117F18D0031CEB8 /* FontAwesome.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1077,11 +1058,8 @@
 		A196B6E121167B890031CEB8 /* ServerListViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerListViewCell.swift; sourceTree = "<group>"; };
 		A196B6E221167B890031CEB8 /* ServerListViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ServerListViewCell.xib; sourceTree = "<group>"; };
 		A196B6E7211683510031CEB8 /* ServerInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerInfoViewController.swift; sourceTree = "<group>"; };
-		A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CocoaAsyncSocket.framework; sourceTree = "<group>"; };
-		A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FontAwesome.framework; path = Carthage/Build/iOS/FontAwesome.framework; sourceTree = "<group>"; };
 		A196B6FB2117EEF00031CEB8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
-		A196B6FD2117EF080031CEB8 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		A196B7052117EF750031CEB8 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS11.4.sdk/System/Library/Frameworks/AVFoundation.framework; sourceTree = DEVELOPER_DIR; };
 		A196B7062117EF750031CEB8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS11.4.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
@@ -1098,15 +1076,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1E66CFE2381DEF800D69D7C /* libSDL2.a in Frameworks */,
-				A196B73A2117F0610031CEB8 /* CocoaAsyncSocket.framework in Frameworks */,
 				A1565FF2210A0F4900FA9BC9 /* libcrypto.a in Frameworks */,
+				A16B762124ABFCCD00D96F09 /* FontAwesome in Frameworks */,
 				A1565FF3210A0F4900FA9BC9 /* libnghttp2_tvOS.a in Frameworks */,
 				A196B7092117EF820031CEB8 /* AVFoundation.framework in Frameworks */,
+				A16B761F24ABFCCD00D96F09 /* CocoaAsyncSocket in Frameworks */,
 				A196B7082117EF820031CEB8 /* AudioToolbox.framework in Frameworks */,
-				A196B70A2117EF820031CEB8 /* GLKit.framework in Frameworks */,
 				A1565FF4210A0F4900FA9BC9 /* libssl.a in Frameworks */,
 				A1565FE2210A0D3E00FA9BC9 /* libcurl_tvOS.a in Frameworks */,
-				A17EE1AF211A630600811AE1 /* FontAwesome.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1115,11 +1092,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1565FEB210A0E6F00FA9BC9 /* libnghttp2_iOS.a in Frameworks */,
-				A196B7402117F18D0031CEB8 /* FontAwesome.framework in Frameworks */,
 				A17FF25D2383AAAA0003D2E5 /* AVFoundation.framework in Frameworks */,
+				A16B761D24ABFCB700D96F09 /* FontAwesome in Frameworks */,
 				A1565FE8210A0E4A00FA9BC9 /* libssl.a in Frameworks */,
-				A196B6F12117ECCD0031CEB8 /* CocoaAsyncSocket.framework in Frameworks */,
 				A1E66CFD2381DEF100D69D7C /* libSDL2.a in Frameworks */,
+				A16B761A24ABFC5E00D96F09 /* CocoaAsyncSocket in Frameworks */,
 				A1565FE9210A0E4A00FA9BC9 /* libcrypto.a in Frameworks */,
 				A1565FE4210A0DEF00FA9BC9 /* libcurl_iOS.a in Frameworks */,
 				A196B7012117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */,
@@ -1993,9 +1970,6 @@
 			children = (
 				A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */,
 				A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */,
-				A196B6EE2117EC870031CEB8 /* CocoaAsyncSocket.framework */,
-				A196B6F62117EE4F0031CEB8 /* FontAwesome.framework */,
-				A196B6FD2117EF080031CEB8 /* GLKit.framework */,
 				A1565FE7210A0E4A00FA9BC9 /* libcrypto.a */,
 				A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */,
 				A1565FEA210A0E6F00FA9BC9 /* libnghttp2_iOS.a */,
@@ -2041,13 +2015,16 @@
 				A1565F222109F30E00FA9BC9 /* Sources */,
 				A1565FCF2109F30E00FA9BC9 /* Frameworks */,
 				A1565FD32109F30E00FA9BC9 /* Resources */,
-				A17EE1AB211A62BB00811AE1 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = "RTCW-MP-tvOS";
+			packageProductDependencies = (
+				A16B761E24ABFCCD00D96F09 /* CocoaAsyncSocket */,
+				A16B762024ABFCCD00D96F09 /* FontAwesome */,
+			);
 			productName = "Quake3-tvOS";
 			productReference = A1565FDA2109F30E00FA9BC9 /* RTCW-MP-tvOS.app */;
 			productType = "com.apple.product-type.application";
@@ -2067,6 +2044,10 @@
 			dependencies = (
 			);
 			name = "RTCW-MP-iOS";
+			packageProductDependencies = (
+				A16B761924ABFC5E00D96F09 /* CocoaAsyncSocket */,
+				A16B761C24ABFCB700D96F09 /* FontAwesome */,
+			);
 			productName = "Quake3-iOS11";
 			productReference = A179BFE3210142FA00D3C611 /* RTCW-MP-iOS.app */;
 			productType = "com.apple.product-type.application";
@@ -2099,6 +2080,10 @@
 				Base,
 			);
 			mainGroup = A179BFDA210142F900D3C611;
+			packageReferences = (
+				A16B761824ABFC5E00D96F09 /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */,
+				A16B761B24ABFCB700D96F09 /* XCRemoteSwiftPackageReference "FontAwesome" */,
+			);
 			productRefGroup = A179BFE4210142FA00D3C611 /* Products */;
 			projectDirPath = "";
 			projectReferences = (
@@ -2631,10 +2616,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 9UY8SFDNQ8;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Carthage/Build/tvOS",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2671,10 +2653,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 9UY8SFDNQ8;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Carthage/Build/tvOS",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2828,7 +2807,6 @@
 				ENABLE_BITCODE = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Carthage/Build/iOS",
 					"$(PROJECT_DIR)",
 				);
 				GCC_OPTIMIZATION_LEVEL = s;
@@ -2869,7 +2847,6 @@
 				ENABLE_BITCODE = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Carthage/Build/iOS",
 					"$(PROJECT_DIR)",
 				);
 				GCC_OPTIMIZATION_LEVEL = s;
@@ -2932,6 +2909,48 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A16B761824ABFC5E00D96F09 /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/robbiehanson/CocoaAsyncSocket";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.6.4;
+			};
+		};
+		A16B761B24ABFCB700D96F09 /* XCRemoteSwiftPackageReference "FontAwesome" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/thii/FontAwesome.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.9.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A16B761924ABFC5E00D96F09 /* CocoaAsyncSocket */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A16B761824ABFC5E00D96F09 /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */;
+			productName = CocoaAsyncSocket;
+		};
+		A16B761C24ABFCB700D96F09 /* FontAwesome */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A16B761B24ABFCB700D96F09 /* XCRemoteSwiftPackageReference "FontAwesome" */;
+			productName = FontAwesome;
+		};
+		A16B761E24ABFCCD00D96F09 /* CocoaAsyncSocket */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A16B761824ABFC5E00D96F09 /* XCRemoteSwiftPackageReference "CocoaAsyncSocket" */;
+			productName = CocoaAsyncSocket;
+		};
+		A16B762024ABFCCD00D96F09 /* FontAwesome */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A16B761B24ABFCB700D96F09 /* XCRemoteSwiftPackageReference "FontAwesome" */;
+			productName = FontAwesome;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A179BFDB210142F900D3C611 /* Project object */;
 }

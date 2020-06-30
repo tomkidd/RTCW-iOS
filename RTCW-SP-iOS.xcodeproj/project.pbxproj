@@ -230,20 +230,14 @@
 		A1565FCE2109F30E00FA9BC9 /* jdhuff.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0612101470F00D3C611 /* jdhuff.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565FD42109F30E00FA9BC9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1902F68210939BC008823BB /* Assets.xcassets */; };
 		A1565FD52109F30E00FA9BC9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A1902F65210939BA008823BB /* Main.storyboard */; };
-		A1565FE2210A0D3E00FA9BC9 /* libcurl_tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FE1210A0D3E00FA9BC9 /* libcurl_tvOS.a */; };
-		A1565FE4210A0DEF00FA9BC9 /* libcurl_iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */; };
-		A1565FE8210A0E4A00FA9BC9 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FE6210A0E4A00FA9BC9 /* libssl.a */; };
-		A1565FE9210A0E4A00FA9BC9 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FE7210A0E4A00FA9BC9 /* libcrypto.a */; };
-		A1565FEB210A0E6F00FA9BC9 /* libnghttp2_iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FEA210A0E6F00FA9BC9 /* libnghttp2_iOS.a */; };
-		A1565FF2210A0F4900FA9BC9 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FEF210A0F4900FA9BC9 /* libcrypto.a */; };
-		A1565FF3210A0F4900FA9BC9 /* libnghttp2_tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FF0210A0F4900FA9BC9 /* libnghttp2_tvOS.a */; };
-		A1565FF4210A0F4900FA9BC9 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FF1210A0F4900FA9BC9 /* libssl.a */; };
 		A15AA925211B43A400DE867F /* OptionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA924211B43A400DE867F /* OptionsViewController.swift */; };
 		A15AA927211B43A400DE867F /* OptionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA924211B43A400DE867F /* OptionsViewController.swift */; };
 		A15AA92A211B470200DE867F /* MainMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA929211B470200DE867F /* MainMenuViewController.swift */; };
 		A15AA92C211B470200DE867F /* MainMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA929211B470200DE867F /* MainMenuViewController.swift */; };
 		A161C9F021B6299E009FAFD4 /* SavedGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */; };
 		A161C9F221B6299E009FAFD4 /* SavedGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */; };
+		A16B760F24ABF99900D96F09 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B760B24ABF98E00D96F09 /* AudioToolbox.framework */; };
+		A16B761024ABF99900D96F09 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B760C24ABF98E00D96F09 /* AVFoundation.framework */; };
 		A179BFE9210142FA00D3C611 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A179BFE8210142FA00D3C611 /* GameViewController.swift */; };
 		A179BFEC210142FA00D3C611 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A179BFEA210142FA00D3C611 /* Main.storyboard */; };
 		A179BFEE210142FB00D3C611 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A179BFED210142FB00D3C611 /* Assets.xcassets */; };
@@ -383,8 +377,8 @@
 		A17EE19F211A610200811AE1 /* DifficultyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15103A6210D76F50087EA86 /* DifficultyViewController.swift */; };
 		A17FF2162381DFDD0003D2E5 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A17FF2132381DFCF0003D2E5 /* libSDL2.a */; };
 		A17FF2172381DFE10003D2E5 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A17FF2152381DFCF0003D2E5 /* libSDL2.a */; };
-		A17FF22723824BD70003D2E5 /* sdl_glimp.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF22223824BD70003D2E5 /* sdl_glimp.c */; };
-		A17FF22823824BD70003D2E5 /* sdl_glimp.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF22223824BD70003D2E5 /* sdl_glimp.c */; };
+		A17FF22723824BD70003D2E5 /* sdl_glimp.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF22223824BD70003D2E5 /* sdl_glimp.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		A17FF22823824BD70003D2E5 /* sdl_glimp.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF22223824BD70003D2E5 /* sdl_glimp.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A17FF22923824BD70003D2E5 /* sdl_snd.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF22323824BD70003D2E5 /* sdl_snd.c */; };
 		A17FF22A23824BD70003D2E5 /* sdl_snd.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF22323824BD70003D2E5 /* sdl_snd.c */; };
 		A17FF22B23824BD70003D2E5 /* sdl_input.c in Sources */ = {isa = PBXBuildFile; fileRef = A17FF22423824BD70003D2E5 /* sdl_input.c */; };
@@ -396,9 +390,14 @@
 		A17FF24E238259210003D2E5 /* SDL_uikitviewcontroller+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17FF24D238259200003D2E5 /* SDL_uikitviewcontroller+Additions.swift */; };
 		A17FF24F238262720003D2E5 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */; };
 		A196B7012117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */; };
-		A196B7082117EF820031CEB8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7062117EF750031CEB8 /* AudioToolbox.framework */; };
-		A196B7092117EF820031CEB8 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7052117EF750031CEB8 /* AVFoundation.framework */; };
-		A196B70A2117EF820031CEB8 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B7072117EF750031CEB8 /* GLKit.framework */; };
+		A1DBB62F24A173DA0021BA6F /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DBB62C24A173DA0021BA6F /* libssl.a */; };
+		A1DBB63024A173DA0021BA6F /* libcurl_iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DBB62D24A173DA0021BA6F /* libcurl_iOS.a */; };
+		A1DBB63124A173DA0021BA6F /* libnghttp2_iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DBB62E24A173DA0021BA6F /* libnghttp2_iOS.a */; };
+		A1DBB63324A173F30021BA6F /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DBB63224A173F30021BA6F /* libcrypto.a */; };
+		A1DBB63824A174290021BA6F /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DBB63424A174290021BA6F /* libssl.a */; };
+		A1DBB63924A174290021BA6F /* libnghttp2_tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DBB63524A174290021BA6F /* libnghttp2_tvOS.a */; };
+		A1DBB63A24A174290021BA6F /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DBB63624A174290021BA6F /* libcrypto.a */; };
+		A1DBB63B24A174290021BA6F /* libcurl_tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DBB63724A174290021BA6F /* libcurl_tvOS.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -567,17 +566,11 @@
 		A151039E210D50D40087EA86 /* dpquake.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = dpquake.ttf; sourceTree = "<group>"; };
 		A15103A6210D76F50087EA86 /* DifficultyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DifficultyViewController.swift; sourceTree = "<group>"; };
 		A1565FDA2109F30E00FA9BC9 /* RTCW-SP-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-SP-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_iOS.a; path = Quake3/libs/ios/libcurl_iOS.a; sourceTree = "<group>"; };
-		A1565FE1210A0D3E00FA9BC9 /* libcurl_tvOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_tvOS.a; path = Quake3/libs/tvos/libcurl_tvOS.a; sourceTree = "<group>"; };
-		A1565FE6210A0E4A00FA9BC9 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = Quake3/libs/ios/libssl.a; sourceTree = "<group>"; };
-		A1565FE7210A0E4A00FA9BC9 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = Quake3/libs/ios/libcrypto.a; sourceTree = "<group>"; };
-		A1565FEA210A0E6F00FA9BC9 /* libnghttp2_iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libnghttp2_iOS.a; path = Quake3/libs/ios/libnghttp2_iOS.a; sourceTree = "<group>"; };
-		A1565FEF210A0F4900FA9BC9 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = Quake3/libs/tvos/libcrypto.a; sourceTree = "<group>"; };
-		A1565FF0210A0F4900FA9BC9 /* libnghttp2_tvOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libnghttp2_tvOS.a; path = Quake3/libs/tvos/libnghttp2_tvOS.a; sourceTree = "<group>"; };
-		A1565FF1210A0F4900FA9BC9 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = Quake3/libs/tvos/libssl.a; sourceTree = "<group>"; };
 		A15AA924211B43A400DE867F /* OptionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsViewController.swift; sourceTree = "<group>"; };
 		A15AA929211B470200DE867F /* MainMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuViewController.swift; sourceTree = "<group>"; };
 		A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedGameViewController.swift; sourceTree = "<group>"; };
+		A16B760B24ABF98E00D96F09 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS13.4.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
+		A16B760C24ABF98E00D96F09 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS13.4.sdk/System/Library/Frameworks/AVFoundation.framework; sourceTree = DEVELOPER_DIR; };
 		A179BFE3210142FA00D3C611 /* RTCW-SP-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-SP-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A179BFE8210142FA00D3C611 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		A179BFEB210142FA00D3C611 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -984,20 +977,22 @@
 		A17FF246238253590003D2E5 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		A17FF247238253590003D2E5 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		A17FF24D238259200003D2E5 /* SDL_uikitviewcontroller+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SDL_uikitviewcontroller+Additions.swift"; sourceTree = "<group>"; };
-		A17FF25323838E7F0003D2E5 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS13.2.sdk/System/Library/Frameworks/AVFoundation.framework; sourceTree = DEVELOPER_DIR; };
 		A1902E982103EFC7008823BB /* bridging.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bridging.h; sourceTree = "<group>"; };
 		A1902F61210939BA008823BB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A1902F63210939BA008823BB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		A1902F66210939BA008823BB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A1902F68210939BC008823BB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1902F6A210939BC008823BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A196B6FB2117EEF00031CEB8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
-		A196B6FD2117EF080031CEB8 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
-		A196B7052117EF750031CEB8 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS11.4.sdk/System/Library/Frameworks/AVFoundation.framework; sourceTree = DEVELOPER_DIR; };
-		A196B7062117EF750031CEB8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS11.4.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
-		A196B7072117EF750031CEB8 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS11.4.sdk/System/Library/Frameworks/GLKit.framework; sourceTree = DEVELOPER_DIR; };
+		A1DBB62C24A173DA0021BA6F /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = "RTCW-SP/libs/ios/libssl.a"; sourceTree = "<group>"; };
+		A1DBB62D24A173DA0021BA6F /* libcurl_iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_iOS.a; path = "RTCW-SP/libs/ios/libcurl_iOS.a"; sourceTree = "<group>"; };
+		A1DBB62E24A173DA0021BA6F /* libnghttp2_iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libnghttp2_iOS.a; path = "RTCW-SP/libs/ios/libnghttp2_iOS.a"; sourceTree = "<group>"; };
+		A1DBB63224A173F30021BA6F /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "RTCW-SP/libs/ios/libcrypto.a"; sourceTree = "<group>"; };
+		A1DBB63424A174290021BA6F /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = "RTCW-SP/libs/tvos/libssl.a"; sourceTree = "<group>"; };
+		A1DBB63524A174290021BA6F /* libnghttp2_tvOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libnghttp2_tvOS.a; path = "RTCW-SP/libs/tvos/libnghttp2_tvOS.a"; sourceTree = "<group>"; };
+		A1DBB63624A174290021BA6F /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "RTCW-SP/libs/tvos/libcrypto.a"; sourceTree = "<group>"; };
+		A1DBB63724A174290021BA6F /* libcurl_tvOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_tvOS.a; path = "RTCW-SP/libs/tvos/libcurl_tvOS.a"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1005,14 +1000,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1565FF2210A0F4900FA9BC9 /* libcrypto.a in Frameworks */,
-				A1565FF3210A0F4900FA9BC9 /* libnghttp2_tvOS.a in Frameworks */,
-				A196B7092117EF820031CEB8 /* AVFoundation.framework in Frameworks */,
-				A196B7082117EF820031CEB8 /* AudioToolbox.framework in Frameworks */,
+				A1DBB63924A174290021BA6F /* libnghttp2_tvOS.a in Frameworks */,
+				A1DBB63B24A174290021BA6F /* libcurl_tvOS.a in Frameworks */,
+				A1DBB63824A174290021BA6F /* libssl.a in Frameworks */,
+				A1DBB63A24A174290021BA6F /* libcrypto.a in Frameworks */,
 				A17FF2172381DFE10003D2E5 /* libSDL2.a in Frameworks */,
-				A196B70A2117EF820031CEB8 /* GLKit.framework in Frameworks */,
-				A1565FF4210A0F4900FA9BC9 /* libssl.a in Frameworks */,
-				A1565FE2210A0D3E00FA9BC9 /* libcurl_tvOS.a in Frameworks */,
+				A16B761024ABF99900D96F09 /* AVFoundation.framework in Frameworks */,
+				A16B760F24ABF99900D96F09 /* AudioToolbox.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1020,13 +1014,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1565FEB210A0E6F00FA9BC9 /* libnghttp2_iOS.a in Frameworks */,
-				A1565FE8210A0E4A00FA9BC9 /* libssl.a in Frameworks */,
+				A1DBB62F24A173DA0021BA6F /* libssl.a in Frameworks */,
 				A17FF2162381DFDD0003D2E5 /* libSDL2.a in Frameworks */,
-				A1565FE9210A0E4A00FA9BC9 /* libcrypto.a in Frameworks */,
-				A1565FE4210A0DEF00FA9BC9 /* libcurl_iOS.a in Frameworks */,
 				A17FF24F238262720003D2E5 /* AVFoundation.framework in Frameworks */,
+				A1DBB63124A173DA0021BA6F /* libnghttp2_iOS.a in Frameworks */,
 				A196B7012117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */,
+				A1DBB63024A173DA0021BA6F /* libcurl_iOS.a in Frameworks */,
+				A1DBB63324A173F30021BA6F /* libcrypto.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1818,12 +1812,10 @@
 			children = (
 				A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */,
 				A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */,
-				A196B6FD2117EF080031CEB8 /* GLKit.framework */,
-				A1565FE7210A0E4A00FA9BC9 /* libcrypto.a */,
-				A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */,
-				A1565FEA210A0E6F00FA9BC9 /* libnghttp2_iOS.a */,
-				A1565FE6210A0E4A00FA9BC9 /* libssl.a */,
-				A196B6FB2117EEF00031CEB8 /* AudioToolbox.framework */,
+				A1DBB63224A173F30021BA6F /* libcrypto.a */,
+				A1DBB62D24A173DA0021BA6F /* libcurl_iOS.a */,
+				A1DBB62E24A173DA0021BA6F /* libnghttp2_iOS.a */,
+				A1DBB62C24A173DA0021BA6F /* libssl.a */,
 			);
 			name = iOS;
 			sourceTree = "<group>";
@@ -1831,14 +1823,12 @@
 		A196B6FA2117EE750031CEB8 /* tvOS */ = {
 			isa = PBXGroup;
 			children = (
-				A17FF25323838E7F0003D2E5 /* AVFoundation.framework */,
-				A196B7062117EF750031CEB8 /* AudioToolbox.framework */,
-				A196B7052117EF750031CEB8 /* AVFoundation.framework */,
-				A196B7072117EF750031CEB8 /* GLKit.framework */,
-				A1565FEF210A0F4900FA9BC9 /* libcrypto.a */,
-				A1565FE1210A0D3E00FA9BC9 /* libcurl_tvOS.a */,
-				A1565FF0210A0F4900FA9BC9 /* libnghttp2_tvOS.a */,
-				A1565FF1210A0F4900FA9BC9 /* libssl.a */,
+				A16B760B24ABF98E00D96F09 /* AudioToolbox.framework */,
+				A16B760C24ABF98E00D96F09 /* AVFoundation.framework */,
+				A1DBB63624A174290021BA6F /* libcrypto.a */,
+				A1DBB63724A174290021BA6F /* libcurl_tvOS.a */,
+				A1DBB63524A174290021BA6F /* libnghttp2_tvOS.a */,
+				A1DBB63424A174290021BA6F /* libssl.a */,
 			);
 			name = tvOS;
 			sourceTree = "<group>";

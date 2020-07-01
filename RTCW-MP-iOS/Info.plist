@@ -46,5 +46,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Return to Castle Wolfenstein Multiplayer would like to remain connected to nearby bluetooth Game Controllers and Game Pads even when you’re not using the app.</string>
 </dict>
 </plist>

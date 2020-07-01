@@ -91,8 +91,6 @@
 		A1366A11217E89E900E0AC0B /* tr_shader.c in Sources */ = {isa = PBXBuildFile; fileRef = A136698E217E89E900E0AC0B /* tr_shader.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1510399210B7A390087EA86 /* JoyStickView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1510398210B7A390087EA86 /* JoyStickView.swift */; };
 		A151039C210B7A890087EA86 /* CoreGraphics+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A151039B210B7A890087EA86 /* CoreGraphics+Additions.swift */; };
-		A151039F210D50D50087EA86 /* dpquake.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A151039E210D50D40087EA86 /* dpquake.ttf */; };
-		A15103A1210D50DC0087EA86 /* dpquake.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A151039E210D50D40087EA86 /* dpquake.ttf */; };
 		A1565F232109F30E00FA9BC9 /* cvar.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2B52101472E00D3C611 /* cvar.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F242109F30E00FA9BC9 /* md4.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2952101472E00D3C611 /* md4.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565F252109F30E00FA9BC9 /* vm.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C2A12101472E00D3C611 /* vm.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -250,6 +248,15 @@
 		A16B761D24ABFCB700D96F09 /* FontAwesome in Frameworks */ = {isa = PBXBuildFile; productRef = A16B761C24ABFCB700D96F09 /* FontAwesome */; };
 		A16B761F24ABFCCD00D96F09 /* CocoaAsyncSocket in Frameworks */ = {isa = PBXBuildFile; productRef = A16B761E24ABFCCD00D96F09 /* CocoaAsyncSocket */; };
 		A16B762124ABFCCD00D96F09 /* FontAwesome in Frameworks */ = {isa = PBXBuildFile; productRef = A16B762024ABFCCD00D96F09 /* FontAwesome */; };
+		A16B763A24ABFF1600D96F09 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B762F24ABFEED00D96F09 /* libSDL2.a */; };
+		A16B763D24ABFFB700D96F09 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B763324ABFEED00D96F09 /* libSDL2.a */; };
+		A16B763F24ABFFDA00D96F09 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B763E24ABFFD300D96F09 /* CoreBluetooth.framework */; };
+		A16B765524ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf in Resources */ = {isa = PBXBuildFile; fileRef = A16B765224ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf */; };
+		A16B765624ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf in Resources */ = {isa = PBXBuildFile; fileRef = A16B765224ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf */; };
+		A16B765724ACC53B00D96F09 /* Font Awesome 5 Free-Regular-400.otf in Resources */ = {isa = PBXBuildFile; fileRef = A16B765324ACC53B00D96F09 /* Font Awesome 5 Free-Regular-400.otf */; };
+		A16B765824ACC53B00D96F09 /* Font Awesome 5 Free-Regular-400.otf in Resources */ = {isa = PBXBuildFile; fileRef = A16B765324ACC53B00D96F09 /* Font Awesome 5 Free-Regular-400.otf */; };
+		A16B765924ACC53B00D96F09 /* Font Awesome 5 Free-Solid-900.otf in Resources */ = {isa = PBXBuildFile; fileRef = A16B765424ACC53B00D96F09 /* Font Awesome 5 Free-Solid-900.otf */; };
+		A16B765A24ACC53B00D96F09 /* Font Awesome 5 Free-Solid-900.otf in Resources */ = {isa = PBXBuildFile; fileRef = A16B765424ACC53B00D96F09 /* Font Awesome 5 Free-Solid-900.otf */; };
 		A179BFE9210142FA00D3C611 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A179BFE8210142FA00D3C611 /* GameViewController.swift */; };
 		A179BFEC210142FA00D3C611 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A179BFEA210142FA00D3C611 /* Main.storyboard */; };
 		A179BFEE210142FB00D3C611 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A179BFED210142FB00D3C611 /* Assets.xcassets */; };
@@ -452,24 +459,50 @@
 		A196B7212117F0420031CEB8 /* SupportedGames.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6A42115F7C50031CEB8 /* SupportedGames.swift */; };
 		A196B73C2117F0800031CEB8 /* GSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6942115F7C50031CEB8 /* GSCoordinator.swift */; };
 		A196B7432117FFA30031CEB8 /* ServerFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */; };
-		A1E66CFD2381DEF100D69D7C /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1E66CFA2381DECC00D69D7C /* libSDL2.a */; };
-		A1E66CFE2381DEF800D69D7C /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1E66CFC2381DECC00D69D7C /* libSDL2.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		A1E66CF92381DECC00D69D7C /* PBXContainerItemProxy */ = {
+		A16B762E24ABFEED00D96F09 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = A1E66CF12381DECC00D69D7C /* SDL.xcodeproj */;
+			containerPortal = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = FD6526630DE8FCCB002AD96B;
 			remoteInfo = "libSDL-iOS";
 		};
-		A1E66CFB2381DECC00D69D7C /* PBXContainerItemProxy */ = {
+		A16B763024ABFEED00D96F09 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = A1E66CF12381DECC00D69D7C /* SDL.xcodeproj */;
+			containerPortal = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 52ED1E5C222889500061FCE0;
+			remoteInfo = "libSDL-iOS-dylib";
+		};
+		A16B763224ABFEED00D96F09 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = FAB598141BB5C1B100BE72C5;
 			remoteInfo = "libSDL-tvOS";
+		};
+		A16B763424ABFEED00D96F09 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F3E3C7572241389A007D243C;
+			remoteInfo = "libSDL-tvOS-dylib";
+		};
+		A16B763624ABFEED00D96F09 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F3E3C65222406928007D243C;
+			remoteInfo = "libSDLmain-iOS";
+		};
+		A16B763824ABFEED00D96F09 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F3E3C75F224138AE007D243C;
+			remoteInfo = "libSDLmain-tvOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -604,7 +637,6 @@
 		A1366A39217E97F500E0AC0B /* zconf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zconf.h; sourceTree = "<group>"; };
 		A1510398210B7A390087EA86 /* JoyStickView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoyStickView.swift; sourceTree = "<group>"; };
 		A151039B210B7A890087EA86 /* CoreGraphics+Additions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreGraphics+Additions.swift"; sourceTree = "<group>"; };
-		A151039E210D50D40087EA86 /* dpquake.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = dpquake.ttf; sourceTree = "<group>"; };
 		A1565FDA2109F30E00FA9BC9 /* RTCW-MP-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-MP-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_iOS.a; path = Quake3/libs/ios/libcurl_iOS.a; sourceTree = "<group>"; };
 		A1565FE1210A0D3E00FA9BC9 /* libcurl_tvOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_tvOS.a; path = Quake3/libs/tvos/libcurl_tvOS.a; sourceTree = "<group>"; };
@@ -621,6 +653,11 @@
 		A161C9E421B1FBA0009FAFD4 /* g_antilag.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_antilag.c; sourceTree = "<group>"; };
 		A161C9E521B1FC0B009FAFD4 /* pbmd5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pbmd5.c; sourceTree = "<group>"; };
 		A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sv_wallhack.c; sourceTree = "<group>"; };
+		A16B762224ABFEED00D96F09 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "SDL/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = "<group>"; };
+		A16B763E24ABFFD300D96F09 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
+		A16B765224ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Font Awesome 5 Brands-Regular-400.otf"; sourceTree = "<group>"; };
+		A16B765324ACC53B00D96F09 /* Font Awesome 5 Free-Regular-400.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Font Awesome 5 Free-Regular-400.otf"; sourceTree = "<group>"; };
+		A16B765424ACC53B00D96F09 /* Font Awesome 5 Free-Solid-900.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Font Awesome 5 Free-Solid-900.otf"; sourceTree = "<group>"; };
 		A179BFE3210142FA00D3C611 /* RTCW-MP-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-MP-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A179BFE8210142FA00D3C611 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		A179BFEB210142FA00D3C611 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -1067,7 +1104,6 @@
 		A196B7362117F0610031CEB8 /* FontAwesome.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FontAwesome.framework; path = Carthage/Build/tvOS/FontAwesome.framework; sourceTree = "<group>"; };
 		A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CocoaAsyncSocket.framework; path = Carthage/Build/tvOS/CocoaAsyncSocket.framework; sourceTree = "<group>"; };
 		A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerFilterViewController.swift; sourceTree = "<group>"; };
-		A1E66CF12381DECC00D69D7C /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = SDL/SDL.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1075,9 +1111,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1E66CFE2381DEF800D69D7C /* libSDL2.a in Frameworks */,
 				A1565FF2210A0F4900FA9BC9 /* libcrypto.a in Frameworks */,
 				A16B762124ABFCCD00D96F09 /* FontAwesome in Frameworks */,
+				A16B763D24ABFFB700D96F09 /* libSDL2.a in Frameworks */,
 				A1565FF3210A0F4900FA9BC9 /* libnghttp2_tvOS.a in Frameworks */,
 				A196B7092117EF820031CEB8 /* AVFoundation.framework in Frameworks */,
 				A16B761F24ABFCCD00D96F09 /* CocoaAsyncSocket in Frameworks */,
@@ -1093,12 +1129,13 @@
 			files = (
 				A1565FEB210A0E6F00FA9BC9 /* libnghttp2_iOS.a in Frameworks */,
 				A17FF25D2383AAAA0003D2E5 /* AVFoundation.framework in Frameworks */,
+				A16B763A24ABFF1600D96F09 /* libSDL2.a in Frameworks */,
 				A16B761D24ABFCB700D96F09 /* FontAwesome in Frameworks */,
 				A1565FE8210A0E4A00FA9BC9 /* libssl.a in Frameworks */,
-				A1E66CFD2381DEF100D69D7C /* libSDL2.a in Frameworks */,
 				A16B761A24ABFC5E00D96F09 /* CocoaAsyncSocket in Frameworks */,
 				A1565FE9210A0E4A00FA9BC9 /* libcrypto.a in Frameworks */,
 				A1565FE4210A0DEF00FA9BC9 /* libcurl_iOS.a in Frameworks */,
+				A16B763F24ABFFDA00D96F09 /* CoreBluetooth.framework in Frameworks */,
 				A196B7012117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1202,6 +1239,19 @@
 			path = "zlib-1.2.11";
 			sourceTree = "<group>";
 		};
+		A16B762324ABFEED00D96F09 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A16B762F24ABFEED00D96F09 /* libSDL2.a */,
+				A16B763124ABFEED00D96F09 /* libSDL2.dylib */,
+				A16B763324ABFEED00D96F09 /* libSDL2.a */,
+				A16B763524ABFEED00D96F09 /* libSDL2.dylib */,
+				A16B763724ABFEED00D96F09 /* libSDLmain.a */,
+				A16B763924ABFEED00D96F09 /* libSDLmain.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		A179BFDA210142F900D3C611 = {
 			isa = PBXGroup;
 			children = (
@@ -1231,7 +1281,9 @@
 				A179BFED210142FB00D3C611 /* Assets.xcassets */,
 				A1902E982103EFC7008823BB /* bridging.h */,
 				A151039B210B7A890087EA86 /* CoreGraphics+Additions.swift */,
-				A151039E210D50D40087EA86 /* dpquake.ttf */,
+				A16B765224ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf */,
+				A16B765324ACC53B00D96F09 /* Font Awesome 5 Free-Regular-400.otf */,
+				A16B765424ACC53B00D96F09 /* Font Awesome 5 Free-Solid-900.otf */,
 				A179BFE8210142FA00D3C611 /* GameViewController.swift */,
 				A179BFF2210142FB00D3C611 /* Info.plist */,
 				A1510398210B7A390087EA86 /* JoyStickView.swift */,
@@ -1849,7 +1901,7 @@
 		A179C4AD2101853600D3C611 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				A1E66CF12381DECC00D69D7C /* SDL.xcodeproj */,
+				A16B762224ABFEED00D96F09 /* SDL.xcodeproj */,
 				A196B6F92117EE6E0031CEB8 /* iOS */,
 				A196B6FA2117EE750031CEB8 /* tvOS */,
 			);
@@ -1970,6 +2022,7 @@
 			children = (
 				A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */,
 				A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */,
+				A16B763E24ABFFD300D96F09 /* CoreBluetooth.framework */,
 				A1565FE7210A0E4A00FA9BC9 /* libcrypto.a */,
 				A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */,
 				A1565FEA210A0E6F00FA9BC9 /* libnghttp2_iOS.a */,
@@ -1994,15 +2047,6 @@
 				A1565FF1210A0F4900FA9BC9 /* libssl.a */,
 			);
 			name = tvOS;
-			sourceTree = "<group>";
-		};
-		A1E66CF22381DECC00D69D7C /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				A1E66CFA2381DECC00D69D7C /* libSDL2.a */,
-				A1E66CFC2381DECC00D69D7C /* libSDL2.a */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -2088,8 +2132,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = A1E66CF22381DECC00D69D7C /* Products */;
-					ProjectRef = A1E66CF12381DECC00D69D7C /* SDL.xcodeproj */;
+					ProductGroup = A16B762324ABFEED00D96F09 /* Products */;
+					ProjectRef = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -2101,18 +2145,46 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		A1E66CFA2381DECC00D69D7C /* libSDL2.a */ = {
+		A16B762F24ABFEED00D96F09 /* libSDL2.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libSDL2.a;
-			remoteRef = A1E66CF92381DECC00D69D7C /* PBXContainerItemProxy */;
+			remoteRef = A16B762E24ABFEED00D96F09 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		A1E66CFC2381DECC00D69D7C /* libSDL2.a */ = {
+		A16B763124ABFEED00D96F09 /* libSDL2.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSDL2.dylib;
+			remoteRef = A16B763024ABFEED00D96F09 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		A16B763324ABFEED00D96F09 /* libSDL2.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libSDL2.a;
-			remoteRef = A1E66CFB2381DECC00D69D7C /* PBXContainerItemProxy */;
+			remoteRef = A16B763224ABFEED00D96F09 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		A16B763524ABFEED00D96F09 /* libSDL2.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSDL2.dylib;
+			remoteRef = A16B763424ABFEED00D96F09 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		A16B763724ABFEED00D96F09 /* libSDLmain.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSDLmain.a;
+			remoteRef = A16B763624ABFEED00D96F09 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		A16B763924ABFEED00D96F09 /* libSDLmain.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSDLmain.a;
+			remoteRef = A16B763824ABFEED00D96F09 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -2123,10 +2195,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1565FD42109F30E00FA9BC9 /* Assets.xcassets in Resources */,
+				A16B765624ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf in Resources */,
+				A16B765824ACC53B00D96F09 /* Font Awesome 5 Free-Regular-400.otf in Resources */,
 				A1565FD52109F30E00FA9BC9 /* Main.storyboard in Resources */,
 				A15AA922211A68E900DE867F /* ServerListViewCell.xib in Resources */,
 				A132709A219BBA0000165485 /* Main in Resources */,
-				A15103A1210D50DC0087EA86 /* dpquake.ttf in Resources */,
+				A16B765A24ACC53B00D96F09 /* Font Awesome 5 Free-Solid-900.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2134,11 +2208,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A16B765924ACC53B00D96F09 /* Font Awesome 5 Free-Solid-900.otf in Resources */,
 				A196B6E521167B890031CEB8 /* ServerListViewCell.xib in Resources */,
+				A16B765724ACC53B00D96F09 /* Font Awesome 5 Free-Regular-400.otf in Resources */,
 				A179BFF1210142FB00D3C611 /* LaunchScreen.storyboard in Resources */,
-				A151039F210D50D50087EA86 /* dpquake.ttf in Resources */,
 				A179BFEE210142FB00D3C611 /* Assets.xcassets in Resources */,
 				A179BFEC210142FA00D3C611 /* Main.storyboard in Resources */,
+				A16B765524ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf in Resources */,
 				A1327098219BBA0000165485 /* Main in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

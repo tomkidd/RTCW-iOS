@@ -13,7 +13,7 @@
         <!--Main Menu View Controller-->
         <scene sceneID="CXV-mc-6oD">
             <objects>
-                <viewController id="dWF-vJ-0ad" customClass="MainMenuViewController" customModule="RTCW_SP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="RootNC" id="dWF-vJ-0ad" customClass="MainMenuViewController" customModule="RTCW_SP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="3S1-LQ-i9x"/>
                         <viewControllerLayoutGuide type="bottom" id="f69-OA-Ncu"/>

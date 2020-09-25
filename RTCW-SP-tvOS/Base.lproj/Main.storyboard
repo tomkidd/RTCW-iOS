@@ -142,7 +142,6 @@
                                     <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
                                 <connections>
-                                    <action selector="difficulty2:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="kZ4-XA-hMA"/>
                                     <action selector="savePlayerName:" destination="hki-ak-9xy" eventType="primaryActionTriggered" id="7BO-B0-ABR"/>
                                 </connections>
                             </button>

@@ -15,6 +15,7 @@ class OptionsViewController: UIViewController {
     #if os(iOS)
     @IBOutlet weak var tiltAimingSwitch: UISwitch!
     #endif
+    @IBOutlet weak var playerNameField: UITextField!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -23,6 +24,7 @@ class OptionsViewController: UIViewController {
         tiltAimingSwitch.isOn = defaults.integer(forKey: "tiltAiming") == 1
         #endif
 
+        playerNameField.text = defaults.string(forKey: "playerName")
         // Do any additional setup after loading the view.
     }
 
@@ -37,4 +39,8 @@ class OptionsViewController: UIViewController {
     }
     #endif
 
+    @IBAction func savePlayerName(_ sender: UIButton) {
+        defaults.set(self.playerNameField.text, forKey: "playerName")
+        navigationController?.popViewController(animated: true)
+    }
 }

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		55720AA12520DB44000DD6EA /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55720AA02520DB44000DD6EA /* GLKit.framework */; };
+		55720AA32520DB4D000DD6EA /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55720AA22520DB4D000DD6EA /* GLKit.framework */; };
 		A1327098219BBA0000165485 /* Main in Resources */ = {isa = PBXBuildFile; fileRef = A1327097219BB9FF00165485 /* Main */; };
 		A132709A219BBA0000165485 /* Main in Resources */ = {isa = PBXBuildFile; fileRef = A1327097219BB9FF00165485 /* Main */; };
 		A1366909217E7AF200E0AC0B /* be_aas_routetable.c in Sources */ = {isa = PBXBuildFile; fileRef = A1366907217E7AF200E0AC0B /* be_aas_routetable.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -480,6 +482,8 @@
 
 /* Begin PBXFileReference section */
 		A1327097219BB9FF00165485 /* Main */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Main; path = "../../../Library/Application Support/RTCW/Main"; sourceTree = "<group>"; };
+		55720AA02520DB44000DD6EA /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		55720AA22520DB4D000DD6EA /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		A1366906217E7AF200E0AC0B /* be_aas_routetable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = be_aas_routetable.h; sourceTree = "<group>"; };
 		A1366907217E7AF200E0AC0B /* be_aas_routetable.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = be_aas_routetable.c; sourceTree = "<group>"; };
 		A1366908217E7AF200E0AC0B /* botai.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = botai.h; sourceTree = "<group>"; };
@@ -1036,6 +1040,7 @@
 				A16B767624ACC66100D96F09 /* libSDL2.a in Frameworks */,
 				A1DBB63A24A174290021BA6F /* libcrypto.a in Frameworks */,
 				A16B761024ABF99900D96F09 /* AVFoundation.framework in Frameworks */,
+				55720AA12520DB44000DD6EA /* GLKit.framework in Frameworks */,
 				A16B760F24ABF99900D96F09 /* AudioToolbox.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1045,6 +1050,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1DBB62F24A173DA0021BA6F /* libssl.a in Frameworks */,
+				55720AA32520DB4D000DD6EA /* GLKit.framework in Frameworks */,
 				A17FF24F238262720003D2E5 /* AVFoundation.framework in Frameworks */,
 				A16B767A24ACC68400D96F09 /* CoreBluetooth.framework in Frameworks */,
 				A1DBB63124A173DA0021BA6F /* libnghttp2_iOS.a in Frameworks */,
@@ -1811,6 +1817,8 @@
 		A179C4AD2101853600D3C611 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				55720AA02520DB44000DD6EA /* GLKit.framework */,
+				55720AA22520DB4D000DD6EA /* GLKit.framework */,
 				A16B765C24ACC63100D96F09 /* SDL.xcodeproj */,
 				A196B6F92117EE6E0031CEB8 /* iOS */,
 				A196B6FA2117EE750031CEB8 /* tvOS */,

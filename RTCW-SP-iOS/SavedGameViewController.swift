@@ -74,6 +74,15 @@ extension SavedGameViewController: UITableViewDelegate {
             selectedSavedGame = saves[indexPath.row]
         }
         loadGameButton.isHidden = false
+        #if os(tvOS)
+            tableView.cellForRow(at: indexPath)?.contentView.backgroundColor = .lightGray
+        #endif
+    }
+
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        #if os(tvOS)
+            tableView.cellForRow(at: indexPath)?.contentView.backgroundColor = .none
+        #endif
     }
     
 //    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -95,6 +104,10 @@ extension SavedGameViewController: UITableViewDataSource {
         } else {
             cell.textLabel?.text = saves[indexPath.row].replacingOccurrences(of: ".svg", with: "")
         }
+
+        #if os(tvOS)
+            cell.textLabel?.textColor = .black
+        #endif
 
         return cell
     }

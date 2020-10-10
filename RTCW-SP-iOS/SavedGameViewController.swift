@@ -27,10 +27,13 @@ class SavedGameViewController: UIViewController {
         
         savesList.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         
-        let savesPath =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.path + "/Main/save"
-        
-        let autoSavesPath =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.path + "/Main/save/autosave"
-        
+        #if os(tvOS)
+            let savesPath =  FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.path + "/Main/save"
+            let autoSavesPath =  FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.path + "/Main/save/autosave"
+        #else
+            let savesPath =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.path + "/Main/save"
+            let autoSavesPath =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.path + "/Main/save/autosave"
+        #endif
         do {
             saves = try FileManager.default.contentsOfDirectory(atPath: savesPath).filter{ $0.suffix(4) == ".svg" }
             autoSaves = try FileManager.default.contentsOfDirectory(atPath: autoSavesPath)

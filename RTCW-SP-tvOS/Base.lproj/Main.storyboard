@@ -13,7 +13,7 @@
         <!--Main Menu View Controller-->
         <scene sceneID="CXV-mc-6oD">
             <objects>
-                <viewController storyboardIdentifier="RootNC" id="dWF-vJ-0ad" customClass="MainMenuViewController" customModule="RTCW_SP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="dWF-vJ-0ad" customClass="MainMenuViewController" customModule="RTCW_SP_tvOS" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="3S1-LQ-i9x"/>
                         <viewControllerLayoutGuide type="bottom" id="f69-OA-Ncu"/>
@@ -335,7 +335,7 @@
         <!--Navigation Controller-->
         <scene sceneID="Prl-UW-zqB">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="Iqr-t3-6x7" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="RootNC" automaticallyAdjustsScrollViewInsets="NO" id="Iqr-t3-6x7" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="eqc-vd-fF4">
                         <rect key="frame" x="0.0" y="0.0" width="1920" height="145"/>

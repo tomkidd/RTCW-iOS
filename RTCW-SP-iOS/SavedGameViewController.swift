@@ -27,10 +27,13 @@ class SavedGameViewController: UIViewController {
         
         savesList.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         
-        let savesPath =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.path + "/Main/save"
-        
-        let autoSavesPath =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.path + "/Main/save/autosave"
-        
+        #if os(tvOS)
+            let savesPath =  FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.path + "/Main/save"
+            let autoSavesPath =  FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.path + "/Main/save/autosave"
+        #else
+            let savesPath =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.path + "/Main/save"
+            let autoSavesPath =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.path + "/Main/save/autosave"
+        #endif
         do {
             saves = try FileManager.default.contentsOfDirectory(atPath: savesPath).filter{ $0.suffix(4) == ".svg" }
             autoSaves = try FileManager.default.contentsOfDirectory(atPath: autoSavesPath)
@@ -71,6 +74,15 @@ extension SavedGameViewController: UITableViewDelegate {
             selectedSavedGame = saves[indexPath.row]
         }
         loadGameButton.isHidden = false
+        #if os(tvOS)
+            tableView.cellForRow(at: indexPath)?.contentView.backgroundColor = .lightGray
+        #endif
+    }
+
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        #if os(tvOS)
+            tableView.cellForRow(at: indexPath)?.contentView.backgroundColor = .none
+        #endif
     }
     
 //    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -92,6 +104,10 @@ extension SavedGameViewController: UITableViewDataSource {
         } else {
             cell.textLabel?.text = saves[indexPath.row].replacingOccurrences(of: ".svg", with: "")
         }
+
+        #if os(tvOS)
+            cell.textLabel?.textColor = .black
+        #endif
 
         return cell
     }

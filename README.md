@@ -23,7 +23,7 @@ There are separate projects for single player (`RTCW-SP-iOS.xcodeproj`) and mult
 
 ![folders](https://github.com/tomkidd/RTCW-iOS/raw/master/folders-mp.png)
 
-In addition, there is a folder in this GitHub folder called "Main" which contains a subfolder called "vm" which must be copied to the `Main` folder which contains your RTCW data files. This folder contains compiled `.qvm` data files for the game which do not come with it. When done correctly your `Main` folder with the RTCW data files should look like this in Finder.
+In addition, there is a folder in this GitHub repo called ["Main"](https://github.com/tomkidd/RTCW-iOS/tree/master/Main) which contains a subfolder called ["vm"](https://github.com/tomkidd/RTCW-iOS/tree/master/Main/vm) which must be copied to the `Main` folder which contains your RTCW data files. This folder contains compiled `.qvm` data files for the game which do not come with it. When done correctly your `Main` folder with the RTCW data files should look like this in Finder (note how the "vm" folder is parallel to the `.pk3` files).
 
 ![folders](https://github.com/tomkidd/RTCW-iOS/raw/master/qvms.png) 
 

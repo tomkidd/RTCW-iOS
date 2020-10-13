@@ -23,7 +23,11 @@ There are separate projects for single player (`RTCW-SP-iOS.xcodeproj`) and mult
 
 ![folders](https://github.com/tomkidd/RTCW-iOS/raw/master/folders-mp.png)
 
-You can read a lengthy blog article on how I did all this [here](https://schnapple.com/return-to-castle-wolfenstein-for-ios-and-tvos-for-apple-tv/).
+In addition, there is a folder in this GitHub folder called "Main" which contains a subfolder called "vm" which must be copied to the `Main` folder which contains your RTCW data files. This folder contains compiled `.qvm` data files for the game which do not come with it. When done correctly your `Main` folder with the RTCW data files should look like this in Finder.
+
+![folders](https://github.com/tomkidd/RTCW-iOS/raw/master/qvms.png) 
+
+You can read a lengthy blog article on how I did all this, including the reasons for the above step, [here](https://schnapple.com/return-to-castle-wolfenstein-for-ios-and-tvos-for-apple-tv/).
 
 This repo was based on the work from my previous *Quake III: Arena* port (more info and attributions [here](https://github.com/tomkidd/Quake3-iOS)) and [iortcw](https://github.com/iortcw/iortcw/), a feature-parity copy of ioquake3 with RTCW changes.  On-screen joystick code came from [this repo](https://github.com/bradhowes/Joystick) by Brad Howe. Code to query servers came from [Q3ServerBrowser](https://github.com/andreagiavatto/Q3ServerBrowser) on GitHub by Andrea Giavatto, using protocol 60 instead of 68.
 

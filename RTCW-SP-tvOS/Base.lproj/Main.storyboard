@@ -286,7 +286,7 @@
                                     <color key="titleShadowColor" red="0.60392156860000001" green="0.1176470588" blue="0.070588235289999995" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
                                 <connections>
-                                    <action selector="difficulty2:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="hZh-ZR-K1H"/>
+                                    <action selector="difficulty1:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="fqp-in-FYc"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SuW-sx-R42">
@@ -298,7 +298,7 @@
                                     <color key="titleShadowColor" red="0.60392156860000001" green="0.1176470588" blue="0.070588235289999995" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
                                 <connections>
-                                    <action selector="difficulty3:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="dhe-gB-RNA"/>
+                                    <action selector="difficulty2:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="Fxx-IC-Nm4"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="u95-ZK-53H">
@@ -310,7 +310,7 @@
                                     <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
                                 <connections>
-                                    <action selector="difficulty4:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="Xbo-oZ-10l"/>
+                                    <action selector="difficulty3:" destination="dBM-hw-OcU" eventType="primaryActionTriggered" id="Gy4-8V-hC8"/>
                                 </connections>
                             </button>
                         </subviews>

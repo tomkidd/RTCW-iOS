@@ -102,7 +102,6 @@
                     <constraint firstItem="VET-Pw-gO2" firstAttribute="centerY" secondItem="3aM-8b-DgN" secondAttribute="centerY" id="43j-gM-bLO"/>
                     <constraint firstItem="gJ8-3i-BCg" firstAttribute="leading" secondItem="kOq-AB-fPq" secondAttribute="trailing" constant="28" id="5ri-h4-gsK"/>
                     <constraint firstItem="gJ8-3i-BCg" firstAttribute="centerY" secondItem="kOq-AB-fPq" secondAttribute="centerY" id="9Qt-am-Db7"/>
-                    <constraint firstItem="T73-FF-mt6" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="8" id="9mZ-V0-43s"/>
                     <constraint firstItem="4eg-Jb-JNE" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" id="BZA-eZ-aMi"/>
                     <constraint firstItem="fm2-HB-ieq" firstAttribute="leading" secondItem="4eg-Jb-JNE" secondAttribute="leading" id="CsH-CG-aCP"/>
                     <constraint firstItem="3aM-8b-DgN" firstAttribute="centerY" secondItem="t9Z-7N-vEm" secondAttribute="centerY" id="E2K-DV-zz3"/>
@@ -118,7 +117,6 @@
                     <constraint firstItem="4eg-Jb-JNE" firstAttribute="top" secondItem="T73-FF-mt6" secondAttribute="bottom" constant="8" id="WeZ-uD-X0O"/>
                     <constraint firstItem="T73-FF-mt6" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" id="Wed-AY-9N5"/>
                     <constraint firstItem="2Zh-rG-Sr3" firstAttribute="leading" secondItem="4eg-Jb-JNE" secondAttribute="trailing" constant="2" id="YKq-gQ-AHG"/>
-                    <constraint firstItem="T73-FF-mt6" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="12" id="bmp-hk-GVn"/>
                     <constraint firstItem="fXF-YM-xty" firstAttribute="centerY" secondItem="2Zh-rG-Sr3" secondAttribute="centerY" id="flX-g0-K22"/>
                     <constraint firstItem="VET-Pw-gO2" firstAttribute="leading" secondItem="3aM-8b-DgN" secondAttribute="trailing" constant="2" id="gJS-MB-iXy"/>
                     <constraint firstItem="2Zh-rG-Sr3" firstAttribute="centerY" secondItem="4eg-Jb-JNE" secondAttribute="centerY" id="j2o-HI-1zo"/>

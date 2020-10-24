@@ -54,7 +54,6 @@ class ServerBrowserViewController: UIViewController {
         let port = masterServerComponents.last!
         
         serversList.register(UINib(nibName: "ServerListViewCell", bundle: nil), forCellReuseIdentifier: "cell")
-        serversList.mask = nil
 
         activityIndicator.startAnimating()
         coordinator?.getServersList(host: host, port: port)

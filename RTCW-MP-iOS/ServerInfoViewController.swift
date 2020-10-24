@@ -23,9 +23,7 @@ class ServerInfoViewController: UIViewController {
         serverName.text = server.name
         
         playersTable.register(UITableViewCell.self, forCellReuseIdentifier: "playersCell")
-        playersTable.mask = nil
         rulesTable.register(UITableViewCell.self, forCellReuseIdentifier: "rulesCell")
-        rulesTable.mask = nil
 
         // Do any additional setup after loading the view.
     }

@@ -248,10 +248,21 @@ extension ServerBrowserViewController: UITableViewDataSource {
         return filteredServers.count
     }
     
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        let server = filteredServers[indexPath.row]
+        if (server.ip == selectedServer?.ip && server.port == selectedServer?.port) {
+            tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
+        }
+    }
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ServerListViewCell
         let server = filteredServers[indexPath.row]
         
+        let backgroundgColorView = UIView()
+        backgroundgColorView.backgroundColor = .lightGray
+        cell.selectedBackgroundView = backgroundgColorView
+
         cell.serverName.text = server.name
         cell.ping.text = server.ping
         if let ping = Int(server.ping) {

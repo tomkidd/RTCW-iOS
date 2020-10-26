@@ -532,6 +532,12 @@ char *FS_BuildOSPath( const char *base, const char *game, const char *qpath ) {
 		game = fs_gamedir;
 	}
 
+	if ( !strncmp( game, "main/", 5 ) ) {
+		char *uppercaseMainFilename = game;
+		uppercaseMainFilename[0] = 'M';
+		game = uppercaseMainFilename;
+	}
+
 	Com_sprintf( temp, sizeof( temp ), "/%s/%s", game, qpath );
 	FS_ReplaceSeparators( temp );
 	Com_sprintf( ospath[toggle], sizeof( ospath[0] ), "%s%s", base, temp );

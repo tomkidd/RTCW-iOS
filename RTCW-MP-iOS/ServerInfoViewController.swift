@@ -23,9 +23,7 @@ class ServerInfoViewController: UIViewController {
         serverName.text = server.name
         
         playersTable.register(UITableViewCell.self, forCellReuseIdentifier: "playersCell")
-        playersTable.mask = nil
         rulesTable.register(UITableViewCell.self, forCellReuseIdentifier: "rulesCell")
-        rulesTable.mask = nil
 
         // Do any additional setup after loading the view.
     }
@@ -60,6 +58,9 @@ extension ServerInfoViewController: UITableViewDataSource {
             let player = server.players![indexPath.row]
             cell?.textLabel?.text = "\(player.name) ping: \(player.ping) score: \(player.score)"
             cell?.textLabel?.font = UIFont(name: "AvenirNextCondensed-Regular", size: 20)
+            #if os(tvOS)
+                cell?.textLabel?.textColor = .black
+            #endif
             return cell!
         } else {
             let cell = rulesTable.dequeueReusableCell(withIdentifier: "rulesCell")
@@ -67,6 +68,9 @@ extension ServerInfoViewController: UITableViewDataSource {
             let rule = server.rules[ruleKey]!
             cell?.textLabel?.text = "\(ruleKey): \(rule)"
             cell?.textLabel?.font = UIFont(name: "AvenirNextCondensed-Regular", size: 20)
+            #if os(tvOS)
+                cell?.textLabel?.textColor = .black
+            #endif
             return cell!
         }
     }

@@ -178,7 +178,6 @@ char *Sys_GogPath( void )
 void Sys_SetHomeDir( const char* newHomeDir )
 {
     Q_strncpyz(homePath, newHomeDir, sizeof(homePath));
-    Q_strcat(homePath, sizeof(homePath), "/");
 }
 #endif
 

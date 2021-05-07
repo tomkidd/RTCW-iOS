@@ -238,8 +238,6 @@
 		A161C9F221B6299E009FAFD4 /* SavedGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */; };
 		A16B760F24ABF99900D96F09 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B760B24ABF98E00D96F09 /* AudioToolbox.framework */; };
 		A16B761024ABF99900D96F09 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B760C24ABF98E00D96F09 /* AVFoundation.framework */; };
-		A16B767524ACC65D00D96F09 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B766924ACC63100D96F09 /* libSDL2.a */; };
-		A16B767624ACC66100D96F09 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B766D24ACC63100D96F09 /* libSDL2.a */; };
 		A16B767A24ACC68400D96F09 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B767924ACC67C00D96F09 /* CoreBluetooth.framework */; };
 		A179BFE9210142FA00D3C611 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A179BFE8210142FA00D3C611 /* GameViewController.swift */; };
 		A179BFEC210142FA00D3C611 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A179BFEA210142FA00D3C611 /* Main.storyboard */; };
@@ -390,6 +388,10 @@
 		A17FF249238253590003D2E5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A17FF247238253590003D2E5 /* AppDelegate.m */; };
 		A17FF24E238259210003D2E5 /* SDL_uikitviewcontroller+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17FF24D238259200003D2E5 /* SDL_uikitviewcontroller+Additions.swift */; };
 		A17FF24F238262720003D2E5 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */; };
+		A1821E832644D36E0038DD45 /* libsdl2_0_14_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821E822644D3610038DD45 /* libsdl2_0_14_ios.a */; };
+		A1821E872644D4930038DD45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821E862644D48B0038DD45 /* CoreHaptics.framework */; };
+		A1821E892644D5470038DD45 /* libSDL2_0_14_tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821E882644D52D0038DD45 /* libSDL2_0_14_tvos.a */; };
+		A1821E8D2644D56E0038DD45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821E8C2644D5670038DD45 /* CoreHaptics.framework */; };
 		A196B7012117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */; };
 		A1DBB62F24A173DA0021BA6F /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DBB62C24A173DA0021BA6F /* libssl.a */; };
 		A1DBB63024A173DA0021BA6F /* libcurl_iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DBB62D24A173DA0021BA6F /* libcurl_iOS.a */; };
@@ -400,51 +402,6 @@
 		A1DBB63A24A174290021BA6F /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DBB63624A174290021BA6F /* libcrypto.a */; };
 		A1DBB63B24A174290021BA6F /* libcurl_tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DBB63724A174290021BA6F /* libcurl_tvOS.a */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		A16B766824ACC63100D96F09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A16B765C24ACC63100D96F09 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = FD6526630DE8FCCB002AD96B;
-			remoteInfo = "libSDL-iOS";
-		};
-		A16B766A24ACC63100D96F09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A16B765C24ACC63100D96F09 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 52ED1E5C222889500061FCE0;
-			remoteInfo = "libSDL-iOS-dylib";
-		};
-		A16B766C24ACC63100D96F09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A16B765C24ACC63100D96F09 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = FAB598141BB5C1B100BE72C5;
-			remoteInfo = "libSDL-tvOS";
-		};
-		A16B766E24ACC63100D96F09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A16B765C24ACC63100D96F09 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F3E3C7572241389A007D243C;
-			remoteInfo = "libSDL-tvOS-dylib";
-		};
-		A16B767024ACC63100D96F09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A16B765C24ACC63100D96F09 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F3E3C65222406928007D243C;
-			remoteInfo = "libSDLmain-iOS";
-		};
-		A16B767224ACC63100D96F09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A16B765C24ACC63100D96F09 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F3E3C75F224138AE007D243C;
-			remoteInfo = "libSDLmain-tvOS";
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		A17EE1AB211A62BB00811AE1 /* Embed Frameworks */ = {
@@ -600,7 +557,6 @@
 		A161C9EF21B6299E009FAFD4 /* SavedGameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedGameViewController.swift; sourceTree = "<group>"; };
 		A16B760B24ABF98E00D96F09 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS13.4.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
 		A16B760C24ABF98E00D96F09 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS13.4.sdk/System/Library/Frameworks/AVFoundation.framework; sourceTree = DEVELOPER_DIR; };
-		A16B765C24ACC63100D96F09 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "SDL/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = "<group>"; };
 		A16B767924ACC67C00D96F09 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		A179BFE3210142FA00D3C611 /* RTCW-SP-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-SP-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A179BFE8210142FA00D3C611 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
@@ -1007,6 +963,10 @@
 		A17FF246238253590003D2E5 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		A17FF247238253590003D2E5 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		A17FF24D238259200003D2E5 /* SDL_uikitviewcontroller+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SDL_uikitviewcontroller+Additions.swift"; sourceTree = "<group>"; };
+		A1821E822644D3610038DD45 /* libsdl2_0_14_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsdl2_0_14_ios.a; path = "RTCW-SP/libs/ios/libsdl2_0_14_ios.a"; sourceTree = "<group>"; };
+		A1821E862644D48B0038DD45 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
+		A1821E882644D52D0038DD45 /* libSDL2_0_14_tvos.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2_0_14_tvos.a; path = "RTCW-SP/libs/tvos/libSDL2_0_14_tvos.a"; sourceTree = "<group>"; };
+		A1821E8C2644D5670038DD45 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS14.5.sdk/System/Library/Frameworks/CoreHaptics.framework; sourceTree = DEVELOPER_DIR; };
 		A1902E982103EFC7008823BB /* bridging.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bridging.h; sourceTree = "<group>"; };
 		A1902F61210939BA008823BB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A1902F63210939BA008823BB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -1033,9 +993,10 @@
 				A1DBB63924A174290021BA6F /* libnghttp2_tvOS.a in Frameworks */,
 				A1DBB63B24A174290021BA6F /* libcurl_tvOS.a in Frameworks */,
 				A1DBB63824A174290021BA6F /* libssl.a in Frameworks */,
-				A16B767624ACC66100D96F09 /* libSDL2.a in Frameworks */,
+				A1821E892644D5470038DD45 /* libSDL2_0_14_tvos.a in Frameworks */,
 				A1DBB63A24A174290021BA6F /* libcrypto.a in Frameworks */,
 				A16B761024ABF99900D96F09 /* AVFoundation.framework in Frameworks */,
+				A1821E8D2644D56E0038DD45 /* CoreHaptics.framework in Frameworks */,
 				A16B760F24ABF99900D96F09 /* AudioToolbox.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1045,10 +1006,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1DBB62F24A173DA0021BA6F /* libssl.a in Frameworks */,
+				A1821E872644D4930038DD45 /* CoreHaptics.framework in Frameworks */,
 				A17FF24F238262720003D2E5 /* AVFoundation.framework in Frameworks */,
+				A1821E832644D36E0038DD45 /* libsdl2_0_14_ios.a in Frameworks */,
 				A16B767A24ACC68400D96F09 /* CoreBluetooth.framework in Frameworks */,
 				A1DBB63124A173DA0021BA6F /* libnghttp2_iOS.a in Frameworks */,
-				A16B767524ACC65D00D96F09 /* libSDL2.a in Frameworks */,
 				A196B7012117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */,
 				A1DBB63024A173DA0021BA6F /* libcurl_iOS.a in Frameworks */,
 				A1DBB63324A173F30021BA6F /* libcrypto.a in Frameworks */,
@@ -1152,19 +1114,6 @@
 				A1366A39217E97F500E0AC0B /* zconf.h */,
 			);
 			path = "zlib-1.2.11";
-			sourceTree = "<group>";
-		};
-		A16B765D24ACC63100D96F09 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				A16B766924ACC63100D96F09 /* libSDL2.a */,
-				A16B766B24ACC63100D96F09 /* libSDL2.dylib */,
-				A16B766D24ACC63100D96F09 /* libSDL2.a */,
-				A16B766F24ACC63100D96F09 /* libSDL2.dylib */,
-				A16B767124ACC63100D96F09 /* libSDLmain.a */,
-				A16B767324ACC63100D96F09 /* libSDLmain.a */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		A179BFDA210142F900D3C611 = {
@@ -1811,7 +1760,6 @@
 		A179C4AD2101853600D3C611 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				A16B765C24ACC63100D96F09 /* SDL.xcodeproj */,
 				A196B6F92117EE6E0031CEB8 /* iOS */,
 				A196B6FA2117EE750031CEB8 /* tvOS */,
 			);
@@ -1845,12 +1793,14 @@
 		A196B6F92117EE6E0031CEB8 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
-				A16B767924ACC67C00D96F09 /* CoreBluetooth.framework */,
 				A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */,
 				A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */,
+				A16B767924ACC67C00D96F09 /* CoreBluetooth.framework */,
+				A1821E862644D48B0038DD45 /* CoreHaptics.framework */,
 				A1DBB63224A173F30021BA6F /* libcrypto.a */,
 				A1DBB62D24A173DA0021BA6F /* libcurl_iOS.a */,
 				A1DBB62E24A173DA0021BA6F /* libnghttp2_iOS.a */,
+				A1821E822644D3610038DD45 /* libsdl2_0_14_ios.a */,
 				A1DBB62C24A173DA0021BA6F /* libssl.a */,
 			);
 			name = iOS;
@@ -1861,9 +1811,11 @@
 			children = (
 				A16B760B24ABF98E00D96F09 /* AudioToolbox.framework */,
 				A16B760C24ABF98E00D96F09 /* AVFoundation.framework */,
+				A1821E8C2644D5670038DD45 /* CoreHaptics.framework */,
 				A1DBB63624A174290021BA6F /* libcrypto.a */,
 				A1DBB63724A174290021BA6F /* libcurl_tvOS.a */,
 				A1DBB63524A174290021BA6F /* libnghttp2_tvOS.a */,
+				A1821E882644D52D0038DD45 /* libSDL2_0_14_tvos.a */,
 				A1DBB63424A174290021BA6F /* libssl.a */,
 			);
 			name = tvOS;
@@ -1939,12 +1891,6 @@
 			mainGroup = A179BFDA210142F900D3C611;
 			productRefGroup = A179BFE4210142FA00D3C611 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = A16B765D24ACC63100D96F09 /* Products */;
-					ProjectRef = A16B765C24ACC63100D96F09 /* SDL.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				A179BFE2210142F900D3C611 /* RTCW-SP-iOS */,
@@ -1952,51 +1898,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		A16B766924ACC63100D96F09 /* libSDL2.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDL2.a;
-			remoteRef = A16B766824ACC63100D96F09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A16B766B24ACC63100D96F09 /* libSDL2.dylib */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDL2.dylib;
-			remoteRef = A16B766A24ACC63100D96F09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A16B766D24ACC63100D96F09 /* libSDL2.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDL2.a;
-			remoteRef = A16B766C24ACC63100D96F09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A16B766F24ACC63100D96F09 /* libSDL2.dylib */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDL2.dylib;
-			remoteRef = A16B766E24ACC63100D96F09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A16B767124ACC63100D96F09 /* libSDLmain.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDLmain.a;
-			remoteRef = A16B767024ACC63100D96F09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A16B767324ACC63100D96F09 /* libSDLmain.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDLmain.a;
-			remoteRef = A16B767224ACC63100D96F09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A1565FD32109F30E00FA9BC9 /* Resources */ = {

@@ -227,14 +227,6 @@
 		A1565FCE2109F30E00FA9BC9 /* jdhuff.c in Sources */ = {isa = PBXBuildFile; fileRef = A179C0612101470F00D3C611 /* jdhuff.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		A1565FD42109F30E00FA9BC9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1902F68210939BC008823BB /* Assets.xcassets */; };
 		A1565FD52109F30E00FA9BC9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A1902F65210939BA008823BB /* Main.storyboard */; };
-		A1565FE2210A0D3E00FA9BC9 /* libcurl_tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FE1210A0D3E00FA9BC9 /* libcurl_tvOS.a */; };
-		A1565FE4210A0DEF00FA9BC9 /* libcurl_iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */; };
-		A1565FE8210A0E4A00FA9BC9 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FE6210A0E4A00FA9BC9 /* libssl.a */; };
-		A1565FE9210A0E4A00FA9BC9 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FE7210A0E4A00FA9BC9 /* libcrypto.a */; };
-		A1565FEB210A0E6F00FA9BC9 /* libnghttp2_iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FEA210A0E6F00FA9BC9 /* libnghttp2_iOS.a */; };
-		A1565FF2210A0F4900FA9BC9 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FEF210A0F4900FA9BC9 /* libcrypto.a */; };
-		A1565FF3210A0F4900FA9BC9 /* libnghttp2_tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FF0210A0F4900FA9BC9 /* libnghttp2_tvOS.a */; };
-		A1565FF4210A0F4900FA9BC9 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1565FF1210A0F4900FA9BC9 /* libssl.a */; };
 		A15AA922211A68E900DE867F /* ServerListViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = A15AA921211A68E900DE867F /* ServerListViewCell.xib */; };
 		A15AA925211B43A400DE867F /* OptionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA924211B43A400DE867F /* OptionsViewController.swift */; };
 		A15AA927211B43A400DE867F /* OptionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15AA924211B43A400DE867F /* OptionsViewController.swift */; };
@@ -248,8 +240,6 @@
 		A16B761D24ABFCB700D96F09 /* FontAwesome in Frameworks */ = {isa = PBXBuildFile; productRef = A16B761C24ABFCB700D96F09 /* FontAwesome */; };
 		A16B761F24ABFCCD00D96F09 /* CocoaAsyncSocket in Frameworks */ = {isa = PBXBuildFile; productRef = A16B761E24ABFCCD00D96F09 /* CocoaAsyncSocket */; };
 		A16B762124ABFCCD00D96F09 /* FontAwesome in Frameworks */ = {isa = PBXBuildFile; productRef = A16B762024ABFCCD00D96F09 /* FontAwesome */; };
-		A16B763A24ABFF1600D96F09 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B762F24ABFEED00D96F09 /* libSDL2.a */; };
-		A16B763D24ABFFB700D96F09 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B763324ABFEED00D96F09 /* libSDL2.a */; };
 		A16B763F24ABFFDA00D96F09 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A16B763E24ABFFD300D96F09 /* CoreBluetooth.framework */; };
 		A16B765524ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf in Resources */ = {isa = PBXBuildFile; fileRef = A16B765224ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf */; };
 		A16B765624ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf in Resources */ = {isa = PBXBuildFile; fileRef = A16B765224ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf */; };
@@ -409,6 +399,18 @@
 		A17FF2452382533F0003D2E5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A17FF2432382533F0003D2E5 /* AppDelegate.m */; };
 		A17FF24B2382590F0003D2E5 /* SDL_uikitviewcontroller+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17FF24A2382590F0003D2E5 /* SDL_uikitviewcontroller+Additions.swift */; };
 		A17FF25D2383AAAA0003D2E5 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */; };
+		A1821E942644D6830038DD45 /* libcurl_iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821E932644D6690038DD45 /* libcurl_iOS.a */; };
+		A1821E952644D6830038DD45 /* libnghttp2_iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821E922644D6690038DD45 /* libnghttp2_iOS.a */; };
+		A1821E962644D6830038DD45 /* libsdl2_0_14_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821E912644D6690038DD45 /* libsdl2_0_14_ios.a */; };
+		A1821E972644D6830038DD45 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821E8F2644D6690038DD45 /* libssl.a */; };
+		A1821E982644D6830038DD45 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821E902644D6690038DD45 /* libcrypto.a */; };
+		A1821EA92644D6E60038DD45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821EA82644D6DE0038DD45 /* CoreHaptics.framework */; };
+		A1821EAB2644D6F60038DD45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821EAA2644D6EF0038DD45 /* CoreHaptics.framework */; };
+		A1821EAC2644D74D0038DD45 /* libcurl_tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821E9D2644D6C20038DD45 /* libcurl_tvOS.a */; };
+		A1821EAD2644D74D0038DD45 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821EA12644D6C20038DD45 /* libssl.a */; };
+		A1821EAE2644D74D0038DD45 /* libSDL2_0_14_tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821EA02644D6C20038DD45 /* libSDL2_0_14_tvos.a */; };
+		A1821EAF2644D74D0038DD45 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821E9F2644D6C20038DD45 /* libcrypto.a */; };
+		A1821EB02644D74D0038DD45 /* libnghttp2_tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1821E9E2644D6C20038DD45 /* libnghttp2_tvOS.a */; };
 		A196B6882115F5680031CEB8 /* ServerBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6872115F5680031CEB8 /* ServerBrowserViewController.swift */; };
 		A196B6A72115F7C50031CEB8 /* Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68B2115F7C50031CEB8 /* Server.swift */; };
 		A196B6AB2115F7C50031CEB8 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B68D2115F7C50031CEB8 /* Player.swift */; };
@@ -460,51 +462,6 @@
 		A196B73C2117F0800031CEB8 /* GSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B6942115F7C50031CEB8 /* GSCoordinator.swift */; };
 		A196B7432117FFA30031CEB8 /* ServerFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A196B7422117FFA30031CEB8 /* ServerFilterViewController.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		A16B762E24ABFEED00D96F09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = FD6526630DE8FCCB002AD96B;
-			remoteInfo = "libSDL-iOS";
-		};
-		A16B763024ABFEED00D96F09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 52ED1E5C222889500061FCE0;
-			remoteInfo = "libSDL-iOS-dylib";
-		};
-		A16B763224ABFEED00D96F09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = FAB598141BB5C1B100BE72C5;
-			remoteInfo = "libSDL-tvOS";
-		};
-		A16B763424ABFEED00D96F09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F3E3C7572241389A007D243C;
-			remoteInfo = "libSDL-tvOS-dylib";
-		};
-		A16B763624ABFEED00D96F09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F3E3C65222406928007D243C;
-			remoteInfo = "libSDLmain-iOS";
-		};
-		A16B763824ABFEED00D96F09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F3E3C75F224138AE007D243C;
-			remoteInfo = "libSDLmain-tvOS";
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		A196B6F32117ECCD0031CEB8 /* Embed Frameworks */ = {
@@ -638,14 +595,6 @@
 		A1510398210B7A390087EA86 /* JoyStickView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoyStickView.swift; sourceTree = "<group>"; };
 		A151039B210B7A890087EA86 /* CoreGraphics+Additions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreGraphics+Additions.swift"; sourceTree = "<group>"; };
 		A1565FDA2109F30E00FA9BC9 /* RTCW-MP-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RTCW-MP-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_iOS.a; path = Quake3/libs/ios/libcurl_iOS.a; sourceTree = "<group>"; };
-		A1565FE1210A0D3E00FA9BC9 /* libcurl_tvOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_tvOS.a; path = Quake3/libs/tvos/libcurl_tvOS.a; sourceTree = "<group>"; };
-		A1565FE6210A0E4A00FA9BC9 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = Quake3/libs/ios/libssl.a; sourceTree = "<group>"; };
-		A1565FE7210A0E4A00FA9BC9 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = Quake3/libs/ios/libcrypto.a; sourceTree = "<group>"; };
-		A1565FEA210A0E6F00FA9BC9 /* libnghttp2_iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libnghttp2_iOS.a; path = Quake3/libs/ios/libnghttp2_iOS.a; sourceTree = "<group>"; };
-		A1565FEF210A0F4900FA9BC9 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = Quake3/libs/tvos/libcrypto.a; sourceTree = "<group>"; };
-		A1565FF0210A0F4900FA9BC9 /* libnghttp2_tvOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libnghttp2_tvOS.a; path = Quake3/libs/tvos/libnghttp2_tvOS.a; sourceTree = "<group>"; };
-		A1565FF1210A0F4900FA9BC9 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = Quake3/libs/tvos/libssl.a; sourceTree = "<group>"; };
 		A15AA921211A68E900DE867F /* ServerListViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ServerListViewCell.xib; sourceTree = "<group>"; };
 		A15AA924211B43A400DE867F /* OptionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsViewController.swift; sourceTree = "<group>"; };
 		A15AA929211B470200DE867F /* MainMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuViewController.swift; sourceTree = "<group>"; };
@@ -653,7 +602,6 @@
 		A161C9E421B1FBA0009FAFD4 /* g_antilag.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_antilag.c; sourceTree = "<group>"; };
 		A161C9E521B1FC0B009FAFD4 /* pbmd5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pbmd5.c; sourceTree = "<group>"; };
 		A161C9EA21B1FC7C009FAFD4 /* sv_wallhack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sv_wallhack.c; sourceTree = "<group>"; };
-		A16B762224ABFEED00D96F09 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "SDL/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = "<group>"; };
 		A16B763E24ABFFD300D96F09 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		A16B765224ACC53B00D96F09 /* Font Awesome 5 Brands-Regular-400.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Font Awesome 5 Brands-Regular-400.otf"; sourceTree = "<group>"; };
 		A16B765324ACC53B00D96F09 /* Font Awesome 5 Free-Regular-400.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Font Awesome 5 Free-Regular-400.otf"; sourceTree = "<group>"; };
@@ -1064,6 +1012,18 @@
 		A17FF2432382533F0003D2E5 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		A17FF24A2382590F0003D2E5 /* SDL_uikitviewcontroller+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SDL_uikitviewcontroller+Additions.swift"; sourceTree = "<group>"; };
 		A17FF2652383AABC0003D2E5 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS13.2.sdk/System/Library/Frameworks/AVFoundation.framework; sourceTree = DEVELOPER_DIR; };
+		A1821E8F2644D6690038DD45 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = "RTCW-MP/libs/ios/libssl.a"; sourceTree = "<group>"; };
+		A1821E902644D6690038DD45 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "RTCW-MP/libs/ios/libcrypto.a"; sourceTree = "<group>"; };
+		A1821E912644D6690038DD45 /* libsdl2_0_14_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsdl2_0_14_ios.a; path = "RTCW-MP/libs/ios/libsdl2_0_14_ios.a"; sourceTree = "<group>"; };
+		A1821E922644D6690038DD45 /* libnghttp2_iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libnghttp2_iOS.a; path = "RTCW-MP/libs/ios/libnghttp2_iOS.a"; sourceTree = "<group>"; };
+		A1821E932644D6690038DD45 /* libcurl_iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_iOS.a; path = "RTCW-MP/libs/ios/libcurl_iOS.a"; sourceTree = "<group>"; };
+		A1821E9D2644D6C20038DD45 /* libcurl_tvOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl_tvOS.a; path = "RTCW-MP/libs/tvos/libcurl_tvOS.a"; sourceTree = "<group>"; };
+		A1821E9E2644D6C20038DD45 /* libnghttp2_tvOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libnghttp2_tvOS.a; path = "RTCW-MP/libs/tvos/libnghttp2_tvOS.a"; sourceTree = "<group>"; };
+		A1821E9F2644D6C20038DD45 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "RTCW-MP/libs/tvos/libcrypto.a"; sourceTree = "<group>"; };
+		A1821EA02644D6C20038DD45 /* libSDL2_0_14_tvos.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2_0_14_tvos.a; path = "RTCW-MP/libs/tvos/libSDL2_0_14_tvos.a"; sourceTree = "<group>"; };
+		A1821EA12644D6C20038DD45 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = "RTCW-MP/libs/tvos/libssl.a"; sourceTree = "<group>"; };
+		A1821EA82644D6DE0038DD45 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS14.5.sdk/System/Library/Frameworks/CoreHaptics.framework; sourceTree = DEVELOPER_DIR; };
+		A1821EAA2644D6EF0038DD45 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
 		A1902E982103EFC7008823BB /* bridging.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bridging.h; sourceTree = "<group>"; };
 		A1902F61210939BA008823BB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A1902F63210939BA008823BB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -1111,15 +1071,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1565FF2210A0F4900FA9BC9 /* libcrypto.a in Frameworks */,
 				A16B762124ABFCCD00D96F09 /* FontAwesome in Frameworks */,
-				A16B763D24ABFFB700D96F09 /* libSDL2.a in Frameworks */,
-				A1565FF3210A0F4900FA9BC9 /* libnghttp2_tvOS.a in Frameworks */,
+				A1821EAC2644D74D0038DD45 /* libcurl_tvOS.a in Frameworks */,
+				A1821EAD2644D74D0038DD45 /* libssl.a in Frameworks */,
 				A196B7092117EF820031CEB8 /* AVFoundation.framework in Frameworks */,
+				A1821EAE2644D74D0038DD45 /* libSDL2_0_14_tvos.a in Frameworks */,
+				A1821EB02644D74D0038DD45 /* libnghttp2_tvOS.a in Frameworks */,
+				A1821EA92644D6E60038DD45 /* CoreHaptics.framework in Frameworks */,
 				A16B761F24ABFCCD00D96F09 /* CocoaAsyncSocket in Frameworks */,
 				A196B7082117EF820031CEB8 /* AudioToolbox.framework in Frameworks */,
-				A1565FF4210A0F4900FA9BC9 /* libssl.a in Frameworks */,
-				A1565FE2210A0D3E00FA9BC9 /* libcurl_tvOS.a in Frameworks */,
+				A1821EAF2644D74D0038DD45 /* libcrypto.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1127,16 +1088,17 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1565FEB210A0E6F00FA9BC9 /* libnghttp2_iOS.a in Frameworks */,
 				A17FF25D2383AAAA0003D2E5 /* AVFoundation.framework in Frameworks */,
-				A16B763A24ABFF1600D96F09 /* libSDL2.a in Frameworks */,
 				A16B761D24ABFCB700D96F09 /* FontAwesome in Frameworks */,
-				A1565FE8210A0E4A00FA9BC9 /* libssl.a in Frameworks */,
+				A1821EAB2644D6F60038DD45 /* CoreHaptics.framework in Frameworks */,
+				A1821E972644D6830038DD45 /* libssl.a in Frameworks */,
+				A1821E962644D6830038DD45 /* libsdl2_0_14_ios.a in Frameworks */,
 				A16B761A24ABFC5E00D96F09 /* CocoaAsyncSocket in Frameworks */,
-				A1565FE9210A0E4A00FA9BC9 /* libcrypto.a in Frameworks */,
-				A1565FE4210A0DEF00FA9BC9 /* libcurl_iOS.a in Frameworks */,
+				A1821E952644D6830038DD45 /* libnghttp2_iOS.a in Frameworks */,
+				A1821E982644D6830038DD45 /* libcrypto.a in Frameworks */,
 				A16B763F24ABFFDA00D96F09 /* CoreBluetooth.framework in Frameworks */,
 				A196B7012117EF3F0031CEB8 /* AudioToolbox.framework in Frameworks */,
+				A1821E942644D6830038DD45 /* libcurl_iOS.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1237,19 +1199,6 @@
 				A1366A39217E97F500E0AC0B /* zconf.h */,
 			);
 			path = "zlib-1.2.11";
-			sourceTree = "<group>";
-		};
-		A16B762324ABFEED00D96F09 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				A16B762F24ABFEED00D96F09 /* libSDL2.a */,
-				A16B763124ABFEED00D96F09 /* libSDL2.dylib */,
-				A16B763324ABFEED00D96F09 /* libSDL2.a */,
-				A16B763524ABFEED00D96F09 /* libSDL2.dylib */,
-				A16B763724ABFEED00D96F09 /* libSDLmain.a */,
-				A16B763924ABFEED00D96F09 /* libSDLmain.a */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		A179BFDA210142F900D3C611 = {
@@ -1901,7 +1850,6 @@
 		A179C4AD2101853600D3C611 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				A16B762224ABFEED00D96F09 /* SDL.xcodeproj */,
 				A196B6F92117EE6E0031CEB8 /* iOS */,
 				A196B6FA2117EE750031CEB8 /* tvOS */,
 			);
@@ -2023,10 +1971,12 @@
 				A196B6FE2117EF0F0031CEB8 /* AudioToolbox.framework */,
 				A196B6FC2117EEFD0031CEB8 /* AVFoundation.framework */,
 				A16B763E24ABFFD300D96F09 /* CoreBluetooth.framework */,
-				A1565FE7210A0E4A00FA9BC9 /* libcrypto.a */,
-				A1565FDC210A0CEA00FA9BC9 /* libcurl_iOS.a */,
-				A1565FEA210A0E6F00FA9BC9 /* libnghttp2_iOS.a */,
-				A1565FE6210A0E4A00FA9BC9 /* libssl.a */,
+				A1821EAA2644D6EF0038DD45 /* CoreHaptics.framework */,
+				A1821E902644D6690038DD45 /* libcrypto.a */,
+				A1821E932644D6690038DD45 /* libcurl_iOS.a */,
+				A1821E922644D6690038DD45 /* libnghttp2_iOS.a */,
+				A1821E912644D6690038DD45 /* libsdl2_0_14_ios.a */,
+				A1821E8F2644D6690038DD45 /* libssl.a */,
 				A196B6FB2117EEF00031CEB8 /* AudioToolbox.framework */,
 			);
 			name = iOS;
@@ -2035,16 +1985,18 @@
 		A196B6FA2117EE750031CEB8 /* tvOS */ = {
 			isa = PBXGroup;
 			children = (
-				A17FF2652383AABC0003D2E5 /* AVFoundation.framework */,
-				A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */,
-				A196B7362117F0610031CEB8 /* FontAwesome.framework */,
 				A196B7062117EF750031CEB8 /* AudioToolbox.framework */,
+				A17FF2652383AABC0003D2E5 /* AVFoundation.framework */,
 				A196B7052117EF750031CEB8 /* AVFoundation.framework */,
+				A196B7372117F0610031CEB8 /* CocoaAsyncSocket.framework */,
+				A1821EA82644D6DE0038DD45 /* CoreHaptics.framework */,
+				A196B7362117F0610031CEB8 /* FontAwesome.framework */,
 				A196B7072117EF750031CEB8 /* GLKit.framework */,
-				A1565FEF210A0F4900FA9BC9 /* libcrypto.a */,
-				A1565FE1210A0D3E00FA9BC9 /* libcurl_tvOS.a */,
-				A1565FF0210A0F4900FA9BC9 /* libnghttp2_tvOS.a */,
-				A1565FF1210A0F4900FA9BC9 /* libssl.a */,
+				A1821E9F2644D6C20038DD45 /* libcrypto.a */,
+				A1821E9D2644D6C20038DD45 /* libcurl_tvOS.a */,
+				A1821E9E2644D6C20038DD45 /* libnghttp2_tvOS.a */,
+				A1821EA02644D6C20038DD45 /* libSDL2_0_14_tvos.a */,
+				A1821EA12644D6C20038DD45 /* libssl.a */,
 			);
 			name = tvOS;
 			sourceTree = "<group>";
@@ -2130,12 +2082,6 @@
 			);
 			productRefGroup = A179BFE4210142FA00D3C611 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = A16B762324ABFEED00D96F09 /* Products */;
-					ProjectRef = A16B762224ABFEED00D96F09 /* SDL.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				A179BFE2210142F900D3C611 /* RTCW-MP-iOS */,
@@ -2143,51 +2089,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		A16B762F24ABFEED00D96F09 /* libSDL2.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDL2.a;
-			remoteRef = A16B762E24ABFEED00D96F09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A16B763124ABFEED00D96F09 /* libSDL2.dylib */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDL2.dylib;
-			remoteRef = A16B763024ABFEED00D96F09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A16B763324ABFEED00D96F09 /* libSDL2.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDL2.a;
-			remoteRef = A16B763224ABFEED00D96F09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A16B763524ABFEED00D96F09 /* libSDL2.dylib */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDL2.dylib;
-			remoteRef = A16B763424ABFEED00D96F09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A16B763724ABFEED00D96F09 /* libSDLmain.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDLmain.a;
-			remoteRef = A16B763624ABFEED00D96F09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A16B763924ABFEED00D96F09 /* libSDLmain.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDLmain.a;
-			remoteRef = A16B763824ABFEED00D96F09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A1565FD32109F30E00FA9BC9 /* Resources */ = {
@@ -2904,6 +2805,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/RTCW-MP/libs/ios",
+					"$(PROJECT_DIR)/RTCW-MP/libs/tvos",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.RTCW-MP-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2945,6 +2847,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/RTCW-MP/libs/ios",
+					"$(PROJECT_DIR)/RTCW-MP/libs/tvos",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.tomkiddconsulting.RTCW-MP-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -1,3 +1,7 @@
+<hr>
+<img align="left" width="50" height="50" src="https://schnapple.com/wp-content/uploads/2021/05/m1_small.jpg">
+I'm trying to fund an M1 Mac to keep old games running on new Macs. If you'd like to help you can contribute here: https://ko-fi.com/schnapple
+<hr>
 <img align="left" width="100" height="100" src="https://raw.githubusercontent.com/tomkidd/RTCW-iOS/master/icon_rtcw.png">  
 
 #  Return to Castle Wolfenstein for iOS and tvOS for Apple TV
@@ -19,13 +23,13 @@ You will need to provide your own copies of the `Main` directory from an existin
 
 There are separate projects for single player (`RTCW-SP-iOS.xcodeproj`) and multiplayer (`RTCW-MP.iOS.xcodeproj`). You will need to drag your directories into the project and select "Create Folder References" and add them to both the iOS and tvOS targets. The folders will be blue if you've done it right:
 
-![folders](https://github.com/tomkidd/RTCW-iOS/raw/master/folders-sp.png)
+![folders](https://raw.githubusercontent.com/tomkidd/RTCW-iOS/master/folders-sp.png)
 
-![folders](https://github.com/tomkidd/RTCW-iOS/raw/master/folders-mp.png)
+![folders](https://raw.githubusercontent.com/tomkidd/RTCW-iOS/master/folders-mp.png)
 
 In addition, there is a folder in this GitHub repo called ["Main"](https://github.com/tomkidd/RTCW-iOS/tree/master/Main) which contains a subfolder called ["vm"](https://github.com/tomkidd/RTCW-iOS/tree/master/Main/vm) which must be copied to the `Main` folder which contains your RTCW data files. This folder contains compiled `.qvm` data files for the game which do not come with it. When done correctly your `Main` folder with the RTCW data files should look like this in Finder (note how the "vm" folder is parallel to the `.pk3` files).
 
-![folders](https://github.com/tomkidd/RTCW-iOS/raw/master/qvms.png) 
+![folders](https://raw.githubusercontent.com/tomkidd/RTCW-iOS/master/qvms.png) 
 
 You can read a lengthy blog article on how I did all this, including the reasons for the above step, [here](https://schnapple.com/return-to-castle-wolfenstein-for-ios-and-tvos-for-apple-tv/).
 
